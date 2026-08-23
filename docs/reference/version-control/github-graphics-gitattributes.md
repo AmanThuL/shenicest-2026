@@ -1,0 +1,263 @@
+---
+title: "Unity Graphics repo: .gitattributes (6000.3)"
+source_url: "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/.gitattributes"
+final_url: "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/.gitattributes"
+topic: "version-control"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "source"
+---
+
+# Unity Graphics repo: .gitattributes (6000.3)
+
+```text
+# IMPORTANT: when adding new entries, find the right section to add them to and keep that section
+# sorted. If whoever edited it previously didn't sort it, please fix it as part of your change.
+# Don't just add your new entry at the bottom. Also, keep the column alignment, it really helps
+# avoid surprises.
+#
+# Special note on case sensitivity: only do the "*.[pP][nN][gG]" thing *when necessary*. These
+# patterns are more annoying to read/search for. Let's avoid using them.
+
+
+################################################################################
+#  ___  __
+# |___ |  | |
+# |___ |__| |___
+
+
+# !! keep EOL settings in sync with .editorconfig !!
+
+# by default we want text files to use lf
+* text=auto             eol=lf
+
+##############
+# WINDOWS-ISMS
+##############
+
+# vs can handle these as lf, but resets to crlf if it modifies them. let's not fight it.
+*.bat                    eol=crlf
+*.cmd                    eol=crlf
+*.csproj                 eol=crlf
+*.props                  eol=crlf
+*.sln                    eol=crlf
+*.sln.template           eol=crlf
+*.targets                eol=crlf
+*.vcproj                 eol=crlf
+*.vcxproj                eol=crlf
+*.vcxproj.filters        eol=crlf
+*.xaml                   eol=crlf
+
+# the templating parser will actually fail on lf, inexplicably setting every #line directive as '1'
+*.t4                    eol=crlf
+*.tt                    eol=crlf
+*.ttinclude             eol=crlf
+
+
+################################################################################
+#       ___  __
+# |    |__  /__`
+# |___ |    .__/
+
+# There are two types of LFS files in our setup. Each has a section below listing its patterns.
+# check the docs in each before adding more. Also: adding a pattern doesn't change any existing
+# files. To do this, use `git add --renormalize <path>`.
+
+# LFS blobs are "pointer files" that have a small text spec telling LFS details about the actual
+# blob it is pointing to. The spec for these files is documented at:
+#
+#   https://github.com/git-lfs/git-lfs/blob/main/docs/spec.md
+#
+# Therefore:
+#   * Even though it may point at a binary blob, it is a text file. So do not mark it with `binary`.
+#   * A crlf in these files will break LFS, so use `-text` to disable auto eol conversion.
+
+
+##########################
+# NON-DIFF/MERGEABLE FILES
+##########################
+
+# !! These patterns are for binary files and use file type "lfs" !!
+
+# *** archives and well-known binary formats ***
+
+*.7z                    filter=lfs diff=lfs merge=lfs -text
+*.apk                   filter=lfs diff=lfs merge=lfs -text
+*.arc                   filter=lfs diff=lfs merge=lfs -text
+*.egg                   filter=lfs diff=lfs merge=lfs -text
+*.gz                    filter=lfs diff=lfs merge=lfs -text
+*.jar                   filter=lfs diff=lfs merge=lfs -text
+*.msi                   filter=lfs diff=lfs merge=lfs -text
+*.mp4                   filter=lfs diff=lfs merge=lfs -text
+*.mov                   filter=lfs diff=lfs merge=lfs -text
+*.nupkg                 filter=lfs diff=lfs merge=lfs -text
+*.tar.zst               filter=lfs diff=lfs merge=lfs -text
+*.tgz                   filter=lfs diff=lfs merge=lfs -text
+*.vsix                  filter=lfs diff=lfs merge=lfs -text
+*.webm                  filter=lfs diff=lfs merge=lfs -text
+*.z7                    filter=lfs diff=lfs merge=lfs -text
+*.zip                   filter=lfs diff=lfs merge=lfs -text
+
+# *** executables and libraries ***
+
+*.a                     filter=lfs diff=lfs merge=lfs -text
+*.bin                   filter=lfs diff=lfs merge=lfs -text
+*.dll                   filter=lfs diff=lfs merge=lfs -text
+*.dylib                 filter=lfs diff=lfs merge=lfs -text
+*.exe                   filter=lfs diff=lfs merge=lfs -text
+*.lib                   filter=lfs diff=lfs merge=lfs -text
+*.o                     filter=lfs diff=lfs merge=lfs -text
+*.obj                   filter=lfs diff=lfs merge=lfs -text
+*.pdb                   filter=lfs diff=lfs merge=lfs -text
+*.so                    filter=lfs diff=lfs merge=lfs -text
+
+# *** assets and other binary files ***
+
+*.aar                   filter=lfs diff=lfs merge=lfs -text
+*.anim                  filter=lfs diff=lfs merge=lfs -text
+*.bmp                   filter=lfs diff=lfs merge=lfs -text
+*.bytes                 filter=lfs diff=lfs merge=lfs -text
+*.cube                  filter=lfs diff=lfs merge=lfs -text
+*.cubemap               filter=lfs diff=lfs merge=lfs -text
+*.data                  filter=lfs diff=lfs merge=lfs -text
+*.dds                   filter=lfs diff=lfs merge=lfs -text
+*.dfont                 filter=lfs diff=lfs merge=lfs -text
+*.exp                   filter=lfs diff=lfs merge=lfs -text
+*.exr                   filter=lfs diff=lfs merge=lfs -text
+*.fbx                   filter=lfs diff=lfs merge=lfs -text
+*.gif                   filter=lfs diff=lfs merge=lfs -text
+*.hdr                   filter=lfs diff=lfs merge=lfs -text
+*.jpeg                  filter=lfs diff=lfs merge=lfs -text
+*.jpg                   filter=lfs diff=lfs merge=lfs -text
+*.m4v                   filter=lfs diff=lfs merge=lfs -text
+*.memsnap               filter=lfs diff=lfs merge=lfs -text
+*.mp3                   filter=lfs diff=lfs merge=lfs -text
+*.ogv                   filter=lfs diff=lfs merge=lfs -text
+*.otf                   filter=lfs diff=lfs merge=lfs -text
+*.pdf                   filter=lfs diff=lfs merge=lfs -text
+*.png                   filter=lfs diff=lfs merge=lfs -text
+*.prx                   filter=lfs diff=lfs merge=lfs -text
+*.psb                   filter=lfs diff=lfs merge=lfs -text
+*.psd                   filter=lfs diff=lfs merge=lfs -text
+*.skp                   filter=lfs diff=lfs merge=lfs -text
+*.snap                  filter=lfs diff=lfs merge=lfs -text
+*.spm                   filter=lfs diff=lfs merge=lfs -text
+*.st                    filter=lfs diff=lfs merge=lfs -text
+*.tga                   filter=lfs diff=lfs merge=lfs -text
+*.tif                   filter=lfs diff=lfs merge=lfs -text
+*.tiff                  filter=lfs diff=lfs merge=lfs -text
+*.ttc                   filter=lfs diff=lfs merge=lfs -text
+*.ttf                   filter=lfs diff=lfs merge=lfs -text
+*.unitypackage          filter=lfs diff=lfs merge=lfs -text
+*.wav                   filter=lfs diff=lfs merge=lfs -text
+*.xcf                   filter=lfs diff=lfs merge=lfs -text
+
+# *** uppercase variants where files exist ***
+
+*.Exe                   filter=lfs diff=lfs merge=lfs -text
+*.FBX                   filter=lfs diff=lfs merge=lfs -text
+*.JPG                   filter=lfs diff=lfs merge=lfs -text
+*.LIB                   filter=lfs diff=lfs merge=lfs -text
+*.PNG                   filter=lfs diff=lfs merge=lfs -text
+*.PSD                   filter=lfs diff=lfs merge=lfs -text
+*.TIF                   filter=lfs diff=lfs merge=lfs -text
+*.TTC                   filter=lfs diff=lfs merge=lfs -text
+*.TTF                   filter=lfs diff=lfs merge=lfs -text
+
+# *** specific binaries in the unity codebase ***
+
+AudioPluginDemo         filter=lfs diff=lfs merge=lfs -text
+convert                 filter=lfs diff=lfs merge=lfs -text
+ios-deploy              filter=lfs diff=lfs merge=lfs -text
+lzma                    filter=lfs diff=lfs merge=lfs -text
+mobiledevice            filter=lfs diff=lfs merge=lfs -text
+p4                      filter=lfs diff=lfs merge=lfs -text
+p4d                     filter=lfs diff=lfs merge=lfs -text
+RenderingPlugin         filter=lfs diff=lfs merge=lfs -text
+re2c                    filter=lfs diff=lfs merge=lfs -text
+lemon                   filter=lfs diff=lfs merge=lfs -text
+AssetBundles            filter=lfs diff=lfs merge=lfs -text
+7za                     filter=lfs diff=lfs merge=lfs -text
+
+Editor/Resources/Common/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
+Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
+Projects/VisualStudio/ipch/middleman-2afd44a3/unitywebpluginax-eba8f4d1.ipch filter=lfs diff=lfs merge=lfs -text
+Tools/Unity.BugInfo.Coverage/bin/* filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.asset filter=lfs diff=lfs merge=lfs -text
+
+# Video tests: .ts is MPEG Transport Stream here; clashes with TypeScript extension
+**/EditModeAndPlayModeTests/Video/**/HLS/**/*.ts filter=lfs diff=lfs merge=lfs -text
+
+# memoryprofiler test snapshots
+**/com.unity.memoryprofiler.tests/**/*.snap filter=lfs diff=lfs merge=lfs -text
+
+# search test cases
+/Modules/QuickSearch/Tests/QuickSearch/Assets/Cases/UUM-113048/uum-113048.index filter=lfs diff=lfs merge=lfs -text
+
+# SRP Templates
+/Templates/**/LightingData.asset filter=lfs diff=lfs merge=lfs -text
+
+############################
+# MAYBE-DIFF/MERGEABLE FILES
+############################
+
+# !! These patterns are for text files stored in LFS and use file type "lfs-text" !!
+
+# LFS is broken out of box for diff/merge! Even if the files are text, git only sees the pointers
+# and doesn't know how to look inside for diff/merge. We need to teach it to do that with a little
+# config. Run these commands:
+#
+#   git config --global diff.lfs-text.textconv cat
+#   git config --global merge.lfs-text.driver 'git lfs merge-driver --ancestor %O --current %A --other %B --marker-size %L --output %A'
+#
+# Now git will support diff/merge on any LFS file marked as type "lfs-text" in any repo. The below
+# patterns are how we do this, using this format:
+#
+#   <pattern> filter=lfs diff=lfs-text merge=lfs-text -text
+
+*.controller            filter=lfs diff=lfs-text merge=lfs-text -text
+*.motion                filter=lfs diff=lfs-text merge=lfs-text -text
+*.motiongraph           filter=lfs diff=lfs-text merge=lfs-text -text
+*.playable              filter=lfs diff=lfs-text merge=lfs-text -text
+*.prefab                filter=lfs diff=lfs-text merge=lfs-text -text
+*.shadergraph           filter=lfs diff=lfs-text merge=lfs-text -text
+*.ShaderGraph           filter=lfs diff=lfs-text merge=lfs-text -text
+*.shadersubgraph        filter=lfs diff=lfs-text merge=lfs-text -text
+*.ShaderSubGraph        filter=lfs diff=lfs-text merge=lfs-text -text
+*.unity                 filter=lfs diff=lfs-text merge=lfs-text -text
+*.vfx                   filter=lfs diff=lfs-text merge=lfs-text -text
+
+# this particular ext has many variations
+*.[fF][bB][xX].meta                 filter=lfs diff=lfs-text merge=lfs-text -text
+
+# textmesh pro
+*[[:space:]]SDF.asset               filter=lfs diff=lfs-text merge=lfs-text -text
+*[[:space:]]SDF[[:space:]]*.asset   filter=lfs diff=lfs-text merge=lfs-text -text
+
+# UnityGraphicsKernel test shaders
+UgTestShaders_AutoGenerated_*.h    filter=lfs diff=lfs-text merge=lfs-text -text
+
+OcclusionCullingData.asset         filter=lfs diff=lfs-text merge=lfs-text -text
+
+Runtime/Resources/Assets/DefaultResourcesExtra/Particle[[:space:]]Standard[[:space:]]Surface.shader filter=lfs diff=lfs-text merge=lfs-text -text
+Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree8.shader filter=lfs diff=lfs-text merge=lfs-text -text
+Runtime/Resources/Assets/DefaultResourcesExtra/Nature/SpeedTree9.shader filter=lfs diff=lfs-text merge=lfs-text -text
+
+**/com.unity.template-hd/Assets/Scenes/SampleScene/LightingData.asset filter=lfs diff=lfs-text merge=lfs-text -text
+**/HDRP_PerformanceTests/Assets/Scenes/Lighting/Cloud.asset filter=lfs diff=lfs-text merge=lfs-text -text
+**/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs-text merge=lfs-text -text
+**/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs-text merge=lfs-text -text
+
+############################
+# OVERRIDES
+############################
+
+# These patterns override settings for specific files.
+
+# YamlMerge test data files are YAML text fixtures used for merge testing.
+# They must not be tracked by LFS — the tests compare merge output byte-for-byte
+# against expected files, and LFS round-tripping can alter whitespace/formatting.
+Editor/Tools/UnityYAMLMerge/TestData/**/*.unity -filter -diff -merge text=auto eol=lf
+Editor/Tools/UnityYAMLMerge/TestData/**/*.prefab -filter -diff -merge text=auto eol=lf
+
+```

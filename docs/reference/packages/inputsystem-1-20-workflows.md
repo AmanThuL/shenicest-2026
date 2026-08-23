@@ -1,0 +1,30 @@
+---
+title: "Input System - Workflows"
+page_title: "Input System Workflows | Input System | 1.20.0"
+source_url: "https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/Workflows.html"
+final_url: "https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/Workflows.html"
+topic: "packages"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "html"
+---
+
+# Input System Workflows
+
+There are multiple ways to use the Input System, however the primary and recommended workflow is to use the **Input Actions** panel in the **Project Settings window** to configure your project-wide actions and bindings, get references to those Actions in your code's Start method, then read the values for those actions in your Update method.
+
+There are other workflows which can suit more unusual situations, for example you can use the **PlayerInput component** together with actions and bindings which adds a further layer of abstraction, allowing you to connect actions to your event handlers without requiring any intermediate code, and easily handle multiplayer scenarios.
+
+You can choose to configure actions and bindings in the Editor UI, or you can set up everything through scripting. Or you can take a more direct approach by omitting the actions and bindings features altogether and instead use script to directly read the state of devices.
+
+The descriptions below describe these main workflows and link to more detailed description of them.
+
+| Workflows                                                                                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [**Using Actions**](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/using-actions-workflow.html)                                   | This is the **recommended** workflow for most situations. In this workflow, you use the [Actions Editor window](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/actions-editor.html) to configure sets of actions and bindings, then set up references and read the values for those actions in your code.                                                                                                |
+| [**Using Actions and the PlayerInput Component**](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/using-playerinput-workflow.html) | This workflow provides extra features that allow you to connect up **callbacks** directly from Actions to your own callback handler methods, removing the need to deal with Action references in your code. It also provides features that are useful in **local multiplayer** scenarios such as device assignment and split-screen functionality.                                                                            |
+| [**Directly read device states**](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/using-direct-workflow.html)                      | This workflow is a simplified, script-only approach which bypasses the actions and bindings features entirely. Instead your script explicitly references specific device controls (such as "left gamepad stick") and reads the values directly. This is suitable for **fast prototyping**, or single fixed platform scenarios. It is a **less flexible** workflow because it bypasses some of the main input system features. |
+
+##### Note
+
+Because the Input System has multiple workflows, the code samples used throughout this documentation also vary, often demonstrating techniques using various workflows. For example, some code samples may use Action references, and some may use the workflow of reading input directly from devices.

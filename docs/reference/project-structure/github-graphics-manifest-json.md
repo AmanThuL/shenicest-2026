@@ -1,0 +1,61 @@
+---
+title: "Universal 3D template: Packages/manifest.json (6000.3)"
+source_url: "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-universal/Packages/manifest.json"
+final_url: "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-universal/Packages/manifest.json"
+topic: "project-structure"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "source"
+---
+
+# Universal 3D template: Packages/manifest.json (6000.3)
+
+```json
+{
+  "dependencies": {
+    "com.unity.2d.sprite": "1.0.0",
+    "com.unity.2d.tilemap": "1.0.0",
+    "com.unity.collab-proxy": "1.7.1",
+    "com.unity.feature.development": "1.0.1",
+    "com.unity.render-pipelines.universal": "13.1.0",
+    "com.unity.test-framework": "1.1.29",
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.timeline": "1.6.2",
+    "com.unity.ugui": "1.0.0",
+    "com.unity.visualscripting": "1.7.7",
+    "com.unity.xr.legacyinputhelpers": "2.1.8",
+    "com.unity.modules.ai": "1.0.0",
+    "com.unity.modules.androidjni": "1.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.assetbundle": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.cloth": "1.0.0",
+    "com.unity.modules.director": "1.0.0",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.screencapture": "1.0.0",
+    "com.unity.modules.terrain": "1.0.0",
+    "com.unity.modules.terrainphysics": "1.0.0",
+    "com.unity.modules.tilemap": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.umbra": "1.0.0",
+    "com.unity.modules.unityanalytics": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequestaudio": "1.0.0",
+    "com.unity.modules.unitywebrequesttexture": "1.0.0",
+    "com.unity.modules.unitywebrequestwww": "1.0.0",
+    "com.unity.modules.vehicles": "1.0.0",
+    "com.unity.modules.video": "1.0.0",
+    "com.unity.modules.vr": "1.0.0",
+    "com.unity.modules.wind": "1.0.0",
+    "com.unity.modules.xr": "1.0.0"
+  }
+}
+
+```

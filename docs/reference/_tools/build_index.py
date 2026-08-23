@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Generate docs/reference/README.md from the download results file.
+
+Usage: python3 build_index.py <results.json> <reference_root>
+"""
+from __future__ import annotations
+
+import json
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+results_path, root = Path(sys.argv[1]), Path(sys.argv[2])
+results = [r for r in json.loads(results_path.read_text()) if r.get("ok")]
+
+TOPICS = [
+    ("csharp-style", "C# style, naming and formatting",
+     "Unity's C# style guide e-book, how-to articles on naming/formatting, the style-guide example repo, and the Microsoft conventions Unity defers to."),
+    ("design-patterns", "Architecture and design patterns",
+     "SOLID and design-pattern e-books, ScriptableObject architecture, pattern how-to articles and the official demo repo."),
+    ("project-structure", "Project and asset organization",
+     "Reserved folder names, asset workflow, prefabs, scenes, project organization best practices."),
+    ("version-control", "Version control",
+     "Git/LFS with Unity, meta files, text serialization, YAML merge, the project-organization & version-control e-book."),
+    ("scripting", "Scripting fundamentals (6000.3 manual)",
+     "Execution order, serialization, assembly definitions, compilation, Awaitable/async, coroutines, key Script Reference pages."),
+    ("performance", "Performance and profiling",
+     "Unity 6 optimization and profiling e-books, manual pages on managed memory, GC, profiler, rendering and physics performance."),
+    ("rendering-urp", "Rendering with URP",
+     "URP manual section for 6000.3, URP e-books, lighting, Render Graph, GPU Resident Drawer, shaders."),
+    ("testing-tooling", "Testing, CI and tooling",
+     "Unity Test Framework, command-line arguments, build profiles, IDE integration, analyzers."),
+    ("packages", "Core packages",
+     "Input System, Cinemachine, UI Toolkit / uGUI / TextMeshPro, Addressables, physics, animation, audio, Package Manager."),
+    ("unity6-release", "Unity 6 / 6000.3 release notes",
+     "What's new in Unity 6.3, upgrade guides, LTS policy, system requirements, templates, Hub."),
+]
+PRIORITY_ORDER = {"must": 0, "should": 1, "nice": 2}
+
+by_topic: dict[str, list[dict]] = defaultdict(list)
+for r in results:
+    by_topic[r["topic"]].append(r)
+
+lines: list[str] = []
+lines.append("# Reference library — official Unity documentation for Unity 6000.3\n")
+lines.append(
+    "This folder is an offline snapshot of the official Unity documentation that the "
+    "[coding guidelines](../guidelines/README.md) are derived from. Every file was downloaded from "
+    "unity.com, docs.unity3d.com, learn.unity.com or a Unity-Technologies GitHub repository and converted to Markdown; "
+    "the YAML front matter of each file records the `source_url`, the fetch date and the publisher. "
+    "Unity e-books are stored as extracted text (`ebook-*.md`); the PDF binaries are not committed "
+    "(they total >100 MB) — re-download them with the tooling in [`_tools/`](_tools/README.md).\n"
+)
+lines.append("> Files marked **must** are the primary sources for the guidelines, **should** are supporting detail, "
+             "**nice** is surrounding context. Non-Unity sources (Microsoft C# conventions, the GitHub `Unity.gitignore`) "
+             "are included only where Unity's own documentation defers to them and are marked *(third-party)*.\n")
+
+total = len(results)
+lines.append(f"**{total} documents** in {len([t for t, _, _ in TOPICS if by_topic.get(t)])} topics.\n")
+lines.append("| Topic | Folder | Docs | What it covers |")
+lines.append("|---|---|---:|---|")
+for key, title, desc in TOPICS:
+    if not by_topic.get(key):
+        continue
+    lines.append(f"| [{title}](#{key}) | `{key}/` | {len(by_topic[key])} | {desc} |")
+lines.append("")
+
+for key, title, desc in TOPICS:
+    items = by_topic.get(key)
+    if not items:
+        continue
+    lines.append(f"## {title} {{#{key}}}\n" if False else f"## {title}\n")
+    lines.append(f"<a id=\"{key}\"></a>{desc}\n")
+    items.sort(key=lambda r: (PRIORITY_ORDER.get(r.get("priority"), 9), (r.get("title") or "").lower()))
+    current = None
+    for r in items:
+        pr = r.get("priority") or "nice"
+        if pr != current:
+            current = pr
+            lines.append(f"\n**{pr}**\n")
+        md = r["md"]
+        title_txt = (r.get("title") or r["slug"]).replace("|", "\\|")
+        extra = ""
+        if r.get("kind") == "pdf":
+            extra = f" *(e-book, {r.get('pages')} pages)*"
+        if r.get("official") is False:
+            extra += " *(third-party)*"
+        lines.append(f"- [{title_txt}]({md}){extra} — [source]({r['url']})")
+    lines.append("")
+
+lines.append("## How this library was built\n")
+lines.append(
+    "1. Ten research passes (one per topic) searched unity.com, docs.unity3d.com (6000.3), learn.unity.com and "
+    "Unity GitHub repositories for pages carrying coding standards or best-practice guidance, verified each URL with "
+    "`curl`, and located the direct PDF links for the Unity 6 e-books. A final gap-check pass looked for anything missed.\n"
+    "2. `_tools/fetch_batch.py` downloaded every source in `_tools/manifest.json`, extracted the main content "
+    "(pandoc → GitHub-flavoured Markdown; `pypdf` text for PDFs) and wrote the front matter.\n"
+    "3. `_tools/build_index.py` generated this index from `_tools/results.json`.\n"
+)
+lines.append("To refresh or extend the library, edit `_tools/manifest.json` and run the commands in [`_tools/README.md`](_tools/README.md).\n")
+
+(root / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+print(f"wrote {root / 'README.md'} with {total} entries")

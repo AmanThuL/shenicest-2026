@@ -1,0 +1,180 @@
+---
+title: "Scripting API: Build.Reporting.BuildReport"
+page_title: "Unity - Scripting API: BuildReport"
+source_url: "https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport.html"
+final_url: "https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport.html"
+topic: "testing-tooling"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "html"
+---
+
+# BuildReport
+
+class in UnityEditor.Build.Reporting
+
+/
+
+Inherits from:<a href="https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.html" class="cl">Object</a>
+
+<span id="scrollToFeedback">Leave feedback</span>
+
+<span class="blue-btn sbtn">Suggest a change</span>
+
+## Success!
+
+Thank you for helping us improve the quality of Unity Documentation. Although we cannot accept all submissions, we do read each suggested change from our users and will make updates where applicable.
+
+<span class="gray-btn sbtn close">Close</span>
+
+## Submission failed
+
+For some reason your suggested change could not be submitted. Please \<a>try again\</a> in a few minutes. And thank you for taking the time to help us improve the quality of Unity Documentation.
+
+<span class="gray-btn sbtn close">Close</span>
+
+Your name Your email Suggestion<span class="r">\*</span>
+
+Submit suggestion
+
+<span class="cancel left lh42 cn">Cancel</span>
+
+<span style="color:red;"> </span>
+
+### Description
+
+The BuildReport API gives you information about the Unity build process.
+
+A BuildReport object is returned by [BuildPipeline.BuildPlayer](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/BuildPipeline.BuildPlayer.html) and can be used to discover information about the files output, the build steps taken, and other platform-specific information such as native code stripping.  
+  
+For AssetBundle builds the BuildReport is available by calling GetLatestReport immediately after calling [BuildPipeline.BuildAssetBundles](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/BuildPipeline.BuildAssetBundles.html).
+
+``` codeExampleCS
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+
+public class BuildReportExample
+
+            }
+        };
+
+        BuildPipeline.BuildAssetBundles(
+            buildOutputDirectory,
+            bundleDefinitions,
+            BuildAssetBundleOptions.ForceRebuildAssetBundle,
+            EditorUserBuildSettings.activeBuildTarget);
+
+        BuildReport report = BuildReport.GetLatestReport();
+        if (report != null)
+        
+        else
+        
+    }
+
+    public static string LogBuildReportSteps(BuildReport buildReport)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"Build steps: {buildReport.steps.Length}");
+        int maxWidth = buildReport.steps.Max(s => s.name.Length + s.depth) + 3;
+        foreach (var step in buildReport.steps)
+        {
+            string rawStepOutput = new string('-', step.depth + 1) + ' ' + step.name;
+            sb.AppendLine($"{rawStepOutput.PadRight(maxWidth)}: {step.duration:g}");
+        }
+        return sb.ToString();
+    }
+
+    public static string LogBuildMessages(BuildReport buildReport)
+    {
+        var sb = new StringBuilder();
+        foreach (var step in buildReport.steps)
+        {
+            foreach (var message in step.messages)
+                // If desired, this logic could ignore any Info or Warning messages to focus on more serious messages
+                sb.AppendLine($"[{message.type}] {message.content}");
+        }
+
+        string messages = sb.ToString();
+        if (messages.Length > 0)
+            return "Messages logged during Build:\n" + messages;
+        else
+            return "";
+    }
+}
+
+ // For the purpose of demonstration, this callback logs different types of errors and forces a build failure
+[BuildCallbackVersion(1)]
+class MyTroublesomeBuildCallback : IProcessSceneWithReport
+{
+    public int callbackOrder { get { return 0; } }
+    public void OnProcessScene(UnityEngine.SceneManagement.Scene scene, BuildReport report)
+    
+}
+```
+
+### Properties
+
+| Property                                                                                                                              | Description                                                                                                                          |
+|---------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| [packedAssets](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport-packedAssets.html)           | An array of all the PackedAssets generated by the build process.                                                                     |
+| [scenesUsingAssets](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport-scenesUsingAssets.html) | An optional array of ScenesUsingAssets generated by the build process if BuildOptions.DetailedBuildReport was used during the build. |
+| [steps](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport-steps.html)                         | An array of all the BuildSteps that took place during the build process.                                                             |
+| [strippingInfo](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport-strippingInfo.html)         | The StrippingInfo object for the build.                                                                                              |
+| [summary](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport-summary.html)                     | A BuildSummary containing overall statistics and data about the build process.                                                       |
+
+### Public Methods
+
+| Method                                                                                                                            | Description                                                            |
+|-----------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [GetFiles](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport.GetFiles.html)               | Returns an array of all the files output by the build process.         |
+| [SummarizeErrors](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport.SummarizeErrors.html) | Returns a string summarizing any errors that occurred during the build |
+
+### Static Methods
+
+| Method                                                                                                                            | Description                                                                      |
+|-----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [GetLatestReport](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Build.Reporting.BuildReport.GetLatestReport.html) | Return the build report generated by the most recent Player or AssetBundle build |
+
+### Inherited Members
+
+### Properties
+
+| Property                                                                                         | Description                                                                            |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| [hideFlags](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object-hideFlags.html) | Controls whether the object is hidden, saved with the scene, and editable by the user. |
+| [name](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object-name.html)           | The name of the object.                                                                |
+
+### Public Methods
+
+| Method                                                                                                   | Description                           |
+|----------------------------------------------------------------------------------------------------------|---------------------------------------|
+| [GetHashCode](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.GetHashCode.html)     | Returns the hash code for the object. |
+| [GetInstanceID](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.GetInstanceID.html) | Gets the instance ID of the object.   |
+| [ToString](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.ToString.html)           | Returns the name of the object.       |
+
+### Static Methods
+
+| Method                                                                                                                   | Description                                                                                                                                                 |
+|--------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Destroy](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.Destroy.html)                             | Removes a GameObject, component, or asset.                                                                                                                  |
+| [DestroyImmediate](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.DestroyImmediate.html)           | Destroys the specified object immediately. Use with caution and in Edit mode only.                                                                          |
+| [DontDestroyOnLoad](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.DontDestroyOnLoad.html)         | Do not destroy the target Object when loading a new Scene.                                                                                                  |
+| [FindAnyObjectByType](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.FindAnyObjectByType.html)     | Retrieves any active loaded object of Type T.                                                                                                               |
+| [FindFirstObjectByType](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.FindFirstObjectByType.html) | Retrieves the first active loaded object of Type type.                                                                                                      |
+| [FindObjectsByType](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.FindObjectsByType.html)         | Retrieves a list of all loaded objects of Type type and sorts the results according to sortMode.                                                            |
+| [Instantiate](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.Instantiate.html)                     | Clones the object original and returns the clone.                                                                                                           |
+| [InstantiateAsync](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.InstantiateAsync.html)           | Captures a snapshot of the original object that's related to another GameObject and obtains an AsyncInstantiateOperation instance of the resulting objects. |
+
+### Operators
+
+| Operator                                                                                             | Description                                                             |
+|------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [bool](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object-operator_Object.html)    | Determines whether the object exists.                                   |
+| [operator !=](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object-operator_ne.html) | Compares if two objects refer to a different object.                    |
+| [operator ==](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object-operator_eq.html) | Compares two object references to see if they refer to the same object. |

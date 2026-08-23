@@ -1,0 +1,72 @@
+---
+title: "Convert Addressables projects to content directories"
+page_title: "Convert Addressables projects to content directories | Addressables | 4.0.2"
+source_url: "https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/convert-content-directories.html"
+final_url: "https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/convert-content-directories.html"
+topic: "packages"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "html"
+---
+
+# Convert Addressables projects to content directories
+
+If you created a project using Addressables before version 4.0, you can convert it to use [content directories](https://docs.unity3d.com/6000.6/Documentation/Manual/content-directories.html) as the content build system. For more information about using content directories in Addressables, refer to [Choose a content build system](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/content-build-systems.html). The workflow to update to content directories is as follows:
+
+1.  [Convert existing groups to content directories](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/convert-content-directories.html#convert-existing-groups-to-content-directories).
+2.  [Validate the build](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/convert-content-directories.html#validate-the-build).
+3.  [Optionally clean up redundant Addressable entries](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/convert-content-directories.html#clean-up-redundant-addressable-entries).
+
+## Prerequisites
+
+-   Install Unity 6.6 or higher.
+-   Install Addressables version 4.0 from the **Package Manager** window.
+
+## Convert existing groups to content directories
+
+To convert existing AssetBundle groups to content directories, perform the following steps:
+
+1.  Open the **Groups** window (**Window** > **Asset Management** > **Addressables** > **Groups**).
+2.  Select all groups that you want to convert to content directories. To select multiple groups hold down Ctrl (Command on macOS), or Shift to select a range of groups.
+3.  Right-click on the groups and select **Convert schema(s) to Content Directory**.
+
+##### Note
+
+If you're using localization packages, then read-only localization package group schemas can't be edited in the Inspector directly.
+
+## Build content directories
+
+To create a content directory build, perform the following steps:
+
+1.  Open the **Groups** window (**Window** > **Asset Management** > **Addressables** > \***Groups**).
+2.  Select **Build** > **Clear Build Cache** > **All**. This step is only necessary the first time you build content directories, to remove any old AssetBundle content in the cache.
+3.  Select **Build** > **New Build** > **Default Build Script**.
+
+The Default Build Script builds both AssetBundles and content directories at the same time, so if you still have AssetBundles in your project, it produces both an AssetBundle build, and a content directory build.
+
+### Read-only warnings and errors
+
+Some restrictions are in place for read-only files to optimize the content build process. These files are no longer automatically modified at build time to save processing overhead. You therefore might need to update read-only files manually. You can use the [**Project Auditor**](https://docs.unity3d.com/Manual/project-auditor/project-auditor.html) window to fix these issues as follows:
+
+1.  Open the **Project Auditor** window (**Window** > **Analysis** > **Project Auditor**). If it's your first time using Project Auditor, you might be prompted to download the Project Auditor Rules package.
+2.  Select **Start Analysis**.
+3.  Expand the **Top Ten Issues** panel.
+4.  Select **Quick Fix** on any issues that say **Mesh requires Read/Write access** or **Texture requires Read/Write access**.
+
+You can also use the [**Build Analysis** window](https://docs.unity3d.com/6000.6/Documentation/Manual/build-analysis-window-reference.html) to inspect the output of a build.
+
+## Validate the build
+
+-   To validate that the Editor works in Play mode, set the **Play Mode Script** to **Use Existing Build** (**Window** > **Asset Management** > **Addressables** > **Groups** > **Play Mode Script**), and then enter Play mode.
+-   To validate the Player build, create a build from the <a href="https://docs.unity3d.com/Manual/create-build-profile.html" class="xref"><strong>Build Profiles</strong> window</a>.
+
+## Clean up redundant Addressable entries
+
+In projects that use the AssetBundle system, some assets might be marked as Addressable to control how Unity bundles assets together, for example, to avoid asset duplication. The content directory system loads and unloads assets granularly so you no longer need to mark these assets as Addressable. Only assets that are loaded by address, asset reference, or label need to be marked as Addressable, because their dependencies are included automatically in the content directory system. Make any other assets non-Addressable to remove redundant catalog entries and reduce startup overhead.
+
+## Additional resources
+
+-   [Introduction to content directories](https://docs.unity3d.com/6000.6/Documentation/Manual/content-directories-introduction.html)
+-   [Choose a content build system](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/content-build-systems.html)
+-   [Add assets to groups](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/groups-create.html)
+-   [Create a content build](https://docs.unity3d.com/Packages/com.unity.addressables@4.0/manual/builds-full-build.html)

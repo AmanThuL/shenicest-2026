@@ -1,0 +1,197 @@
+---
+title: "Load assets"
+page_title: "Load assets | Addressables | 2.9.1"
+source_url: "https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets.html"
+final_url: "https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets.html"
+topic: "packages"
+publisher: "Unity Technologies"
+fetched: "2026-08-23"
+kind: "html"
+---
+
+# Load assets
+
+You load and use an Addressable asset in the following ways:
+
+-   [Load an asset by an AssetReference that references the asset](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets.html#use-assetreferences)
+-   [Load a single asset](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets.html#load-a-single-asset)
+-   [Load multiple assets](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets.html#load-multiple-assets)
+
+Loading Addressable assets uses asynchronous operations. Refer to <a href="https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/AddressableAssetsAsyncOperationHandle.html" class="xref">Operations</a> for information about the different ways to approach asynchronous programming in Unity scripts.
+
+## Use AssetReferences
+
+To use an `AssetReference`, add an `AssetReference` field to a `MonoBehaviour` or `ScriptableObject`. After you create an object of that type, you can assign an asset to the field in your object's Inspector window.
+
+##### Note
+
+If you assign a non-Addressable asset to an AssetReference field, Unity automatically makes that asset Addressable and adds it to your default Addressables group. AssetReferences also let you use Addressable assets in a Scene that isn't itself Addressable.
+
+Unity doesn't load or release the referenced asset automatically. You must load and release the asset using the `Addressables` API:
+
+``` lang-cs
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+internal class LoadWithReference : MonoBehaviour
+
+    // Instantiate the loaded prefab on complete
+    private void Handle_Completed(AsyncOperationHandle obj)
+    
+        else
+        {
+            Debug.LogError($"AssetReference {reference.RuntimeKey} failed to load.");
+        }
+    }
+
+    // Release asset when parent object is destroyed
+    private void OnDestroy()
+    
+}
+```
+
+Refer to <a href="https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/LoadingAssetReferences.html" class="xref">Loading an AssetReference</a> for additional information about loading AssetReferences.
+
+## Load a single asset
+
+Use the <a href="https://docs.unity3d.com/Packages/com.unity.addressables@2.9/api/UnityEngine.AddressableAssets.Addressables.LoadAssetsAsync.html" class="xref"><code>LoadAssetAsync</code></a> method to load a single Addressable asset, typically with an address as the key:
+
+``` lang-cs
+using System.Collections;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+internal class LoadAddress : MonoBehaviour
+
+    }
+
+    void OnDestroy()
+    
+}
+```
+
+You can use a [label](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/Labels.html) or other key type when you call `LoadAssetAsync`, not just an address. However, if the key resolves to more than one asset, only the first asset found is loaded. For example, if you call this method with a label applied to several assets, Addressables returns whichever one of those assets it finds first.
+
+## Load multiple assets
+
+Use the <a href="https://docs.unity3d.com/Packages/com.unity.addressables@2.9/api/UnityEngine.AddressableAssets.Addressables.LoadAssetsAsync.html" class="xref"><code>LoadAssetsAsync</code></a> method to load more than one Addressable asset in a single operation. When using this method, you can specify a single key, such as a [label](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/Labels.html), or a list of keys.
+
+When you specify multiple keys, you can specify a <a href="https://docs.unity3d.com/Packages/com.unity.addressables@2.9/api/UnityEngine.AddressableAssets.Addressables.MergeMode.html" class="xref">merge mode</a> to set how the assets that match each key are combined:
+
+-   `Union`: Include assets that match any key
+-   `Intersection`: Include assets that match every key
+-   `UseFirst`: Include assets only from the first key that resolves to a valid location
+
+``` lang-cs
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+internal class LoadMultiple : MonoBehaviour
+{
+    // Label strings to load
+    public List<string> keys = new List<string>() {"characters", "animals"};
+
+    // Operation handle used to load and release assets
+    AsyncOperationHandle<IList<GameObject>> loadHandle;
+
+    // Load Addressables by Label
+    public IEnumerator Start()
+    
+            }, Addressables.MergeMode.Union, // How to combine multiple labels
+            false); // Whether to fail and release if any asset fails to load
+
+        yield return loadHandle;
+    }
+
+    private void OnDestroy()
+    
+}
+```
+
+To specify how to handle loading errors, use the `releaseDependenciesOnFailure` parameter. If `true`, then the operation fails if it encounters an error loading any single asset. The operation and any assets that loaded are released.
+
+If `false`, then the operation loads any objects that it can and doesn't release the operation. If it fails, the operation still completes with a status of `Failed`. Also, the list of assets returned has null values where the failed assets otherwise appear.
+
+Set `releaseDependenciesOnFailure` to true when loading a group of assets that must be loaded as a set to be used. For example, if you load the assets for a game level, you might fail the operation as a whole rather than load only some of the required assets.
+
+### Load by label
+
+You can load sets of assets that have the same label in one operation:
+
+``` lang-cs
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+internal class LoadWithLabels : MonoBehaviour
+{
+    // Label strings to load
+    public List<string> keys = new List<string>() {"characters", "animals"};
+
+    // Operation handle used to load and release assets
+    AsyncOperationHandle<IList<GameObject>> loadHandle;
+
+    // Load Addressables by Label
+    void Start()
+    
+                }
+            }, Addressables.MergeMode.Union, // How to combine multiple labels
+            false); // Whether to fail if any asset fails to load
+        loadHandle.Completed += LoadHandle_Completed;
+    }
+
+    private void LoadHandle_Completed(AsyncOperationHandle<IList<GameObject>> operation)
+    
+    private void OnDestroy()
+    
+}
+```
+
+## Subasset and GameObject component restrictions
+
+GameObject components and subassets have the following loading restrictions:
+
+-   **GameObject components**: You can't load a component of a GameObject directly through Addressables. You must load or instantiate the GameObject, then retrieve the component reference from it. Refer to the [`ComponentReference` sample](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/SamplesOverview.html) for an example of how to extend Addressables to support component loading.
+-   **Subassets**: You must use special syntax to load subassets such as sprites in a sprite sheet, or animation clips in an FBX file:
+    -   To load all subassets use syntax like the following: `Addressables.LoadAssetAsync<IList<Sprite>>("MySpriteSheetAddress");`
+    -   To load a single subasset in an asset, use syntax like the following: `Addressables.LoadAssetAsync<Sprite>("MySpriteSheetAddress[MySpriteName]");`.
+
+## Safely edit loaded assets
+
+You can safely edit loaded assets in the following situations:
+
+-   The asset is loaded from an AssetBundle.
+-   The application is running in a Player, not in the Editor.
+-   When you enable the **Use Existing Build (requires built groups)** option in [Play Mode Scripts](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/GroupsWindow.html#play-mode-script).
+
+In these cases, the assets exist as a copy in active memory. Changes made to these copied assets don't affect the saved AssetBundle on disk and any changes don't persist between sessions.
+
+For other situations, including when you enable the **Use Asset Database (fastest)** property in the Play mode settings, Unity loads the assets directly from the project files. This means that Unity saves any modifications to the asset during runtime to the project asset file and that those changes persist between different sessions.
+
+If you want to make runtime changes to an asset, create a new instance of the GameObject you want to change and use the copy for any runtime changes. This removes the risk that you might change the original asset file. The following code example demonstrates creating a new copy of a loaded asset:
+
+``` lang-c#
+var op = Addressables.LoadAssetAsync<GameObject>("myKey");
+yield return op;
+if (op.Result != null)
+
+```
+
+If you use this example method to use a copy of an asset, be aware of the following:
+
+-   You must use either the original asset or the `AsyncOperationHandle` when you release the asset, not the current instance of the asset.
+-   When you instantiate an asset that has references to other assets in this way, Unity doesn't create new instances of the referenced assets. The references for the newly instantiated copy target the original project asset.
+-   Unity invokes `MonoBehaviour` methods like `Start()`, `OnEnable()`, and `OnDisable()` on the new instance.
+
+## Additional resources
+
+-   [Load assets by location](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/load-assets-location.html)
+-   [Load scenes](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/LoadingScenes.html)
+-   [Load AssetBundles](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/LoadingAssetBundles.html)
+-   [Load assets from multiple projects](https://docs.unity3d.com/Packages/com.unity.addressables@2.9/manual/MultiProject.html)
