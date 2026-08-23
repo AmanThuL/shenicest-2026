@@ -1,0 +1,294 @@
+# EditorConfig for shenicest-2026 — the executable form of docs/guidelines/01-csharp-style.md.
+# Derived from Unity's C# style guide (Unity 6 edition) and Unity-staff .editorconfig files
+# (Boss Room, Graphics 6000.3, Open Project #1). https://editorconfig.org/
+root = true
+
+#### All files ####
+[*]
+end_of_line = lf
+charset = utf-8
+indent_style = space
+indent_size = 4
+tab_width = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+#### Formats whose layout is fixed by the tool that writes them ####
+[*.{md,markdown}]
+# Trailing whitespace is significant in Markdown.
+trim_trailing_whitespace = false
+
+[*.json]
+indent_size = 2
+
+[*.asmdef]
+indent_size = 4
+
+[*.{cg,cginc,glslinc,hlsl,shader}]
+indent_size = 4
+
+[*.{uss,uxml}]
+indent_size = 4
+
+[{Makefile,makefile}]
+# Tab characters are part of the Makefile format.
+indent_style = tab
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+#### C# ####
+[*.cs]
+# Informational: Rider draws a margin guide at this column; the Roslyn formatter in
+# Visual Studio/VS Code ignores it. Reviewers enforce the limit.
+max_line_length = 120
+
+# New lines — Allman style everywhere.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# Indentation.
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = false
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+
+# Spacing.
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_after_comma = true
+csharp_space_before_comma = false
+csharp_space_after_dot = false
+csharp_space_before_dot = false
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_around_declaration_statements = false
+csharp_space_before_open_square_brackets = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_between_square_brackets = false
+
+# Wrapping — one statement per line; `{ get; set; }` may stay on one line.
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_allow_multiple_blank_lines_experimental = false
+
+# using directives — outside the namespace, System first, no group gaps.
+csharp_using_directive_placement = outside_namespace
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Namespaces — C# 9 has block-scoped only. Folders mirror namespaces minus
+# Scripts/Runtime, so the IDE's folder-match check would be wrong: off.
+csharp_style_namespace_declarations = block_scoped
+dotnet_style_namespace_match_folder = false
+
+# Modifiers — always explicit. Unity never serializes readonly fields, so the
+# IDE must not add readonly to [SerializeField] fields.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+dotnet_style_readonly_field = false
+
+# this. qualification — the m_/s_/k_ prefixes make it redundant.
+dotnet_style_qualification_for_field = false
+dotnet_style_qualification_for_property = false
+dotnet_style_qualification_for_method = false
+dotnet_style_qualification_for_event = false
+
+# Language keywords (int, string, float) over BCL names (Int32, String, Single).
+dotnet_style_predefined_type_for_locals_parameters_members = true
+dotnet_style_predefined_type_for_member_access = true
+
+# var — only when the type is apparent on the right-hand side; never for built-in types.
+csharp_style_var_for_built_in_types = false
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = false
+
+# Expression-bodied members — properties and accessors yes, methods and constructors no.
+csharp_style_expression_bodied_properties = true
+csharp_style_expression_bodied_accessors = true
+csharp_style_expression_bodied_indexers = true
+csharp_style_expression_bodied_lambdas = true
+csharp_style_expression_bodied_methods = false
+csharp_style_expression_bodied_constructors = false
+csharp_style_expression_bodied_operators = false
+csharp_style_expression_bodied_local_functions = false
+# We keep explicit m_ backing fields for [SerializeField]; never suggest auto-properties.
+dotnet_style_prefer_auto_properties = false
+
+# Braces on every block.
+csharp_prefer_braces = true
+
+# Null checks — ?? ?. and `is null` bypass UnityEngine.Object's custom ==.
+# Keep the IDE from suggesting them; ?.Invoke on delegates stays allowed.
+dotnet_style_null_propagation = false
+dotnet_style_coalesce_expression = false
+dotnet_style_prefer_is_null_check_over_reference_equality_method = false
+csharp_style_conditional_delegate_call = true
+
+# Parentheses for clarity in mixed expressions.
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary
+
+# Initializers.
+dotnet_style_object_initializer = true
+dotnet_style_collection_initializer = true
+
+# Unity messages routinely ignore parameters (OnCollisionEnter(Collision) ...).
+dotnet_code_quality_unused_parameters = all:silent
+
+# No file headers — version control carries authorship.
+file_header_template = unset
+
+#### Naming ####
+# Styles
+dotnet_naming_style.pascal_case.required_prefix =
+dotnet_naming_style.pascal_case.required_suffix =
+dotnet_naming_style.pascal_case.word_separator =
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.camel_case.required_prefix =
+dotnet_naming_style.camel_case.required_suffix =
+dotnet_naming_style.camel_case.word_separator =
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.required_suffix =
+dotnet_naming_style.begins_with_i.word_separator =
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+dotnet_naming_style.begins_with_m_.required_prefix = m_
+dotnet_naming_style.begins_with_m_.required_suffix =
+dotnet_naming_style.begins_with_m_.word_separator =
+dotnet_naming_style.begins_with_m_.capitalization = camel_case
+
+dotnet_naming_style.begins_with_s_.required_prefix = s_
+dotnet_naming_style.begins_with_s_.required_suffix =
+dotnet_naming_style.begins_with_s_.word_separator =
+dotnet_naming_style.begins_with_s_.capitalization = camel_case
+
+dotnet_naming_style.begins_with_k_.required_prefix = k_
+dotnet_naming_style.begins_with_k_.required_suffix =
+dotnet_naming_style.begins_with_k_.word_separator =
+dotnet_naming_style.begins_with_k_.capitalization = pascal_case
+
+# Symbols
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.interface.required_modifiers =
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.types.required_modifiers =
+
+dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
+dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_field_members.required_modifiers =
+
+dotnet_naming_symbols.public_fields.applicable_kinds = field
+dotnet_naming_symbols.public_fields.applicable_accessibilities = public
+dotnet_naming_symbols.public_fields.required_modifiers =
+
+dotnet_naming_symbols.non_public_const_fields.applicable_kinds = field
+dotnet_naming_symbols.non_public_const_fields.applicable_accessibilities = internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_public_const_fields.required_modifiers = const
+
+dotnet_naming_symbols.public_const_fields.applicable_kinds = field
+dotnet_naming_symbols.public_const_fields.applicable_accessibilities = public
+dotnet_naming_symbols.public_const_fields.required_modifiers = const
+
+dotnet_naming_symbols.public_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.public_static_readonly_fields.applicable_accessibilities = public
+dotnet_naming_symbols.public_static_readonly_fields.required_modifiers = readonly, static
+
+dotnet_naming_symbols.non_public_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.non_public_static_readonly_fields.applicable_accessibilities = internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_public_static_readonly_fields.required_modifiers = readonly, static
+
+dotnet_naming_symbols.non_public_static_fields.applicable_kinds = field
+dotnet_naming_symbols.non_public_static_fields.applicable_accessibilities = internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_public_static_fields.required_modifiers = static
+
+dotnet_naming_symbols.non_public_fields.applicable_kinds = field
+dotnet_naming_symbols.non_public_fields.applicable_accessibilities = internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_public_fields.required_modifiers =
+
+dotnet_naming_symbols.method_parameters.applicable_kinds = parameter
+dotnet_naming_symbols.method_parameters.applicable_accessibilities =
+dotnet_naming_symbols.method_parameters.required_modifiers =
+
+dotnet_naming_symbols.local.applicable_kinds = local
+dotnet_naming_symbols.local.applicable_accessibilities = local
+dotnet_naming_symbols.local.required_modifiers =
+
+# Rules — Roslyn orders these by specificity (accessibilities, then modifiers, then kinds),
+# not by file order. A "static" group also matches const fields, so the const and
+# static-readonly rules are split by accessibility so they outrank the s_ and public-field
+# rules (see the Microsoft naming-rules page linked from the code-style rule options).
+# Severity is warning so violations are visible in the IDE.
+dotnet_naming_rule.interface_should_be_begins_with_i.severity = warning
+dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
+dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
+
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
+dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.non_public_const_fields_should_be_begins_with_k_.severity = warning
+dotnet_naming_rule.non_public_const_fields_should_be_begins_with_k_.symbols = non_public_const_fields
+dotnet_naming_rule.non_public_const_fields_should_be_begins_with_k_.style = begins_with_k_
+
+dotnet_naming_rule.public_const_fields_should_be_begins_with_k_.severity = warning
+dotnet_naming_rule.public_const_fields_should_be_begins_with_k_.symbols = public_const_fields
+dotnet_naming_rule.public_const_fields_should_be_begins_with_k_.style = begins_with_k_
+
+dotnet_naming_rule.public_static_readonly_fields_should_be_begins_with_k_.severity = warning
+dotnet_naming_rule.public_static_readonly_fields_should_be_begins_with_k_.symbols = public_static_readonly_fields
+dotnet_naming_rule.public_static_readonly_fields_should_be_begins_with_k_.style = begins_with_k_
+
+dotnet_naming_rule.non_public_static_readonly_fields_should_be_begins_with_k_.severity = warning
+dotnet_naming_rule.non_public_static_readonly_fields_should_be_begins_with_k_.symbols = non_public_static_readonly_fields
+dotnet_naming_rule.non_public_static_readonly_fields_should_be_begins_with_k_.style = begins_with_k_
+
+dotnet_naming_rule.non_public_static_fields_should_be_begins_with_s_.severity = warning
+dotnet_naming_rule.non_public_static_fields_should_be_begins_with_s_.symbols = non_public_static_fields
+dotnet_naming_rule.non_public_static_fields_should_be_begins_with_s_.style = begins_with_s_
+
+dotnet_naming_rule.public_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.public_fields_should_be_pascal_case.symbols = public_fields
+dotnet_naming_rule.public_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.non_public_fields_should_be_begins_with_m_.severity = warning
+dotnet_naming_rule.non_public_fields_should_be_begins_with_m_.symbols = non_public_fields
+dotnet_naming_rule.non_public_fields_should_be_begins_with_m_.style = begins_with_m_
+
+dotnet_naming_rule.method_parameters_should_be_camel_case.severity = warning
+dotnet_naming_rule.method_parameters_should_be_camel_case.symbols = method_parameters
+dotnet_naming_rule.method_parameters_should_be_camel_case.style = camel_case
+
+dotnet_naming_rule.local_should_be_camel_case.severity = warning
+dotnet_naming_rule.local_should_be_camel_case.symbols = local
+dotnet_naming_rule.local_should_be_camel_case.style = camel_case

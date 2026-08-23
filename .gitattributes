@@ -1,0 +1,114 @@
+# .gitattributes — shenicest-2026 (repository root)
+# Rules explained in docs/guidelines/06-version-control.md.
+# After changing this file run:  git add --renormalize .   (existing files are not re-filtered otherwise)
+
+############################################################
+# 1. Line endings — LF everywhere (keep in sync with .editorconfig)
+############################################################
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat eol=crlf
+*.cmd eol=crlf
+
+############################################################
+# 2. Unity text assets — plain Git (diffable, mergeable)
+#    Scenes / prefabs / .asset files merge through UnityYAMLMerge
+#    (driver "unityyamlmerge" must be defined in each machine's ~/.gitconfig)
+############################################################
+*.cs                  diff=csharp text
+*.meta                text
+*.unity               text merge=unityyamlmerge
+*.prefab              text merge=unityyamlmerge
+*.asset               merge=unityyamlmerge
+ProjectSettings/*.asset text
+*.mat                 text
+*.anim                text
+*.controller          text
+*.overrideController  text
+*.playable            text
+*.asmdef              text
+*.asmref              text
+*.inputactions        text
+*.shadergraph         text
+*.shadersubgraph      text
+*.vfx                 text
+*.shader              text
+*.hlsl                text
+*.cginc               text
+*.compute             text
+*.uxml                text
+*.uss                 text
+*.tss                 text
+*.json                text
+*.md                  text
+*.txt                 text
+*.rsp                 text
+
+############################################################
+# 3. Git LFS — binary assets
+#    LFS pointer files are small TEXT files: never mark them `binary`,
+#    always `-text` so no line-ending conversion touches the pointer.
+############################################################
+# 3D models
+*.[fF][bB][xX]        filter=lfs diff=lfs merge=lfs -text
+*.obj                 filter=lfs diff=lfs merge=lfs -text
+*.blend               filter=lfs diff=lfs merge=lfs -text
+*.dae                 filter=lfs diff=lfs merge=lfs -text
+*.3ds                 filter=lfs diff=lfs merge=lfs -text
+*.max                 filter=lfs diff=lfs merge=lfs -text
+*.ma                  filter=lfs diff=lfs merge=lfs -text
+*.mb                  filter=lfs diff=lfs merge=lfs -text
+*.c4d                 filter=lfs diff=lfs merge=lfs -text
+*.ply                 filter=lfs diff=lfs merge=lfs -text
+*.stl                 filter=lfs diff=lfs merge=lfs -text
+# Textures and images
+*.[pP][nN][gG]        filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][gG]        filter=lfs diff=lfs merge=lfs -text
+*.[jJ][pP][eE][gG]    filter=lfs diff=lfs merge=lfs -text
+*.[tT][gG][aA]        filter=lfs diff=lfs merge=lfs -text
+*.[pP][sS][dD]        filter=lfs diff=lfs merge=lfs -text
+*.psb                 filter=lfs diff=lfs merge=lfs -text
+*.tif                 filter=lfs diff=lfs merge=lfs -text
+*.tiff                filter=lfs diff=lfs merge=lfs -text
+*.bmp                 filter=lfs diff=lfs merge=lfs -text
+*.gif                 filter=lfs diff=lfs merge=lfs -text
+*.exr                 filter=lfs diff=lfs merge=lfs -text
+*.hdr                 filter=lfs diff=lfs merge=lfs -text
+*.dds                 filter=lfs diff=lfs merge=lfs -text
+*.cubemap             filter=lfs diff=lfs merge=lfs -text
+# Audio
+*.wav                 filter=lfs diff=lfs merge=lfs -text
+*.mp3                 filter=lfs diff=lfs merge=lfs -text
+*.ogg                 filter=lfs diff=lfs merge=lfs -text
+*.aif                 filter=lfs diff=lfs merge=lfs -text
+*.aiff                filter=lfs diff=lfs merge=lfs -text
+*.mod                 filter=lfs diff=lfs merge=lfs -text
+*.it                  filter=lfs diff=lfs merge=lfs -text
+*.s3m                 filter=lfs diff=lfs merge=lfs -text
+*.xm                  filter=lfs diff=lfs merge=lfs -text
+# Video
+*.mp4                 filter=lfs diff=lfs merge=lfs -text
+*.mov                 filter=lfs diff=lfs merge=lfs -text
+*.webm                filter=lfs diff=lfs merge=lfs -text
+*.m4v                 filter=lfs diff=lfs merge=lfs -text
+*.ogv                 filter=lfs diff=lfs merge=lfs -text
+# Fonts
+*.ttf                 filter=lfs diff=lfs merge=lfs -text
+*.otf                 filter=lfs diff=lfs merge=lfs -text
+*.ttc                 filter=lfs diff=lfs merge=lfs -text
+# Native plug-ins, managed DLLs, archives
+*.dll                 filter=lfs diff=lfs merge=lfs -text
+*.so                  filter=lfs diff=lfs merge=lfs -text
+*.dylib               filter=lfs diff=lfs merge=lfs -text
+*.a                   filter=lfs diff=lfs merge=lfs -text
+*.lib                 filter=lfs diff=lfs merge=lfs -text
+*.aar                 filter=lfs diff=lfs merge=lfs -text
+*.jar                 filter=lfs diff=lfs merge=lfs -text
+*.zip                 filter=lfs diff=lfs merge=lfs -text
+*.7z                  filter=lfs diff=lfs merge=lfs -text
+# Unity binary data that happens to use a text-looking extension
+*.bytes               filter=lfs diff=lfs merge=lfs -text
+LightingData.asset    filter=lfs diff=lfs merge=lfs -text
+*[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text
+*[[:space:]]SDF[[:space:]]*.asset filter=lfs diff=lfs merge=lfs -text

@@ -104,3 +104,17 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# --- Project additions (shenicest-2026) ---
+# Original Unity e-book PDFs (~300 MB). The extracted text lives in docs/reference/*/ebook-*.md;
+# re-download the binaries with docs/reference/_tools/ if you want them.
+/docs/reference/_ebooks-pdf/
+
+# Merge-tool backups (UnityYAMLMerge / git mergetool)
+*.orig
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

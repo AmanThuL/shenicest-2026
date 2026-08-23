@@ -1,0 +1,11 @@
+using UnityEngine;
+
+#ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : MonoBehaviour
+{
+    private void Awake()
+    {
+        #NOTRIM#
+    }
+}
+#ROOTNAMESPACEEND#
