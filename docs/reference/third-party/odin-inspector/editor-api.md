@@ -13,7 +13,7 @@ topic: "third-party/odin-inspector"
 
 # Odin Inspector 4.0.2.3 — selected editor API
 
-Types from `Sirenix.OdinInspector.Editor.dll` that project editor tooling may use (only from the `SheNicest.Editor` assembly, per guideline 12). This is a curated subset; the full list is in the XML file named in the front matter.
+Types from `Sirenix.OdinInspector.Editor.dll` that project editor tooling may use (only from the `RootsDance.Editor` assembly, per guideline 12). This is a curated subset; the full list is in the XML file named in the front matter.
 
 ### `OdinEditorWindow`
 

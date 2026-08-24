@@ -4,10 +4,10 @@ Entry point for every AI coding agent (Claude Code, Codex, Cursor, Copilot…) a
 
 ## What this project is
 
-- **SheNicest 2026 hackathon / game jam entry (team G001)** — a **3D game** built with **Unity 6000.3.22f1 (Unity 6.3 LTS)**, **Universal Render Pipeline (URP 17.3)**, **C# 9.0**.
+- **《Where the Roots Dance》 — SheNicest 2026 hackathon / game jam entry (team G001)** — a **3D game** built with **Unity 6000.3.22f1 (Unity 6.3 LTS)**, **Universal Render Pipeline (URP 17.3)**, **C# 9.0**.
 - Created from the Unity Hub **Universal 3D** template. Primary target: desktop standalone (Windows/macOS); a Web build is a possible secondary target.
 - Small team, short timeframe. Every rule here optimises for *fast iteration without merge conflicts* — not for enterprise ceremony.
-- Engineering docs are in English. The repo README is in Chinese; the game name is not decided yet, so `SheNicest` is the project-owned folder name, root namespace and assembly prefix until the team renames it.
+- Engineering docs are in English. The repo README is in Chinese; the game is *Where the Roots Dance*; `RootsDance` is its folder name, root namespace and assembly prefix. `SheNicest` is the organising team, not the game, and appears only in the repo name and README.
 
 ## Non-negotiables (the 20 rules agents break most often)
 
@@ -25,17 +25,17 @@ Unity/C# facts that are easy to get wrong because training data predates Unity 6
 Project conventions — details in the guidelines linked in each line:
 
 9. **Naming:** PascalCase types/methods/properties/events; camelCase locals/params; private fields `m_camelCase`; mutable statics `s_camelCase`; `const`/`static readonly` `k_PascalCase`; interfaces `I…`; ScriptableObject classes end in `SO`. Allman braces, 4 spaces, ≤ 120 columns, one `MonoBehaviour`/`ScriptableObject` per file, file name = class name. → [01](docs/guidelines/01-csharp-style.md)
-10. **Everything project-owned lives under `Assets/SheNicest/`**, organised by asset type; code under `Scripts/Runtime/<Feature>/` with namespace `SheNicest.<Feature>`; third-party under `Assets/ThirdParty/`; experiments under `Assets/_Sandbox/<user>/`. → [02](docs/guidelines/02-project-structure.md)
-11. **Four assemblies only:** `SheNicest.Runtime`, `SheNicest.Editor`, `SheNicest.Tests.EditMode`, `SheNicest.Tests.PlayMode`. Editor-only code goes in `Scripts/Editor/`, never behind ad-hoc `#if UNITY_EDITOR` in runtime files unless unavoidable. → [02](docs/guidelines/02-project-structure.md), [04](docs/guidelines/04-unity-scripting-rules.md)
-12. **Inspector data = `[SerializeField] private` fields**, never public fields; tunables live in ScriptableObject assets under `Assets/SheNicest/Data/`, not on scene objects. → [01](docs/guidelines/01-csharp-style.md), [11](docs/guidelines/11-scenes-prefabs-workflow.md)
-13. **Wire dependencies through serialized references, `[RequireComponent]` + `GetComponent` in `Awake`, or constructor parameters.** No singletons (the only static access point is `GameBootstrap`), no DI framework, no `GameObject.Find` in gameplay code. Cross-feature communication goes through interfaces in `SheNicest.Core` or ScriptableObject event channels. → [03](docs/guidelines/03-architecture-patterns.md)
+10. **Everything project-owned lives under `Assets/RootsDance/`**, organised by asset type; code under `Scripts/Runtime/<Feature>/` with namespace `RootsDance.<Feature>`; third-party under `Assets/ThirdParty/`; experiments under `Assets/_Sandbox/<user>/`. → [02](docs/guidelines/02-project-structure.md)
+11. **Four assemblies only:** `RootsDance.Runtime`, `RootsDance.Editor`, `RootsDance.Tests.EditMode`, `RootsDance.Tests.PlayMode`. Editor-only code goes in `Scripts/Editor/`, never behind ad-hoc `#if UNITY_EDITOR` in runtime files unless unavoidable. → [02](docs/guidelines/02-project-structure.md), [04](docs/guidelines/04-unity-scripting-rules.md)
+12. **Inspector data = `[SerializeField] private` fields**, never public fields; tunables live in ScriptableObject assets under `Assets/RootsDance/Data/`, not on scene objects. → [01](docs/guidelines/01-csharp-style.md), [11](docs/guidelines/11-scenes-prefabs-workflow.md)
+13. **Wire dependencies through serialized references, `[RequireComponent]` + `GetComponent` in `Awake`, or constructor parameters.** No singletons (the only static access point is `GameBootstrap`), no DI framework, no `GameObject.Find` in gameplay code. Cross-feature communication goes through interfaces in `RootsDance.Core` or ScriptableObject event channels. → [03](docs/guidelines/03-architecture-patterns.md)
 14. **Lifecycle:** own components in `Awake`, other objects in `Start`, subscribe in `OnEnable` / unsubscribe in `OnDisable`, physics in `FixedUpdate`, `Destroy` not `DestroyImmediate` at runtime. → [04](docs/guidelines/04-unity-scripting-rules.md)
 15. **Zero allocations in per-frame code:** cache components and ids (`Animator.StringToHash`, `Shader.PropertyToID`), no LINQ/string building/closures in `Update`, `Physics.*NonAlloc`, pool with `UnityEngine.Pool.ObjectPool<T>`. → [05](docs/guidelines/05-performance.md)
 16. **Never hand-edit or hand-merge `.unity`, `.prefab`, `.asset` YAML.** Move/rename/delete assets inside the Editor so `.meta` files follow; always commit the `.meta` with its asset. → [06](docs/guidelines/06-version-control.md)
 17. **Scenes:** `Bootstrap.unity` is the only persistent scene; levels are additive `<Level>_Environment` + `<Level>_Gameplay` scenes; avoid concurrent edits by splitting scenes — each person works in their own part scene, and gives the team channel a heads-up before editing a shared scene/prefab or merging content into one; everything placed twice is a prefab. → [11](docs/guidelines/11-scenes-prefabs-workflow.md)
-18. **UI is UI Toolkit** (UXML/USS under `Assets/SheNicest/UI/`, BEM class names, presenter MonoBehaviours); camera is **Cinemachine 3.1** with exactly one Unity `Camera` in the bootstrap scene. → [09](docs/guidelines/09-packages-systems.md), [07](docs/guidelines/07-rendering-urp.md)
+18. **UI is UI Toolkit** (UXML/USS under `Assets/RootsDance/UI/`, BEM class names, presenter MonoBehaviours); camera is **Cinemachine 3.1** with exactly one Unity `Camera` in the bootstrap scene. → [09](docs/guidelines/09-packages-systems.md), [07](docs/guidelines/07-rendering-urp.md)
 19. **Packages:** only the versions listed in [09](docs/guidelines/09-packages-systems.md); adding/removing a package is a team decision and its own `chore(packages):` commit; no `Resources/` folder, no Addressables by default.
-20. **Tests:** pure C# logic gets EditMode tests (`Method_Scenario_ExpectedResult`); run the EditMode suite before a PR; `main` must open in the Editor with zero errors and zero warnings from `SheNicest.*`. → [08](docs/guidelines/08-testing-tooling.md)
+20. **Tests:** pure C# logic gets EditMode tests (`Method_Scenario_ExpectedResult`); run the EditMode suite before a PR; `main` must open in the Editor with zero errors and zero warnings from `RootsDance.*`. → [08](docs/guidelines/08-testing-tooling.md)
 21. **Odin Inspector 4.0 is installed (`Assets/Plugins/Sirenix/`) as an Editor-UX layer only:** `Sirenix.OdinInspector` attributes on `[SerializeField] private` fields — content ScriptableObjects use the five standard `[TitleGroup]` sections (`Basic Info`, `Interaction`, `Conditions`, `Result`, `Scene Change`), `[Required]` on every reference, `[ValidateInput]` on IDs. **Never** `SerializedMonoBehaviour`/`SerializedScriptableObject`/`[OdinSerialize]` (Unity serialization stays the source of truth), never `Sirenix.OdinInspector.Editor` from runtime code, no `#if ODIN_INSPECTOR`, never edit `Assets/Plugins/Sirenix/`. Check an attribute in `docs/reference/third-party/odin-inspector/attributes.md` before using it. → [12](docs/guidelines/12-odin-inspector.md)
 
 ## Where things are
@@ -52,9 +52,9 @@ shenicest-2026/
 │   ├── guidelines/              # the 12 coding guidelines (index: guidelines/README.md)
 │   └── reference/               # 1,406 official Unity docs + third-party/odin-inspector/ (generated from the Odin XML docs)
 ├── Assets/
-│   ├── SheNicest/               # all project-owned assets — tree in guideline 02
-│   │   ├── Scripts/Runtime/     # SheNicest.Runtime.asmdef — App, Core, Data, Events, Player, Cameras, UI
-│   │   ├── Scripts/Editor/      # SheNicest.Editor.asmdef
+│   ├── RootsDance/               # all project-owned assets — tree in guideline 02
+│   │   ├── Scripts/Runtime/     # RootsDance.Runtime.asmdef — App, Core, Data, Events, Player, Cameras, UI
+│   │   ├── Scripts/Editor/      # RootsDance.Editor.asmdef
 │   │   ├── Tests/{EditMode,PlayMode}/
 │   │   ├── Scenes/              # Bootstrap, MainMenu, PrefabStage, Levels/<Level>/
 │   │   ├── Data/                # ScriptableObject instances (Events/, Levels/, Config/…)
@@ -121,10 +121,10 @@ New-Item -ItemType Directory -Force Logs\TestResults | Out-Null
 ```
 
 ```bash
-# Build from a Build Profile (profiles live in Assets/SheNicest/Settings/BuildProfiles/)
+# Build from a Build Profile (profiles live in Assets/RootsDance/Settings/BuildProfiles/)
 <Unity> -batchmode -quit -projectPath "$PWD" \
-  -activeBuildProfile "Assets/SheNicest/Settings/BuildProfiles/macOS-Release.asset" \
-  -build "$PWD/Builds/macOS-Release/SheNicest.app" -logFile "$PWD/Logs/Build.log"
+  -activeBuildProfile "Assets/RootsDance/Settings/BuildProfiles/macOS-Release.asset" \
+  -build "$PWD/Builds/macOS-Release/RootsDance.app" -logFile "$PWD/Logs/Build.log"
 ```
 
 Never pass `-quit` to a `-runTests` run (it kills the Editor before the tests finish); `-testPlatform PlayMode` runs the PlayMode suite. Full details, filters and exit codes: [08](docs/guidelines/08-testing-tooling.md).

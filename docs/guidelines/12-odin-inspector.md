@@ -1,7 +1,7 @@
 # 12. Odin Inspector
 
 > **Scope:** How Odin Inspector is used in this project — what it is for (designer-facing Inspectors for content ScriptableObjects and prefabs), what it is *not* for (serialization, architecture, runtime code), the approved attribute vocabulary, the standard layout of a content asset, validation, editor tooling, and how the plug-in itself is maintained.
-> **Applies to:** all C# under `Assets/SheNicest/Scripts` and `Assets/SheNicest/Tests`; the vendor folder `Assets/Plugins/Sirenix/`; the Odin define symbols in `ProjectSettings/`.
+> **Applies to:** all C# under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests`; the vendor folder `Assets/Plugins/Sirenix/`; the Odin define symbols in `ProjectSettings/`.
 > **Status:** Odin Inspector **4.0.2.3** on Unity 6000.3 LTS · last reviewed 2026-08-24
 
 Serialization semantics are owned by [04 Unity scripting rules](./04-unity-scripting-rules.md); ScriptableObject class shapes by [03 Architecture](./03-architecture-patterns.md); where vendor code lives by [02 Project structure](./02-project-structure.md); what gets committed by [06 Version control](./06-version-control.md); the tunables workflow by [11 Scenes, prefabs and team workflow](./11-scenes-prefabs-workflow.md). This document only adds the Odin-specific rules on top of those.
@@ -12,18 +12,18 @@ Serialization semantics are owned by [04 Unity scripting rules](./04-unity-scrip
 
 1. **MUST** treat Odin as an **Editor-UX layer only**: attributes from the `Sirenix.OdinInspector` namespace on `[SerializeField] private` fields, on `[Button]` helper methods and on `[ShowInInspector]` debug members. Everything in [04](./04-unity-scripting-rules.md) about what Unity serializes stays exactly as it is — Odin attributes never change it.
 2. **NEVER** use the Odin serializer: no `SerializedMonoBehaviour`, `SerializedScriptableObject`, `SerializedBehaviour`, `SerializedComponent`, `SerializedStateMachineBehaviour`, `[OdinSerialize]`, `[ShowOdinSerializedPropertiesInInspector]` or `using Sirenix.Serialization`. Data that Unity cannot serialize (dictionaries, polymorphic plain classes, nested lists) is remodelled per [04](./04-unity-scripting-rules.md#script-serialization), not rescued with Odin.
-3. **NEVER** reference `Sirenix.OdinInspector.Editor` or `Sirenix.Utilities*` from `SheNicest.Runtime`, tests or `_Sandbox/`; Odin editor windows, custom drawers and validators live in `SheNicest.Editor`. Runtime code only ever sees attributes.
+3. **NEVER** reference `Sirenix.OdinInspector.Editor` or `Sirenix.Utilities*` from `RootsDance.Runtime`, tests or `_Sandbox/`; Odin editor windows, custom drawers and validators live in `RootsDance.Editor`. Runtime code only ever sees attributes.
 4. **NEVER** wrap Odin attributes in `#if ODIN_INSPECTOR` and **NEVER** hand-edit the `ODIN_INSPECTOR*` scripting define symbols — Odin is a hard dependency of this project and manages its own defines.
 5. **MUST** pick attributes from the [approved vocabulary](#approved-attribute-vocabulary). Anything else is allowed only with a one-line reason in the PR and after checking it exists in the version-exact [attribute reference](../reference/third-party/odin-inspector/attributes.md).
 6. **MUST** lay out every content ScriptableObject with the five standard `[TitleGroup]` sections, in this order, using exactly these names: `"Basic Info"`, `"Interaction"`, `"Conditions"`, `"Result"`, `"Scene Change"`. Omit a section that the type has no fields for; never invent a sixth without a team decision.
-7. **MUST** mark every reference field on a content asset `[Required]` (plus `[AssetsOnly]` when it must be a project asset); **MUST** validate ID strings with `[ValidateInput]` backed by a pure-C# validator in `SheNicest.Data` that has EditMode tests.
-8. **SHOULD** use `[ValueDropdown]` / `[AssetSelector]` for picking IDs and assets under `Assets/SheNicest/Data/`, `[InlineEditor]` (one level deep, never nested) to edit a referenced asset in place, and `[ListDrawerSettings(ListElementLabelName = "…")]` or `[TableList]` so list elements show their ID instead of `Element 0`.
+7. **MUST** mark every reference field on a content asset `[Required]` (plus `[AssetsOnly]` when it must be a project asset); **MUST** validate ID strings with `[ValidateInput]` backed by a pure-C# validator in `RootsDance.Data` that has EditMode tests.
+8. **SHOULD** use `[ValueDropdown]` / `[AssetSelector]` for picking IDs and assets under `Assets/RootsDance/Data/`, `[InlineEditor]` (one level deep, never nested) to edit a referenced asset in place, and `[ListDrawerSettings(ListElementLabelName = "…")]` or `[TableList]` so list elements show their ID instead of `Element 0`.
 9. **MUST** keep Unity's own attribute where one exists — `[Tooltip]`, `[Range]`, `[Min]`, `[TextArea]`, `[FormerlySerializedAs]`, `[SerializeReference]`; Odin groups replace `[Header]` and `[Space]`; `[PropertyRange]` / `[MinValue]` / `[MaxValue]` only when the bound is dynamic (a member name or expression).
-10. **MAY** add `[Button]` methods for **idempotent designer helpers** (fill an ID from the asset name, sort a list, refresh a preview). **NEVER** put gameplay logic behind a button, and a helper that needs `UnityEditor` APIs is an Odin editor window or drawer in `SheNicest.Editor`, not a `#if UNITY_EDITOR` block in a runtime class.
+10. **MAY** add `[Button]` methods for **idempotent designer helpers** (fill an ID from the asset name, sort a list, refresh a preview). **NEVER** put gameplay logic behind a button, and a helper that needs `UnityEditor` APIs is an Odin editor window or drawer in `RootsDance.Editor`, not a `#if UNITY_EDITOR` block in a runtime class.
 11. **MAY** show runtime state with `[ShowInInspector]` only together with `[ReadOnly]` and only in the *runtime debug* block of a MonoBehaviour (see [class layout](#attribute-layout-and-class-position)); `[ShowInInspector]` never turns a member into data — it does not serialize.
 12. **MUST** write attributes in the order *Unity serialization → Odin group → Odin behaviour*, on one line while the declaration fits in 120 columns, otherwise one attribute per line with the group first.
 13. **NEVER** edit anything under `Assets/Plugins/Sirenix/` (the Odin `Config/Editor/*.asset` files count as single-owner files like `ProjectSettings/`); upgrades are re-imports into the same path, announced first, in their own `chore(odin):` commit that also re-runs the reference generator.
-14. **MUST** keep validation and helper *logic* in plain C# (`SheNicest.Data`/`SheNicest.Core`) so it is EditMode-testable; Odin drawing itself is never tested.
+14. **MUST** keep validation and helper *logic* in plain C# (`RootsDance.Data`/`RootsDance.Core`) so it is EditMode-testable; Odin drawing itself is never tested.
 15. **MUST** grep the offline Odin reference before using an attribute or editor type you are not sure about (`grep -n "### \`<Name>Attribute\`" docs/reference/third-party/odin-inspector/attributes.md`) — Odin 4.0 is newer than every agent's training data.
 
 ## What is installed and where
@@ -33,7 +33,7 @@ Serialization semantics are owned by [04 Unity scripting rules](./04-unity-scrip
 | Product / version | Odin Inspector and Serializer **4.0.2.3** (`Assets/Plugins/Sirenix/Odin Inspector/Version.txt`) |
 | Location | `Assets/Plugins/Sirenix/` — Odin's own install path; it stays there (exception to [02](./02-project-structure.md) section 5, recorded in [`docs/third-party.md`](../third-party.md)) |
 | Assemblies | `Sirenix.OdinInspector.Attributes` (runtime, the attributes), `Sirenix.Utilities`, `Sirenix.Serialization`, `Sirenix.Serialization.Config` (runtime, shipped in builds, `link.xml` keeps them), `Sirenix.OdinInspector.Editor`, `Sirenix.Utilities.Editor`, `Sirenix.Reflection.Editor` (Editor only) |
-| Referencing | The DLLs are *auto-referenced* precompiled assemblies: all four `SheNicest.*` asmdefs see `Sirenix.OdinInspector` without an asmdef edit |
+| Referencing | The DLLs are *auto-referenced* precompiled assemblies: all four `RootsDance.*` asmdefs see `Sirenix.OdinInspector` without an asmdef edit |
 | Define symbols | `ODIN_INSPECTOR;ODIN_INSPECTOR_3;ODIN_INSPECTOR_3_1;ODIN_INSPECTOR_3_2;ODIN_INSPECTOR_3_3`, written by Odin into `ProjectSettings/ProjectSettings.asset` for the **active build target group** (Standalone today). Odin adds them for Web the first time someone switches platform — expected churn, commit it with the platform switch, never hand-edit |
 | Odin config assets | `Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/{InspectorConfig,GeneralDrawerConfig,OdinModuleConfig,OdinVisualDesignerConfig}.asset` — committed, single-owner |
 | Modules | `Modules/Unity.Mathematics` is active (URP depends on `com.unity.mathematics`); Addressables/Entities/Localization modules are dormant `.data` files |
@@ -61,9 +61,9 @@ Everything below is in `Sirenix.OdinInspector` and exists in 4.0.2.3 (verified a
 | Side-by-side small fields | `[HorizontalGroup("Basic Info/Row")]` | Only for pairs like min/max; never for whole sections. |
 | Label text / read-only display | `[LabelText("Investigation ID")]`, `[ReadOnly]`, `[HideLabel]` | `[ReadOnly]` is Inspector-only — code can still write the field. |
 | Required reference | `[Required]`, `[Required("Message")]`, `[AssetsOnly]`, `[SceneObjectsOnly]` | Rule 7: every reference on a content asset. |
-| Custom validation | `[ValidateInput("IsValidId", "Use the form FL-001")]` | Validator method takes the value and returns `bool`; logic lives in a static class in `SheNicest.Data`. |
+| Custom validation | `[ValidateInput("IsValidId", "Use the form FL-001")]` | Validator method takes the value and returns `bool`; logic lives in a static class in `RootsDance.Data`. |
 | Explanatory / conditional message | `[InfoBox("…")]`, `[InfoBox("…", InfoMessageType.Warning, "m_isLocked")]` | Third argument is a bool member that shows/hides the box. |
-| Choose from a list | `[ValueDropdown("GetPuzzleIds")]`, `[AssetSelector(Paths = "Assets/SheNicest/Data/Puzzles")]` | Getter returns `IList`; `ValueDropdownList<T>` for label/value pairs. |
+| Choose from a list | `[ValueDropdown("GetPuzzleIds")]`, `[AssetSelector(Paths = "Assets/RootsDance/Data/Puzzles")]` | Getter returns `IList`; `ValueDropdownList<T>` for label/value pairs. |
 | Conditional show / enable | `[ShowIf("m_canSample")]`, `[HideIf(...)]`, `[EnableIf(...)]`, `[DisableIf(...)]`, `[ShowIf("m_type", ObjectType.Plant)]` | Condition is a member name or Odin expression (`"@m_count > 0"`). |
 | Lists of content | `[ListDrawerSettings(ListElementLabelName = "Id", ShowIndexLabels = false)]`, `[TableList(AlwaysExpanded = true)]` | `ListElementLabelName` names a field/property on the element type. |
 | Edit referenced asset in place | `[InlineEditor]`, `[InlineEditor(InlineEditorObjectFieldModes.Boxed)]` | One level deep only (rule 8). |
@@ -89,16 +89,16 @@ Everything below is in `Sirenix.OdinInspector` and exists in 4.0.2.3 (verified a
 The canonical shape of a content ScriptableObject — this is the `InvestigationObject` layout from the team's plug-in review, written as project code. Copy it for `PlantSO`, `PuzzleSO`, `JournalEntrySO`, `ReportEntrySO` and keep the five section names.
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/Data/InvestigationObjectSO.cs
+// Assets/RootsDance/Scripts/Runtime/Data/InvestigationObjectSO.cs
 using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace SheNicest.Data
+namespace RootsDance.Data
 {
     /// <summary>One hand-authored investigation node: what the player can do with it and what it unlocks.</summary>
-    [CreateAssetMenu(fileName = "InvestigationObject", menuName = "SheNicest/Content/Investigation Object")]
+    [CreateAssetMenu(fileName = "InvestigationObject", menuName = "RootsDance/Content/Investigation Object")]
     [TypeInfoBox("One investigation node. IDs follow the pattern PREFIX-000 (e.g. FL-001). Sections: Basic Info → Interaction → Conditions → Result → Scene Change.")]
     public class InvestigationObjectSO : ScriptableObject
     {
@@ -127,11 +127,11 @@ namespace SheNicest.Data
         private float m_sampleDuration = 2f;
 
         // ---- Conditions -------------------------------------------------------------------------
-        [SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/SheNicest/Data/Investigation")]
+        [SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/RootsDance/Data/Investigation")]
         [ListDrawerSettings(ListElementLabelName = "Id", ShowIndexLabels = false)]
         private List<InvestigationObjectSO> m_requiredInvestigations = new List<InvestigationObjectSO>();
 
-        [SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/SheNicest/Data/Puzzles")]
+        [SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/RootsDance/Data/Puzzles")]
         private PuzzleSO m_requiredPuzzle;
 
         // ---- Result -----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ namespace SheNicest.Data
         private JournalEntrySO m_journalEntry;
 
         // ---- Scene Change -----------------------------------------------------------------------
-        [SerializeField, TitleGroup("Scene Change"), AssetSelector(Paths = "Assets/SheNicest/Data/SceneFlags")]
+        [SerializeField, TitleGroup("Scene Change"), AssetSelector(Paths = "Assets/RootsDance/Data/SceneFlags")]
         [ListDrawerSettings(ListElementLabelName = "Id")]
         private List<SceneFlagSO> m_flagsToSet = new List<SceneFlagSO>();
 
@@ -176,10 +176,10 @@ namespace SheNicest.Data
 ```
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/Data/ContentId.cs — pure C#, covered by EditMode tests.
+// Assets/RootsDance/Scripts/Runtime/Data/ContentId.cs — pure C#, covered by EditMode tests.
 using System.Text.RegularExpressions;
 
-namespace SheNicest.Data
+namespace RootsDance.Data
 {
     /// <summary>Content IDs are PREFIX-NNN: 2–8 upper-case letters, a dash, 2–4 digits (FL-001, PUZZLE-A01 is *not* valid).</summary>
     public static class ContentId
@@ -217,7 +217,7 @@ Points to notice:
 [SerializeField, TitleGroup("Interaction"), ShowIf("m_canSample"), Range(0.5f, 10f)] private float m_sampleDuration = 2f;
 
 // ✅ too long: stacked, group first, Tooltip last, declaration on its own line
-[SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/SheNicest/Data/Investigation")]
+[SerializeField, TitleGroup("Conditions"), AssetSelector(Paths = "Assets/RootsDance/Data/Investigation")]
 [ListDrawerSettings(ListElementLabelName = "Id", ShowIndexLabels = false)]
 [Tooltip("Every listed object must be investigated before this one becomes interactable.")]
 private List<InvestigationObjectSO> m_requiredInvestigations = new List<InvestigationObjectSO>();
@@ -243,24 +243,24 @@ private List<InvestigationObjectSO> m_requiredInvestigations = new List<Investig
 
 **Odin Validator is not installed.** Do not rely on project-wide validation rules, the Validator window or `[Optional]`. If the team later buys it, this section is where its rules go.
 
-## Editor tooling (SheNicest.Editor only)
+## Editor tooling (RootsDance.Editor only)
 
-**MAY** build one **Content Browser** as an `OdinMenuEditorWindow` in `Assets/SheNicest/Scripts/Editor/Content/` that lists every content asset under `Assets/SheNicest/Data/` by type and lets the designer edit it in place. This is the Odin feature that scales with "dozens of areas, hundreds of investigation nodes"; do it when the second content type exists, not before.
+**MAY** build one **Content Browser** as an `OdinMenuEditorWindow` in `Assets/RootsDance/Scripts/Editor/Content/` that lists every content asset under `Assets/RootsDance/Data/` by type and lets the designer edit it in place. This is the Odin feature that scales with "dozens of areas, hundreds of investigation nodes"; do it when the second content type exists, not before.
 - *Why:* One window with a tree of `FL-001`, `PUZZLE-A01`, `JOURNAL-005` replaces Project-window hunting; it is ~40 lines with Odin's menu tree. **[project decision]**
 - *Source:* [`OdinMenuEditorWindow`, `OdinMenuTree`, `OdinMenuItem`](../reference/third-party/odin-inspector/editor-api.md).
 
 ```csharp
-// Assets/SheNicest/Scripts/Editor/Content/ContentBrowserWindow.cs — SheNicest.Editor
+// Assets/RootsDance/Scripts/Editor/Content/ContentBrowserWindow.cs — RootsDance.Editor
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 
-namespace SheNicest.Editor.Content
+namespace RootsDance.Editor.Content
 {
     public class ContentBrowserWindow : OdinMenuEditorWindow
     {
-        private const string k_DataRoot = "Assets/SheNicest/Data";
+        private const string k_DataRoot = "Assets/RootsDance/Data";
 
-        [MenuItem("SheNicest/Content Browser")]
+        [MenuItem("RootsDance/Content Browser")]
         private static void Open()
         {
             GetWindow<ContentBrowserWindow>("Content").Show();
@@ -270,8 +270,8 @@ namespace SheNicest.Editor.Content
         {
             var tree = new OdinMenuTree(supportsMultiSelect: false);
             tree.Config.DrawSearchToolbar = true;
-            tree.AddAllAssetsAtPath("Investigation", k_DataRoot + "/Investigation", typeof(SheNicest.Data.InvestigationObjectSO), true);
-            tree.AddAllAssetsAtPath("Puzzles", k_DataRoot + "/Puzzles", typeof(SheNicest.Data.PuzzleSO), true);
+            tree.AddAllAssetsAtPath("Investigation", k_DataRoot + "/Investigation", typeof(RootsDance.Data.InvestigationObjectSO), true);
+            tree.AddAllAssetsAtPath("Puzzles", k_DataRoot + "/Puzzles", typeof(RootsDance.Data.PuzzleSO), true);
             return tree;
         }
     }
@@ -305,7 +305,7 @@ namespace SheNicest.Editor.Content
 - ❌ `[TitleGroup("Identity")]` / `[TitleGroup("General")]` / `[TitleGroup("基本信息")]` → ✅ `[TitleGroup("Basic Info")]` — one spelling, one language, across every content type.
 - ❌ `[Button] private void OpenDoor()` on `DoorController` → ✅ no button; a debug command or an EditMode/PlayMode test.
 - ❌ `#if ODIN_INSPECTOR using Sirenix.OdinInspector; #endif` → ✅ plain `using Sirenix.OdinInspector;` — Odin is not optional here.
-- ❌ `using Sirenix.OdinInspector.Editor;` in `SheNicest.Runtime` (breaks the Player build) → ✅ move the window/drawer to `SheNicest.Editor`.
+- ❌ `using Sirenix.OdinInspector.Editor;` in `RootsDance.Runtime` (breaks the Player build) → ✅ move the window/drawer to `RootsDance.Editor`.
 - ❌ `[ValidateInput("@m_id.StartsWith(\"FL-\")")]` expression inlined in the attribute → ✅ named validator method calling `ContentId.IsValid`.
 - ❌ `[PropertyOrder(-1)]` to move a field up → ✅ move the field in the source.
 - ❌ `[InlineEditor]` on a field whose asset itself has `[InlineEditor]` fields → ✅ one level; open the inner asset from the object field.
@@ -314,7 +314,7 @@ namespace SheNicest.Editor.Content
 
 ## Review checklist
 
-- [ ] No `Serialized*` base class, `[OdinSerialize]`, `using Sirenix.Serialization`, or `[ShowOdinSerializedPropertiesInInspector]` anywhere under `Assets/SheNicest/`.
+- [ ] No `Serialized*` base class, `[OdinSerialize]`, `using Sirenix.Serialization`, or `[ShowOdinSerializedPropertiesInInspector]` anywhere under `Assets/RootsDance/`.
 - [ ] No `Sirenix.OdinInspector.Editor` / `Sirenix.Utilities` usage outside `Scripts/Editor/`.
 - [ ] No `#if ODIN_INSPECTOR`; no hand edits to the define symbols; no changes under `Assets/Plugins/Sirenix/` in a non-`chore(odin)` commit.
 - [ ] Every content SO uses the five standard `TitleGroup` names in order, every reference is `[Required]`, every ID string has `[ValidateInput]` backed by `ContentId` (or the equivalent tested static class).

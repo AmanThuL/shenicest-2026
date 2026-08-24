@@ -1,7 +1,7 @@
 # 11. Scenes, prefabs and team workflow
 
 > **Scope:** How the team works inside the Editor without stepping on each other — scene architecture and loading, scene ownership, the prefab-first workflow, ScriptableObject tunables, conflict avoidance at the content level, the daily integration routine, the build scene list, and the end-to-end checklist for a new feature.
-> **Applies to:** every `.unity`, `.prefab`, `.asset` and `.scenetemplate` under `Assets/SheNicest/`, the global scene list in `ProjectSettings/EditorBuildSettings.asset`, and every human or agent that opens the Editor.
+> **Applies to:** every `.unity`, `.prefab`, `.asset` and `.scenetemplate` under `Assets/RootsDance/`, the global scene list in `ProjectSettings/EditorBuildSettings.asset`, and every human or agent that opens the Editor.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Folder names and asset naming are owned by [02 Project structure](./02-project-structure.md); Git commands, LFS, UnityYAMLMerge setup and conflict resolution by [06 Version control](./06-version-control.md); `GameBootstrap`, event channels and ScriptableObject class shapes by [03 Architecture](./03-architecture-patterns.md); lifecycle and `Awaitable` rules by [04 Unity scripting rules](./04-unity-scripting-rules.md); lighting setup by [07 Rendering](./07-rendering-urp.md); build profiles and tests by [08 Testing and tooling](./08-testing-tooling.md); Cinemachine, NavMesh and UI Toolkit placement by [09 Packages](./09-packages-systems.md). This document decides *what goes in which scene, who may touch it, and how content is built so two people can work on one level at the same time*.
@@ -10,7 +10,7 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 
 1. **MUST** keep `Scenes/Bootstrap.unity` at build index 0 as the only persistent scene and load every other scene additively through `SceneLoader`; **NEVER** use `LoadSceneMode.Single` or call `SceneManager` from gameplay code.
 2. **MUST** split every level into at least `<Level>_Environment.unity` (static geometry, sun, APV, Volume, NavMesh — the *active* scene) and `<Level>_Gameplay.unity` (spawns, triggers, enemies, Cinemachine cameras); one `LevelSO` asset lists a level's part scenes.
-3. **MUST** avoid concurrent edits by splitting scenes, not by locking: each person works in their own part scene (split a level further if two people need it at once). Every scene, every *shared* prefab (`Prefabs/Systems/`, `Prefabs/Characters/`, `Prefabs/UI/`), `Input/SheNicest.inputactions` and every `ProjectSettings` file still has a default owner — give the team channel a heads-up before editing one you do not own or merging content into a shared scene; props/VFX prefabs and `.asset` data need no coordination.
+3. **MUST** avoid concurrent edits by splitting scenes, not by locking: each person works in their own part scene (split a level further if two people need it at once). Every scene, every *shared* prefab (`Prefabs/Systems/`, `Prefabs/Characters/`, `Prefabs/UI/`), `Input/RootsDance.inputactions` and every `ProjectSettings` file still has a default owner — give the team channel a heads-up before editing one you do not own or merging content into a shared scene; props/VFX prefabs and `.asset` data need no coordination.
 4. **MUST** make a prefab out of anything placed more than once, anything spawned at runtime, and anything two people work on; unique, scene-bound objects (the level's terrain, one-off trigger) may stay plain GameObjects.
 5. **MUST** edit prefab *assets* in Prefab Mode (double-click the asset; `P` on an instance); instance overrides are limited to Transform, name, active state and per-placement designer fields — structural changes happen in Prefab Mode or become a variant.
 6. **MUST** resolve the Overrides dropdown before committing a scene — apply only to prefabs you own, revert everything else; **NEVER** "Apply All" without reading the list.
@@ -30,11 +30,11 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 
 | Scene | Path | Loaded | Contains | Owner |
 |---|---|---|---|---|
-| Bootstrap | `Assets/SheNicest/Scenes/Bootstrap.unity` | always (build index 0) | `GameBootstrap` root with `SceneLoader` and persistent services; `Main Camera` (tag `MainCamera`: Camera + `CinemachineBrain` + `AudioListener`, per [09](./09-packages-systems.md)); `UI` root with the `UIDocument` screens (menu, HUD, pause) | integration owner |
-| MainMenu | `Assets/SheNicest/Scenes/MainMenu.unity` | additive, after boot | menu backdrop, its sun/APV/Volume, a `CM_Menu_Static` camera | UI owner |
-| PrefabStage | `Assets/SheNicest/Scenes/PrefabStage.unity` | never at runtime; not in the scene list | Prefab Mode editing environment (see [Editing](#editing-prefab-mode-not-the-scene)): sun, APV, Volume and a ground plane — no gameplay, no Camera | integration owner |
-| Level environment | `Assets/SheNicest/Scenes/Levels/<Level>/<Level>_Environment.unity` | additive, **active scene** while the level runs | static geometry and props, Directional sun (Mixed), APV, Global Volume, Environment settings, reflection probes, `_NavMesh` with `NavMeshSurface`, baked lighting data | level artist |
-| Level gameplay | `Assets/SheNicest/Scenes/Levels/<Level>/<Level>_Gameplay.unity` | additive, with its environment | player spawn, enemy spawners, triggers, interactables, pickups, `CinemachineCamera`s, level-specific `UIDocument` (rare) | level designer |
+| Bootstrap | `Assets/RootsDance/Scenes/Bootstrap.unity` | always (build index 0) | `GameBootstrap` root with `SceneLoader` and persistent services; `Main Camera` (tag `MainCamera`: Camera + `CinemachineBrain` + `AudioListener`, per [09](./09-packages-systems.md)); `UI` root with the `UIDocument` screens (menu, HUD, pause) | integration owner |
+| MainMenu | `Assets/RootsDance/Scenes/MainMenu.unity` | additive, after boot | menu backdrop, its sun/APV/Volume, a `CM_Menu_Static` camera | UI owner |
+| PrefabStage | `Assets/RootsDance/Scenes/PrefabStage.unity` | never at runtime; not in the scene list | Prefab Mode editing environment (see [Editing](#editing-prefab-mode-not-the-scene)): sun, APV, Volume and a ground plane — no gameplay, no Camera | integration owner |
+| Level environment | `Assets/RootsDance/Scenes/Levels/<Level>/<Level>_Environment.unity` | additive, **active scene** while the level runs | static geometry and props, Directional sun (Mixed), APV, Global Volume, Environment settings, reflection probes, `_NavMesh` with `NavMeshSurface`, baked lighting data | level artist |
+| Level gameplay | `Assets/RootsDance/Scenes/Levels/<Level>/<Level>_Gameplay.unity` | additive, with its environment | player spawn, enemy spawners, triggers, interactables, pickups, `CinemachineCamera`s, level-specific `UIDocument` (rare) | level designer |
 | Level lighting (optional) | `…/<Level>_Lighting.unity` | additive; becomes the active scene when present | sun, APV, Volume, Environment settings moved out of `_Environment` | lighting artist |
 | Sandbox | `Assets/_Sandbox/<username>/*.unity` | never in a build | anything; opened by its author only | its author |
 
@@ -57,14 +57,14 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 
 ### Scene templates
 
-- **MUST** create new level parts from `Assets/SheNicest/Settings/SceneTemplates/LevelPart.scenetemplate` (New Scene dialog: **File > New Scene**, pick the template, tick **Load Additively**). The template contains the group roots above and nothing else — no Camera, no Directional Light. To create or update the template, open a clean part scene and use **File > Save As Scene Template** (or right-click a scene asset → **Create > Scene Template From Scene**). **[project decision]**
+- **MUST** create new level parts from `Assets/RootsDance/Settings/SceneTemplates/LevelPart.scenetemplate` (New Scene dialog: **File > New Scene**, pick the template, tick **Load Additively**). The template contains the group roots above and nothing else — no Camera, no Directional Light. To create or update the template, open a clean part scene and use **File > Save As Scene Template** (or right-click a scene asset → **Create > Scene Template From Scene**). **[project decision]**
 - *Why:* "Unity creates every new scene from a scene template"; the Basic template used by **Assets > Create > Scene** adds a Camera and Light, which in our architecture belong to the bootstrap scene and to `_Environment` respectively. A project template "standardize[s] new scene creation".
 - *Source:* [Creating, loading, and saving scenes](../reference/project-structure/manual-scenes-working-with.md), [Introduction to scenes, "Scene Templates"](../reference/project-structure/manual-creatingscenes.md), [Scene templates](../reference/project-structure/manual-scene-templates.md); creation menu paths verified on [Creating scene templates (6000.3 manual)](https://docs.unity3d.com/6000.3/Documentation/Manual/scene-templates-creating.html). Folder per [02](./02-project-structure.md).
 
 ### Loading conventions
 
 - **MUST** route every scene change through the `SceneLoader` component on the `GameBootstrap` root. Gameplay code raises a `LevelEventChannelSO` (`Data/Events/LoadLevelRequested.asset`, payload `LevelSO`) and never references `SceneManager`. **[project decision — the channel base class is defined in [03](./03-architecture-patterns.md)]**
-- **MUST** load with `SceneManager.LoadSceneAsync(path, LoadSceneMode.Additive)` by **full asset path** (`"Assets/SheNicest/Scenes/…​.unity"`), never by build index or bare name; before loading, unload every loaded scene except `Bootstrap` by walking `SceneManager.sceneCount` / `GetSceneAt(i)` and calling `SceneManager.UnloadSceneAsync(scene)` — not a list the loader keeps, so a level adopted from the Editor (see [Testing a scene in isolation](#testing-a-scene-in-isolation)) is unloaded too.
+- **MUST** load with `SceneManager.LoadSceneAsync(path, LoadSceneMode.Additive)` by **full asset path** (`"Assets/RootsDance/Scenes/…​.unity"`), never by build index or bare name; before loading, unload every loaded scene except `Bootstrap` by walking `SceneManager.sceneCount` / `GetSceneAt(i)` and calling `SceneManager.UnloadSceneAsync(scene)` — not a list the loader keeps, so a level adopted from the Editor (see [Testing a scene in isolation](#testing-a-scene-in-isolation)) is unloaded too.
 - *Why:* `Single` "closes all current loaded Scenes" — including the bootstrap. The synchronous `LoadScene` loads "in the next frame", stutters and forces pending async operations to complete. Unity's own notes: "Loading Scenes by index can be fragile due to potential reordering; the recommended best practice is to load scenes by path", and bare names are ambiguous when two scenes share a name (our `_Environment` parts do). `GetSceneAt` enumerates every loaded scene, so the unload loop needs no bookkeeping that an Editor-adopted level would bypass.
 - *Source:* [LoadSceneMode](../reference/scripting/scriptref-scenemanagement-loadscenemode.md), [SceneManager.LoadScene](../reference/scripting/scriptref-scenemanagement-scenemanager-loadscene.md), [SceneManager.LoadSceneAsync](../reference/scripting/scriptref-scenemanagement-scenemanager-loadsceneasync.md), [SceneManager, "Notes"](../reference/scripting/scriptref-scenemanagement-scenemanager.md), [SceneManager.UnloadSceneAsync](../reference/scripting/scriptref-scenemanagement-scenemanager-unloadsceneasync.md).
 
@@ -76,25 +76,25 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 - *Source:* [Awaitable.FromAsyncOperation](../reference/scripting/scriptref-awaitable-fromasyncoperation.md), [AsyncOperation](../reference/scripting/scriptref-asyncoperation.md) ("can be … awaited with the await operator"), [MonoBehaviour.destroyCancellationToken](../reference/scripting/scriptref-monobehaviour-destroycancellationtoken.md), [Awaitable code examples](../reference/scripting/manual-async-awaitable-examples.md).
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/App/ScenePaths.cs — the only place scene paths are spelled out.
-namespace SheNicest.App
+// Assets/RootsDance/Scripts/Runtime/App/ScenePaths.cs — the only place scene paths are spelled out.
+namespace RootsDance.App
 {
     public static class ScenePaths
     {
-        public const string k_Bootstrap = "Assets/SheNicest/Scenes/Bootstrap.unity";
-        public const string k_MainMenu = "Assets/SheNicest/Scenes/MainMenu.unity";
+        public const string k_Bootstrap = "Assets/RootsDance/Scenes/Bootstrap.unity";
+        public const string k_MainMenu = "Assets/RootsDance/Scenes/MainMenu.unity";
     }
 }
 ```
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/Data/LevelSO.cs — one asset per level under Data/Levels/.
+// Assets/RootsDance/Scripts/Runtime/Data/LevelSO.cs — one asset per level under Data/Levels/.
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SheNicest.Data
+namespace RootsDance.Data
 {
-    [CreateAssetMenu(fileName = "Level", menuName = "SheNicest/Levels/Level")]
+    [CreateAssetMenu(fileName = "Level", menuName = "RootsDance/Levels/Level")]
     public class LevelSO : ScriptableObject
     {
         [Tooltip("Full asset paths in load order. The FIRST entry becomes the active scene, so list the _Environment (or _Lighting) part first.")]
@@ -106,16 +106,16 @@ namespace SheNicest.Data
 ```
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/App/SceneLoader.cs — lives on the GameBootstrap root in Bootstrap.unity.
+// Assets/RootsDance/Scripts/Runtime/App/SceneLoader.cs — lives on the GameBootstrap root in Bootstrap.unity.
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using SheNicest.Core;
-using SheNicest.Data;
+using RootsDance.Core;
+using RootsDance.Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SheNicest.App
+namespace RootsDance.App
 {
     public class SceneLoader : MonoBehaviour
     {
@@ -205,7 +205,7 @@ namespace SheNicest.App
 
 Pressing Play in a content scene must "just work" without first opening `Bootstrap.unity`.
 
-- **MUST** ship the `BootstrapLoader` below in `SheNicest.Runtime`. At `RuntimeInitializeLoadType.AfterSceneLoad` it checks whether the bootstrap scene is loaded and, if not, loads it additively. In a Player build `Bootstrap` is already index 0, so the method is a no-op. **[project decision]**
+- **MUST** ship the `BootstrapLoader` below in `RootsDance.Runtime`. At `RuntimeInitializeLoadType.AfterSceneLoad` it checks whether the bootstrap scene is loaded and, if not, loads it additively. In a Player build `Bootstrap` is already index 0, so the method is a no-op. **[project decision]**
 - **MUST** make `GameBootstrap.Start` *adopt* an already-open level: if any loaded scene other than `Bootstrap` exists, it leaves the Editor's active scene as is and skips loading `MainMenu`; otherwise it requests the main menu. **[project decision]**
 - **MUST NOT** depend on `GameBootstrap` or its services inside `Awake`, `OnEnable` or `Start` of content-scene components. They reach the bootstrap through event channels (assets that always exist) and resolve `GameBootstrap.Instance`, if they really need it, lazily at first use. When Play starts in a content scene the bootstrap arrives one frame later; code that follows [03](./03-architecture-patterns.md) and [04](./04-unity-scripting-rules.md) does not notice.
 - Note: `BootstrapLoader` also runs for every PlayMode test run — the Test Runner's generated `InitTestScene*` scene is a non-bootstrap scene — so PlayMode tests always execute with `Bootstrap.unity` loaded additively and `GameBootstrap` in adopt mode; write PlayMode tests accordingly ([08](./08-testing-tooling.md)).
@@ -213,11 +213,11 @@ Pressing Play in a content scene must "just work" without first opening `Bootstr
 - *Source:* [RuntimeInitializeOnLoadMethodAttribute](../reference/scripting/scriptref-runtimeinitializeonloadmethodattribute.md), [SceneManager, "Scene management in the Editor", `sceneCount`/`GetSceneAt`](../reference/scripting/scriptref-scenemanagement-scenemanager.md), [SceneManager.LoadScene](../reference/scripting/scriptref-scenemanagement-scenemanager-loadscene.md), [Set up multiple scenes (Alt-drag tip)](../reference/project-structure/manual-setupmultiplescenes.md); `Scene.isLoaded` verified on [Scene.isLoaded (6000.3 API)](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/SceneManagement.Scene-isLoaded.html).
 
 ```csharp
-// Assets/SheNicest/Scripts/Runtime/App/BootstrapLoader.cs
+// Assets/RootsDance/Scripts/Runtime/App/BootstrapLoader.cs
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SheNicest.App
+namespace RootsDance.App
 {
     public static class BootstrapLoader
     {
@@ -262,7 +262,7 @@ private void Start()
 
 Git has no file locking for our YAML files (we deliberately do not use `git lfs lock`, see [06](./06-version-control.md)), so conflicts are avoided structurally — by the multi-scene split — plus a lightweight heads-up for the few genuinely shared files.
 
-- **MUST** treat the following as **single-owner files**: every `.unity`; every prefab under `Prefabs/Systems/`, `Prefabs/Characters/` and `Prefabs/UI/`; `Input/SheNicest.inputactions`; everything in `ProjectSettings/`; the URP assets, Lighting Settings and Volume Profiles under `Settings/`; `Packages/manifest.json`. Everything else (props, VFX, ScriptableObject data assets, scripts) is multi-owner and relies on Smart Merge plus small commits. **[project decision]**
+- **MUST** treat the following as **single-owner files**: every `.unity`; every prefab under `Prefabs/Systems/`, `Prefabs/Characters/` and `Prefabs/UI/`; `Input/RootsDance.inputactions`; everything in `ProjectSettings/`; the URP assets, Lighting Settings and Volume Profiles under `Settings/`; `Packages/manifest.json`. Everything else (props, VFX, ScriptableObject data assets, scripts) is multi-owner and relies on Smart Merge plus small commits. **[project decision]**
 - **MUST** rely on the multi-scene split as the primary conflict defence: work in your own part scenes. If two people need the same level at the same time, split it further (another part scene — `_Lighting`, a second gameplay part) instead of taking turns on one file. **[project decision]**
 - **MUST** give the team channel a heads-up before editing a single-owner file you do not own, and before merging content into a shared scene (`Bootstrap.unity`, `MainMenu.unity`, another owner's level part) — a short "editing `<path>` now" / "merged into `<scene>`, pushed on `<branch>`" message is enough. Push the same session; **NEVER** sit on unpushed scene edits overnight. **[project decision]**
 - **MUST** request changes to a file you do not own instead of editing it: message the owner, or move the change into something you own — a new prefab, a prefab variant, or a ScriptableObject. If you need to *place* your prefab in someone's scene, send them the prefab path and the position.
@@ -332,11 +332,11 @@ Scene Forest_Gameplay: 6 instances, overrides = Transform + patrol points only
 
 ## ScriptableObject assets for tunables
 
-- **MUST** keep every tunable value in a ScriptableObject asset under `Assets/SheNicest/Data/<Type>/` (class shapes in [03](./03-architecture-patterns.md), the `SO` suffix rule in [01](./01-csharp-style.md), folder in [02](./02-project-structure.md)). Scene objects and prefabs hold a *reference* to the asset, never the number itself. Level definitions (`LevelSO`), spawn tables, enemy/weapon/pickup configs and event channels are all `.asset` files.
-- **MUST** create assets through the `[CreateAssetMenu]` entries (`Assets > Create > SheNicest > …`) and edit them in the Inspector, one logical group per file — `Data/Enemies/HoverBot.asset`, `Data/Enemies/HoverBot_Elite.asset` — so two designers editing two enemies touch two files.
+- **MUST** keep every tunable value in a ScriptableObject asset under `Assets/RootsDance/Data/<Type>/` (class shapes in [03](./03-architecture-patterns.md), the `SO` suffix rule in [01](./01-csharp-style.md), folder in [02](./02-project-structure.md)). Scene objects and prefabs hold a *reference* to the asset, never the number itself. Level definitions (`LevelSO`), spawn tables, enemy/weapon/pickup configs and event channels are all `.asset` files.
+- **MUST** create assets through the `[CreateAssetMenu]` entries (`Assets > Create > RootsDance > …`) and edit them in the Inspector, one logical group per file — `Data/Enemies/HoverBot.asset`, `Data/Enemies/HoverBot_Elite.asset` — so two designers editing two enemies touch two files.
 - **MUST** remember that Inspector edits to a ScriptableObject made **during Play mode are kept** (they are assets, not scene state). Tune in Play mode on purpose, then either commit the asset or revert it in Git; never assume Play-mode exit resets it.
 - **SHOULD** guard designer-edited fields with `[Range]`/`[Min]` and `OnValidate` clamping (rules in [04](./04-unity-scripting-rules.md)).
-- **MUST** give content assets (investigation objects, plants, puzzles, journal/report entries) the Odin layout from [12](./12-odin-inspector.md): five standard `[TitleGroup]` sections, `[Required]` references, `[ValidateInput]` IDs, `[AssetSelector]` pickers — so a designer can fill in `FL-001` without opening a script. Optional: the `SheNicest > Content Browser` window described there once two content types exist.
+- **MUST** give content assets (investigation objects, plants, puzzles, journal/report entries) the Odin layout from [12](./12-odin-inspector.md): five standard `[TitleGroup]` sections, `[Required]` references, `[ValidateInput]` IDs, `[AssetSelector]` pickers — so a designer can fill in `FL-001` without opening a script. Optional: the `RootsDance > Content Browser` window described there once two content types exist.
 - *Why:* ScriptableObjects are "useful when you're collaborating with non-programmers like artists and designers; they can edit game data without touching code". "If two people change different parts of the same prefab or scene, this results in a time-wasting merge conflict. Breaking off shared data into smaller files and assets reduces these problems" and "can also help with version control and prevent merge conflicts when teammates work on the same scene or prefab." Play-mode persistence: "changes to their values are saved regardless of whether Unity is in Play mode … This can, however, also be a liability if you want to revert those changes."
 - *Source:* [Manual: ScriptableObject](../reference/scripting/manual-class-scriptableobject.md), [Productivity e-book, "Use ScriptableObjects to separate data from logic"](../reference/project-structure/ebook-tips-to-increase-productivity-with-unity-6.md), [SO e-book, "Architectural benefits"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md), [6 ways ScriptableObjects can benefit your team](../reference/design-patterns/blog-6-ways-scriptableobjects-can-benefit-your-team-and-your-code.md), [Direct reference asset management](../reference/project-structure/manual-assets-direct-reference.md).
 

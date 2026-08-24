@@ -1,7 +1,7 @@
 # 01. C# code style and naming
 
 > **Scope:** How C# source in this repository is named, formatted, laid out and commented, and the exact `.editorconfig` that encodes it.
-> **Applies to:** every `.cs` file under `Assets/SheNicest/Scripts` and `Assets/SheNicest/Tests` (assemblies `SheNicest.Runtime`, `SheNicest.Editor`, `SheNicest.Tests.*`). Third-party code under `Assets/ThirdParty` and `Assets/Plugins` is left as shipped.
+> **Applies to:** every `.cs` file under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests` (assemblies `RootsDance.Runtime`, `RootsDance.Editor`, `RootsDance.Tests.*`). Third-party code under `Assets/ThirdParty` and `Assets/Plugins` is left as shipped.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 This document follows Unity's *C# style guide (Unity 6 edition)* as written, with the choices it leaves open settled below and marked **[project decision]**. Where this guide is silent, Microsoft's C# conventions apply. Lifecycle and serialization semantics live in [04 Unity scripting rules](./04-unity-scripting-rules.md), architecture in [03](./03-architecture-patterns.md), performance in [05](./05-performance.md), folders and assemblies in [02](./02-project-structure.md).
@@ -13,7 +13,7 @@ This document follows Unity's *C# style guide (Unity 6 edition)* as written, wit
 3. **MUST** Write an explicit access modifier on every member and type; drop redundant initializers (`= 0`, `= null`, `= false`).
 4. **MUST** Name booleans and bool-returning methods as questions (`m_isDead`, `HasKey`, `IsGameOver()`); methods start with a verb, types are nouns, `ScriptableObject` classes end with `SO` (`EnemyConfigSO`), enums are singular nouns (plural only for `[Flags]`).
 5. **MUST** Allman braces, 4-space indentation (no tabs), braces on every block including single statements, one statement and one declaration per line, lines ≤ 120 columns.
-6. **MUST** One `MonoBehaviour`/`ScriptableObject` per file, file name = class name, one namespace per file; namespace is `SheNicest.<FeatureFolder>`; `using` directives outside the namespace, `System` first, unused ones removed.
+6. **MUST** One `MonoBehaviour`/`ScriptableObject` per file, file name = class name, one namespace per file; namespace is `RootsDance.<FeatureFolder>`; `using` directives outside the namespace, `System` first, unused ones removed.
 7. **MUST** Expose Inspector data with `[SerializeField] private` fields (plus `[Tooltip]`/`[Range]`), never public fields on `MonoBehaviour`/`ScriptableObject`; give read access through properties.
 8. **MUST** Order members: constants/statics → serialized fields → other fields → properties → events → Unity messages (fixed order, see *Class layout*) → public methods → private methods → nested types.
 9. **MUST** Name events as verb phrases (`Damaged`, `DoorOpened`, `OpeningDoor`) typed `System.Action`/`Action<T>`; raise them from `OnXxx()`; handle them in `Subject_Xxx()` (ScriptableObject event-channel listeners: `On<ChannelField>`, see [03](./03-architecture-patterns.md)).
@@ -37,7 +37,7 @@ Write C# 9.0 and nothing newer. Unity 6.3 compiles with Roslyn at C# 9.0 and rej
 
 | Identifier | Casing | Example |
 |---|---|---|
-| Namespace | PascalCase, dot-separated | `SheNicest.Player` |
+| Namespace | PascalCase, dot-separated | `RootsDance.Player` |
 | Class, struct, enum, delegate | PascalCase noun | `PlayerHealth`, `WeaponType` |
 | ScriptableObject class | PascalCase noun + `SO` suffix | `EnemyConfigSO`, `VoidEventChannelSO` |
 | Interface | `I` + PascalCase adjective/noun | `IDamageable`, `IInteractable` |
@@ -169,7 +169,7 @@ private void PlayerHealth_Died()
 
 ### Namespaces and files
 
-- **MUST** put every type in a namespace rooted at `SheNicest`; sub-namespaces mirror the feature folder under `Scripts/Runtime` (or `Scripts/Editor`): `Assets/SheNicest/Scripts/Runtime/Player/PlayerHealth.cs` → `namespace SheNicest.Player`. Editor code is `SheNicest.Editor.<Feature>`, tests `SheNicest.Tests.EditMode`/`SheNicest.Tests.PlayMode`. **[project decision]**
+- **MUST** put every type in a namespace rooted at `RootsDance`; sub-namespaces mirror the feature folder under `Scripts/Runtime` (or `Scripts/Editor`): `Assets/RootsDance/Scripts/Runtime/Player/PlayerHealth.cs` → `namespace RootsDance.Player`. Editor code is `RootsDance.Editor.<Feature>`, tests `RootsDance.Tests.EditMode`/`RootsDance.Tests.PlayMode`. **[project decision]**
 - **MUST** use PascalCase namespace segments without underscores; never `Scripts`, `Runtime` or `Assets` as a segment.
 - **MUST** keep exactly one `MonoBehaviour` or `ScriptableObject` per file, and the file name must equal that class name. Small helper types (a `[Serializable]` struct, a private enum, an interface used only here) may share the file, but they must be in the same namespace — a file with a `MonoBehaviour`/`ScriptableObject` may not contain more than one namespace.
 - **MUST** use block-scoped `namespace X { … }` (file-scoped is C# 10).
@@ -224,7 +224,7 @@ switch (mode)
         FireBurst();
         break;
     default:
-        Log.Warning($"Unhandled fire mode {mode}.", this); // SheNicest.Core.Log wrapper, see 04.
+        Log.Warning($"Unhandled fire mode {mode}.", this); // RootsDance.Core.Log wrapper, see 04.
         break;
 }
 
@@ -264,7 +264,7 @@ for (int i = 0; i < 10; i++)
 
 ### `using` directives
 
-- **MUST** place all `using` directives at the top of the file, outside the namespace; `System.*` first, then every other namespace in plain alphabetical order (so `SheNicest.*` sorts before `Unity*`), no blank lines between groups — exactly what the IDE's *Sort usings* produces from `dotnet_sort_system_directives_first = true` / `dotnet_separate_import_directive_groups = false` in the appendix.
+- **MUST** place all `using` directives at the top of the file, outside the namespace; `System.*` first, then every other namespace in plain alphabetical order (so `RootsDance.*` sorts before `Unity*`), no blank lines between groups — exactly what the IDE's *Sort usings* produces from `dotnet_sort_system_directives_first = true` / `dotnet_separate_import_directive_groups = false` in the appendix.
 - **MUST** remove unused `using` lines before committing (any `using` a template or IDE adds that the file does not need).
 - **MUST NOT** use `using static` or aliases except to resolve a genuine name clash (`using Random = UnityEngine.Random;` is the accepted case). **[project decision]**
 
@@ -293,7 +293,7 @@ The canonical file — every rule in this document applied at once (`IDamageable
 
 ```csharp
 // IDamageable.cs
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     public interface IDamageable
     {
@@ -307,7 +307,7 @@ namespace SheNicest.Player
 using System;
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     /// <summary>
     /// Tracks the player's hit points and announces damage and death.
@@ -484,7 +484,7 @@ New scripts from **Assets > Create > Scripting** come from text templates. Proje
 - *Why:* Every new file then starts in project style with the namespace, an explicit modifier on `Awake`, and without the unused `Update` method and comments an agent would otherwise have to delete.
 - *Source:* [Style guide e-book, Appendix: Script templates](../reference/csharp-style/ebook-use-a-c-style-guide-for-clean-and-scalable-game-code-unity-6-edition-e.md) (paths, `/Assets/ScriptTemplates`, keywords, `PriorityNumber-MenuPath-DefaultName.FileExtension.txt` naming, 6.x file names), [Project organization e-book, Code standards](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) (default template with `#ROOTNAMESPACEBEGIN#`/`#ROOTNAMESPACEEND#`), [How to customize Unity script templates (Unity Support)](../reference/csharp-style/hc-210223733-how-to-customize-unity-script-templates.md) (keep `#SCRIPTNAME#`, relaunch the Editor), [Unity patterns demo templates](../reference/csharp-style/github-game-programming-patterns-demo-81-c-script-newbehaviourscript-cs-txt.md).
 
-Keywords: `#SCRIPTNAME#` is the file name you typed; `#NOTRIM#` keeps a blank line between braces; `#ROOTNAMESPACEBEGIN#`/`#ROOTNAMESPACEEND#` wrap the class in a namespace block when a root namespace is available — the asmdef's *Root Namespace* (set in [02](./02-project-structure.md)) and, as fallback, **Edit > Project Settings > Editor > C# Project Generation > Root namespace** (set it to `SheNicest`). *(Observed 6000.3 Editor behaviour; the manual documents the settings but not the keyword expansion.)* After creating a file, change the namespace to the folder's sub-namespace (`SheNicest.Player`) if the expansion only produced the root.
+Keywords: `#SCRIPTNAME#` is the file name you typed; `#NOTRIM#` keeps a blank line between braces; `#ROOTNAMESPACEBEGIN#`/`#ROOTNAMESPACEEND#` wrap the class in a namespace block when a root namespace is available — the asmdef's *Root Namespace* (set in [02](./02-project-structure.md)) and, as fallback, **Edit > Project Settings > Editor > C# Project Generation > Root namespace** (set it to `RootsDance`). *(Observed 6000.3 Editor behaviour; the manual documents the settings but not the keyword expansion.)* After creating a file, change the namespace to the folder's sub-namespace (`RootsDance.Player`) if the expansion only produced the root.
 
 `Assets/ScriptTemplates/1-Scripting__MonoBehaviour Script-NewMonoBehaviourScript.cs.txt`:
 
@@ -508,7 +508,7 @@ public class #SCRIPTNAME# : MonoBehaviour
 using UnityEngine;
 
 #ROOTNAMESPACEBEGIN#
-[CreateAssetMenu(fileName = "#SCRIPTNAME#", menuName = "SheNicest/#SCRIPTNAME#")]
+[CreateAssetMenu(fileName = "#SCRIPTNAME#", menuName = "RootsDance/#SCRIPTNAME#")]
 public class #SCRIPTNAME# : ScriptableObject
 {
     #NOTRIM#
@@ -516,13 +516,13 @@ public class #SCRIPTNAME# : ScriptableObject
 #ROOTNAMESPACEEND#
 ```
 
-The template cannot strip the `SO` suffix, so after creating the file edit the attribute to `fileName = "<Name without SO>"` and `menuName = "SheNicest/<Category>/<Display Name>"` (e.g. `fileName = "EnemyConfig", menuName = "SheNicest/Enemies/Enemy Config"`), matching the examples in [03](./03-architecture-patterns.md) — asset files never carry the `SO` suffix.
+The template cannot strip the `SO` suffix, so after creating the file edit the attribute to `fileName = "<Name without SO>"` and `menuName = "RootsDance/<Category>/<Display Name>"` (e.g. `fileName = "EnemyConfig", menuName = "RootsDance/Enemies/Enemy Config"`), matching the examples in [03](./03-architecture-patterns.md) — asset files never carry the `SO` suffix.
 
-`Assets/ScriptTemplates/3-Scripting__Content ScriptableObject (Odin)-NewContentSO.cs.txt` — the starting point for a designer-facing content asset: the five standard Odin `[TitleGroup]` sections, `[Required]` references and read-only properties, exactly as defined in [12 Odin Inspector](./12-odin-inspector.md) (that guideline owns the template's content; add the `[ValidateInput]` ID check once `SheNicest.Data.ContentId` exists). **[project decision]**
+`Assets/ScriptTemplates/3-Scripting__Content ScriptableObject (Odin)-NewContentSO.cs.txt` — the starting point for a designer-facing content asset: the five standard Odin `[TitleGroup]` sections, `[Required]` references and read-only properties, exactly as defined in [12 Odin Inspector](./12-odin-inspector.md) (that guideline owns the template's content; add the `[ValidateInput]` ID check once `RootsDance.Data.ContentId` exists). **[project decision]**
 
 **Attribute placement with Odin:** attributes are ordered *Unity serialization → Odin group → Odin behaviour* (`[SerializeField, TitleGroup("Basic Info"), Required]`), one line while the declaration fits in 120 columns, otherwise stacked with the group first and `[Tooltip]` last — the full rule and examples are in [12](./12-odin-inspector.md#attribute-layout-and-class-position).
 
-- *Source for `CreateAssetMenu(fileName, menuName)`:* [ScriptableObject (6.3 Manual)](../reference/scripting/manual-class-scriptableobject.md). The `SheNicest/` menu root is a **[project decision]**.
+- *Source for `CreateAssetMenu(fileName, menuName)`:* [ScriptableObject (6.3 Manual)](../reference/scripting/manual-class-scriptableobject.md). The `RootsDance/` menu root is a **[project decision]**.
 
 ## Applying the `.editorconfig`
 
@@ -549,7 +549,7 @@ The template cannot strip the `SO` suffix, so after creating the file edit the a
 - ❌ `[SerializeField] private readonly Transform m_anchor;` → ✅ drop `readonly`; Unity cannot serialize it
 - ❌ `#region Unity Methods … #endregion` → ✅ member ordering from *Class layout*, split the class if it is long
 - ❌ `// Created by X on 2026-08-23` / `// float oldSpeed = 3f;` → ✅ delete; Git has it
-- ❌ `namespace SheNicest.Scripts.Runtime.Player` / `namespace SheNicest;` → ✅ `namespace SheNicest.Player { … }`
+- ❌ `namespace RootsDance.Scripts.Runtime.Player` / `namespace RootsDance;` → ✅ `namespace RootsDance.Player { … }`
 - ❌ `using UnityEngine;` inside the namespace, or left-over unused usings → ✅ outside, sorted, trimmed
 - ❌ `public record Stats(int Hp);` / `public int Hp { get; init; }` → ✅ `[Serializable] public struct Stats { public int HitPoints; }`
 - ❌ `public float Speed = 1f;` aligned in columns with other fields → ✅ one space between type and name
@@ -557,7 +557,7 @@ The template cannot strip the `SO` suffix, so after creating the file edit the a
 
 ## Review checklist
 
-- [ ] Every type lives in `SheNicest.<Feature>` matching its folder; one `MonoBehaviour`/`ScriptableObject` per file; file name = class name.
+- [ ] Every type lives in `RootsDance.<Feature>` matching its folder; one `MonoBehaviour`/`ScriptableObject` per file; file name = class name.
 - [ ] Casing and prefixes match the table (`m_`, `s_`, `k_`, `I`, PascalCase members, camelCase locals/parameters); no Hungarian notation, abbreviations, puns or redundant class-name repeats.
 - [ ] Every member has an explicit access modifier; no `= 0`/`= null`/`= false` initializers; one declaration per line.
 - [ ] Booleans and bool methods read as questions; methods start with verbs; enums are singular (plural for `[Flags]`).

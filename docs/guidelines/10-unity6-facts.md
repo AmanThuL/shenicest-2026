@@ -151,7 +151,7 @@ Introduced = first Unity 6 release that has it (everything listed is inherited b
 ```csharp
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     public class JumpPad : MonoBehaviour
     {

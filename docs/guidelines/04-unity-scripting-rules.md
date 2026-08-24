@@ -1,7 +1,7 @@
 # 04. Unity scripting rules
 
 > **Scope:** How to write MonoBehaviour, ScriptableObject and plain C# code that behaves correctly on Unity 6000.3 — lifecycle, serialization, null checks, object lookup, Instantiate/Destroy, Awaitable vs coroutines, events, time, physics API, Input System usage, logging, assembly definitions and language limits.
-> **Applies to:** all C# under `Assets/SheNicest/Scripts` and `Assets/SheNicest/Tests` (assemblies `SheNicest.Runtime`, `SheNicest.Editor`, `SheNicest.Tests.EditMode`, `SheNicest.Tests.PlayMode`).
+> **Applies to:** all C# under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests` (assemblies `RootsDance.Runtime`, `RootsDance.Editor`, `RootsDance.Tests.EditMode`, `RootsDance.Tests.PlayMode`).
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architecture (SOLID, event channels, pooling, service locator) by [03 Architecture patterns](./03-architecture-patterns.md); profiling and optimisation by [05 Performance](./05-performance.md); API renames and deprecations in full by [10 Unity 6.3 facts](./10-unity6-facts.md). This document is the code-level rulebook that sits between them.
@@ -20,8 +20,8 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 10. **MUST** use the Unity 6 physics names `linearVelocity`, `linearDamping`, `angularDamping`, `PhysicsMaterial`.
 11. **MUST** read input from `InputSystem.actions` (project-wide actions) via `ReadValue<T>()` / `IsPressed()` / `WasPressedThisFrame()`; **NEVER** use `UnityEngine.Input`.
 12. **MUST** use C# `event` for code-to-code notifications and `UnityEvent` only for designer-wired Inspector callbacks; every subscription has a matching unsubscription.
-13. **MUST** log through `SheNicest.Core.Log` (`Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` are unconditional, every call passes a `UnityEngine.Object` context); **NEVER** call `Debug.Log*` directly outside `Log.cs` and `_Sandbox/`, never `print()`, never a log in a per-frame method; `Debug.Assert` for invariants.
-14. **MUST** keep project code inside the four project asmdefs — the only code outside them is vendor code in `Assets/ThirdParty/` and scratch code in `Assets/_Sandbox/<user>/` (both land in `Assembly-CSharp`, may use `SheNicest.Runtime`, can never be referenced by it); Editor-only code lives in `SheNicest.Editor` or behind `#if UNITY_EDITOR`; test code never ships.
+13. **MUST** log through `RootsDance.Core.Log` (`Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` are unconditional, every call passes a `UnityEngine.Object` context); **NEVER** call `Debug.Log*` directly outside `Log.cs` and `_Sandbox/`, never `print()`, never a log in a per-frame method; `Debug.Assert` for invariants.
+14. **MUST** keep project code inside the four project asmdefs — the only code outside them is vendor code in `Assets/ThirdParty/` and scratch code in `Assets/_Sandbox/<user>/` (both land in `Assembly-CSharp`, may use `RootsDance.Runtime`, can never be referenced by it); Editor-only code lives in `RootsDance.Editor` or behind `#if UNITY_EDITOR`; test code never ships.
 15. **NEVER** use C# records, `init` setters, `dynamic`, finalizers, `[ThreadStatic]` or `System.Reflection.Emit`; static mutable state needs an explicit reset path.
 
 ## Lifecycle and event functions
@@ -47,7 +47,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerSpawnTracker : MonoBehaviour
@@ -271,10 +271,10 @@ Rules for `Awaitable` code:
 ```csharp
 using System;
 using System.Threading;
-using SheNicest.Core;
+using RootsDance.Core;
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     public class PlayerHatch : MonoBehaviour
     {
@@ -390,7 +390,7 @@ public class Health : MonoBehaviour
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerMover : MonoBehaviour
@@ -439,7 +439,7 @@ namespace SheNicest.Player
 
 ## Input System in code
 
-**All input comes from the project-wide action asset (`Assets/SheNicest/Input/SheNicest.inputactions`) via `InputSystem.actions.FindAction("Map/Action")`, looked up once in `Awake` and stored in an `m_` field.** `UnityEngine.Input` (legacy Input Manager), `OnMouse*` callbacks and per-device reads (`Keyboard.current`) are not used in gameplay code.
+**All input comes from the project-wide action asset (`Assets/RootsDance/Input/RootsDance.inputactions`) via `InputSystem.actions.FindAction("Map/Action")`, looked up once in `Awake` and stored in an `m_` field.** `UnityEngine.Input` (legacy Input Manager), `OnMouse*` callbacks and per-device reads (`Keyboard.current`) are not used in gameplay code.
 - *Why:* Project-wide actions are preloaded and enabled automatically, so no asset references or `Enable()` calls are needed; the legacy Input Manager is deprecated and "will be removed in future versions of Unity". Qualify with the map name (`"Player/Move"`) to avoid ambiguity when two maps share an action name.
 - *Source:* [About project-wide actions](../reference/packages/inputsystem-1-20-about-project-wide-actions.md), [Enabling actions](../reference/packages/inputsystem-1-20-enable-actions.md), [Quick start guide](../reference/packages/inputsystem-1-20-quick-start-guide.md), [Introduction to Input](../reference/scripting/manual-input-introduction.md), [Legacy Input](../reference/scripting/manual-inputlegacy.md); project-wide asset path and "no legacy Input" are **[project decision]**.
 
@@ -455,7 +455,7 @@ Actions that are *not* project-wide (a second asset, or actions created in code)
 
 ## Logging
 
-**All logging goes through the static class `SheNicest.Core.Log` in `Scripts/Runtime/Core/Log.cs`.** `Info` and `Warning` carry `[Conditional("UNITY_EDITOR")]` and `[Conditional("DEVELOPMENT_BUILD")]` so the call and its argument evaluation disappear from release builds; `Error` and `Exception` are unconditional. Every overload takes a `UnityEngine.Object context` — pass `this`, so clicking the message highlights the object in the Hierarchy. Direct `Debug.Log*` only inside `Log` and in `_Sandbox/`; `print()` never; no custom scripting symbols (no `SHENICEST_LOG`). **[project decision]**
+**All logging goes through the static class `RootsDance.Core.Log` in `Scripts/Runtime/Core/Log.cs`.** `Info` and `Warning` carry `[Conditional("UNITY_EDITOR")]` and `[Conditional("DEVELOPMENT_BUILD")]` so the call and its argument evaluation disappear from release builds; `Error` and `Exception` are unconditional. Every overload takes a `UnityEngine.Object context` — pass `this`, so clicking the message highlights the object in the Hierarchy. Direct `Debug.Log*` only inside `Log` and in `_Sandbox/`; `print()` never; no custom scripting symbols (no `SHENICEST_LOG`). **[project decision]**
 - *Why:* `Debug` logging is not stripped from release builds; Unity's own recommendation is a `[Conditional]` wrapper keyed to symbols defined only in development. `UNITY_EDITOR || DEVELOPMENT_BUILD` is exactly what Unity's predefined `DEBUG` means, so no custom symbol is needed, and a `[Conditional]` method call is removed together with its arguments, so the string interpolation never runs in release.
 - *Source:* [The Debug class — Excluding Debug code from non-development builds](../reference/testing-tooling/manual-class-debug.md), [Conditional compilation — Conditional attribute](../reference/scripting/manual-platform-dependent-compilation.md), [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md), [Debug.Log](../reference/scripting/scriptref-debug-log.md), [Debug.LogException](../reference/testing-tooling/scriptref-debug-logexception.md).
 
@@ -464,7 +464,7 @@ using System;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
-namespace SheNicest.Core
+namespace RootsDance.Core
 {
     public static class Log
     {
@@ -501,24 +501,24 @@ namespace SheNicest.Core
 
 ## Assembly definitions and conditional compilation
 
-**Every project script lives in exactly one of the four project assemblies** (folder layout in [02 Project structure](./02-project-structure.md)); the only exceptions are `Assets/ThirdParty/` and `Assets/_Sandbox/<user>/`, which compile into the predefined `Assembly-CSharp` and can never be referenced from `SheNicest.*`: **[project decision]**
+**Every project script lives in exactly one of the four project assemblies** (folder layout in [02 Project structure](./02-project-structure.md)); the only exceptions are `Assets/ThirdParty/` and `Assets/_Sandbox/<user>/`, which compile into the predefined `Assembly-CSharp` and can never be referenced from `RootsDance.*`: **[project decision]**
 
 | Assembly (`.asmdef`) | Folder | Platforms | References |
 |---|---|---|---|
-| `SheNicest.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`; add `Unity.TextMeshPro` / `UnityEngine.UI` only if uGUI is actually used. Root Namespace `SheNicest`. |
-| `SheNicest.Editor` | `Scripts/Editor` | **Editor only** | `SheNicest.Runtime` |
+| `RootsDance.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`; add `Unity.TextMeshPro` / `UnityEngine.UI` only if uGUI is actually used. Root Namespace `RootsDance`. |
+| `RootsDance.Editor` | `Scripts/Editor` | **Editor only** | `RootsDance.Runtime` |
 
-Test assemblies (`SheNicest.Tests.EditMode`, Editor only; `SheNicest.Tests.PlayMode`, Any Platform): exact JSON in [02 — assembly definitions](./02-project-structure.md). EditMode references `SheNicest.Runtime` and `SheNicest.Editor`; PlayMode references `SheNicest.Runtime`.
+Test assemblies (`RootsDance.Tests.EditMode`, Editor only; `RootsDance.Tests.PlayMode`, Any Platform): exact JSON in [02 — assembly definitions](./02-project-structure.md). EditMode references `RootsDance.Runtime` and `RootsDance.Editor`; PlayMode references `RootsDance.Runtime`.
 
-- *Why:* Code outside an asmdef lands in the predefined `Assembly-CSharp`, which custom assemblies (including the test assemblies) cannot reference and which recompiles on every change — that is also why `_Sandbox/` code can use `SheNicest.Runtime` but never leak back into it. Package assembly names come from the package API pages (`Unity.InputSystem.dll`, `Unity.Cinemachine.dll`, `Unity.TextMeshPro.dll`, `UnityEngine.UI.dll`).
+- *Why:* Code outside an asmdef lands in the predefined `Assembly-CSharp`, which custom assemblies (including the test assemblies) cannot reference and which recompiles on every change — that is also why `_Sandbox/` code can use `RootsDance.Runtime` but never leak back into it. Package assembly names come from the package API pages (`Unity.InputSystem.dll`, `Unity.Cinemachine.dll`, `Unity.TextMeshPro.dll`, `UnityEngine.UI.dll`).
 - *Source:* [Introduction to assemblies](../reference/project-structure/manual-assembly-definitions-intro.md), [Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md), [Edit mode and Play mode tests](../reference/testing-tooling/manual-edit-mode-vs-play-mode-tests.md), [InputAction API](../reference/packages/inputsystem-1-20-unityengine-inputsystem-inputaction.md), [CinemachineCamera API](../reference/packages/cinemachine-3-1-unity-cinemachine-cinemachinecamera.md), [TMP_Text API](../reference/packages/ugui-2-0-tmpro-tmp-text.md).
 
 Rules:
 1. **Add a reference before using a type from another assembly** — in the Inspector's *Assembly Definition References* with **Use GUIDs unticked**, or by adding the assembly *name* to the `references` array of the JSON in [02](./02-project-structure.md); a missing reference is a compile error, not a warning. References from a custom assembly to `Assembly-CSharp` and cyclic references are impossible — if two assemblies need each other, merge them or invert the dependency.
    - *Source:* [Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md), [Assembly Definition Inspector](../reference/project-structure/manual-class-assemblydefinitionimporter.md).
-2. **Editor-only code goes in `SheNicest.Editor` (Platforms = Editor only).** Any `using UnityEditor;` that must live in a runtime file (custom `OnValidate` helpers, gizmo colours, menu items next to the runtime class) is wrapped in `#if UNITY_EDITOR … #endif` — the `using`, the fields and the methods — otherwise the Player build fails. A folder named `Editor` under a folder that has its own asmdef is **not** automatically Editor-only.
+2. **Editor-only code goes in `RootsDance.Editor` (Platforms = Editor only).** Any `using UnityEditor;` that must live in a runtime file (custom `OnValidate` helpers, gizmo colours, menu items next to the runtime class) is wrapped in `#if UNITY_EDITOR … #endif` — the `using`, the fields and the methods — otherwise the Player build fails. A folder named `Editor` under a folder that has its own asmdef is **not** automatically Editor-only.
    - *Source:* [Creating assembly assets — Editor assembly](../reference/project-structure/manual-assembly-definitions-creating.md), [Introduction to assemblies — Editor folder](../reference/project-structure/manual-assembly-definitions-intro.md), [Conditional compilation](../reference/scripting/manual-platform-dependent-compilation.md), [How Unity uses serialization — Editor-only fields](../reference/scripting/manual-script-serialization-how-unity-uses.md).
-3. **Test assemblies are created with Test Runner → *Create a new Test Assembly Folder*** (or *Assets > Create > Testing > Test Assembly Folder*), which writes the `nunit.framework.dll`, `UnityEngine.TestRunner` and `UnityEditor.TestRunner` references that mark an assembly as a test assembly; then add `SheNicest.Runtime` to its references. Keep the generated references and `defineConstraints` when editing the JSON by hand. EditMode test asmdefs keep `includePlatforms: ["Editor"]`; PlayMode ones leave platforms open. Test assemblies are excluded from Player builds — production code accidentally placed there will not ship. The canonical JSON for both files is in [02](./02-project-structure.md); how to write and run tests is in [08](./08-testing-tooling.md).
+3. **Test assemblies are created with Test Runner → *Create a new Test Assembly Folder*** (or *Assets > Create > Testing > Test Assembly Folder*), which writes the `nunit.framework.dll`, `UnityEngine.TestRunner` and `UnityEditor.TestRunner` references that mark an assembly as a test assembly; then add `RootsDance.Runtime` to its references. Keep the generated references and `defineConstraints` when editing the JSON by hand. EditMode test asmdefs keep `includePlatforms: ["Editor"]`; PlayMode ones leave platforms open. Test assemblies are excluded from Player builds — production code accidentally placed there will not ship. The canonical JSON for both files is in [02](./02-project-structure.md); how to write and run tests is in [08](./08-testing-tooling.md).
    - *Source:* [Create a test assembly](../reference/testing-tooling/manual-workflow-create-test-assembly.md), [Creating assembly assets — test assembly](../reference/project-structure/manual-assembly-definitions-creating.md), [Assembly Definition file format](../reference/project-structure/manual-assembly-definition-file-format.md).
 4. **Prefer `#if` on Unity's built-in symbols only** (`UNITY_EDITOR`, `DEVELOPMENT_BUILD`, `UNITY_WEBGL`, `UNITY_STANDALONE`); `#if DEBUG` equals `UNITY_EDITOR || DEVELOPMENT_BUILD`. Do not add custom scripting symbols for a hackathon; use `Define Constraints` on an asmdef if a whole assembly is platform-specific. Never use `UNITY_64`.
    - *Source:* [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md), [Conditional compilation](../reference/scripting/manual-platform-dependent-compilation.md).
@@ -579,7 +579,7 @@ Rules:
 - ❌ `DestroyImmediate(go)` in gameplay → ✅ `Destroy(go)`
 - ❌ `Log.Info($"pos {transform.position}", this)` in `Update` → ✅ remove, or `Debug.Assert`, or Profiler (see [05](./05-performance.md))
 - ❌ `Debug.Log("spawned", this)` / `print("spawned")` in gameplay code → ✅ `Log.Info("spawned", this)` (direct `Debug.Log*` only inside `Log.cs` and `_Sandbox/`)
-- ❌ `using UnityEditor;` at the top of a runtime file → ✅ move to `SheNicest.Editor` or guard with `#if UNITY_EDITOR`
+- ❌ `using UnityEditor;` at the top of a runtime file → ✅ move to `RootsDance.Editor` or guard with `#if UNITY_EDITOR`
 - ❌ `public record PlayerStats(...)` / `init` setters → ✅ `[Serializable] struct`/class with fields or `{ get; private set; }`
 - ❌ mutating a ScriptableObject asset's fields as game state → ✅ runtime copy via `CreateInstance`/`Instantiate`, or keep state on a MonoBehaviour
 
@@ -598,8 +598,8 @@ Rules:
 - [ ] Movement scaled by `Time.deltaTime`; Rigidbody code in `FixedUpdate`; Unity 6 physics names used.
 - [ ] Input read through `InputSystem.actions`; one-shot presses polled in `Update`; no `UnityEngine.Input`.
 - [ ] C# `event` for code, `UnityEvent` only for Inspector wiring; all subscriptions removed.
-- [ ] No log call in per-frame code; all logging goes through `SheNicest.Core.Log` with `this` as context; no direct `Debug.Log*` or `print()` outside `Log.cs`/`_Sandbox/`.
-- [ ] File is inside the right asmdef (or under `ThirdParty/`/`_Sandbox/`); Editor-only code is in `SheNicest.Editor` or `#if UNITY_EDITOR`; tests are in a test assembly.
+- [ ] No log call in per-frame code; all logging goes through `RootsDance.Core.Log` with `this` as context; no direct `Debug.Log*` or `print()` outside `Log.cs`/`_Sandbox/`.
+- [ ] File is inside the right asmdef (or under `ThirdParty/`/`_Sandbox/`); Editor-only code is in `RootsDance.Editor` or `#if UNITY_EDITOR`; tests are in a test assembly.
 - [ ] No records/`init`, `dynamic`, finalizers, `[ThreadStatic]`, LINQ in hot paths; static mutable values have a `[RuntimeInitializeOnLoadMethod]` reset; static event handlers are unsubscribed.
 - [ ] `Renderer.material` not used; no `MaterialPropertyBlock`; property IDs and animator hashes cached as `k_` statics.
 

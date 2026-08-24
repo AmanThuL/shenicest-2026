@@ -6,7 +6,7 @@ Version-exact documentation for the Odin Inspector build committed in this repos
 |---|---|---|
 | [attributes.md](attributes.md) | `Sirenix.OdinInspector.Attributes.xml` | All 113 public attributes in `Sirenix.OdinInspector` — summary, remarks, vendor examples, constructors with parameter docs, fields/properties. **Grep this before using an attribute.** |
 | [support-types.md](support-types.md) | `Sirenix.OdinInspector.Attributes.xml` | Enums and helper types used as attribute parameters (`InfoMessageType`, `TitleAlignments`, `ButtonSizes`, `InlineEditorObjectFieldModes`, `ValueDropdownList<T>` …). |
-| [editor-api.md](editor-api.md) | `Sirenix.OdinInspector.Editor.xml` | Selected editor types for `SheNicest.Editor` tooling: `OdinEditorWindow`, `OdinMenuEditorWindow`, `OdinMenuTree`, `OdinMenuItem`, drawer base classes, `InspectorProperty`, `PropertyTree`. |
+| [editor-api.md](editor-api.md) | `Sirenix.OdinInspector.Editor.xml` | Selected editor types for `RootsDance.Editor` tooling: `OdinEditorWindow`, `OdinMenuEditorWindow`, `OdinMenuTree`, `OdinMenuItem`, drawer base classes, `InspectorProperty`, `PropertyTree`. |
 | [serialization.md](serialization.md) | `Sirenix.Serialization.xml` | The Odin serializer types (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]` …). **Documented so they are recognised — this project does not use them** (guideline 12, rule 2). |
 
 Quick lookups:

@@ -113,6 +113,12 @@ InitTestScene*.unity*
 # Merge-tool backups (UnityYAMLMerge / git mergetool)
 *.orig
 
+# Odin Inspector per-user editor preferences (which types you've shown/hidden in its pickers),
+# auto-created the first time the Editor opens with Odin installed. Not part of the vendor
+# package, not shared project config — same category as UserSettings/ above.
+/Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/TypeRegistryUserConfig.asset
+/Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/TypeRegistryUserConfig.asset.meta
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

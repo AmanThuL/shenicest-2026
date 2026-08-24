@@ -1,7 +1,7 @@
 # 09. Packages and game systems
 
 > **Scope:** Which Unity packages this project uses (and which it does not), how each is set up, and the conventions for using them from scenes and code: Package Manager, Input System, Cinemachine, UI Toolkit (+ uGUI/TextMeshPro), Physics, AI Navigation, Animation, Audio, Addressables, ProBuilder/Timeline/Visual Scripting.
-> **Applies to:** `Packages/manifest.json`, all assets under `Assets/SheNicest/`, and all C# under `Assets/SheNicest/Scripts`.
+> **Applies to:** `Packages/manifest.json`, all assets under `Assets/RootsDance/`, and all C# under `Assets/RootsDance/Scripts`.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); generic scripting rules (lifecycle, Update vs FixedUpdate, null checks, Awaitable) by [04-unity-scripting-rules.md](./04-unity-scripting-rules.md); the 6.3 API renames by [10-unity6-facts.md](./10-unity6-facts.md). This document only adds the package-specific rules on top of those.
@@ -10,11 +10,11 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 
 1. **MUST** use only packages from the 6000.3 *Released* / *Core* lists, at the versions in the table below; adding, removing or bumping a package is a team decision and its own `chore(packages):` commit of `Packages/manifest.json` + `Packages/packages-lock.json`.
 2. **NEVER** add pre-release or experimental packages; **NEVER** add Git-URL, local-path or embedded (`Packages/<name>/`) packages without explicit team agreement (pin Git URLs to a tag or full commit hash).
-3. **MUST** read input through the single project-wide action asset `Assets/SheNicest/Input/SheNicest.inputactions` via `InputSystem.actions.FindAction("<Map>/<Action>")` (map-qualified); cache the result once, poll continuous values in `Update`, never call `FindAction` per frame.
+3. **MUST** read input through the single project-wide action asset `Assets/RootsDance/Input/RootsDance.inputactions` via `InputSystem.actions.FindAction("<Map>/<Action>")` (map-qualified); cache the result once, poll continuous values in `Update`, never call `FindAction` per frame.
 4. **NEVER** use `UnityEngine.Input`, the `PlayerInput` component, the generated C# wrapper class, or direct device reads (`Keyboard.current`) in shipping code.
 5. **MUST** keep Input System **Update Mode** at *Process Events in Dynamic Update* and call `WasPressedThisFrame()` / `WasReleasedThisFrame()` only from `Update`.
 6. **MUST** drive the camera with Cinemachine 3.1: exactly one Unity `Camera` with one `CinemachineBrain`, in `Bootstrap.unity`; every shot is a `CinemachineCamera` GameObject; switch shots by activating/deactivating GameObjects, not by moving the Unity Camera.
-7. **MUST** build runtime UI with UI Toolkit (`UIDocument` + one shared `PanelSettings`), UXML under `Assets/SheNicest/UI/Documents/`, USS under `Assets/SheNicest/UI/Styles/`, BEM class names, no inline styles.
+7. **MUST** build runtime UI with UI Toolkit (`UIDocument` + one shared `PanelSettings`), UXML under `Assets/RootsDance/UI/Documents/`, USS under `Assets/RootsDance/UI/Styles/`, BEM class names, no inline styles.
 8. **MUST** wire UI in a presenter `MonoBehaviour` (MVP, see [03](./03-architecture-patterns.md)): query elements in `OnEnable`, unregister callbacks in `OnDisable`, cache every `Q<>()` result.
 9. **MUST** use `CharacterController` for the player and `Rigidbody` only for things that should be pushed, thrown or fall; never both on one object; move a Rigidbody only from `FixedUpdate` via Rigidbody APIs.
 10. **MUST** give every physics query an explicit `LayerMask` serialized field and an explicit `QueryTriggerInteraction`; project layers are the ones listed in the Physics section.
@@ -84,7 +84,7 @@ Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/
 - *Why:* Having the package installed does not by itself switch runtime input; `Both` keeps the legacy backend alive and invites `UnityEngine.Input` calls.
 - *Source:* [Runtime UI event system and input handling](../reference/packages/manual-uie-runtime-event-system.md), [Enable the correct input system](../reference/packages/inputsystem-1-20-enable-correct-input-system.md).
 
-**MUST** have exactly one action asset, `Assets/SheNicest/Input/SheNicest.inputactions`, assigned as project-wide in **Edit > Project Settings > Input System Package**. It is the template's `InputSystem_Actions` asset moved and renamed inside the Editor (see [02](./02-project-structure.md)).
+**MUST** have exactly one action asset, `Assets/RootsDance/Input/RootsDance.inputactions`, assigned as project-wide in **Edit > Project Settings > Input System Package**. It is the template's `InputSystem_Actions` asset moved and renamed inside the Editor (see [02](./02-project-structure.md)).
 - *Why:* Unity's recommended workflow is a single project-wide asset: it is preloaded, enabled automatically at startup, and reachable as `InputSystem.actions` without references.
 - *Source:* [About project-wide actions](../reference/packages/inputsystem-1-20-about-project-wide-actions.md), [Create and assign a default project-wide actions asset](../reference/packages/inputsystem-1-20-create-project-wide-actions.md), [Workflows](../reference/packages/inputsystem-1-20-workflows.md).
 
@@ -112,7 +112,7 @@ Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerMotor : MonoBehaviour
@@ -203,7 +203,7 @@ UI Toolkit-only scenes need no `EventSystem` GameObject: the default runtime eve
 using Unity.Cinemachine;
 using UnityEngine;
 
-namespace SheNicest.Cameras   // not "Camera": it would shadow UnityEngine.Camera
+namespace RootsDance.Cameras   // not "Camera": it would shadow UnityEngine.Camera
 {
     public sealed class DialogueCameraSwitch : MonoBehaviour
     {
@@ -225,7 +225,7 @@ namespace SheNicest.Cameras   // not "Camera": it would shadow UnityEngine.Camer
 }
 ```
 
-**SHOULD** configure transitions on the Brain only: **Default Blend** *Ease In Out* ~1 s for gameplay, plus a **Custom Blends** asset at `Assets/SheNicest/Settings/Cinemachine/CustomBlends.asset` for pairs that need a cut. Keep **Update Method** at *Smart Update* and **Blend Update Method** at *Late Update*. **[project decision on values and path]**
+**SHOULD** configure transitions on the Brain only: **Default Blend** *Ease In Out* ~1 s for gameplay, plus a **Custom Blends** asset at `Assets/RootsDance/Settings/Cinemachine/CustomBlends.asset` for pairs that need a cut. Keep **Update Method** at *Smart Update* and **Blend Update Method** at *Late Update*. **[project decision on values and path]**
 - *Why:* The Brain owns transition rules; *Smart Update* and *Late Update* are Unity's recommended settings.
 - *Source:* [Cinemachine Brain reference](../reference/packages/cinemachine-3-1-cinemachinebrain.md), [Set up multiple Cinemachine Cameras](../reference/packages/cinemachine-3-1-setup-multiple-cameras.md).
 
@@ -251,7 +251,7 @@ If the camera follows a Rigidbody-driven object and jitters, set that Rigidbody'
 - *Why:* Our reasons **[project decision]**: UXML/USS are text files that diff and merge cleanly and are easy for AI agents to author; UI lives in assets, not scenes/prefabs, so no scene-merge conflicts; UI Toolkit is Unity's active development direction. Its gaps per the comparison page (Animation Clips/Timeline integration, serialized events) are exactly the uGUI escape hatch.
 - *Source:* [Comparison of UI systems in Unity](../reference/packages/manual-ui-system-compare.md).
 
-**MUST** keep UI assets as: `Assets/SheNicest/UI/Documents/<Screen>.uxml`, `Assets/SheNicest/UI/Styles/<Screen>.uss` + `Styles/Common.uss` (variables, shared classes), one `Assets/SheNicest/UI/PanelSettings.asset` referenced by every `UIDocument`, and UI sprites/fonts in `UI/Sprites/`, `UI/Fonts/`. Presenters live in `Scripts/Runtime/UI/` (`SheNicest.UI`). **[project decision]**
+**MUST** keep UI assets as: `Assets/RootsDance/UI/Documents/<Screen>.uxml`, `Assets/RootsDance/UI/Styles/<Screen>.uss` + `Styles/Common.uss` (variables, shared classes), one `Assets/RootsDance/UI/PanelSettings.asset` referenced by every `UIDocument`, and UI sprites/fonts in `UI/Sprites/`, `UI/Fonts/`. Presenters live in `Scripts/Runtime/UI/` (`RootsDance.UI`). **[project decision]**
 - *Why:* One `PanelSettings` asset = one panel, one theme, one scale mode; splitting documents per screen keeps UXML diffs small.
 - *Source:* [Get started with runtime UI](../reference/packages/manual-uie-get-started-with-runtime-ui.md), [Configure runtime UI](../reference/packages/manual-uie-render-runtime-ui.md); folder layout in [02](./02-project-structure.md).
 
@@ -287,7 +287,7 @@ If the camera follows a Rigidbody-driven object and jitters, set that Rigidbody'
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace SheNicest.UI
+namespace RootsDance.UI
 {
     [RequireComponent(typeof(UIDocument))]
     public sealed class PauseMenuPresenter : MonoBehaviour
@@ -337,9 +337,9 @@ namespace SheNicest.UI
 using Unity.Properties;
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
-    [CreateAssetMenu(menuName = "SheNicest/Player Stats")]   // asset files carry no SO suffix
+    [CreateAssetMenu(menuName = "RootsDance/Player Stats")]   // asset files carry no SO suffix
     public sealed class PlayerStatsSO : ScriptableObject
     {
         [SerializeField, DontCreateProperty] private int m_health = 100;
@@ -428,7 +428,7 @@ Unity Behavior 1.0.16 (behavior graphs) is a released package and **MAY** be add
 
 ## Animation
 
-**MUST** give each character type one Animator Controller asset `Assets/SheNicest/Animations/Controllers/<Character>.controller` (override controllers `<Character>_<Variant>.overrideController` next to it; clips in `Animations/Clips/`, per [02](./02-project-structure.md)), with a locomotion **Blend Tree** driven by a `Speed` float, a hub-and-spoke layout around `Idle`, and layers only when a body region must be overridden. Variants of the same rig reuse the controller through an **Animator Override Controller**. **[project decision on layout]**
+**MUST** give each character type one Animator Controller asset `Assets/RootsDance/Animations/Controllers/<Character>.controller` (override controllers `<Character>_<Variant>.overrideController` next to it; clips in `Animations/Clips/`, per [02](./02-project-structure.md)), with a locomotion **Blend Tree** driven by a `Speed` float, a hub-and-spoke layout around `Idle`, and layers only when a body region must be overridden. Variants of the same rig reuse the controller through an **Animator Override Controller**. **[project decision on layout]**
 - *Why:* Blend trees hide complexity without callbacks; hub-and-spoke keeps transitions debuggable.
 - *Source:* [Tips for building animator controllers](../reference/scripting/how-to-build-animator-controllers.md), [Introduction to Mecanim](../reference/scripting/manual-animationoverview.md).
 
@@ -461,7 +461,7 @@ public void Jump()
 
 ## Audio
 
-**MUST** keep exactly one `AudioListener` (on the Unity Camera in `Bootstrap.unity`) and one `AudioMixer` asset `Assets/SheNicest/Audio/Mixers/Main.mixer` with groups `Master > Music`, `Master > SFX`, `Master > UI`, and exposed parameters `MusicVolume`, `SfxVolume`, `UiVolume`. Every `AudioSource` sets **Output** to one of these groups. **[project decision on names]**
+**MUST** keep exactly one `AudioListener` (on the Unity Camera in `Bootstrap.unity`) and one `AudioMixer` asset `Assets/RootsDance/Audio/Mixers/Main.mixer` with groups `Master > Music`, `Master > SFX`, `Master > UI`, and exposed parameters `MusicVolume`, `SfxVolume`, `UiVolume`. Every `AudioSource` sets **Output** to one of these groups. **[project decision on names]**
 - *Why:* Sources bypass the mixer when **Output** is *None*; category groups are what make global volume, ducking and snapshots possible.
 - *Source:* [Audio overview](../reference/scripting/manual-audiooverview.md), [Introduction to the Audio Source component](../reference/scripting/manual-audiosource-overview.md), [Introduction to the Audio Mixer](../reference/scripting/manual-audiomixeroverview.md).
 
@@ -484,8 +484,8 @@ If a real need appears (remote content, memory pressure from optional content), 
 
 ## ProBuilder, Timeline, Visual Scripting and multiplayer policy
 
-- **ProBuilder 6.1 — MAY.** Greybox levels with it; keep ProBuilder meshes in the scene or, if exported, in `Assets/SheNicest/Meshes/Environment/` with a `Greybox_` prefix (folder rules in [02](./02-project-structure.md)); final art replaces them. *Source:* [About ProBuilder](../reference/packages/probuilder-6-1-index.md).
-- **Timeline 1.8 — MAY** for cutscenes. A Timeline with a Cinemachine track overrides Brain priorities while a clip is active, so cutscene cameras never need priorities. Timeline assets live in `Assets/SheNicest/Animations/Timelines/`. *Source:* [Unity's Timeline](../reference/packages/timeline-1-8-index.md), [Camera control and transitions](../reference/packages/cinemachine-3-1-concept-camera-control-transitions.md).
+- **ProBuilder 6.1 — MAY.** Greybox levels with it; keep ProBuilder meshes in the scene or, if exported, in `Assets/RootsDance/Meshes/Environment/` with a `Greybox_` prefix (folder rules in [02](./02-project-structure.md)); final art replaces them. *Source:* [About ProBuilder](../reference/packages/probuilder-6-1-index.md).
+- **Timeline 1.8 — MAY** for cutscenes. A Timeline with a Cinemachine track overrides Brain priorities while a clip is active, so cutscene cameras never need priorities. Timeline assets live in `Assets/RootsDance/Animations/Timelines/`. *Source:* [Unity's Timeline](../reference/packages/timeline-1-8-index.md), [Camera control and transitions](../reference/packages/cinemachine-3-1-concept-camera-control-transitions.md).
 - **Visual Scripting 1.9 — NEVER.** All logic is C# so it can be reviewed, tested and merged. **[project decision]**
 - **Netcode / Multiplayer Center — out of scope.** The game is single-player; do not click **Install Packages** in the Multiplayer Center (**Window > Multiplayer > Multiplayer Center**) — it adds Netcode and service packages to the manifest. **[project decision]** *Source:* [Get started with the Multiplayer Center](../reference/packages/en-us-multiplayer-center.md).
 

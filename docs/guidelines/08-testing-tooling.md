@@ -1,13 +1,13 @@
 # 08. Testing, tooling and IDE setup
 
 > **Scope:** How we write and run automated tests (Unity Test Framework), measure coverage, produce builds from the Editor and the command line, set up IDEs and analyzers, and keep the Console clean.
-> **Applies to:** all C# under `Assets/SheNicest/Scripts` and `Assets/SheNicest/Tests`, the build profiles under `Assets/SheNicest/Settings/BuildProfiles`, and every teammate's (and agent's) local toolchain.
+> **Applies to:** all C# under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests`, the build profiles under `Assets/RootsDance/Settings/BuildProfiles`, and every teammate's (and agent's) local toolchain.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 C# style itself (naming, braces, `.editorconfig` contents) is owned by [01 C# style](./01-csharp-style.md); assembly/folder layout by [02 Project structure](./02-project-structure.md); which logic goes into plain C# classes by [03 Architecture](./03-architecture-patterns.md); per-frame logging cost by [05 Performance](./05-performance.md); what is committed by [06 Version control](./06-version-control.md).
 
 ## TL;DR — rules at a glance
-1. **MUST** keep tests in `Assets/SheNicest/Tests/EditMode` (asmdef `SheNicest.Tests.EditMode`, platform **Editor** only) and `Assets/SheNicest/Tests/PlayMode` (asmdef `SheNicest.Tests.PlayMode`, **Any Platform**); both reference `SheNicest.Runtime`, never `Assembly-CSharp`.
+1. **MUST** keep tests in `Assets/RootsDance/Tests/EditMode` (asmdef `RootsDance.Tests.EditMode`, platform **Editor** only) and `Assets/RootsDance/Tests/PlayMode` (asmdef `RootsDance.Tests.PlayMode`, **Any Platform**); both reference `RootsDance.Runtime`, never `Assembly-CSharp`.
 2. **MUST** write EditMode `[Test]`s for pure C# logic (no `MonoBehaviour`, no scene); PlayMode `[UnityTest]`s only for critical integration (bootstrap loads, player moves, core interaction).
 3. **MUST** structure every test Arrange / Act / Assert, name it `Method_Scenario_ExpectedResult`, one fixture `<TypeName>Tests` per type under test.
 4. **SHOULD** assert with the constraint model `Assert.That(actual, Is.EqualTo(expected))`; **MUST** compare `Vector3`/`Quaternion`/`Color` through the `UnityEngine.TestTools.Utils` comparers (`Is.EqualTo(v).Using(Vector3EqualityComparer.Instance)`).
@@ -15,12 +15,12 @@ C# style itself (naming, braces, `.editorconfig` contents) is owned by [01 C# st
 6. **MUST** declare every error/exception the code under test logs with `LogAssert.Expect(...)`; any unexpected error log fails the test.
 7. **MUST** destroy every GameObject/asset a test creates in `[TearDown]` (or `[UnityTearDown]`); tests never leave state behind.
 8. **MUST** run the EditMode suite before opening a PR into `develop` (branch model: [06](./06-version-control.md)) — Test Runner window or the CLI below; **NEVER** pass `-quit` to a `-runTests` run; close the Editor first (one instance per project).
-9. **MUST** build only through Build Profiles stored in `Assets/SheNicest/Settings/BuildProfiles/`; CLI builds are `-batchmode -quit -projectPath … -activeBuildProfile … -build … -logFile …`, one platform per invocation.
+9. **MUST** build only through Build Profiles stored in `Assets/RootsDance/Settings/BuildProfiles/`; CLI builds are `-batchmode -quit -projectPath … -activeBuildProfile … -build … -logFile …`, one platform per invocation.
 10. **MUST** use Visual Studio 2022, VS Code or Rider with Unity's integration package; **NEVER** install `com.unity.ide.vscode`; **NEVER** commit `.csproj`, `.sln`, `.vscode/`, `.idea/`.
 11. **MUST** treat the repo-root `.editorconfig` as the single source of style *and* analyzer severity (`dotnet_diagnostic.<ID>.severity`); no analyzer DLLs in `Assets/` during the hackathon.
-12. **MUST** keep the Console free of errors and warnings from `SheNicest.*` assemblies on `develop` and `main`; **NEVER** call `Debug.Log*` outside `SheNicest.Core.Log` (and `_Sandbox/`), and never log from `Update`/`FixedUpdate`/`LateUpdate` — see [04](./04-unity-scripting-rules.md).
+12. **MUST** keep the Console free of errors and warnings from `RootsDance.*` assemblies on `develop` and `main`; **NEVER** call `Debug.Log*` outside `RootsDance.Core.Log` (and `_Sandbox/`), and never log from `Update`/`FixedUpdate`/`LateUpdate` — see [04](./04-unity-scripting-rules.md).
 13. **MUST** tag tests slower than ~1 s `[Explicit, Category("Integration")]` so **Run All** stays fast.
-14. **SHOULD** run Project Auditor before the final build; **MAY** run Code Coverage on `SheNicest.Runtime` to find untested logic — no coverage gate.
+14. **SHOULD** run Project Auditor before the final build; **MAY** run Code Coverage on `RootsDance.Runtime` to find untested logic — no coverage gate.
 
 ## What to test in a hackathon
 
@@ -40,13 +40,13 @@ UTF is a core package shipped with the Editor (1.6 in 6000.3) and bundles a cust
 **MUST** have exactly two test assemblies, created once and committed (decision 3 of the project facts):
 
 ```
-Assets/SheNicest/Tests/
+Assets/RootsDance/Tests/
 ├── EditMode/
-│   ├── SheNicest.Tests.EditMode.asmdef
-│   └── <Feature>/<TypeName>Tests.cs        (namespace SheNicest.Tests.EditMode.<Feature>)
+│   ├── RootsDance.Tests.EditMode.asmdef
+│   └── <Feature>/<TypeName>Tests.cs        (namespace RootsDance.Tests.EditMode.<Feature>)
 └── PlayMode/
-    ├── SheNicest.Tests.PlayMode.asmdef
-    └── <Feature>/<TypeName>Tests.cs        (namespace SheNicest.Tests.PlayMode.<Feature>)
+    ├── RootsDance.Tests.PlayMode.asmdef
+    └── <Feature>/<TypeName>Tests.cs        (namespace RootsDance.Tests.PlayMode.<Feature>)
 ```
 
 Create them with **Assets > Create > Testing > Test Assembly Folder** (or the button in **Window > General > Test Runner**), rename, then fix the `name` field in the Inspector — renaming the file does not rename the assembly. Create test scripts with **Assets > Create > Testing > C# Test Script**. *Source:* [Create a test assembly](../reference/testing-tooling/manual-workflow-create-test-assembly.md), [Create a test](../reference/testing-tooling/manual-workflow-create-test.md).
@@ -56,7 +56,7 @@ The two asmdef files are defined once, byte-for-byte, in [02 Project structure �
 - *Why:* An assembly is a test assembly when it references `nunit.framework.dll` plus `UnityEngine.TestRunner` (and, for EditMode only, `UnityEditor.TestRunner`). **Editor** as the only platform makes it an EditMode assembly; an empty platform list ("Any Platform") makes it a PlayMode assembly that can also run in a Player. Test assemblies are excluded from normal Player builds. The `"optionalUnityReferences": ["TestAssemblies"]` form still shown on the manual page is **legacy** (pre-2019 asmdef format); 6000.3's Test Runner does not write it — never hand-write it.
 - *Source:* [Edit mode and Play mode tests](../reference/testing-tooling/manual-edit-mode-vs-play-mode-tests.md), [Create a test assembly](../reference/testing-tooling/manual-workflow-create-test-assembly.md), [Assembly Definition file format](../reference/project-structure/manual-assembly-definition-file-format.md), [Create an Assembly Definition — test assemblies](../reference/project-structure/manual-assembly-definitions-creating.md).
 
-**NEVER** reference `Assembly-CSharp` from a test assembly — it cannot be referenced; code that needs testing must live in `SheNicest.Runtime` (or `SheNicest.Editor`). *Source:* [Edit mode and Play mode tests](../reference/testing-tooling/manual-edit-mode-vs-play-mode-tests.md).
+**NEVER** reference `Assembly-CSharp` from a test assembly — it cannot be referenced; code that needs testing must live in `RootsDance.Runtime` (or `RootsDance.Editor`). *Source:* [Edit mode and Play mode tests](../reference/testing-tooling/manual-edit-mode-vs-play-mode-tests.md).
 
 **MAY** add `Unity.InputSystem` + `Unity.InputSystem.TestFramework` (requires `"testables": ["com.unity.inputsystem"]` in `Packages/manifest.json`) to the PlayMode assembly for `InputTestFixture` tests, and `Unity.UI.TestFramework.Runtime` (package *UI Test Framework*) for UI Toolkit tests. *Source:* [How to run automated tests](../reference/testing-tooling/how-to-automated-tests-unity-test-framework.md), [Add tests to your package — testables](../reference/testing-tooling/manual-cus-tests.md), [Input System — Testing](../reference/testing-tooling/inputsystem-1-20-testing.md), [UI Test Framework — install](../reference/testing-tooling/ui-test-framework-6-3-install-and-set-up.md).
 
@@ -71,9 +71,9 @@ The two asmdef files are defined once, byte-for-byte, in [02 Project structure �
 
 ```csharp
 using NUnit.Framework;
-using SheNicest.Player;
+using RootsDance.Player;
 
-namespace SheNicest.Tests.EditMode.Player
+namespace RootsDance.Tests.EditMode.Player
 {
     public class HealthTests
     {
@@ -144,7 +144,7 @@ public void Load_MissingFile_LogsErrorAndReturnsDefault()
 - **MUST** clean up in `[TearDown]` (runs even when the test fails); use `[UnitySetUp]`/`[UnityTearDown]` (`IEnumerator`) when setup needs to yield. `[SetUp]` runs on base classes first, `[TearDown]` on derived first. *Source:* [Course 6. SetUp and TearDown](../reference/testing-tooling/manual-setup-teardown.md), [UnitySetUp / UnityTearDown](../reference/testing-tooling/manual-reference-unitysetup-and-unityteardown.md).
 - Async: `[Test] public async Task …` is supported (awaited on the main thread each update). `Awaitable` is **not** a valid test return type; test `Awaitable` code with the manual's pattern — a `[UnityTest] public IEnumerator` test that declares a local `async Awaitable TestImplementation()` and `return TestImplementation();` (`Awaitable` implements `IEnumerator`). **NEVER** use `Assert.ThrowsAsync` — it freezes the Editor; wrap in `try`/`catch` and assert a flag. *Source:* [Asynchronous tests](../reference/testing-tooling/manual-reference-async-tests.md), [Awaitable examples — Asynchronous tests](../reference/scripting/manual-async-awaitable-examples.md).
 
-PlayMode example — self-contained, no scene dependency (integration test of Unity's own `Rigidbody`; the fixture is named after the component under test; file `Assets/SheNicest/Tests/PlayMode/Player/RigidbodyTests.cs`):
+PlayMode example — self-contained, no scene dependency (integration test of Unity's own `Rigidbody`; the fixture is named after the component under test; file `Assets/RootsDance/Tests/PlayMode/Player/RigidbodyTests.cs`):
 
 ```csharp
 using System.Collections;
@@ -152,7 +152,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace SheNicest.Tests.PlayMode.Player
+namespace RootsDance.Tests.PlayMode.Player
 {
     public class RigidbodyTests
     {
@@ -225,7 +225,7 @@ New-Item -ItemType Directory -Force Logs\TestResults | Out-Null
 Write-Host "exit code: $LASTEXITCODE"
 ```
 
-- `-testPlatform PlayMode` runs the PlayMode suite in the Editor; omitting `-testPlatform` means EditMode. Narrow a run with `-assemblyNames "SheNicest.Tests.EditMode"`, `-testFilter "SheNicest.Tests.EditMode.Player.HealthTests"` (regex on the full name, `!` negates) or `-testCategory "Integration"`. `-forgetProjectPath` keeps the run out of the Hub history. **MAY** add `-nographics` for EditMode runs on machines without a GPU.
+- `-testPlatform PlayMode` runs the PlayMode suite in the Editor; omitting `-testPlatform` means EditMode. Narrow a run with `-assemblyNames "RootsDance.Tests.EditMode"`, `-testFilter "RootsDance.Tests.EditMode.Player.HealthTests"` (regex on the full name, `!` negates) or `-testCategory "Integration"`. `-forgetProjectPath` keeps the run out of the Hub history. **MAY** add `-nographics` for EditMode runs on machines without a GPU.
 - **NEVER** add `-quit`: it kills the Editor before the tests finish. The Editor exits by itself when the run ends.
 - Results are NUnit 3 XML at `-testResults`; the exit code is non-zero on failure (the manual documents no fixed table — the changelog lists `2` for inconclusive and `3` for run errors such as timeouts/build errors, and batch mode exits `1` on any exception). Read the XML and `-logFile` for the cause; `-logFile -` writes to stdout (not visible on Windows consoles).
 - Windows paths must not end in a single backslash; quote any path with spaces.
@@ -238,14 +238,14 @@ Default Editor log when `-logFile` is omitted: macOS `~/Library/Logs/Unity/Edito
 
 ## Code Coverage (optional)
 
-- Install `com.unity.testtools.codecoverage` (1.3) via **Package Manager > + > Add package by name**; open **Window > Analysis > Code Coverage**, tick **Enable Code Coverage**, select `SheNicest.Runtime` under **Included Assemblies**, run tests, open `index.htm`. Switch the Editor to **Debug** code optimization (status-bar bug icon) first — coverage is inaccurate in Release mode. Enabling coverage slows the Editor; disable it when done. **[project decision: no coverage threshold; use it to find untested pure logic]**
+- Install `com.unity.testtools.codecoverage` (1.3) via **Package Manager > + > Add package by name**; open **Window > Analysis > Code Coverage**, tick **Enable Code Coverage**, select `RootsDance.Runtime` under **Included Assemblies**, run tests, open `index.htm`. Switch the Editor to **Debug** code optimization (status-bar bug icon) first — coverage is inaccurate in Release mode. Enabling coverage slows the Editor; disable it when done. **[project decision: no coverage threshold; use it to find untested pure logic]**
 - Batch mode (EditMode + HTML report + badge):
 
 ```bash
 /Applications/Unity/Hub/Editor/6000.3.22f1/Unity.app/Contents/MacOS/Unity -batchmode -projectPath "$PWD" \
   -runTests -testPlatform EditMode -testResults "$PWD/Logs/TestResults/EditMode.xml" \
   -debugCodeOptimization -enableCodeCoverage -coverageResultsPath "$PWD/Logs/Coverage" \
-  -coverageOptions "generateHtmlReport;generateBadgeReport;assemblyFilters:+SheNicest.Runtime"
+  -coverageOptions "generateHtmlReport;generateBadgeReport;assemblyFilters:+RootsDance.Runtime"
 ```
 
 - Limits: Editor-only (no Player coverage), OpenCover format, branch coverage always 0. Exclude helpers with `[ExcludeFromCoverage]`.
@@ -255,7 +255,7 @@ Default Editor log when `-logFile` is omitted: macOS `~/Library/Logs/Unity/Edito
 
 ### Profiles
 
-- **MUST** build from **File > Build Profiles** using committed build-profile assets (not the platform entries, whose shared settings leak across platforms). Create with **Add Build Profile** → platform → name → **Add Build Profile**, then move the asset *inside the Editor* to `Assets/SheNicest/Settings/BuildProfiles/`. Profiles **[project decision]**: `Windows-Release`, `macOS-Release`, `Web-Release` (if we ship Web), plus `Windows-Dev`/`macOS-Dev` copies with **Development Build** + **Script Debugging** on. Activate with **Switch Profile**.
+- **MUST** build from **File > Build Profiles** using committed build-profile assets (not the platform entries, whose shared settings leak across platforms). Create with **Add Build Profile** → platform → name → **Add Build Profile**, then move the asset *inside the Editor* to `Assets/RootsDance/Settings/BuildProfiles/`. Profiles **[project decision]**: `Windows-Release`, `macOS-Release`, `Web-Release` (if we ship Web), plus `Windows-Dev`/`macOS-Dev` copies with **Development Build** + **Script Debugging** on. Activate with **Switch Profile**.
 - Scene lists: add **Scene List** via **Add Settings** only if a profile needs a different list; otherwise every profile inherits the global list (bootstrap scene first — see [11 Scenes](./11-scenes-prefabs-workflow.md)). Per-profile **Scripting Defines** are additive.
 - **Development Build** defines `DEVELOPMENT_BUILD` and includes scripting debug symbols and the Profiler; **Script Debugging** (only available with Development Build) is what lets a debugger attach to the Player — both are on in the `*-Dev` profiles. Release builds are the default and contain only what is needed to run.
 - *Source:* [Introduction to build profiles](../reference/testing-tooling/manual-build-profiles.md), [Create and manage build profiles](../reference/testing-tooling/manual-create-build-profile.md), [Manage scenes in a build](../reference/testing-tooling/manual-build-profile-scene-list.md), [Build Profiles window reference](../reference/testing-tooling/manual-build-profiles-reference.md), [Customize settings with build profiles](../reference/testing-tooling/manual-build-profiles-override-settings.md), [Introduction to building](../reference/testing-tooling/manual-building-introduction.md).
@@ -269,8 +269,8 @@ Default route — no script needed **[project decision]**:
 /Applications/Unity/Hub/Editor/6000.3.22f1/Unity.app/Contents/MacOS/Unity \
   -batchmode -quit \
   -projectPath "$PWD" \
-  -activeBuildProfile "Assets/SheNicest/Settings/BuildProfiles/macOS-Release.asset" \
-  -build "$PWD/Builds/macOS-Release/SheNicest.app" \
+  -activeBuildProfile "Assets/RootsDance/Settings/BuildProfiles/macOS-Release.asset" \
+  -build "$PWD/Builds/macOS-Release/RootsDance.app" \
   -logFile "$PWD/Logs/build-macos.log"
 ```
 
@@ -279,33 +279,33 @@ Default route — no script needed **[project decision]**:
 & "C:\Program Files\Unity\Hub\Editor\6000.3.22f1\Editor\Unity.exe" `
   -batchmode -quit `
   -projectPath "$PWD" `
-  -activeBuildProfile "Assets/SheNicest/Settings/BuildProfiles/Windows-Release.asset" `
-  -build "$PWD\Builds\Windows-Release\SheNicest.exe" `
+  -activeBuildProfile "Assets/RootsDance/Settings/BuildProfiles/Windows-Release.asset" `
+  -build "$PWD\Builds\Windows-Release\RootsDance.exe" `
   -logFile "$PWD\Logs\build-windows.log"
 ```
 
 - `-projectPath` and `-quit` are required; `-batchmode`, `-logFile` and `-activeBuildProfile` are recommended. The profile path is relative to the project root; `-build` needs the platform's extension (`.exe`, `.app`). **One platform per invocation** — switching targets inside a batch session does not take effect. `Builds/` is gitignored. Output always goes to `Builds/<ProfileName>/` at the repo root (owner: this doc; [06](./06-version-control.md) ignores it). **[project decision]**
 - *Source:* [Build a player from the command line](../reference/testing-tooling/manual-build-command-line.md), [Editor command line arguments — build arguments](../reference/testing-tooling/manual-editorcommandlinearguments.md).
 
-Escape hatch — `-executeMethod` with a build script, only when the build needs extra steps (copy files, stamp a version). Lives in `SheNicest.Editor` (Editor-only assembly) at `Assets/SheNicest/Scripts/Editor/Build/BuildScript.cs`; the method must be `static`; throw to fail the process with exit code 1. **[project decision]**
+Escape hatch — `-executeMethod` with a build script, only when the build needs extra steps (copy files, stamp a version). Lives in `RootsDance.Editor` (Editor-only assembly) at `Assets/RootsDance/Scripts/Editor/Build/BuildScript.cs`; the method must be `static`; throw to fail the process with exit code 1. **[project decision]**
 
 ```csharp
 using System.IO;
-using SheNicest.Core;
+using RootsDance.Core;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Profile;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace SheNicest.Editor.Build
+namespace RootsDance.Editor.Build
 {
     public static class BuildScript
     {
         private const string k_BuildRoot = "Builds";
-        private const string k_AppName = "SheNicest";
+        private const string k_AppName = "RootsDance";
 
-        [MenuItem("SheNicest/Build/Build Active Profile")]
+        [MenuItem("RootsDance/Build/Build Active Profile")]
         public static void BuildActiveProfile()
         {
             BuildProfile profile = BuildProfile.GetActiveBuildProfile();
@@ -356,7 +356,7 @@ namespace SheNicest.Editor.Build
 }
 ```
 
-Invoke: `… -batchmode -quit -projectPath "$PWD" -activeBuildProfile "Assets/SheNicest/Settings/BuildProfiles/Windows-Release.asset" -executeMethod SheNicest.Editor.Build.BuildScript.BuildActiveProfile -logFile "$PWD/Logs/build.log"`. With `-activeBuildProfile`, Unity applies the profile's defines and compiles before calling the method.
+Invoke: `… -batchmode -quit -projectPath "$PWD" -activeBuildProfile "Assets/RootsDance/Settings/BuildProfiles/Windows-Release.asset" -executeMethod RootsDance.Editor.Build.BuildScript.BuildActiveProfile -logFile "$PWD/Logs/build.log"`. With `-activeBuildProfile`, Unity applies the profile's defines and compiles before calling the method.
 - *Source:* [Create a custom build script](../reference/testing-tooling/manual-build-script-build.md) (`BuildPlayerWithProfileOptions`, `BuildProfile.GetActiveBuildProfile`, `BuildFailedException`, `Application.isBatchMode`), [BuildPipeline.BuildPlayer](../reference/testing-tooling/scriptref-buildpipeline-buildplayer.md), [BuildOptions](../reference/testing-tooling/scriptref-buildoptions.md), [Editor command line arguments — `-executeMethod`](../reference/testing-tooling/manual-editorcommandlinearguments.md), [EditorApplication.Exit](../reference/testing-tooling/scriptref-editorapplication-exit.md).
 
 ## IDE setup
@@ -393,22 +393,22 @@ dotnet_diagnostic.IDE0055.severity = suggestion
 
 ## Project Auditor
 
-- **SHOULD** run once before the final build (and after any big asset drop): install `com.unity.project-auditor` (3.0.x for 6000.3) via **Package Manager > + > Add package by name**, then **Window > Analysis > Project Auditor > Start Analysis**. Fix *Code* and *Settings* diagnostics that touch `SheNicest.*`; ignore third-party noise. The *Domain Reload* view needs **Use Roslyn Analyzers** enabled in its Preferences and matters only if we disable domain reload (see [04](./04-unity-scripting-rules.md)).
+- **SHOULD** run once before the final build (and after any big asset drop): install `com.unity.project-auditor` (3.0.x for 6000.3) via **Package Manager > + > Add package by name**, then **Window > Analysis > Project Auditor > Start Analysis**. Fix *Code* and *Settings* diagnostics that touch `RootsDance.*`; ignore third-party noise. The *Domain Reload* view needs **Use Roslyn Analyzers** enabled in its Preferences and matters only if we disable domain reload (see [04](./04-unity-scripting-rules.md)).
 - **MAY** automate with a static `ProjectAuditorCI.AuditAndExport()` Editor method invoked through `-batchmode -quit -executeMethod`.
 - *Source:* [Project Auditor package](../reference/packages/project-auditor-3-0-index.md), [Analyze your project](../reference/packages/project-auditor-3-0-analyze-project.md), [Project Auditor package page (6000.3)](../reference/packages/manual-com-unity-project-auditor.md), [Domain reloading issues](../reference/testing-tooling/project-auditor-3-0-domain-reloading-issues.md), [Run from command line](../reference/testing-tooling/project-auditor-3-0-run-from-command-line.md).
 
 ## Console and log hygiene
 
-- **MUST**: `develop` and `main` open with a Console that shows no errors and no warnings originating in `SheNicest.*` code (compiler warnings included). Fix or justify every warning in the PR; do not filter them away. Enable **Clear on Play** / **Clear on Recompile** so what you see is fresh. **[project decision]** *Source:* [Console window reference](../reference/testing-tooling/manual-console.md).
+- **MUST**: `develop` and `main` open with a Console that shows no errors and no warnings originating in `RootsDance.*` code (compiler warnings included). Fix or justify every warning in the PR; do not filter them away. Enable **Clear on Play** / **Clear on Recompile** so what you see is fresh. **[project decision]** *Source:* [Console window reference](../reference/testing-tooling/manual-console.md).
 - **NEVER** log from `Update`, `FixedUpdate`, `LateUpdate` or hot loops; log statements (and their string formatting) cost frame time and flood the log. Use **Collapse** to spot a runaway per-frame error. *Source:* [Optimize your game performance for consoles and PCs — Remove Debug Log statements](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md), [Console window reference](../reference/testing-tooling/manual-console.md), [05 Performance](./05-performance.md).
-- **MUST** log through `SheNicest.Core.Log` — `Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` stay; every overload takes a `UnityEngine.Object` context so the Console highlights the object: `Log.Warning("No spawn point assigned", this);`. Direct `Debug.Log*` is allowed only inside `Log` itself and in `_Sandbox/`. `Debug` logging is not stripped from release builds by itself. Class definition and severity meanings: [04 — Logging](./04-unity-scripting-rules.md#logging). **[project decision]** *Source:* [The Debug class — Excluding Debug code from non-development builds](../reference/testing-tooling/manual-class-debug.md), [Advanced programming — Avoid debug log statements](../reference/design-patterns/how-to-advanced-programming-and-code-architecture.md), [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md).
+- **MUST** log through `RootsDance.Core.Log` — `Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` stay; every overload takes a `UnityEngine.Object` context so the Console highlights the object: `Log.Warning("No spawn point assigned", this);`. Direct `Debug.Log*` is allowed only inside `Log` itself and in `_Sandbox/`. `Debug` logging is not stripped from release builds by itself. Class definition and severity meanings: [04 — Logging](./04-unity-scripting-rules.md#logging). **[project decision]** *Source:* [The Debug class — Excluding Debug code from non-development builds](../reference/testing-tooling/manual-class-debug.md), [Advanced programming — Avoid debug log statements](../reference/design-patterns/how-to-advanced-programming-and-code-architecture.md), [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md).
 - Stack traces: keep **ScriptOnly** (default) for Error/Exception and set Log/Warning to **None** in the `*-Release` profiles' Player Settings override; **NEVER** ship **Full** (the manual recommends no stack traces in shipped builds; keeping them for Error/Exception is a **[project decision]** so bug reports stay useful). Changed in **Project Settings > Player > Other Settings > Stack Trace** or the Console menu. *Source:* [Stack trace logging](../reference/testing-tooling/manual-stack-trace.md), [Build Profiles window reference — Add Settings > Player Settings](../reference/testing-tooling/manual-build-profiles-reference.md).
 - **Error Pause** in the Console toolbar pauses Play mode on the first `LogError` — turn it on when hunting a bug, off when playtesting. *Source:* [Console window reference](../reference/testing-tooling/manual-console.md).
 - Everything in the Console is also in the Editor/Player log files (paths above); attach the relevant log to bug reports instead of screenshots. *Source:* [Log files reference](../reference/testing-tooling/manual-log-files.md).
 
 ## Anti-patterns
 
-- ❌ Test scripts in `Assets/SheNicest/Scripts/…` or in a folder without a test asmdef → ✅ only under `Assets/SheNicest/Tests/EditMode|PlayMode` with the two asmdefs from [02](./02-project-structure.md).
+- ❌ Test scripts in `Assets/RootsDance/Scripts/…` or in a folder without a test asmdef → ✅ only under `Assets/RootsDance/Tests/EditMode|PlayMode` with the two asmdefs from [02](./02-project-structure.md).
 - ❌ `[UnityTest]` for a synchronous calculation → ✅ `[Test]`; `[UnityTest]` only when the test yields.
 - ❌ Testing a `MonoBehaviour` by instantiating it in PlayMode to check arithmetic → ✅ move the arithmetic into a plain class and test it in EditMode.
 - ❌ `Assert.AreEqual(new Vector3(0, 1, 0), transform.up)` → ✅ `Assert.That(transform.up, Is.EqualTo(Vector3.up).Using(Vector3EqualityComparer.Instance))`.
@@ -424,14 +424,14 @@ dotnet_diagnostic.IDE0055.severity = suggestion
 ## Review checklist
 
 - [ ] New pure-logic class has an EditMode `[Test]` fixture named `<TypeName>Tests` in the mirrored namespace; tests follow AAA and `Method_Scenario_ExpectedResult`.
-- [ ] Tests live only under `Assets/SheNicest/Tests/EditMode` or `…/PlayMode`; the asmdefs were not edited except to add a legitimate reference.
+- [ ] Tests live only under `Assets/RootsDance/Tests/EditMode` or `…/PlayMode`; the asmdefs were not edited except to add a legitimate reference.
 - [ ] `[UnityTest]` is used only where the test yields; anything slower than ~1 s is `[Explicit, Category("Integration")]`.
 - [ ] Every GameObject/asset/scene the test creates or opens is cleaned up in `[TearDown]`/`[UnityTearDown]`.
 - [ ] Expected error logs are declared with `LogAssert.Expect`; no `ignoreFailingMessages`.
 - [ ] Unity vector/quaternion/color comparisons use the `UnityEngine.TestTools.Utils` comparers.
 - [ ] PR description states the EditMode suite was run (Test Runner or CLI) and passed; CLI runs used no `-quit`.
-- [ ] No new Console errors or warnings from `SheNicest.*` after **Clear on Recompile** + entering Play mode; no logging in per-frame callbacks; all logging goes through `SheNicest.Core.Log` (no direct `Debug.Log*` outside `Log` and `_Sandbox/`).
-- [ ] Build-related changes touch only the profile assets in `Assets/SheNicest/Settings/BuildProfiles/` (and `BuildScript.cs` if the escape hatch is used); `Builds/` output is not committed.
+- [ ] No new Console errors or warnings from `RootsDance.*` after **Clear on Recompile** + entering Play mode; no logging in per-frame callbacks; all logging goes through `RootsDance.Core.Log` (no direct `Debug.Log*` outside `Log` and `_Sandbox/`).
+- [ ] Build-related changes touch only the profile assets in `Assets/RootsDance/Settings/BuildProfiles/` (and `BuildScript.cs` if the escape hatch is used); `Builds/` output is not committed.
 - [ ] No `.csproj`, `.sln`, `.vscode/`, `.idea/`, analyzer DLLs or `.ruleset` files were added.
 
 ## Sources
