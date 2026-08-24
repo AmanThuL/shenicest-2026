@@ -18,7 +18,7 @@ Unity/C# facts that are easy to get wrong because training data predates Unity 6
 3. **`FindObjectOfType`/`FindObjectsOfType` are obsolete.** Use `FindFirstObjectByType` / `FindAnyObjectByType` / `FindObjectsByType(FindObjectsSortMode.None)` — and only in initialisation code.
 4. **Physics API was renamed:** `Rigidbody.linearVelocity` / `linearDamping` / `angularDamping`, type `PhysicsMaterial`.
 5. **Input comes from the Input System package** via the project-wide action asset (`InputSystem.actions`). `UnityEngine.Input` is never used.
-6. **Async is `UnityEngine.Awaitable`** with a `CancellationToken` (`destroyCancellationToken`); coroutines only for trivial timed sequences; no UniTask/Task-based gameplay code.
+6. **Async is `UnityEngine.Awaitable`** with a `CancellationToken` (`destroyCancellationToken`); coroutines only for trivial timed sequences.
 7. **Custom render passes use the Render Graph API.** URP Compatibility Mode no longer exists in 6.3.
 8. **Never `?.`, `??` or `is null` on a `UnityEngine.Object`** — use `== null` or the implicit bool; Unity's "fake null" bypasses those operators.
 
