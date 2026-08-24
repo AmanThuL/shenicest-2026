@@ -518,6 +518,10 @@ public class #SCRIPTNAME# : ScriptableObject
 
 The template cannot strip the `SO` suffix, so after creating the file edit the attribute to `fileName = "<Name without SO>"` and `menuName = "RootsDance/<Category>/<Display Name>"` (e.g. `fileName = "EnemyConfig", menuName = "RootsDance/Enemies/Enemy Config"`), matching the examples in [03](./03-architecture-patterns.md) — asset files never carry the `SO` suffix.
 
+`Assets/ScriptTemplates/3-Scripting__Content ScriptableObject (Odin)-NewContentSO.cs.txt` — the starting point for a designer-facing content asset: the five standard Odin `[TitleGroup]` sections, `[Required]` references and read-only properties, exactly as defined in [12 Odin Inspector](./12-odin-inspector.md) (that guideline owns the template's content; add the `[ValidateInput]` ID check once `RootsDance.Data.ContentId` exists). **[project decision]**
+
+**Attribute placement with Odin:** attributes are ordered *Unity serialization → Odin group → Odin behaviour* (`[SerializeField, TitleGroup("Basic Info"), Required]`), one line while the declaration fits in 120 columns, otherwise stacked with the group first and `[Tooltip]` last — the full rule and examples are in [12](./12-odin-inspector.md#attribute-layout-and-class-position).
+
 - *Source for `CreateAssetMenu(fileName, menuName)`:* [ScriptableObject (6.3 Manual)](../reference/scripting/manual-class-scriptableobject.md). The `RootsDance/` menu root is a **[project decision]**.
 
 ## Applying the `.editorconfig`

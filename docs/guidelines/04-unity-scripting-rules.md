@@ -9,7 +9,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 ## TL;DR — rules at a glance
 
 1. **MUST** initialise own components in `Awake`, talk to other objects in `Start`, subscribe in `OnEnable` and unsubscribe in `OnDisable`; **NEVER** write a MonoBehaviour/ScriptableObject constructor or a field initialiser that touches objects, components or assets.
-2. **MUST** expose Inspector data as `[SerializeField] private` fields (6.3 compiles `[SerializeField]` only on fields; auto-properties need `[field: SerializeField]`); rename serialized fields with `[FormerlySerializedAs]`.
+2. **MUST** expose Inspector data as `[SerializeField] private` fields (6.3 compiles `[SerializeField]` only on fields; auto-properties need `[field: SerializeField]`); rename serialized fields with `[FormerlySerializedAs]`. Odin attributes ([12](./12-odin-inspector.md)) only decorate those fields — they never change what serializes, and the Odin serializer is never used.
 3. **MUST** null-check `UnityEngine.Object` references with `== null` or the implicit `bool`; **NEVER** use `?.`, `??`, `is null` or `ReferenceEquals` to test whether a Unity object is alive.
 4. **MUST** wire references through serialized fields or `GetComponent` cached in `Awake`; use `TryGetComponent` when the component may be absent; **NEVER** call `GetComponent`, `Find*` or `Camera.main` every frame.
 5. **MUST** wire gameplay references (see [03](./03-architecture-patterns.md)); when a lookup is unavoidable (bootstrap, tests, editor tooling) use `FindFirstObjectByType` / `FindAnyObjectByType` / `FindObjectsByType(FindObjectsSortMode.None)` once, in initialisation code; **NEVER** the obsolete `FindObjectOfType` family, `GameObject.Find` or `FindWithTag` in gameplay code; compare tags with `CompareTag`.
@@ -137,6 +137,7 @@ public class Health : MonoBehaviour
 - Not serialized: properties, dictionaries, multidimensional/jagged arrays, nested containers (`List<List<T>>`), interface- or abstract-typed fields (unless `[SerializeReference]`), `readonly`/`static` fields. Wrap nested containers in a `[Serializable]` class or implement `ISerializationCallbackReceiver`.
 - `[Serializable]` is not inherited — apply it to every class in the hierarchy.
 - `[SerializeReference]` is only for polymorphism, null or shared references inside one object; default inline serialization is cheaper.
+- Odin Inspector attributes (`[Required]`, `[TitleGroup]`, `[ShowIf]` …) are Editor drawing hints on top of these rules and change nothing in the list above; `[ShowInInspector]` displays a member without serializing it. The Odin *serializer* (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`) is **not** used in this project — dictionaries and other unserializable shapes are remodelled as described here, not rescued with Odin. Rules and rationale in [12 Odin Inspector](./12-odin-inspector.md). **[project decision]**
 - *Source:* [Serialization rules](../reference/scripting/manual-script-serialization-rules.md).
 
 **Rename a serialized field with `[FormerlySerializedAs("oldName")]` and keep the attribute at least until every scene/prefab has been re-saved on `develop` (the integration branch, see [06 Version control](./06-version-control.md)).** Editor-only; harmless in builds.

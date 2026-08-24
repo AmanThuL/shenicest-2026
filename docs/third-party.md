@@ -1,6 +1,13 @@
 # Third-party plugin records
 
-> **Scope:** Exceptions and unavoidable deviations for content under `Assets/ThirdParty/` and `Assets/Plugins/`, as required by [docs/guidelines/02-project-structure.md](guidelines/02-project-structure.md) §5.
+> **Scope:** Exceptions and unavoidable deviations for content under `Assets/ThirdParty/` and `Assets/Plugins/`, as required by [docs/guidelines/02-project-structure.md](guidelines/02-project-structure.md) §5. One entry per package; when adding one, record the exact version, path, *why* it's an exception, and every file you had to touch (so the edit can be re-applied after a vendor update).
+
+## Odin Inspector and Serializer (Sirenix) — `Assets/Plugins/Sirenix/`
+
+- **Version:** 4.0.2.3. Imported 2026-08-24 as a team decision (each teammate holds a seat licence).
+- **Vendor-required path.** Odin installs to and locates itself from `Assets/Plugins/Sirenix/` (`Odin Inspector/Assets/Editor/OdinPathLookup.asset`, the `Config/Editor/*.asset` files and the per-platform `Assemblies/` sub-folders are resolved relative to it), so it stays there instead of `Assets/ThirdParty/`.
+- **No local edits.**
+- Odin writes `ODIN_INSPECTOR*` scripting defines into `ProjectSettings/ProjectSettings.asset` per active build target group. The Odin serializer is deliberately unused — see [12 Odin Inspector](guidelines/12-odin-inspector.md), the owner guideline.
 
 ## DOTween (Demigiant) — `Assets/Plugins/Demigiant/DOTween/`
 

@@ -30,6 +30,7 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 |---|---|---|---|
 | Input System `com.unity.inputsystem` | 1.20.0 (released) | **Required** | [ref](../reference/packages/manual-com-unity-inputsystem.md) |
 | Cinemachine `com.unity.cinemachine` | 3.1.7 (released) | **Required** | [ref](../reference/packages/manual-com-unity-cinemachine.md) |
+| Odin Inspector (Sirenix, Asset Store `.unitypackage`, **not** UPM) | 4.0.2.3 at `Assets/Plugins/Sirenix/` | **Required** — Editor-UX only, Odin serializer unused; rules in [12](./12-odin-inspector.md) | [ref](../reference/third-party/odin-inspector/README.md) |
 | AI Navigation `com.unity.ai.navigation` | 2.0.14 (released) | **Required** when there are NPCs | [ref](../reference/packages/manual-com-unity-ai-navigation.md) |
 | UI Toolkit | part of the core Editor, no package | **Required** (runtime UI) | [ref](../reference/packages/manual-install-ui-toolkit-and-sample-projects.md) |
 | uGUI + TextMeshPro `com.unity.ugui` | 2.0 (core, fixed to Editor) | Present; use only per the UI section | [ref](../reference/packages/manual-com-unity-ugui.md), [ref](../reference/packages/ugui-2-0-textmeshpro-index.md) |
@@ -73,7 +74,7 @@ Removed from the Universal 3D template manifest at import (2026-08-24), all with
 - *Why:* An embedded copy silently overrides the registry version for everyone and must then be tracked and merged like source; we have no capacity to maintain a fork.
 - *Source:* [Embedded dependencies](../reference/packages/manual-upm-embed.md).
 
-Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/ThirdParty/` per [02-project-structure.md](./02-project-structure.md).
+Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/ThirdParty/` per [02-project-structure.md](./02-project-structure.md) — except Odin Inspector, which stays at its vendor-required path `Assets/Plugins/Sirenix/` ([12](./12-odin-inspector.md), [`docs/third-party.md`](../third-party.md)). Adding any further Asset Store package is the same team decision and its own `chore:` commit as a UPM package.
 
 ## Input System 1.20
 
@@ -510,6 +511,7 @@ If a real need appears (remote content, memory pressure from optional content), 
 ## Review checklist
 
 - [ ] `Packages/manifest.json` / `packages-lock.json` changed only in a dedicated `chore(packages):` commit; no Git/local/embedded/pre-release entries.
+- [ ] No new Asset Store package outside `Assets/ThirdParty/` (Odin at `Assets/Plugins/Sirenix/` is the recorded exception); Odin usage follows the checklist in [12](./12-odin-inspector.md).
 - [ ] No legacy `UnityEngine.Input` calls, `PlayerInput`, generated input class, or `Keyboard.current` outside `_Sandbox/`.
 - [ ] `FindAction` only in `Awake`/`Start`; `WasPressedThisFrame` only in `Update`; Player map disabled while menus are open.
 - [ ] New camera shots are `CinemachineCamera` GameObjects named `CM_*`, switched by `SetActive`; nobody touches the Unity Camera transform; Brain settings unchanged.
