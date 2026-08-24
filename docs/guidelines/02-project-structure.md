@@ -39,9 +39,9 @@ What is and is not committed (`Assets/`, `Packages/`, `ProjectSettings/` and the
 |---|---|---|
 | `Assets/SheNicest/` | Everything we author. Named after the project so our work is separated from third-party packages and shows up as one tree. | Section 3. |
 | `Assets/ThirdParty/` | Asset Store / external `.unitypackage` content, one subfolder per package, untouched. | Section 5. |
-| `Assets/Plugins/` | Native and managed plug-in binaries only (`.dll`, `.dylib`, `.so`, `.bundle`). Reserved folder. | Section 5. |
+| `Assets/Plugins/` | Native and managed plug-in binaries only (`.dll`, `.dylib`, `.so`, `.bundle`). Reserved folder. One vendor tree lives here by vendor requirement: `Plugins/Sirenix/` (Odin Inspector, [12](./12-odin-inspector.md)). | Section 5. |
 | `Assets/_Sandbox/<username>/` | Personal experiments and scratch scenes. Leading underscore sorts it first. | Section 6. |
-| `Assets/ScriptTemplates/` | Project script templates (Unity reads them only here). Holds exactly the two files defined in [01](./01-csharp-style.md); their Unity-dictated names contain spaces and are exempt from rule 7.2. | [01](./01-csharp-style.md). |
+| `Assets/ScriptTemplates/` | Project script templates (Unity reads them only here). Holds exactly the three files defined in [01](./01-csharp-style.md); their Unity-dictated names contain spaces and are exempt from rule 7.2. | [01](./01-csharp-style.md). |
 
 - *Why:* Unity's organization e-book recommends a project-named root folder created by script, a `ThirdParty` folder so external assets can be updated without merge pain, a sandbox area split by username, and an `Assets/ScriptTemplates` folder for project script templates; underscore prefix puts a name alphabetically first.
 - *Source:* [Organization e-book (Unity 6 ed.)](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) pp. 13–25; [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md). Folder names are a **[project decision]**.
@@ -121,8 +121,10 @@ Hidden by the importer: folders/files starting with `.` (except under `Streaming
 - *Why:* Keeps our tree separate from vendor trees; moving in-Editor keeps GUIDs so the vendor's internal references survive. One commit per import makes the next update a readable diff.
 - *Source:* [Import local asset packages](../reference/project-structure/manual-assetpackagesimport.md); [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md) (keep internal and third-party assets separate; diff after updates). Exception **[project decision]**: if the vendor's code hard-codes its own path, leave it where the vendor requires and note it in `docs/third-party.md`.
 
-**NEVER** edit files inside `ThirdParty/`. If a change is unavoidable, record file + reason in `docs/third-party.md` so it can be re-applied after an update.
+**NEVER** edit files inside `ThirdParty/`. If a change is unavoidable, record file + reason in [`docs/third-party.md`](../third-party.md) so it can be re-applied after an update.
 - *Source:* [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md). **[project decision]** for the record location.
+
+**Odin Inspector is the one vendor package that lives in `Assets/Plugins/Sirenix/` instead of `ThirdParty/`.** It is Odin's own install path (its config assets, path lookup and per-platform assembly folders are resolved relative to it), so it stays there; the exception is recorded in [`docs/third-party.md`](../third-party.md) and every usage rule is in [12 Odin Inspector](./12-odin-inspector.md). The same "never edit in place, one `chore(odin):` commit per import/upgrade" rules apply as for `ThirdParty/`. **[project decision, 2026-08-24]**
 
 **MUST** give third-party code an assembly definition (the vendor's own, or a minimal `.asmdef` added at its root folder) before `SheNicest.Runtime` may reference it.
 - *Why:* Scripts without an asmdef compile into the predefined `Assembly-CSharp`, and custom assemblies cannot reference predefined assemblies. Adding an `.asmdef` is the one tolerated edit inside `ThirdParty/`.
@@ -461,7 +463,7 @@ Package selection, versions, Git-URL dependencies, `pinnedPackages` and embeddin
 - [ ] Textures use the `_BaseMap/_Normal/_Metallic/_Specular/_Occlusion/_Emission/_Height` suffixes; models are `.fbx` with materials extracted to `Materials/`.
 - [ ] New folders contain a `.gitkeep` if otherwise empty.
 - [ ] Nothing in a shipping scene/prefab/asmdef references `_Sandbox/`.
-- [ ] `ThirdParty/` files are unmodified (except an added `.asmdef`), and any import is its own commit.
+- [ ] `ThirdParty/` and `Plugins/Sirenix/` files are unmodified (except an added `.asmdef` under `ThirdParty/`), and any import or upgrade is its own commit.
 - [ ] `Packages/` holds only `manifest.json` and `packages-lock.json`; any change to them follows [09](./09-packages-systems.md).
 - [ ] No docs, builds, `.unitypackage`, `.blend/.psd`, zips or IDE files under `Assets/`.
 - [ ] Template leftovers are absent; `Settings/` file names match the template.

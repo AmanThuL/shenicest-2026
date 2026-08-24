@@ -8,7 +8,8 @@ Scripts that built [`docs/reference/`](../README.md). They need Python 3.11+ and
 | `results.json` | What the last run produced for each manifest entry (local path, word count, PDF page count, warnings). `build_index.py` reads it. |
 | `fetch_doc.py` | Fetch one URL and convert it to Markdown with YAML front matter (HTML via pandoc → GFM; PDFs via `pypdf` text extraction). |
 | `fetch_batch.py` | Fetch every manifest entry into `<topic>/<slug>.md`, skipping files that already exist. |
-| `build_index.py` | Regenerate `docs/reference/README.md` from `results.json`. |
+| `build_index.py` | Regenerate `docs/reference/README.md` from `results.json` (plus a static "Third-party references" section). |
+| `build_odin_reference.py` | Generate `docs/reference/third-party/odin-inspector/{attributes,support-types,editor-api,serialization}.md` from the XML docs next to the Odin DLLs in `Assets/Plugins/Sirenix/Assemblies/`. Standard library only: `python3 docs/reference/_tools/build_odin_reference.py` from the repo root. Re-run after every Odin upgrade. |
 
 ## Refresh or extend the library
 
