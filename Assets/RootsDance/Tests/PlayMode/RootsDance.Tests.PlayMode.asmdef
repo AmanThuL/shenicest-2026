@@ -3,7 +3,9 @@
     "rootNamespace": "RootsDance.Tests.PlayMode",
     "references": [
         "RootsDance.Runtime",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

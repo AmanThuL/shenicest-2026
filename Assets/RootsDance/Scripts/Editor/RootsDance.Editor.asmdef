@@ -2,7 +2,8 @@
     "name": "RootsDance.Editor",
     "rootNamespace": "RootsDance.Editor",
     "references": [
-        "RootsDance.Runtime"
+        "RootsDance.Runtime",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [
         "Editor"
