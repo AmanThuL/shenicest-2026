@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/SheNicest/Scenes/Bootstrap.unity
+    path: Assets/RootsDance/Scenes/Bootstrap.unity
     guid: bc04c81ba12ce4071a48396ccf3943b6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

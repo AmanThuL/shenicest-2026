@@ -1,8 +1,8 @@
 {
-    "name": "SheNicest.Tests.PlayMode",
-    "rootNamespace": "SheNicest.Tests.PlayMode",
+    "name": "RootsDance.Tests.PlayMode",
+    "rootNamespace": "RootsDance.Tests.PlayMode",
     "references": [
-        "SheNicest.Runtime",
+        "RootsDance.Runtime",
         "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],

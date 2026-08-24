@@ -44,5 +44,5 @@ Eleven documents that together define how this project is built. They were disti
 | `/.editorconfig` | [01 — Appendix: .editorconfig](01-csharp-style.md) |
 | `/.gitattributes` | [06 — Appendix: .gitattributes](06-version-control.md) |
 | `/.gitignore` | GitHub `Unity.gitignore` + the project additions listed in [06](06-version-control.md) |
-| `/Assets/SheNicest/**` folder skeleton, `.asmdef` files | [02 — Appendix: folder tree](02-project-structure.md) |
+| `/Assets/RootsDance/**` folder skeleton, `.asmdef` files | [02 — Appendix: folder tree](02-project-structure.md) |
 | `/Assets/ScriptTemplates/*` | [01 — script templates](01-csharp-style.md) |

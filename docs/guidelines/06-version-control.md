@@ -56,14 +56,14 @@ Keep the first three settings below at their Universal 3D template defaults and 
 - *Source:* [AssetDatabase.ForceReserializeAssets](../reference/version-control/scriptref-assetdatabase-forcereserializeassets.md).
 
 ```csharp
-// Assets/SheNicest/Scripts/Editor/Tools/ReserializeAssetsMenu.cs — run once, commit the result alone.
+// Assets/RootsDance/Scripts/Editor/Tools/ReserializeAssetsMenu.cs — run once, commit the result alone.
 using UnityEditor;
 
-namespace SheNicest.Editor.Tools
+namespace RootsDance.Editor.Tools
 {
     public static class ReserializeAssetsMenu
     {
-        [MenuItem("SheNicest/Version Control/Force Reserialize All Assets")]
+        [MenuItem("RootsDance/Version Control/Force Reserialize All Assets")]
         private static void ForceReserializeAllAssets()
         {
             AssetDatabase.ForceReserializeAssets();
@@ -269,8 +269,8 @@ git switch develop && git pull --ff-only       # start of session: latest develo
 git switch -c feat/player-dash                  # or: git switch feat/player-dash && git merge develop
 # ... work in small increments; after each increment that compiles and whose scene opens:
 git status                                      # inspect; revert unintended scene/settings files
-git add Assets/SheNicest/Scripts/Runtime/Player/PlayerDash.cs \
-        Assets/SheNicest/Scripts/Runtime/Player/PlayerDash.cs.meta
+git add Assets/RootsDance/Scripts/Runtime/Player/PlayerDash.cs \
+        Assets/RootsDance/Scripts/Runtime/Player/PlayerDash.cs.meta
 git commit -m "feat(player): add dash with 0.4 s cooldown"
 git push -u origin feat/player-dash             # at least at the end of every session
 # before the pull request (and at least once a day):
@@ -307,14 +307,14 @@ Resolve in the IDE as usual, then compile in the Editor before committing the me
 3. **Run Smart Merge** on each conflicted YAML file:
    ```bash
    git status                                   # lists "both modified" files
-   git mergetool -- Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity
+   git mergetool -- Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity
    # UnityYAMLMerge merges object-by-object; Git then asks "Was the merge successful?" — answer y only after step 5.
    ```
    *Source:* [Smart merge](../reference/version-control/manual-smartmerge.md), [Working with YAMLMerge](../reference/version-control/tutorial-working-with-yamlmerge.md).
 4. **If it cannot merge cleanly, take one side whole** and re-apply the smaller change by hand in the Editor afterwards:
    ```bash
-   git checkout --theirs -- Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity   # during `git merge develop` on your branch: --theirs = develop, --ours = your branch
-   git add Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity
+   git checkout --theirs -- Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity   # during `git merge develop` on your branch: --theirs = develop, --ours = your branch
+   git add Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity
    ```
    Picking a side is what Unity's tutorial does; the owner's version normally wins.
 5. **Verify in the Editor before committing:** open the scene, check the Console for missing scripts/references and YAML parse errors, enter Play Mode once.
@@ -345,7 +345,7 @@ This project uses **Git + GitHub + Git LFS** instead. **[project decision]**
 
 - ❌ `git add -A && git commit -m "wip"` — ✅ stage named files, one task per commit, descriptive message.
 - ❌ Committing `PlayerDash.cs` without `PlayerDash.cs.meta` (agent wrote the file, Editor never imported it) — ✅ focus the Editor, confirm the `.meta`, commit both.
-- ❌ Renaming `Assets/SheNicest/Prefabs/Characters/Enemy.prefab` in Finder/Explorer — ✅ rename in the Project window (or move file + `.meta` together).
+- ❌ Renaming `Assets/RootsDance/Prefabs/Characters/Enemy.prefab` in Finder/Explorer — ✅ rename in the Project window (or move file + `.meta` together).
 - ❌ Committing `Library/`, `UserSettings/`, a `Builds/` folder or `*.csproj` — ✅ they are ignored; if `git status` shows them the `.gitignore` is broken, fix that first.
 - ❌ Switching Asset Serialization to *Mixed* or *Force Binary* "to make files smaller" — ✅ Force Text; binaries belong in LFS.
 - ❌ Putting `.unity`/`.prefab` into LFS or marking `*.prefab binary` — ✅ plain text with `merge=unityyamlmerge`.

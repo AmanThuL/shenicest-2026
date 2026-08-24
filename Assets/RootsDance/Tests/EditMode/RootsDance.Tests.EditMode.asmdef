@@ -1,9 +1,9 @@
 {
-    "name": "SheNicest.Tests.EditMode",
-    "rootNamespace": "SheNicest.Tests.EditMode",
+    "name": "RootsDance.Tests.EditMode",
+    "rootNamespace": "RootsDance.Tests.EditMode",
     "references": [
-        "SheNicest.Runtime",
-        "SheNicest.Editor",
+        "RootsDance.Runtime",
+        "RootsDance.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

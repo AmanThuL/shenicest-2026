@@ -1,12 +1,11 @@
 {
-    "name": "SheNicest.Editor",
-    "rootNamespace": "SheNicest.Editor",
+    "name": "RootsDance.Runtime",
+    "rootNamespace": "RootsDance",
     "references": [
-        "SheNicest.Runtime"
+        "Unity.InputSystem",
+        "Unity.Cinemachine"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

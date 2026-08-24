@@ -1,17 +1,17 @@
 # 07. Rendering and URP conventions
 
 > **Scope:** How this project configures and uses the Universal Render Pipeline (URP 17.3) in Unity 6.3: pipeline assets and quality tiers, the Forward+ rendering path, Render Graph custom passes, lighting (APV, lightmaps, shadows, probes), post-processing Volumes, cameras and Cinemachine, materials and Shader Graph, anti-aliasing/HDR/colour space, rendering-relevant texture import settings, and what to check when something renders pink or black.
-> **Applies to:** every URP asset, renderer, Volume profile, lighting setting, material, shader, Shader Graph and camera under `Assets/SheNicest/`, and any C# under `Assets/SheNicest/Scripts/Runtime/Rendering` (folder and namespace `SheNicest.Rendering` are created only with the first custom render pass, per [02](./02-project-structure.md)). Generic profiling and CPU/GPU budgets are owned by [05 Performance](./05-performance.md); Unity 6.3 facts and deprecations by [10 Unity 6.3 facts](./10-unity6-facts.md).
+> **Applies to:** every URP asset, renderer, Volume profile, lighting setting, material, shader, Shader Graph and camera under `Assets/RootsDance/`, and any C# under `Assets/RootsDance/Scripts/Runtime/Rendering` (folder and namespace `RootsDance.Rendering` are created only with the first custom render pass, per [02](./02-project-structure.md)). Generic profiling and CPU/GPU budgets are owned by [05 Performance](./05-performance.md); Unity 6.3 facts and deprecations by [10 Unity 6.3 facts](./10-unity6-facts.md).
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 ## TL;DR — rules at a glance
 
 1. **MUST** render with URP 17.3 with **Rendering Path = Forward+** on the renderer of the desktop tier (and on any other renderer that stays in use). Verify in the text-serialized renderer `.asset`: `m_RenderingMode: 2` (`ForwardPlus`); set it in the Inspector if the template shipped `0` (Forward).
-2. **MUST** keep exactly the quality levels, URP assets and renderers the Universal 3D template created (expected for Unity 6: levels `PC` and `Mobile`, `PC_RPAsset`/`Mobile_RPAsset`, `PC_Renderer`/`Mobile_Renderer`, moved into `Assets/SheNicest/Settings/`). On day one the rendering owner opens the project, records the actual level names, asset names, renderer names and per-platform defaults in §1, and nobody adds, renames or reorders them.
+2. **MUST** keep exactly the quality levels, URP assets and renderers the Universal 3D template created (expected for Unity 6: levels `PC` and `Mobile`, `PC_RPAsset`/`Mobile_RPAsset`, `PC_Renderer`/`Mobile_Renderer`, moved into `Assets/RootsDance/Settings/`). On day one the rendering owner opens the project, records the actual level names, asset names, renderer names and per-platform defaults in §1, and nobody adds, renames or reorders them.
 3. **MUST** write every custom pass with the **Render Graph** API (`ScriptableRenderPass.RecordRenderGraph` + `ScriptableRendererFeature.AddRenderPasses`). URP Compatibility Mode is removed in 6.3. **NEVER** call `CommandBuffer.Blit`, `Graphics.Blit` or `RenderingUtils.Blit` — use `AddBlitPass` / `AddCopyPass` / `Blitter`.
 4. **MUST** keep **Color Space = Linear** (Player settings). Never switch to Gamma.
 5. **MUST** light each level from its `<Level>_Environment.unity` (or `_Lighting`) scene — never from a `_Gameplay` part — with one **Mixed** Directional main light, **Baked Global Illumination** on, Lighting Mode **Baked Indirect**, and **Adaptive Probe Volumes** as the Light Probe System. Lightmaps are opt-in for large static surfaces only.
-6. **MUST** apply post-processing only through **Volume** components and Volume Profile assets named `<Context>Profile` in `Assets/SheNicest/Settings/VolumeProfiles/`; one global Volume per level, in its `_Environment` (or `_Lighting`) scene; post-processing enabled only on the Base Camera (the last camera of a stack).
+6. **MUST** apply post-processing only through **Volume** components and Volume Profile assets named `<Context>Profile` in `Assets/RootsDance/Settings/VolumeProfiles/`; one global Volume per level, in its `_Environment` (or `_Lighting`) scene; post-processing enabled only on the Base Camera (the last camera of a stack).
 7. **MUST** keep the `MainCamera` from [09](./09-packages-systems.md) as the only Base Camera (Post Processing on, Anti-aliasing None, Dithering on); Overlay cameras and stacking only for the §7 cases.
 8. **MUST** use URP shaders only: **Lit** by default, **Unlit** for unlit effects, **Shader Graph (URP targets)** for anything custom. Built-in/Standard and HDRP shaders render pink.
 9. **MUST** keep materials SRP-Batcher compatible: no `MaterialPropertyBlock`, **Material Variants** for colour/texture variations, and unused Lit features switched off (details in [05](./05-performance.md)).
@@ -24,14 +24,14 @@
 
 ## 1. Pipeline assets and where they live
 
-**MUST** keep whatever quality levels, URP assets and Universal Renderers the Universal 3D template generated, with their template names, and move them, in the Editor, from the template's `Assets/Settings` into `Assets/SheNicest/Settings/` (see [02 Project structure](./02-project-structure.md) for the move and the `.meta` rule). Rules in this document are phrased per tier **role**: the **desktop tier** (the URP asset Standalone uses) and the **low tier** (the URP asset Web would use). Do not assume the `UniversalRP-Low/Medium/HighQuality` names some older material shows.
+**MUST** keep whatever quality levels, URP assets and Universal Renderers the Universal 3D template generated, with their template names, and move them, in the Editor, from the template's `Assets/Settings` into `Assets/RootsDance/Settings/` (see [02 Project structure](./02-project-structure.md) for the move and the `.meta` rule). Rules in this document are phrased per tier **role**: the **desktop tier** (the URP asset Standalone uses) and the **low tier** (the URP asset Web would use). Do not assume the `UniversalRP-Low/Medium/HighQuality` names some older material shows.
 - *Why:* "When you create a project using the URP template, Unity creates the URP assets in the Settings project folder and assigns them in Project Settings." For Unity 6 the manual and e-book name them `PC_RPAsset` / `Mobile_RPAsset` with `PC_Renderer` (renderers under `Assets > Settings > Renderers`); the `UniversalRP-*` / `UniversalRenderer` names come from the legacy GitHub template. Keeping the shipped names keeps Unity's docs, [02](./02-project-structure.md) and this document in agreement.
 - *Source:* [manual-urp-asset-and-renderer](../reference/rendering-urp/manual-urp-asset-and-renderer.md), [manual-how-to-custom-effect-render-objects](../reference/rendering-urp/manual-how-to-custom-effect-render-objects.md) ("select the URP Renderer asset your project uses, for example **Settings** > **PC_Renderer**"), [manual-post-processing-custom-effect-low-code](../reference/rendering-urp/manual-post-processing-custom-effect-low-code.md) (Universal Renderers in **Assets > Settings > Renderers**), [URP e-book (Unity 6)](../reference/rendering-urp/ebook-introduction-to-the-universal-render-pipeline-for-advanced-unity-creat.md) p.15 ("PC_RPAsset is the default URP Asset selected on a desktop, but you can switch to Mobile_RPAsset"); legacy GitHub template assets (indicative values only; names differ in the 6000.3 Hub template) [UniversalRP-HighQuality](../reference/rendering-urp/github-graphics-universalrp-highquality-asset.md), [-MediumQuality](../reference/rendering-urp/github-graphics-universalrp-mediumquality-asset.md), [-LowQuality](../reference/rendering-urp/github-graphics-universalrp-lowquality-asset.md), [UniversalRenderer](../reference/rendering-urp/github-graphics-universalrenderer-asset.md).
 
-**MUST** use this layout inside `Assets/SheNicest/Settings/` (file names as verified on day one) **[project decision]**:
+**MUST** use this layout inside `Assets/RootsDance/Settings/` (file names as verified on day one) **[project decision]**:
 
 ```text
-Assets/SheNicest/Settings/                 # moved from the template's Assets/Settings/ at import (02)
+Assets/RootsDance/Settings/                 # moved from the template's Assets/Settings/ at import (02)
   PC_RPAsset.asset                         # desktop tier URP asset  (name verified 2026-08-24)
   Mobile_RPAsset.asset                     # low tier URP asset      (name verified 2026-08-24)
   PC_Renderer.asset                        # desktop-tier Universal Renderer → Forward+ (template ships renderers at the Settings/ root; no Renderers/ subfolder)
@@ -39,15 +39,15 @@ Assets/SheNicest/Settings/                 # moved from the template's Assets/Se
   UniversalRenderPipelineGlobalSettings.asset
   VolumeProfiles/DefaultVolumeProfile.asset  # template profile, keeps its name; SampleSceneProfile was deleted with SampleScene (02)
   VolumeProfiles/<Context>Profile.asset    # new profiles, e.g. ForestProfile, MainMenuProfile (02)
-  Lighting/SheNicest.lighting              # shared Lighting Settings Asset (§5.2)
+  Lighting/RootsDance.lighting              # shared Lighting Settings Asset (§5.2)
 ```
 
 **MUST** fill in the day-one record below the first time the project is opened in 6000.3.22f1 (rendering owner, same commit as the settings move) and keep it current; it — not the expected names above — is what reviewers check. **[project decision]**
 
 Day-one record (recorded 2026-08-24 from the text-serialized template assets at import; rendering owner confirms in the Editor on first open):
 - Quality levels (Project Settings > Quality, in row order): `Mobile` (index 0), `PC` (index 1)
-- URP assets (`t:universalrenderpipelineasset`): `PC_RPAsset`, `Mobile_RPAsset` in `Assets/SheNicest/Settings/`
-- Renderer assets and their folder: `PC_Renderer`, `Mobile_Renderer` at the `Assets/SheNicest/Settings/` root (the 6000.3 template has no `Renderers/` subfolder)
+- URP assets (`t:universalrenderpipelineasset`): `PC_RPAsset`, `Mobile_RPAsset` in `Assets/RootsDance/Settings/`
+- Renderer assets and their folder: `PC_Renderer`, `Mobile_Renderer` at the `Assets/RootsDance/Settings/` root (the 6000.3 template has no `Renderers/` subfolder)
 - Standalone default level: `PC` · Web default level: `Mobile`
 - Rendering Path after setup: desktop-tier renderer `m_RenderingMode: 2` (Forward+, as shipped by the template); low-tier renderer `m_RenderingMode: 0` (Forward)
 
@@ -123,7 +123,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace SheNicest.UI
+namespace RootsDance.UI
 {
     /// <summary>Row index in Project Settings > Quality (only levels enabled for the platform count). Own file per 01.</summary>
     public enum QualityTier
@@ -169,7 +169,7 @@ Render Graph rules (all **MUST**):
 - A pass whose output nothing reads is removed by the graph, and resources are allocated only between their first write and last read — so write the result into `resourceData.cameraColor` or a texture a later pass consumes, and never keep internal `TextureHandle`s across frames. *Source:* [manual-render-graph-introduction](../reference/rendering-urp/manual-render-graph-introduction.md), [CopyRenderFeature.cs](../reference/rendering-urp/github-graphics-copyrenderfeature-cs.md).
 - Pick the injection point from the reference table (`RenderPassEvent.AfterRenderingOpaques`, `AfterRenderingPostProcessing`, …); camera matrices are not set up before `BeforeRenderingPrePasses`. *Source:* [manual-custom-pass-injection-points](../reference/rendering-urp/manual-custom-pass-injection-points.md).
 - Verify with **Window > Analysis > Render Graph Viewer** (pass merging, resource lifetimes) and the Frame Debugger. *Source:* [manual-render-graph-view](../reference/rendering-urp/manual-render-graph-view.md).
-- Create `Scripts/Runtime/Rendering/` (namespace `SheNicest.Rendering`) together with the first pass, and in the same commit add `"Unity.RenderPipelines.Universal.Runtime"` and `"Unity.RenderPipelines.Core.Runtime"` to the `references` array of `SheNicest.Runtime.asmdef` shown in [02 §8](./02-project-structure.md) (names verified in the URP 17.3 package). **[project decision]**
+- Create `Scripts/Runtime/Rendering/` (namespace `RootsDance.Rendering`) together with the first pass, and in the same commit add `"Unity.RenderPipelines.Universal.Runtime"` and `"Unity.RenderPipelines.Core.Runtime"` to the `references` array of `RootsDance.Runtime.asmdef` shown in [02 §8](./02-project-structure.md) (names verified in the URP 17.3 package). **[project decision]**
 
 Minimal full-screen material pass, in project style:
 
@@ -180,7 +180,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
-namespace SheNicest.Rendering
+namespace RootsDance.Rendering
 {
     /// <summary>Runs a full-screen material over the camera colour. Add it to the desktop-tier renderer asset.</summary>
     public class FullScreenMaterialFeature : ScriptableRendererFeature
@@ -209,7 +209,7 @@ namespace SheNicest.Rendering
 
         private class FullScreenMaterialPass : ScriptableRenderPass
         {
-            private const string k_PassName = "SheNicest FullScreenMaterial";
+            private const string k_PassName = "RootsDance FullScreenMaterial";
 
             private Material m_material;
 
@@ -229,7 +229,7 @@ namespace SheNicest.Rendering
 
                 TextureHandle source = resourceData.activeColorTexture;
                 TextureDesc destinationDesc = renderGraph.GetTextureDesc(source);
-                destinationDesc.name = "SheNicest_FullScreenMaterial";
+                destinationDesc.name = "RootsDance_FullScreenMaterial";
                 destinationDesc.clearBuffer = false;
                 TextureHandle destination = renderGraph.CreateTexture(destinationDesc);
 
@@ -265,7 +265,7 @@ namespace SheNicest.Rendering
 - *Why:* If Baked GI is off, every Baked/Mixed light silently behaves as Realtime. Baked Indirect keeps all shadows real-time, so a stale bake only shows as slightly wrong bounce light instead of wrong shadows — the forgiving choice while levels change daily. Switch to **Shadowmask** (max 4 overlapping mixed lights per texel) only if real-time shadow cost becomes the measured bottleneck. **NEVER** enable Enlighten Realtime Global Illumination next to baked GI: Unity calls running both "rarely recommended".
 - *Source:* [manual-lightmodes-introduction](../reference/rendering-urp/manual-lightmodes-introduction.md), [manual-lighting-mode](../reference/rendering-urp/manual-lighting-mode.md), [manual-shadows-optimization](../reference/rendering-urp/manual-shadows-optimization.md), [manual-lighting-configuration-workflow](../reference/rendering-urp/manual-lighting-configuration-workflow.md), [manual-choose-a-lighting-setup](../reference/rendering-urp/manual-choose-a-lighting-setup.md).
 
-**MUST** assign the single shared `Settings/Lighting/SheNicest.lighting` Lighting Settings Asset to every `_Environment` / `_Lighting` scene and `MainMenu.unity` (Lighting > Scene > Lighting Settings) and bake with the **Progressive GPU** lightmapper. **[project decision]**
+**MUST** assign the single shared `Settings/Lighting/RootsDance.lighting` Lighting Settings Asset to every `_Environment` / `_Lighting` scene and `MainMenu.unity` (Lighting > Scene > Lighting Settings) and bake with the **Progressive GPU** lightmapper. **[project decision]**
 - *Why:* One asset shares bake settings across scenes; the GPU lightmapper is "much faster" in most configurations. Close other GPU-heavy apps and lower samples + use the Denoiser when bakes are slow.
 - *Source:* [manual-global-illumination-configure](../reference/rendering-urp/manual-global-illumination-configure.md), [manual-gpuprogressivelightmapper](../reference/rendering-urp/manual-gpuprogressivelightmapper.md).
 
@@ -383,7 +383,7 @@ namespace SheNicest.Rendering
 
 ### 9.3 Shader Graph conventions
 
-- **MUST** create graphs via **Create > Shader Graph > URP > Lit / Unlit / Fullscreen / Decal Shader Graph** so the Universal target is active; save under `Assets/SheNicest/Shaders/` with the material next to it in `Materials/`. *Source:* [manual-prebuilt-shader-graphs-urp](../reference/rendering-urp/manual-prebuilt-shader-graphs-urp.md), [manual-shader-graph](../reference/rendering-urp/manual-shader-graph.md).
+- **MUST** create graphs via **Create > Shader Graph > URP > Lit / Unlit / Fullscreen / Decal Shader Graph** so the Universal target is active; save under `Assets/RootsDance/Shaders/` with the material next to it in `Materials/`. *Source:* [manual-prebuilt-shader-graphs-urp](../reference/rendering-urp/manual-prebuilt-shader-graphs-urp.md), [manual-shader-graph](../reference/rendering-urp/manual-shader-graph.md).
 - **MUST** name the primary inputs `_BaseMap` (Texture2D) and `_BaseColor` (Color) so materials stay interchangeable with URP Lit and material upgraders; other reference names `_PascalCase` with a leading underscore. **[project decision]** (naming follows URP's own `[MainTexture] _BaseMap` / `[MainColor] _BaseColor`, [URP e-book](../reference/rendering-urp/ebook-introduction-to-the-universal-render-pipeline-for-advanced-unity-creat.md) p.97.)
 - **SHOULD** move shared node groups into **Sub Graphs** (`Shaders/SubGraphs/`) instead of copy-pasting nodes. *Source:* [URP cookbook](../reference/rendering-urp/ebook-urp-cookbook-shaders-and-visual-effects-unity-6-final.md) (DepthFade, TextureMovement, Main Light sub graphs).
 - **SHOULD** keep graphs small: delete unused nodes, do not wire defaults, bake constant adjustments into textures, use `half` / smaller vectors where possible. *Source:* [how-to-performance-optimization-high-end-graphics](../reference/performance/how-to-performance-optimization-high-end-graphics.md).

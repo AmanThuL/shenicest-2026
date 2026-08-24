@@ -1,7 +1,7 @@
 # 03. Architecture and design patterns
 
 > **Scope:** How gameplay code is structured — which Unity type to use for what, SOLID applied to components, the ScriptableObject-based architecture (config, event channels, runtime sets, enum assets, pluggable behaviour), the approved patterns (observer, state, command, factory, object pool, MVP) and the one tolerated singleton, dependency wiring without a DI framework, and dependency direction between assemblies and namespaces.
-> **Applies to:** all runtime C# under `Assets/SheNicest/Scripts/Runtime` (assembly `SheNicest.Runtime`) and the tests/editor code that references it.
+> **Applies to:** all runtime C# under `Assets/RootsDance/Scripts/Runtime` (assembly `RootsDance.Runtime`) and the tests/editor code that references it.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder layout by [02 Project structure](./02-project-structure.md); lifecycle semantics (`Awake`/`Start`/`OnEnable` ordering, null checks on Unity objects) by [04 Unity scripting rules](./04-unity-scripting-rules.md); measurements and profiling by [05 Performance](./05-performance.md). This document only decides *where code lives and how pieces talk to each other*.
@@ -11,7 +11,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder l
 1. **MUST** pick the type by role: **MonoBehaviour** for behaviour that lives in a scene and needs Unity callbacks; **ScriptableObject** for shared read-only config, enum-like assets, event channels, runtime sets and pluggable behaviour; **plain C# class** for logic with no Unity lifecycle (state machines, commands, models) so it can be EditMode-tested.
 2. **MUST** give each component one responsibility. A `PlayerController` facade may coordinate `PlayerInputReader`, `PlayerMovement`, `PlayerAudio`; it does not implement them. Split any class that passes ~300 lines.
 3. **MUST** wire dependencies with `[SerializeField]` references, `[RequireComponent]` + `GetComponent` in `Awake`, or constructor parameters for plain C# classes. **NEVER** call `FindFirstObjectByType`/`GameObject.Find` from gameplay code (unavoidable lookups in bootstrap, tests and editor tooling follow [04](./04-unity-scripting-rules.md#finding-objects-and-accessing-components)). No DI framework.
-4. **MUST** communicate *across* features only through abstractions: an interface in `SheNicest.Core`, a ScriptableObject event channel (`SheNicest.Events`) or a data asset (`SheNicest.Data`). A feature namespace never references another feature's concrete types.
+4. **MUST** communicate *across* features only through abstractions: an interface in `RootsDance.Core`, a ScriptableObject event channel (`RootsDance.Events`) or a data asset (`RootsDance.Data`). A feature namespace never references another feature's concrete types.
 5. **MUST** use ScriptableObject **event channels** for cross-system messages, plain C# `event`s for intra-feature notifications, and `UnityEvent` only for designer-wired responses on a prefab.
 6. **MUST** subscribe in `OnEnable` and unsubscribe in `OnDisable` (same pairs, same method group). Every `+=` has a matching `-=`.
 7. **NEVER** add a singleton. The single tolerated static access point is `GameBootstrap` in the bootstrap scene, listed in this document; everything else uses references, channels or runtime sets.
@@ -21,7 +21,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder l
 11. **SHOULD** use command objects only when actions need undo, replay or queuing; use a factory only when there is a real variety of products — otherwise `Instantiate` the prefab directly.
 12. **MUST** keep UI logic in presenter MonoBehaviours (MVP): UXML/USS is the view, the model is a plain C# object or ScriptableObject, and gameplay code never queries UI elements. Runtime data binding **MAY** replace presenter boilerplate for read-only displays.
 13. **SHOULD** prefer composition and interfaces over inheritance. A MonoBehaviour hierarchy is at most one abstract base deep; interfaces add capabilities.
-14. **MUST** keep assembly dependencies one-directional: Tests.EditMode → Editor → Runtime, Tests.PlayMode → Runtime; `SheNicest.Runtime` references no project assembly (canonical asmdef JSON in [02](./02-project-structure.md)). Unity rejects cycles.
+14. **MUST** keep assembly dependencies one-directional: Tests.EditMode → Editor → Runtime, Tests.PlayMode → Runtime; `RootsDance.Runtime` references no project assembly (canonical asmdef JSON in [02](./02-project-structure.md)). Unity rejects cycles.
 15. **SHOULD** apply KISS: a pattern earns its place only when the problem it solves is already present. Do not pre-build factories, command buffers or hierarchical state machines for a hackathon feature that does not need them.
 
 ## Choosing the type: MonoBehaviour, ScriptableObject or plain C#
@@ -50,7 +50,7 @@ Rules that follow from the table:
 
 ```csharp
 // ✅ Shared config as an asset, unique runtime state on the component.
-[CreateAssetMenu(fileName = "EnemyConfig", menuName = "SheNicest/Config/Enemy")]
+[CreateAssetMenu(fileName = "EnemyConfig", menuName = "RootsDance/Config/Enemy")]
 public class EnemyConfigSO : ScriptableObject
 {
     [SerializeField] private int m_maxHealth = 100;
@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
 // ❌ One component that reads input, moves the transform and plays SFX in OnTriggerEnter.
 ```
 
-Never name a class after its feature folder (`Player` in `SheNicest.Player`): from any other namespace the simple name resolves to the namespace and does not compile (see [02](./02-project-structure.md)). Likewise never reuse a Unity type name such as `PlayerInput` (the Input System component that [09](./09-packages-systems.md) bans) — hence `PlayerInputReader`.
+Never name a class after its feature folder (`Player` in `RootsDance.Player`): from any other namespace the simple name resolves to the namespace and does not compile (see [02](./02-project-structure.md)). Likewise never reuse a Unity type name such as `PlayerInput` (the Input System component that [09](./09-packages-systems.md) bans) — hence `PlayerInputReader`.
 
 ### Open–closed
 
@@ -184,7 +184,7 @@ public class Switch : MonoBehaviour
 
 ## ScriptableObject architecture
 
-Five patterns, all from Unity's ScriptableObject e-book. Where the code lives: event-channel classes in `Scripts/Runtime/Events/` (`SheNicest.Events`); ScriptableObject class definitions (config, enum assets, runtime sets, delegate-object bases) in `Scripts/Runtime/Data/` (`SheNicest.Data`), or in the feature folder that alone uses them; contracts (`IState`, `ICommand`, capability interfaces) in `SheNicest.Core`. SO *instances* go to `Assets/SheNicest/Data/<Type>/` (`Data/Events/`, `Data/Config/`, `Data/Levels/`…), one logical thing per asset — see [02 Project structure](./02-project-structure.md). **[project decision]**
+Five patterns, all from Unity's ScriptableObject e-book. Where the code lives: event-channel classes in `Scripts/Runtime/Events/` (`RootsDance.Events`); ScriptableObject class definitions (config, enum assets, runtime sets, delegate-object bases) in `Scripts/Runtime/Data/` (`RootsDance.Data`), or in the feature folder that alone uses them; contracts (`IState`, `ICommand`, capability interfaces) in `RootsDance.Core`. SO *instances* go to `Assets/RootsDance/Data/<Type>/` (`Data/Events/`, `Data/Config/`, `Data/Levels/`…), one logical thing per asset — see [02 Project structure](./02-project-structure.md). **[project decision]**
 
 ### Data containers (read-only config)
 
@@ -201,7 +201,7 @@ Covered above. Additional rules:
 - *Source:* [SO-based enums](../reference/design-patterns/how-to-scriptableobject-based-enums.md); [SO e-book, "The Extendable enums pattern"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md).
 
 ```csharp
-[CreateAssetMenu(fileName = "Team", menuName = "SheNicest/Enums/Team")]
+[CreateAssetMenu(fileName = "Team", menuName = "RootsDance/Enums/Team")]
 public class TeamSO : ScriptableObject
 {
 }
@@ -225,7 +225,7 @@ public abstract class EnemyBrainSO : ScriptableObject
     public abstract void Tick(EnemyController enemy, float deltaTime);
 }
 
-[CreateAssetMenu(fileName = "PatrolBrain", menuName = "SheNicest/AI/Patrol Brain")]
+[CreateAssetMenu(fileName = "PatrolBrain", menuName = "RootsDance/AI/Patrol Brain")]
 public class PatrolBrainSO : EnemyBrainSO
 {
     [SerializeField] private float m_speed = 2f;
@@ -244,16 +244,16 @@ public class PatrolBrainSO : EnemyBrainSO
 - **MUST** mark channel fields with `[Header("Listens to")]` / `[Header("Broadcasts on")]` so the flow can be traced in the Inspector.
 - **MUST** subscribe in `OnEnable` and unsubscribe in `OnDisable`. A listener destroyed while subscribed leaves a dangling delegate in a project-level asset; with domain reload disabled that delegate survives into the next Play session.
 - **SHOULD** create one concrete channel type per payload (`VoidEventChannelSO`, `IntEventChannelSO`, `Vector3EventChannelSO`, `GameObjectEventChannelSO`) from one generic base; add a small struct payload type when more than one value is needed. **[project decision — the how-to uses `GenericEventChannelSO<T,U>`; one struct per message keeps a single generic base and matches 01's "custom args struct" rule]**
-- **MAY** add an Editor-only `[CustomEditor]` with a "Raise Event" button in `SheNicest.Editor` for debugging.
+- **MAY** add an Editor-only `[CustomEditor]` with a "Raise Event" button in `RootsDance.Editor` for debugging.
 - *Source:* [Event channels how-to](../reference/design-patterns/how-to-scriptableobjects-event-channels-game-code.md); [SO e-book, "The Observer pattern", "Static versus non-static events", "Debugging event channels"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md); [Domain reload — static events keep subscribers](../reference/scripting/manual-domain-reloading.md).
 
 ```csharp
 using System;
 using UnityEngine;
 
-namespace SheNicest.Events
+namespace RootsDance.Events
 {
-    [CreateAssetMenu(fileName = "VoidEventChannel", menuName = "SheNicest/Events/Void Event Channel")]
+    [CreateAssetMenu(fileName = "VoidEventChannel", menuName = "RootsDance/Events/Void Event Channel")]
     public class VoidEventChannelSO : ScriptableObject
     {
         public event Action EventRaised;
@@ -274,7 +274,7 @@ namespace SheNicest.Events
         }
     }
 
-    [CreateAssetMenu(fileName = "IntEventChannel", menuName = "SheNicest/Events/Int Event Channel")]
+    [CreateAssetMenu(fileName = "IntEventChannel", menuName = "RootsDance/Events/Int Event Channel")]
     public class IntEventChannelSO : GenericEventChannelSO<int>
     {
     }
@@ -386,7 +386,7 @@ public abstract class RuntimeSetSO<T> : ScriptableObject
     }
 }
 
-[CreateAssetMenu(fileName = "EnemyRuntimeSet", menuName = "SheNicest/Runtime Sets/Enemy")]
+[CreateAssetMenu(fileName = "EnemyRuntimeSet", menuName = "RootsDance/Runtime Sets/Enemy")]
 public class EnemyRuntimeSetSO : RuntimeSetSO<EnemyController>
 {
 }
@@ -745,24 +745,24 @@ UXML/USS conventions and the UI Toolkit API details belong to [09 Packages and s
 Assemblies (project decision 3) and the only allowed reference directions:
 
 ```
-SheNicest.Tests.EditMode ──▶ SheNicest.Editor ──▶ SheNicest.Runtime ──▶ Unity engine + package assemblies only
-SheNicest.Tests.PlayMode ───────────────────────┘
+RootsDance.Tests.EditMode ──▶ RootsDance.Editor ──▶ RootsDance.Runtime ──▶ Unity engine + package assemblies only
+RootsDance.Tests.PlayMode ───────────────────────┘
 ```
 
-- **MUST NOT** reference `SheNicest.Editor` from `SheNicest.Runtime` (it is Editor-only and would break builds), nor any test assembly from either. `SheNicest.Tests.EditMode` may reference `SheNicest.Editor` (so editor tooling can be EditMode-tested); `SheNicest.Tests.PlayMode` references `SheNicest.Runtime` only. Unity forbids cyclic references outright; if two assemblies need each other the split is wrong. The canonical asmdef JSON lives in [02](./02-project-structure.md).
-- **MUST** put `UnityEditor` usages in `SheNicest.Editor` or behind `#if UNITY_EDITOR`.
+- **MUST NOT** reference `RootsDance.Editor` from `RootsDance.Runtime` (it is Editor-only and would break builds), nor any test assembly from either. `RootsDance.Tests.EditMode` may reference `RootsDance.Editor` (so editor tooling can be EditMode-tested); `RootsDance.Tests.PlayMode` references `RootsDance.Runtime` only. Unity forbids cyclic references outright; if two assemblies need each other the split is wrong. The canonical asmdef JSON lives in [02](./02-project-structure.md).
+- **MUST** put `UnityEditor` usages in `RootsDance.Editor` or behind `#if UNITY_EDITOR`.
 - *Why:* because the arrow only points one way, a change in Editor or test code can never affect runtime code, and runtime code stays reusable and build-safe.
 - *Source:* [Manual: Introduction to assemblies](../reference/project-structure/manual-assembly-definitions-intro.md); [Manual: Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md); [Programming best practices — compilation considerations](../reference/scripting/manual-programming-best-practices.md).
 
-Inside `SheNicest.Runtime`, namespaces mirror folders and carry the same one-way rule **[project decision]**:
+Inside `RootsDance.Runtime`, namespaces mirror folders and carry the same one-way rule **[project decision]**:
 
 ```
-SheNicest.Core          ← IState/StateMachine, ICommand, Log, capability interfaces
+RootsDance.Core          ← IState/StateMachine, ICommand, Log, capability interfaces
                           (IDamageable, IInteractable, ISwitchable)
-SheNicest.Events        ← VoidEventChannelSO, GenericEventChannelSO<T> and concrete channels
-SheNicest.Data          ← SO class definitions: *ConfigSO, enum assets, RuntimeSetSO<T>, delegate-object bases
-SheNicest.<Feature>     ← Player, Cameras, UI, Enemies, Combat … references Core/Events/Data only
-SheNicest.App           ← GameBootstrap, SceneLoader, game-flow states; may reference Core/Events/Data
+RootsDance.Events        ← VoidEventChannelSO, GenericEventChannelSO<T> and concrete channels
+RootsDance.Data          ← SO class definitions: *ConfigSO, enum assets, RuntimeSetSO<T>, delegate-object bases
+RootsDance.<Feature>     ← Player, Cameras, UI, Enemies, Combat … references Core/Events/Data only
+RootsDance.App           ← GameBootstrap, SceneLoader, game-flow states; may reference Core/Events/Data
                           and feature public APIs
 ```
 
@@ -798,7 +798,7 @@ SheNicest.App           ← GameBootstrap, SceneLoader, game-flow states; may re
 - [ ] State logic with ≥ 3 states uses `IState`/`StateMachine` as plain classes; commands and factories exist only where undo/variety is real.
 - [ ] UI code is a presenter: queries in `OnEnable`, unsubscribes in `OnDisable`, no gameplay rules, no direct calls into gameplay components.
 - [ ] No class over ~300 lines; no MonoBehaviour hierarchy deeper than one abstract base; no empty or throwing overrides.
-- [ ] Assembly references point only Tests.EditMode → Editor → Runtime and Tests.PlayMode → Runtime; `UnityEditor` usage is in `SheNicest.Editor` or `#if UNITY_EDITOR`.
+- [ ] Assembly references point only Tests.EditMode → Editor → Runtime and Tests.PlayMode → Runtime; `UnityEditor` usage is in `RootsDance.Editor` or `#if UNITY_EDITOR`.
 
 ## Sources
 

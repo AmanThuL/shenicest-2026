@@ -1,7 +1,7 @@
 # 05. Performance guidelines
 
-> **Scope:** Practical performance rules for the SheNicest 2026 3D game — frame budget, profiling workflow, per-frame code hygiene, managed memory, pooling, physics, rendering, UI, audio, asset import and build size.
-> **Applies to:** All C# under `Assets/SheNicest/Scripts`, all scenes/prefabs/assets under `Assets/SheNicest/`, and the Project Settings that affect runtime performance.
+> **Scope:** Practical performance rules for the *Where the Roots Dance* 3D game — frame budget, profiling workflow, per-frame code hygiene, managed memory, pooling, physics, rendering, UI, audio, asset import and build size.
+> **Applies to:** All C# under `Assets/RootsDance/Scripts`, all scenes/prefabs/assets under `Assets/RootsDance/`, and the Project Settings that affect runtime performance.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) owns event-function semantics, coroutines and `Awaitable`; [07 Rendering and URP](./07-rendering-urp.md) owns URP asset/renderer setup and lighting workflow; [08 Testing and tooling](./08-testing-tooling.md) owns Editor/IDE setup; [09 Packages and systems](./09-packages-systems.md) owns package choices. This document says *what to keep cheap and how to prove it*; those documents say *how to configure the feature*.
@@ -21,8 +21,8 @@ Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) ow
 11. **MUST** run exactly one Unity `Camera` (rule owned by [09](./09-packages-systems.md) and [11](./11-scenes-prefabs-workflow.md)); every extra enabled camera re-runs culling, sorting and batching.
 12. **SHOULD** stay inside [07](./07-rendering-urp.md)'s lighting budgets: static lighting baked (APV per 07), shadow-casting lights only as 07 §11 allows; **NEVER** a shadow-casting point light.
 13. **MUST** import assets per the tables in section 7: textures Max Size ≤ 2048 and GPU-compressed (POT, Read/Write, mipmaps per [07 §10](./07-rendering-urp.md#10-texture-import-settings-that-affect-rendering)); meshes Read/Write off; 3D audio mono, load type by clip size.
-14. **SHOULD** wrap every non-trivial per-frame system in a `ProfilerMarker` named `SheNicest.<System>.<Phase>` so it shows up by name in the Profiler.
-15. **NEVER** ship `Debug.Log` in per-frame paths; dev-only logging goes through `SheNicest.Core.Log` ([04](./04-unity-scripting-rules.md#logging)), which compiles out of release builds.
+14. **SHOULD** wrap every non-trivial per-frame system in a `ProfilerMarker` named `RootsDance.<System>.<Phase>` so it shows up by name in the Profiler.
+15. **NEVER** ship `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` ([04](./04-unity-scripting-rules.md#logging)), which compiles out of release builds.
 
 ## 1. Measure first: budget and profiling workflow
 
@@ -103,19 +103,19 @@ The frame-time targets follow Unity's guidance (30 fps = 33.33 ms, 60 fps = 16.6
 
 ### 1.6 Profiler markers in our code
 
-**SHOULD** add a `ProfilerMarker` around every system that does real work each frame (AI, flocking, procedural updates, custom managers). Declare it `static readonly` (named `k_PascalCase` per [01](./01-csharp-style.md)), name the marker `SheNicest.<System>.<Phase>`, never put `/` in the name, and do not `await`/`yield` inside the marked scope. `Begin`/`End` compile out of release builds; `Auto()` returns null in release with minimal overhead.
+**SHOULD** add a `ProfilerMarker` around every system that does real work each frame (AI, flocking, procedural updates, custom managers). Declare it `static readonly` (named `k_PascalCase` per [01](./01-csharp-style.md)), name the marker `RootsDance.<System>.<Phase>`, never put `/` in the name, and do not `await`/`yield` inside the marked scope. `Begin`/`End` compile out of release builds; `Auto()` returns null in release with minimal overhead.
 
-Examples below use `SheNicest.Enemies` and `SheNicest.Combat` as placeholder feature namespaces; a real feature folder is added under `Scripts/Runtime/<Feature>/` per [02](./02-project-structure.md) before such a namespace is used.
+Examples below use `RootsDance.Enemies` and `RootsDance.Combat` as placeholder feature namespaces; a real feature folder is added under `Scripts/Runtime/<Feature>/` per [02](./02-project-structure.md) before such a namespace is used.
 
 ```csharp
 using Unity.Profiling;
 using UnityEngine;
 
-namespace SheNicest.Enemies
+namespace RootsDance.Enemies
 {
     public class FlockingSystem : MonoBehaviour
     {
-        private static readonly ProfilerMarker k_UpdateMarker = new ProfilerMarker("SheNicest.Flocking.Update");
+        private static readonly ProfilerMarker k_UpdateMarker = new ProfilerMarker("RootsDance.Flocking.Update");
 
         private void Update()
         {
@@ -159,7 +159,7 @@ Event-function semantics (what belongs in `Update` vs `FixedUpdate`, coroutine v
 ```csharp
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(Animator))]
     public class PlayerAnimationDriver : MonoBehaviour
@@ -190,7 +190,7 @@ namespace SheNicest.Player
 | `"Score: " + score`, `$"{hp}"` every frame | Update text only when the value changes; `StringBuilder` with preset `Capacity` for real string building |
 | LINQ (`Where`, `ToList`, `OrderBy`) and `Regex` in hot paths | `for` loops over `List<T>`/arrays |
 | Lambda/delegate that captures a local or `this` | Method group on a cached delegate, or pass state explicitly |
-| `params` overloads (`string.Format`, `Debug.LogFormat`) | Fixed-arity overloads; `SheNicest.Core.Log` ([04](./04-unity-scripting-rules.md#logging)) |
+| `params` overloads (`string.Format`, `Debug.LogFormat`) | Fixed-arity overloads; `RootsDance.Core.Log` ([04](./04-unity-scripting-rules.md#logging)) |
 | `new List<T>()` / `new T[n]` inside `Update` | Field initialised once; `Clear()` each frame; `ListPool<T>.Get`/`Release` for temporaries |
 | Boxing: passing `int`/`float`/struct as `object`, non-generic collections, `Equals(object)` | Generic overloads, `IEquatable<T>`, typed collections |
 | `mesh.vertices`, `renderer.sharedMaterials` read inside a loop (every array-valued Unity property returns a new copy) | `Mesh.GetVertices(list)`, `Renderer.GetSharedMaterials(list)`; hoist array-valued property reads out of loops |
@@ -226,7 +226,7 @@ private void Update()
 }
 ```
 
-**NEVER** call `Debug.Log*` (or `Debug.DrawLine`/`DrawRay`) in per-frame paths of shipped code. Dev-only logging goes through `SheNicest.Core.Log` — `Info`/`Warning` compile out of release builds via `[Conditional("UNITY_EDITOR")]` / `[Conditional("DEVELOPMENT_BUILD")]` (the call *and its argument evaluation* disappear), no custom define symbols; the wrapper and its rules are owned by [04 Unity scripting rules — Logging](./04-unity-scripting-rules.md#logging). Set **Player > Stack Trace > Log = None** for release (section 9).
+**NEVER** call `Debug.Log*` (or `Debug.DrawLine`/`DrawRay`) in per-frame paths of shipped code. Dev-only logging goes through `RootsDance.Core.Log` — `Info`/`Warning` compile out of release builds via `[Conditional("UNITY_EDITOR")]` / `[Conditional("DEVELOPMENT_BUILD")]` (the call *and its argument evaluation* disappear), no custom define symbols; the wrapper and its rules are owned by [04 Unity scripting rules — Logging](./04-unity-scripting-rules.md#logging). Set **Player > Stack Trace > Log = None** for release (section 9).
 - *Source:* [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (Remove Debug Log statements, Disable Stack Trace logging)
 
 **SHOULD** keep coroutines few and flat: each running coroutine is a heap object; a coroutine that runs every frame without waiting on anything is an `Update` in disguise. `Awaitable` is the project default for async work (see [04](./04-unity-scripting-rules.md)); its instances are pooled, so calling an `Awaitable`-returning method usually does not allocate.
@@ -281,7 +281,7 @@ Pool rules:
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace SheNicest.Combat
+namespace RootsDance.Combat
 {
     public class ProjectilePool : MonoBehaviour
     {
@@ -335,7 +335,7 @@ namespace SheNicest.Combat
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace SheNicest.Combat
+namespace RootsDance.Combat
 {
     [RequireComponent(typeof(Rigidbody))]
     public class Projectile : MonoBehaviour
@@ -492,7 +492,7 @@ Per-scene lighting, shadow and post-processing budgets (lights visible at once, 
 
 ## 7. Assets: import settings
 
-Don't rely on defaults for every asset; the import settings below are the project baseline. Apply them with **Presets** stored under `Assets/SheNicest/Settings/Presets/` **[project decision]** so new assets start correct (folder layout per [02 Project structure](./02-project-structure.md)).
+Don't rely on defaults for every asset; the import settings below are the project baseline. Apply them with **Presets** stored under `Assets/RootsDance/Settings/Presets/` **[project decision]** so new assets start correct (folder layout per [02 Project structure](./02-project-structure.md)).
 - *Source:* [Configuring your Unity project for stronger performance](../reference/performance/how-to-project-configuration-and-assets.md)
 
 ### 7.1 Textures
@@ -642,12 +642,12 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 - [ ] Material/animator property ids cached as `static readonly int k_…` fields; tags compared with `CompareTag`.
 - [ ] Physics queries use `*NonAlloc` with a field buffer, a `LayerMask`, an explicit `QueryTriggerInteraction` and a max distance; dynamic bodies use primitive/compound colliders.
 - [ ] Repeatedly spawned objects go through `ObjectPool<T>` with reset-on-release; nothing `Instantiate`s/`Destroy`s in a gameplay loop.
-- [ ] No `Debug.Log` in per-frame paths; dev-only logging goes through `SheNicest.Core.Log` (04).
+- [ ] No `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` (04).
 - [ ] No `Renderer.material` reads, no `MaterialPropertyBlock`, no **Enable GPU Instancing** on URP materials; new materials use URP Lit/Unlit/Shader Graph.
 - [ ] Still exactly one active Unity `Camera` (09/11); new lights are baked or within 07 §11's shadow-casting budget.
 - [ ] New textures: Max Size per 7.1, compressed, and the 07 §10 import rules (POT, Read/Write off, mipmaps correct). New meshes: Read/Write off, Optimize Mesh on. New audio: WAV source, mono for 3D, load type per clip size.
 - [ ] Project Settings changes (Physics, Time, Quality, Player) are in their own commit and called out in the PR description.
-- [ ] New per-frame system has a `ProfilerMarker` named `SheNicest.<System>.<Phase>`.
+- [ ] New per-frame system has a `ProfilerMarker` named `RootsDance.<System>.<Phase>`.
 - [ ] Before a submission build: Development Build profiled on the min-spec machine, Highlights shows 0 over-budget frames in a 300-frame gameplay capture, Memory Profiler snapshot within budget, Stats overlay within 1.1 thresholds.
 
 ## Sources
