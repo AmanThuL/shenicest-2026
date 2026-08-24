@@ -3,7 +3,9 @@
     "rootNamespace": "RootsDance",
     "references": [
         "Unity.InputSystem",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "IngameDebugConsole.Runtime",
+        "DOTween.Modules"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

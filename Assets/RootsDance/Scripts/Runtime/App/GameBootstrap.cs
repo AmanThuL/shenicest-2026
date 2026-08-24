@@ -1,3 +1,4 @@
+using DG.Tweening;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Events;
@@ -50,6 +51,10 @@ namespace RootsDance.App
             {
                 return;
             }
+
+            // Replaces DOTween's Utility-Panel-generated Resources/DOTweenSettings.asset (forbidden
+            // by project rule: no Resources/ folder) with the same defaults set from code.
+            DOTween.Init(recycleAllByDefault: false, useSafeMode: true, logBehaviour: LogBehaviour.ErrorsOnly);
 
             m_worldState = new WorldState();
             m_commands = new CommandQueue();
