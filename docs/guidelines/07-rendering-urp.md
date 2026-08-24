@@ -31,25 +31,25 @@
 **MUST** use this layout inside `Assets/SheNicest/Settings/` (file names as verified on day one) **[project decision]**:
 
 ```text
-Assets/SheNicest/Settings/                 # moved in-Editor from the template's Assets/Settings/ (02)
-  PC_RPAsset.asset                         # desktop tier URP asset  (verify name on day one)
-  Mobile_RPAsset.asset                     # low tier URP asset      (verify name on day one)
-  PC_Renderer.asset                        # desktop-tier Universal Renderer → Forward+ (may sit in Renderers/)
-  Mobile_Renderer.asset                    # low-tier Universal Renderer (may sit in Renderers/)
+Assets/SheNicest/Settings/                 # moved from the template's Assets/Settings/ at import (02)
+  PC_RPAsset.asset                         # desktop tier URP asset  (name verified 2026-08-24)
+  Mobile_RPAsset.asset                     # low tier URP asset      (name verified 2026-08-24)
+  PC_Renderer.asset                        # desktop-tier Universal Renderer → Forward+ (template ships renderers at the Settings/ root; no Renderers/ subfolder)
+  Mobile_Renderer.asset                    # low-tier Universal Renderer
   UniversalRenderPipelineGlobalSettings.asset
-  DefaultVolumeProfile.asset, SampleSceneProfile.asset   # template profiles keep their names (02)
+  VolumeProfiles/DefaultVolumeProfile.asset  # template profile, keeps its name; SampleSceneProfile was deleted with SampleScene (02)
   VolumeProfiles/<Context>Profile.asset    # new profiles, e.g. ForestProfile, MainMenuProfile (02)
   Lighting/SheNicest.lighting              # shared Lighting Settings Asset (§5.2)
 ```
 
 **MUST** fill in the day-one record below the first time the project is opened in 6000.3.22f1 (rendering owner, same commit as the settings move) and keep it current; it — not the expected names above — is what reviewers check. **[project decision]**
 
-Day-one record (rendering owner fills in):
-- Quality levels (Project Settings > Quality, in row order): `…`
-- URP assets (`t:universalrenderpipelineasset`): `…`
-- Renderer assets and their folder: `…`
-- Standalone default level: `…` · Web default level: `…`
-- Rendering Path after setup: desktop-tier renderer `m_RenderingMode: 2`; low-tier renderer `m_RenderingMode: …`
+Day-one record (recorded 2026-08-24 from the text-serialized template assets at import; rendering owner confirms in the Editor on first open):
+- Quality levels (Project Settings > Quality, in row order): `Mobile` (index 0), `PC` (index 1)
+- URP assets (`t:universalrenderpipelineasset`): `PC_RPAsset`, `Mobile_RPAsset` in `Assets/SheNicest/Settings/`
+- Renderer assets and their folder: `PC_Renderer`, `Mobile_Renderer` at the `Assets/SheNicest/Settings/` root (the 6000.3 template has no `Renderers/` subfolder)
+- Standalone default level: `PC` · Web default level: `Mobile`
+- Rendering Path after setup: desktop-tier renderer `m_RenderingMode: 2` (Forward+, as shipped by the template); low-tier renderer `m_RenderingMode: 0` (Forward)
 
 **MUST** assign the desktop-tier asset as **Edit > Project Settings > Graphics > Default Render Pipeline** and give **every** quality level an explicit **Render Pipeline Asset** override in **Edit > Project Settings > Quality** (the template does both; verify rather than redo).
 - *Why:* Unity uses the per-quality-level asset when set and falls back to the Graphics default otherwise; a level without an override silently renders with the wrong tier. "If both aren't set, Unity uses the Built-In Render Pipeline."

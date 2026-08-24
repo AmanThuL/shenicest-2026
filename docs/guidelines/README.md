@@ -16,7 +16,7 @@ Eleven documents that together define how this project is built. They were disti
 | 07 | [Rendering and URP conventions](07-rendering-urp.md) | URP assets/renderers/quality tiers, Render Graph, lighting (APV/lightmaps), post-processing volumes, cameras, materials, Shader Graph, texture import | touching anything that renders |
 | 08 | [Testing, tooling and IDE setup](08-testing-tooling.md) | Unity Test Framework, test assemblies, CLI test/build commands, Build Profiles, IDE setup, analyzers, Console hygiene | writing tests, building, setting up a machine |
 | 09 | [Packages and game systems](09-packages-systems.md) | Package versions and policy; Input System, Cinemachine, UI Toolkit, physics layers, AI Navigation, animation, audio, Addressables (not used) | using a Unity package or engine subsystem |
-| 11 | [Scenes, prefabs and team workflow](11-scenes-prefabs-workflow.md) | Bootstrap + additive level scenes, scene/prefab ownership and locking, prefab workflow, ScriptableObject tunables, daily routine, build scene list | opening scenes, making prefabs, coordinating work |
+| 11 | [Scenes, prefabs and team workflow](11-scenes-prefabs-workflow.md) | Bootstrap + additive level scenes, scene/prefab ownership and coordination, prefab workflow, ScriptableObject tunables, daily routine, build scene list | opening scenes, making prefabs, coordinating work |
 
 ## Document structure (all guidelines)
 

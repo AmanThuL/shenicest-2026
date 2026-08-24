@@ -36,11 +36,13 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | URP / Shader Graph | 17.3 (core) | Required — see [07](./07-rendering-urp.md) | [ref](../reference/packages/manual-pack-core.md) |
 | Test Framework `com.unity.test-framework` | 1.6 (core) | Required — see [08](./08-testing-tooling.md) | [ref](../reference/packages/manual-com-unity-test-framework.md) |
 | ProBuilder `com.unity.probuilder` | 6.1 (released) | **Optional** (greyboxing) | [ref](../reference/packages/manual-pack-safe.md) |
-| Timeline `com.unity.timeline` | 1.8 (released) | **Optional** (cutscenes) | [ref](../reference/packages/manual-pack-safe.md) |
+| Timeline `com.unity.timeline` | 1.8 (released) | **Not installed** (add when cutscenes are needed) | [ref](../reference/packages/manual-pack-safe.md) |
 | Addressables `com.unity.addressables` | 2.9.1 released for 6000.3; 3.x/4.0 also available | **Not installed** | [ref](../reference/packages/manual-com-unity-addressables.md) |
 | Behavior `com.unity.behavior` | 1.0.16 (released) | **Not installed** (needs agreement) | [ref](../reference/packages/manual-com-unity-behavior.md) |
-| Visual Scripting `com.unity.visualscripting` | 1.9 (released) | **Not used** | [ref](../reference/packages/manual-pack-safe.md) |
+| Visual Scripting `com.unity.visualscripting` | 1.9 (released) | **Not installed** | [ref](../reference/packages/manual-pack-safe.md) |
 | Netcode for GameObjects | 2.13 (released) | **Not used** (single-player) | [ref](../reference/packages/manual-pack-safe.md) |
+
+Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
 
 *Why:* "Released" packages are the ones Unity has tested against this Editor version; core packages ship with the Editor and cannot be switched to another version. Everything else is a risk the hackathon cannot absorb.
 *Source:* [Released packages](../reference/packages/manual-pack-safe.md), [Core packages](../reference/packages/manual-pack-core.md), [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md).

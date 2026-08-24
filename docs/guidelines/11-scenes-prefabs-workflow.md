@@ -10,14 +10,14 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 
 1. **MUST** keep `Scenes/Bootstrap.unity` at build index 0 as the only persistent scene and load every other scene additively through `SceneLoader`; **NEVER** use `LoadSceneMode.Single` or call `SceneManager` from gameplay code.
 2. **MUST** split every level into at least `<Level>_Environment.unity` (static geometry, sun, APV, Volume, NavMesh — the *active* scene) and `<Level>_Gameplay.unity` (spawns, triggers, enemies, Cinemachine cameras); one `LevelSO` asset lists a level's part scenes.
-3. **MUST** have exactly one owner at a time for every scene, every *shared* prefab (`Prefabs/Systems/`, `Prefabs/Characters/`, `Prefabs/UI/`), `Input/SheNicest.inputactions` and every `ProjectSettings` file — post `LOCK <path>` in the team channel before editing, push, then post `UNLOCK`; props/VFX prefabs and `.asset` data need no lock.
+3. **MUST** avoid concurrent edits by splitting scenes, not by locking: each person works in their own part scene (split a level further if two people need it at once). Every scene, every *shared* prefab (`Prefabs/Systems/`, `Prefabs/Characters/`, `Prefabs/UI/`), `Input/SheNicest.inputactions` and every `ProjectSettings` file still has a default owner — give the team channel a heads-up before editing one you do not own or merging content into a shared scene; props/VFX prefabs and `.asset` data need no coordination.
 4. **MUST** make a prefab out of anything placed more than once, anything spawned at runtime, and anything two people work on; unique, scene-bound objects (the level's terrain, one-off trigger) may stay plain GameObjects.
 5. **MUST** edit prefab *assets* in Prefab Mode (double-click the asset; `P` on an instance); instance overrides are limited to Transform, name, active state and per-placement designer fields — structural changes happen in Prefab Mode or become a variant.
 6. **MUST** resolve the Overrides dropdown before committing a scene — apply only to prefabs you own, revert everything else; **NEVER** "Apply All" without reading the list.
 7. **MUST** keep tunables (speeds, health, prices, timings, spawn tables) in ScriptableObject assets under `Data/<Type>/`, never as numbers on scene objects; designers edit `.asset` files, not scenes.
 8. **MUST** commit a scene or prefab only when you changed it on purpose (a file that only *opened* dirty gets the scene's **Discard changes**, not a save); one scene/prefab per commit, named in the message.
 9. **MUST** bake lighting and NavMesh only as the owner of `<Level>_Environment`, with that scene open and active; commit the generated data in its own commit right after the scene commit, in the same pull request.
-10. **MUST** run the daily routine: pull `develop` → open Editor → Play from `Bootstrap.unity` → work on a task branch under a lock → push → unlock; merge `develop` into your branch at least daily (branch model and commands in [06](./06-version-control.md)).
+10. **MUST** run the daily routine: pull `develop` → open Editor → Play from `Bootstrap.unity` → work on a task branch in your own scenes → push; merge `develop` into your branch at least daily (branch model and commands in [06](./06-version-control.md)).
 11. **MUST** treat the global scene list (`ProjectSettings/EditorBuildSettings.asset`) as owned by the integration owner: `Bootstrap` first, then `MainMenu`, then level parts, added through the pull request that adds the level; build profiles inherit it and never add a **Scene List** override.
 12. **MUST** load scenes by full asset path constants in `ScenePaths` / `LevelSO`, awaited with `Awaitable.FromAsyncOperation(op, cancellationToken)`, then `SetActiveScene` the environment part.
 13. **SHOULD** test a level by opening its parts additively and pressing Play there — `BootstrapLoader` adds `Bootstrap.unity` and `GameBootstrap` adopts the open level.
@@ -258,23 +258,19 @@ private void Start()
 - *Source:* [Set up multiple scenes](../reference/project-structure/manual-setupmultiplescenes.md).
 - Scene-level automated checks use `EditorSceneManager` in EditMode tests with a `[TearDown]` that restores a clean scene — rules in [08](./08-testing-tooling.md). *Source:* [Course 11. Scene-based tests](../reference/testing-tooling/manual-scene-based-tests.md).
 
-## Scene ownership and locking etiquette
+## Scene ownership and coordination
 
-Git has no file locking for our YAML files (we deliberately do not use `git lfs lock`, see [06](./06-version-control.md)), so ownership is social and explicit.
+Git has no file locking for our YAML files (we deliberately do not use `git lfs lock`, see [06](./06-version-control.md)), so conflicts are avoided structurally — by the multi-scene split — plus a lightweight heads-up for the few genuinely shared files.
 
 - **MUST** treat the following as **single-owner files**: every `.unity`; every prefab under `Prefabs/Systems/`, `Prefabs/Characters/` and `Prefabs/UI/`; `Input/SheNicest.inputactions`; everything in `ProjectSettings/`; the URP assets, Lighting Settings and Volume Profiles under `Settings/`; `Packages/manifest.json`. Everything else (props, VFX, ScriptableObject data assets, scripts) is multi-owner and relies on Smart Merge plus small commits. **[project decision]**
-- **MUST** take a lock before editing a single-owner file and release it after pushing. The lock is a message in the pinned **LOCKS** thread of the team channel, in this exact form, so agents can grep it: **[project decision]**
-  ```
-  LOCK   Assets/SheNicest/Scenes/Levels/Forest/Forest_Gameplay.unity  @rudy  until 16:00
-  UNLOCK Assets/SheNicest/Scenes/Levels/Forest/Forest_Gameplay.unity  @rudy  pushed feat/forest-spawns
-  ```
-- **MUST** hold a lock for hours, not days: commit and push at the latest at the end of the session, and **NEVER** leave a scene locked overnight. If the owner is unreachable and the lock is older than a day, the integration owner may release it after checking the owner's branch is pushed.
+- **MUST** rely on the multi-scene split as the primary conflict defence: work in your own part scenes. If two people need the same level at the same time, split it further (another part scene — `_Lighting`, a second gameplay part) instead of taking turns on one file. **[project decision]**
+- **MUST** give the team channel a heads-up before editing a single-owner file you do not own, and before merging content into a shared scene (`Bootstrap.unity`, `MainMenu.unity`, another owner's level part) — a short "editing `<path>` now" / "merged into `<scene>`, pushed on `<branch>`" message is enough. Push the same session; **NEVER** sit on unpushed scene edits overnight. **[project decision]**
 - **MUST** request changes to a file you do not own instead of editing it: message the owner, or move the change into something you own — a new prefab, a prefab variant, or a ScriptableObject. If you need to *place* your prefab in someone's scene, send them the prefab path and the position.
 - **MAY** open any scene read-only at any time to look around; close it with **Discard changes** if it became dirty.
-- *Why:* Unity's scaling guidance: "Define who can modify specific scenes or prefabs. Then team members request changes outside their ownership instead of editing assets directly", and a "semaphore system" — a shared log where developers record when they are changing an asset, effectively locking it, and others wait until the change is pushed. Unity's e-book: "If you accidentally commit a change to a scene that someone else is working on, that could cause a headache for them." True locking is what UVCS/Perforce offer; with Git it would need LFS, which we reserve for binaries.
+- *Why:* Unity's scaling guidance: "Define who can modify specific scenes or prefabs. Then team members request changes outside their ownership instead of editing assets directly." Unity's e-book: "If you accidentally commit a change to a scene that someone else is working on, that could cause a headache for them." Unity also suggests a "semaphore system" (a shared LOCK/UNLOCK log); for a team this small we chose scene splitting plus a heads-up instead — a lock log is more bookkeeping than it saves. True locking is what UVCS/Perforce offer; with Git it would need LFS, which we reserve for binaries.
 - *Source:* [Scaling workflows, "Master the human element"](../reference/version-control/blog-scaling-workflows-lessons-from-medium-to-large-projects.md), [Organization e-book, "Avoid indiscriminate commits", "Locking files"](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md), [Authoring scenes and prefabs, "File locking"](../reference/project-structure/blog-author-scenes-and-prefabs-with-verson-control.md); `.inputactions` single-owner rule also in [09](./09-packages-systems.md).
 
-Default owners by role (pin the actual names next to the LOCKS thread): **integration owner** — `Bootstrap.unity`, `ProjectSettings/`, `Packages/`, scene list, build profiles; **level artist** — `<Level>_Environment` (+ `_Lighting`), environment prefabs; **level designer** — `<Level>_Gameplay`, `LevelSO` assets, spawn/trigger prefabs; **gameplay owner** — character/system prefabs and their configs; **UI owner** — `MainMenu.unity`, `Prefabs/UI/`, UXML/USS. One person can hold several roles; a role never has two people at once. **[project decision]**
+Default owners by role (pin the actual names in the team channel): **integration owner** — `Bootstrap.unity`, `ProjectSettings/`, `Packages/`, scene list, build profiles; **level artist** — `<Level>_Environment` (+ `_Lighting`), environment prefabs; **level designer** — `<Level>_Gameplay`, `LevelSO` assets, spawn/trigger prefabs; **gameplay owner** — character/system prefabs and their configs; **UI owner** — `MainMenu.unity`, `Prefabs/UI/`, UXML/USS. One person can hold several roles; a role never has two people at once. **[project decision]**
 
 ## Prefab-first workflow
 
@@ -313,7 +309,7 @@ Default owners by role (pin the actual names next to the LOCKS thread): **integr
 
 - **MUST** limit overrides on prefab instances placed in scenes to: Transform, GameObject name, active state, and serialized fields that are genuinely per placement (patrol points, a spawner's `EnemyConfigSO` reference, a portal's `LevelSO`, a door's target). Adding or removing components or children on an instance is a structural change → do it in Prefab Mode, or create a variant.
 - **MUST** open the instance's **Overrides** dropdown before saving a scene and leave only intended overrides. Per property: right-click → **Apply to Prefab '<X>'** (changes every instance of X), **Apply as Override in Prefab '<Parent>'** (changes only this parent's nested copy), or **Revert**. Apply only to assets you own (ownership section); otherwise revert and ask.
-- **NEVER** use **Apply All** on an instance with more than one override without reading the list; **NEVER** apply a "quick fix" from a scene instance into a shared prefab that someone else has locked.
+- **NEVER** use **Apply All** on an instance with more than one override without reading the list; **NEVER** apply a "quick fix" from a scene instance into a shared prefab that someone else owns.
 - *Why:* Applying at the wrong level silently changes other prefabs or leaks data into the scene file. The three apply targets have exactly these semantics in Unity's tutorial; the 2018 Apply button problem ("you could accidentally apply changes to the Prefab Asset that you had no good way of getting an overview of") is what the Overrides dropdown fixes — if you use it.
 - *Source:* [Introduction to Nested Prefabs, step 4](../reference/project-structure/tutorial-introduction-to-nested-prefabs.md) (the three apply targets), [Overriding prefab instance data (index)](../reference/project-structure/manual-prefabs-override.md), [Create variations of prefabs, "Edit a prefab variant"](../reference/project-structure/manual-prefabvariants.md), [Introducing new Prefab workflows](../reference/project-structure/blog-introducing-new-prefab-workflows.md); the **Overrides** dropdown and **Apply All** labels are on [Override prefab instances (6000.3 manual)](https://docs.unity3d.com/6000.3/Documentation/Manual/PrefabInstanceOverrides.html), which the local index links but does not contain.
 
@@ -351,12 +347,12 @@ Git-level defences (Force Text, UnityYAMLMerge, LFS, branch model) are in [06](.
 
 | File kind | Who edits | How to keep it mergeable |
 |---|---|---|
-| `.unity` | its owner, under a lock | small part scenes; prefabs for content; no tunables; Discard instead of saving accidental dirt |
-| `.prefab` (shared) | its owner, under a lock | edit in Prefab Mode; variants for differences; unique child names |
-| `.prefab` (props, VFX) | anyone, no lock | one prefab per commit; Smart Merge handles disjoint property edits |
+| `.unity` | its owner | small part scenes; prefabs for content; no tunables; Discard instead of saving accidental dirt |
+| `.prefab` (shared) | its owner | edit in Prefab Mode; variants for differences; unique child names |
+| `.prefab` (props, VFX) | anyone | one prefab per commit; Smart Merge handles disjoint property edits |
 | `.asset` (SO data) | designers | one asset per logical thing; announce bulk re-tunes |
 | `.asset` (Lighting Data, NavMesh data) | scene owner only | regenerated, never merged: bake, commit in its own commit in the scene's PR |
-| `.inputactions`, `ProjectSettings/*`, `Packages/*.json` | integration owner / under a lock | own `chore:` commit, announced |
+| `.inputactions`, `ProjectSettings/*`, `Packages/*.json` | integration owner (or with a heads-up) | own `chore:` commit, announced |
 | `.scenetemplate`, build profiles | integration owner | rare, own commit |
 
 - Staging rules are in [06](./06-version-control.md) (TL;DR 8: stage by name, never `git add -A`). Content-level addition **[project decision]**: one scene or prefab per commit, message naming the asset (`content(forest): place spawn points in Forest_Gameplay`). Unity warns that scenes, prefabs and sprite atlases can be marked changed "even though you didn't intend to make any changes to them" — use the scene **⋮ > Discard changes** or leave the file unstaged.
@@ -376,10 +372,10 @@ Git-level defences (Force Text, UnityYAMLMerge, LFS, branch model) are in [06](.
 Editor-side routine for every teammate and agent; the branch model (`main` = release line, `develop` = integration branch, task branches `<type>/<kebab-name>` from `develop`) and the matching Git commands are the "Branches, commits and cadence" section of [06](./06-version-control.md). **[project decision]**
 
 1. **Start of session** — pull `develop`; open the project; wait for the import to finish; open `Bootstrap.unity` and press Play: the main menu must appear and a level must load. If it does not, fix or report *before* starting new work (`develop` must open and play after every merge; `main` always does).
-2. **Claim** — post `LOCK` lines for the single-owner files you will touch; create your task branch from `develop` (or switch to it and merge `develop` in).
+2. **Claim** — if you will touch a shared scene or a single-owner file outside your own, give the team channel a heads-up first; create your task branch from `develop` (or switch to it and merge `develop` in).
 3. **Work in small loops** — edit prefab → save → Play in the open level → commit that prefab. Place instances in a scene you own → resolve Overrides → save → commit that scene. Tune → commit the `.asset`.
 4. **Integrate at least once a day** — merge `develop` into your branch, reopen the Editor if scripts changed, Play from `Bootstrap.unity` again, push, open/refresh the pull request against `develop`.
-5. **End of session** — nothing uncommitted in a locked file; push; post `UNLOCK`; if the PR is green and reviewed, merge it into `develop` (merge commit, per [06](./06-version-control.md)).
+5. **End of session** — nothing uncommitted in a scene or shared prefab; push (announce it if you touched a shared scene); if the PR is green and reviewed, merge it into `develop` (merge commit, per [06](./06-version-control.md)).
 6. **Integration owner, once a day** — after the last PR of the day has merged: pull `develop`, Play from `Bootstrap.unity`, run the EditMode/PlayMode suites, fast-forward `main` to `develop` (integration owner's loop in [06](./06-version-control.md)), produce the Dev build from `main` with the build profile ([08](./08-testing-tooling.md)), and post the build link. This is the build the team plays and the one demoed if the hackathon ended today.
 
 - *Why:* "As often as it makes sense, pull the latest changes … It's not good to work off in isolation, as this only increases the likelihood of merge conflicts"; "Daily merges from main … reduce the size and complexity of final merges" (Unity's "main" is our integration branch `develop`); small commits make a bad change "much more easily" revertible.
@@ -397,7 +393,7 @@ Editor-side routine for every teammate and agent; the branch model (`main` = rel
 
 Example: "patrolling enemy that drops a key in the Forest level".
 
-- [ ] **Claim**: post `LOCK` for `Forest_Gameplay.unity` (and any shared prefab you will change); branch `feat/forest-patrol-enemy` from `develop`.
+- [ ] **Claim**: `Forest_Gameplay.unity` is your scene as level designer; give the channel a heads-up for any shared prefab you will change; branch `feat/forest-patrol-enemy` from `develop`.
 - [ ] **Code**: scripts in `Scripts/Runtime/<Feature>/` in the right assembly and namespace ([02](./02-project-structure.md), [03](./03-architecture-patterns.md)); logic that can be unit-tested is a plain class with an EditMode test ([08](./08-testing-tooling.md)).
 - [ ] **Data**: `EnemyConfigSO` class + `Data/Enemies/Patroller.asset`; a `LevelSO` already exists for Forest; any new message is an event-channel asset in `Data/Events/`.
 - [ ] **Prefab**: build `Prefabs/Characters/EnemyPatroller.prefab` in Prefab Mode (nested art variant + weapon prefab); unique child names; no tunables on components, only SO references; spawned VFX come from a pool, not nested.
@@ -406,14 +402,14 @@ Example: "patrolling enemy that drops a key in the Forest level".
 - [ ] **Isolation test**: open `Forest_Environment` + `Forest_Gameplay` additively, Play there — the bootstrap auto-loads, the enemy patrols, the key drops. Then Play from `Bootstrap.unity` → MainMenu → Forest.
 - [ ] **No bootstrap coupling**: nothing in the feature touches `GameBootstrap` in `Awake`/`Start`; communication is via channels.
 - [ ] **New scene?** Created from `LevelPart.scenetemplate`, in `Scenes/Levels/<Level>/`, added to the global scene list and to the level's `LevelSO` in the same PR; lighting baked by the environment owner before merge.
-- [ ] **Commits**: scripts, data asset, prefab, scene each in their own commit; only intentional files staged; `develop` merged in; PR opened against `develop`; `UNLOCK` posted after push.
+- [ ] **Commits**: scripts, data asset, prefab, scene each in their own commit; only intentional files staged; `develop` merged in; PR opened against `develop`.
 
 ## Anti-patterns
 
 - ❌ One `Forest.unity` with geometry, lights, spawns and UI → ✅ `Forest_Environment` + `Forest_Gameplay` (+ `_Lighting` when needed), loaded through a `LevelSO`.
 - ❌ `SceneManager.LoadScene("Forest")` from a door trigger → ✅ raise `LoadLevelRequested` with the `LevelSO`; only `SceneLoader` calls `SceneManager`, additively, by full path.
 - ❌ A Camera, `AudioListener` or `DontDestroyOnLoad` manager inside a level scene → ✅ they exist once, in `Bootstrap.unity`; levels contain `CinemachineCamera`s only.
-- ❌ Opening a teammate's scene "just to move one thing" and committing it → ✅ `LOCK` first, or send them the prefab + position.
+- ❌ Opening a teammate's scene "just to move one thing" and committing it → ✅ ask the owner (or give a heads-up first), or send them the prefab + position.
 - ❌ Tweaking a HoverBot's speed on the instance in the scene → ✅ edit `Data/Enemies/HoverBot.asset`; if only this one differs, a variant with its own config asset.
 - ❌ Editing a prefab by selecting its instance in the Hierarchy and clicking **Apply All** → ✅ open Prefab Mode (`P`), edit the asset, leave instances override-free.
 - ❌ Adding a collider to one instance so "just this enemy" blocks the player → ✅ structural change = variant or Prefab Mode edit; instances override values, not structure.
@@ -429,7 +425,7 @@ Example: "patrolling enemy that drops a key in the Forest level".
 - [ ] Every level has `_Environment` + `_Gameplay` part scenes in `Scenes/Levels/<Level>/`, a `LevelSO` in `Data/Levels/` listing them (environment/lighting part first), and the parts appear in the global scene list after `Bootstrap` and `MainMenu`.
 - [ ] Scene loads are `LoadSceneAsync(path, Additive)` by full asset path, awaited with `Awaitable.FromAsyncOperation(op, token)`; `SceneLoader` unloads every loaded non-bootstrap scene (`sceneCount`/`GetSceneAt`, not a private list) and calls `SetActiveScene` and `UnloadUnusedAssets`.
 - [ ] Pressing Play in the level's part scenes works without opening `Bootstrap.unity` (`BootstrapLoader` + adopt logic); no feature component touches `GameBootstrap` in `Awake`/`Start`.
-- [ ] Every touched `.unity`/shared `.prefab`/`.inputactions`/`ProjectSettings` file had a `LOCK` from its owner (or the owner made the change), and an `UNLOCK` follows the push.
+- [ ] Every touched `.unity`/shared `.prefab`/`.inputactions`/`ProjectSettings` file was changed by its owner, or with a heads-up in the team channel.
 - [ ] Repeated, spawned or co-edited content is a prefab; prefab edits were made in Prefab Mode; nesting ≤ 4 levels; child names unique.
 - [ ] Scene instances carry only Transform/name/active/per-placement overrides; the Overrides dropdown is clean; no instance-applied changes landed in a prefab the author does not own; no unpacked shared prefabs.
 - [ ] Tunables live in `Data/<Type>/*.asset`; no gameplay numbers on scene objects; Play-mode tuning was committed or reverted deliberately.

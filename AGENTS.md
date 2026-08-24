@@ -32,7 +32,7 @@ Project conventions — details in the guidelines linked in each line:
 14. **Lifecycle:** own components in `Awake`, other objects in `Start`, subscribe in `OnEnable` / unsubscribe in `OnDisable`, physics in `FixedUpdate`, `Destroy` not `DestroyImmediate` at runtime. → [04](docs/guidelines/04-unity-scripting-rules.md)
 15. **Zero allocations in per-frame code:** cache components and ids (`Animator.StringToHash`, `Shader.PropertyToID`), no LINQ/string building/closures in `Update`, `Physics.*NonAlloc`, pool with `UnityEngine.Pool.ObjectPool<T>`. → [05](docs/guidelines/05-performance.md)
 16. **Never hand-edit or hand-merge `.unity`, `.prefab`, `.asset` YAML.** Move/rename/delete assets inside the Editor so `.meta` files follow; always commit the `.meta` with its asset. → [06](docs/guidelines/06-version-control.md)
-17. **Scenes:** `Bootstrap.unity` is the only persistent scene; levels are additive `<Level>_Environment` + `<Level>_Gameplay` scenes; one owner per scene/prefab at a time (LOCK/UNLOCK in the team channel); everything placed twice is a prefab. → [11](docs/guidelines/11-scenes-prefabs-workflow.md)
+17. **Scenes:** `Bootstrap.unity` is the only persistent scene; levels are additive `<Level>_Environment` + `<Level>_Gameplay` scenes; avoid concurrent edits by splitting scenes — each person works in their own part scene, and gives the team channel a heads-up before editing a shared scene/prefab or merging content into one; everything placed twice is a prefab. → [11](docs/guidelines/11-scenes-prefabs-workflow.md)
 18. **UI is UI Toolkit** (UXML/USS under `Assets/SheNicest/UI/`, BEM class names, presenter MonoBehaviours); camera is **Cinemachine 3.1** with exactly one Unity `Camera` in the bootstrap scene. → [09](docs/guidelines/09-packages-systems.md), [07](docs/guidelines/07-rendering-urp.md)
 19. **Packages:** only the versions listed in [09](docs/guidelines/09-packages-systems.md); adding/removing a package is a team decision and its own `chore(packages):` commit; no `Resources/` folder, no Addressables by default.
 20. **Tests:** pure C# logic gets EditMode tests (`Method_Scenario_ExpectedResult`); run the EditMode suite before a PR; `main` must open in the Editor with zero errors and zero warnings from `SheNicest.*`. → [08](docs/guidelines/08-testing-tooling.md)
@@ -99,6 +99,8 @@ Sources: every rule links to a file in [docs/reference/](docs/reference/README.m
 
 ## Commands (run from the repo root; close the Editor first — one instance per project)
 
+The commands show the Unity Hub install path; a direct (non-Hub) download lives elsewhere (macOS: `/Applications/Unity/Unity-6000.3.22f1/Unity.app`) — substitute your machine's Editor path.
+
 ```bash
 # macOS — EditMode tests (results: Logs/TestResults/EditMode.xml)
 mkdir -p Logs/TestResults
@@ -124,9 +126,13 @@ New-Item -ItemType Directory -Force Logs\TestResults | Out-Null
 
 Never pass `-quit` to a `-runTests` run (it kills the Editor before the tests finish); `-testPlatform PlayMode` runs the PlayMode suite. Full details, filters and exit codes: [08](docs/guidelines/08-testing-tooling.md).
 
-## First-time project setup (human, once)
+## Machine setup (every human, once per machine)
 
-1. Install Unity **6000.3.22f1** via Unity Hub (modules: Windows/Mac Build Support as needed, WebGL optional).
-2. Create a new project from the **Universal 3D** template somewhere else, then move its `Assets/`, `Packages/` and `ProjectSettings/` into this repo (the repo already contains the `Assets/` skeleton — merge, don't replace the skeleton folders). Alternatively open this repo folder with Hub "Add project from disk" and install URP by hand — slower.
-3. Apply the first-commit cleanup in [02 §9](docs/guidelines/02-project-structure.md) (move `Settings/` and the input asset into `Assets/SheNicest/`, delete `TutorialInfo`/sample scene) and the Editor settings in [06](docs/guidelines/06-version-control.md) (Force Text, Visible Meta Files, LF line endings) and [09](docs/guidelines/09-packages-systems.md) (Active Input Handling).
-4. Run `git lfs install`, configure UnityYAMLMerge per [06](docs/guidelines/06-version-control.md), and do the pre-jam merge-driver smoke test.
+The project itself is fully set up (Universal 3D template imported, cleaned and committed 2026-08-24) — **do not create or merge a template project again.** What each teammate does once on their own machine, before their first scene or prefab edit:
+
+1. Install Unity **6000.3.22f1** via Unity Hub or direct download (modules: Windows/Mac Build Support as needed, WebGL optional). Note the install path — the CLI commands above and the UnityYAMLMerge config in [06](docs/guidelines/06-version-control.md) need it.
+2. Run `git lfs install` (ideally before the first clone; afterwards, run it inside the repo and `git lfs pull` if any binary shows up as a small text pointer file).
+3. Configure the UnityYAMLMerge mergetool + merge driver in `~/.gitconfig` per [06](docs/guidelines/06-version-control.md) — verify the binary path first (Hub installs: `Unity.app/Contents/Tools/`; direct downloads: `Unity.app/Contents/Helpers/`) — and run the merge-driver smoke test described there.
+4. Open the project once from Unity Hub ("Add project from disk") and confirm the Console shows zero errors/warnings. Don't commit files Unity re-serializes on open unless they belong to your task ([06](docs/guidelines/06-version-control.md)).
+
+An AI agent asked to work in this repo should check steps 2–3 (`git config --get merge.unityyamlmerge.driver`, `git lfs version`) before its first commit that touches a scene, prefab or binary asset, and tell its human what is missing instead of working around it.

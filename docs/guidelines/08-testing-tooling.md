@@ -197,6 +197,8 @@ namespace SheNicest.Tests.PlayMode.Player
 
 Preconditions: the Unity Editor is **closed** on this project (only one instance can open a project), and `Logs/TestResults/` exists (`Logs/` is gitignored). **[project decision: results and logs under `Logs/TestResults/`]**
 
+All commands in this document use the Unity Hub install path. A direct (non-Hub) download installs elsewhere — on macOS `/Applications/Unity/Unity-6000.3.22f1/Unity.app` (verified 2026-08-24 on a team machine) — so substitute your machine's Editor path throughout; verify it once with `ls "<path>/Contents/MacOS/Unity"` (macOS) or `dir "<path>\Unity.exe"` (Windows).
+
 macOS (repo root as working directory):
 
 ```bash

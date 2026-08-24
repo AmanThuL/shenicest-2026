@@ -193,18 +193,22 @@ UnityYAMLMerge ships with every Editor and merges scene and prefab files "in a s
     trustExitCode = false
     # macOS (Unity Hub install):
     cmd = '/Applications/Unity/Hub/Editor/6000.3.22f1/Unity.app/Contents/Tools/UnityYAMLMerge' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+    # macOS (direct download install — note Helpers/, not Tools/):
+    # cmd = '/Applications/Unity/Unity-6000.3.22f1/Unity.app/Contents/Helpers/UnityYAMLMerge' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
     # Windows (Unity Hub install):
     # cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.22f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
 
 [merge "unityyamlmerge"]
     name = Unity SmartMerge (UnityYAMLMerge)
-    # macOS:
+    # macOS (Hub install):
     driver = '/Applications/Unity/Hub/Editor/6000.3.22f1/Unity.app/Contents/Tools/UnityYAMLMerge' merge -h -p --force %O %B %A %A
-    # Windows:
+    # macOS (direct download install):
+    # driver = '/Applications/Unity/Unity-6000.3.22f1/Unity.app/Contents/Helpers/UnityYAMLMerge' merge -h -p --force %O %B %A %A
+    # Windows (Hub install):
     # driver = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.22f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -h -p --force %O %B %A %A
 ```
 
-Unity's manual documents only the non-Hub locations (`/Applications/Unity/Unity.app/Contents/Helpers/UnityYAMLMerge`, `C:\Program Files\Unity\Editor\Data\Tools\UnityYAMLMerge.exe`); the Hub paths in the snippet are the layout of current Hub installs and **MUST** be verified on each machine with `ls "<path>"` / `dir "<path>"` before the smoke test — if `Contents/Tools/` is missing, search `Unity.app/Contents/` for the binary and use that path. Check the configuration with `git config --get mergetool.unityyamlmerge.cmd` and `git config --get merge.unityyamlmerge.driver`.
+The binary's location depends on how the Editor was installed: Hub installs put it under `Unity.app/Contents/Tools/`, while a direct (non-Hub) macOS download installs to `/Applications/Unity/Unity-<version>/Unity.app` with the binary under `Contents/Helpers/` (verified 2026-08-24 on a team machine with 6000.3.22f1; Unity's manual documents the older non-Hub locations `/Applications/Unity/Unity.app/Contents/Helpers/UnityYAMLMerge` and `C:\Program Files\Unity\Editor\Data\Tools\UnityYAMLMerge.exe`). The path **MUST** be verified on each machine with `ls "<path>"` / `dir "<path>"` before the smoke test — if neither `Contents/Tools/` nor `Contents/Helpers/` has it, search `Unity.app/Contents/` for the binary and use that path. Check the configuration with `git config --get mergetool.unityyamlmerge.cmd` and `git config --get merge.unityyamlmerge.driver`.
 
 - *Why:* The `[merge]`/`[mergetool "unityyamlmerge"]` block is Unity's documented Git setup (`merge -p <base> <theirs> <mine> <output>`; `trustExitCode = false` makes Git ask you whether the result is good). `-p` premerges and accepts clean merges; `-h` runs headless (no dialogs); `--force` is the flag Unity's Mercurial example adds (`merge -p --force $base $other $local $output`). The `[merge "unityyamlmerge"]` driver reuses the same executable with Git's standard `%O` (ancestor) `%A` (ours, also the output) `%B` (theirs) placeholders — the same mechanism the Unity Graphics repo uses for its `lfs-text` driver. If the driver is not configured on a machine, Git silently falls back to its normal text merge for those files, so the `.gitattributes` lines are harmless.
 - *Source:* [Smart merge](../reference/version-control/manual-smartmerge.md), [Working with YAMLMerge](../reference/version-control/tutorial-working-with-yamlmerge.md) (Hub path pattern, `-h`, `-l`/`-r`), [Unity Graphics .gitattributes](../reference/version-control/github-graphics-gitattributes.md) (`merge=<driver>` + `merge.<driver>.driver` pattern). The exact driver line is a **[project decision]** composed from those sources; the pre-jam smoke test below validates it.
