@@ -12,7 +12,7 @@
 4. **MUST** put `[SerializeField]` on **fields only**; an auto-property needs `[field: SerializeField]`. Anything else is a compile error in 6.3.
 5. **MUST**, when a lookup is unavoidable (bootstrap, tests, editor tooling — [03](./03-architecture-patterns.md)/[04](./04-unity-scripting-rules.md)), use `FindFirstObjectByType` / `FindAnyObjectByType` / `FindObjectsByType(FindObjectsSortMode.None)`; **NEVER** the obsolete `FindObjectOfType` / `FindObjectsOfType` (rule owned by [04](./04-unity-scripting-rules.md)).
 6. **MUST** use `Rigidbody.linearVelocity`, `linearDamping`, `angularDamping` and the `PhysicsMaterial` type; the pre-Unity-6 names `velocity` / `drag` / `angularDrag` still compile but are `[Obsolete]` (UnityUpgradable) — treat the warning as an error; `PhysicMaterial` is a compile error (rule: [04](./04-unity-scripting-rules.md)).
-7. **MUST** use `UnityEngine.Awaitable` for async work (not `Task`) and pass `destroyCancellationToken` / `Application.exitCancellationToken` (rule: [04](./04-unity-scripting-rules.md)).
+7. **MUST** use `UnityEngine.Awaitable` for async work (not `Task`) and pass `destroyCancellationToken` / `Application.exitCancellationToken`; DOTween `Sequence` for multi-tween composition; UniTask only to `WhenAll`/`WhenAny` a tween together with a non-tween async op (rule: [04](./04-unity-scripting-rules.md)).
 8. **MUST** read input through the **Input System 1.20** (`UnityEngine.InputSystem`); **NEVER** `UnityEngine.Input` (rule: [09](./09-packages-systems.md)).
 9. **MUST** write any custom URP pass against the **Render Graph** API. URP **Compatibility Mode is removed** in 6.3 — `SetupRenderPasses`, the legacy `AddRenderPass()` and `_FORWARD_PLUS` are gone or deprecated (rule: [07](./07-rendering-urp.md)).
 10. **MUST** use the **Build Profiles** window and `BuildProfile` API; the "Build Settings" window no longer exists.
@@ -214,6 +214,7 @@ Use this table to fix training-data habits and third-party snippets. "Removed" =
 | `[SerializeField] public T Prop { get; set; }` | `[field: SerializeField] public T Prop { get; private set; }` | Compile error (6.3) | [manual-upgradeguideunity63](../reference/unity6-release/manual-upgradeguideunity63.md) |
 | `Input.GetAxis("Horizontal")`, `Input.GetButton("Jump")` | `InputSystem.actions.FindAction("Move").ReadValue<Vector2>()`, `FindAction("Jump").IsPressed()` (cache the `InputAction`) | Legacy Input Manager | [inputsystem-1-20-corresponding-old-new-api](../reference/packages/inputsystem-1-20-corresponding-old-new-api.md) |
 | `Task`-returning async methods | `async Awaitable` / `Awaitable<T>`; `AwaitableCompletionSource` instead of `TaskCompletionSource` | Project rule | [manual-async-awaitable-introduction](../reference/scripting/manual-async-awaitable-introduction.md) **[project decision]** |
+| Wrapping an `Awaitable` in `Task` (`AsTask`) just to `WhenAll` it with a DOTween tween | `tween.ToUniTask()` + `operation.ToUniTask()` + `UniTask.WhenAll`/`WhenAny` | Project rule, see [04](./04-unity-scripting-rules.md#async-awaitable-dotween-sequence-and-unitask) | [github.com/Cysharp/UniTask](https://github.com/Cysharp/UniTask) **[project decision, 2026-08-25]** |
 | `yield return null` / `new WaitForSeconds(t)` inside async code | `await Awaitable.NextFrameAsync(token)` / `await Awaitable.WaitForSecondsAsync(t, token)` (coroutines themselves remain valid) | Alternative | [scriptref-awaitable](../reference/scripting/scriptref-awaitable.md) |
 | `Instantiate` in a loop for many copies | `Object.InstantiateAsync` (`AsyncInstantiateOperation<T>`) | Addition | [scriptref-object-instantiateasync](../reference/scripting/scriptref-object-instantiateasync.md) |
 | Lighting window **Auto Generate**, `Lightmapping.giWorkflowMode` | **Generate Lighting**, `Lightmapping.Bake()` / `BakeAsync()` | Removed | [manual-upgradeguideunity6](../reference/unity6-release/manual-upgradeguideunity6.md) |
@@ -344,6 +345,7 @@ Read these when a teammate pastes code or a prefab from an older project.
 - ❌ `[SerializeField] public float Speed { get; set; }` → ✅ `[field: SerializeField] public float Speed { get; private set; }` or a plain private field.
 - ❌ `async Task` methods, `Task.Delay`, `.Result` on the main thread → ✅ `async Awaitable` + `Awaitable.WaitForSecondsAsync(t, destroyCancellationToken)`.
 - ❌ Awaiting the same `Awaitable` twice or storing it for later → ✅ await once; wrap in a `Task` only if fan-out is unavoidable.
+- ❌ Reaching for UniTask to sequence several DOTween tweens → ✅ DOTween `Sequence`; UniTask is only for mixing a tween with a non-tween async op.
 - ❌ Enabling "Compatibility Mode (Render Graph Disabled)" or defining `URP_COMPATIBILITY_MODE` to make an old renderer feature work → ✅ rewrite the pass with the render graph API ([07](./07-rendering-urp.md)).
 - ❌ Adding `com.unity.ide.vscode`, `com.unity.textmeshpro`, `com.unity.postprocessing`, Cinemachine 2.10, NGO 1.x or Multiplayer Widgets to `manifest.json` → ✅ only packages from the version table; versions are locked by `packages-lock.json` — no `pinnedPackages` unless [09](./09-packages-systems.md)'s exception applies.
 - ❌ Using `EditorUtility.InstanceIDToObject(int)` in new Editor tooling → ✅ `EditorUtility.EntityIdToObject`.
@@ -359,7 +361,7 @@ Read these when a teammate pastes code or a prefab from an older project.
 - [ ] No `FindObjectOfType` / `FindObjectsOfType`; `FindObjectsByType` passes `FindObjectsSortMode.None` unless ordering is required; no `Find*` at all in gameplay code ([03](./03-architecture-patterns.md)).
 - [ ] No `Rigidbody.velocity` / `drag` / `angularDrag`, no `PhysicMaterial`, no `SetDensity`, no `Physics.autoSyncTransforms`.
 - [ ] No `UnityEngine.Input` calls; `Active Input Handling` is **Input System Package (New)**.
-- [ ] Async code returns `Awaitable` / `Awaitable<T>` and takes a `CancellationToken`; no `Task.Run` wrappers.
+- [ ] Async code returns `Awaitable` / `Awaitable<T>` and takes a `CancellationToken`; no `Task.Run` wrappers. UniTask, if present, only composes a tween with a non-tween async op.
 - [ ] Custom renderer features use the render graph API; no `SetupRenderPasses`, no `URP_COMPATIBILITY_MODE`, no `_FORWARD_PLUS`.
 - [ ] `Packages/manifest.json` lists only packages/versions from the table (Input System 1.20.0, Cinemachine 3.1.7, AI Navigation 2.0.14, …) and none from the deprecated list.
 - [ ] Console shows no **(UnityUpgradable)** warnings and no deprecation warnings introduced by the change.

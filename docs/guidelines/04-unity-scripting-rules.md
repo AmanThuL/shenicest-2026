@@ -14,7 +14,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 4. **MUST** wire references through serialized fields or `GetComponent` cached in `Awake`; use `TryGetComponent` when the component may be absent; **NEVER** call `GetComponent`, `Find*` or `Camera.main` every frame.
 5. **MUST** wire gameplay references (see [03](./03-architecture-patterns.md)); when a lookup is unavoidable (bootstrap, tests, editor tooling) use `FindFirstObjectByType` / `FindAnyObjectByType` / `FindObjectsByType(FindObjectsSortMode.None)` once, in initialisation code; **NEVER** the obsolete `FindObjectOfType` family, `GameObject.Find` or `FindWithTag` in gameplay code; compare tags with `CompareTag`.
 6. **MUST** destroy with `Destroy` (deferred to end of frame) at runtime; **NEVER** `DestroyImmediate` outside Editor code.
-7. **MUST** write async work as `async Awaitable` methods that take a `CancellationToken` (`destroyCancellationToken` on MonoBehaviours, `Application.exitCancellationToken` elsewhere); **NEVER** await the same `Awaitable` twice or touch Unity APIs off the main thread.
+7. **MUST** write async work as `async Awaitable` methods that take a `CancellationToken` (`destroyCancellationToken` on MonoBehaviours, `Application.exitCancellationToken` elsewhere); **NEVER** await the same `Awaitable` twice or touch Unity APIs off the main thread. **MUST** use UniTask instead only to `WhenAll`/`WhenAny` a DOTween tween together with an engine-native async op (scene load, `InstantiateAsync`) — DOTween `Sequence` alone for tween-only composition.
 8. **MAY** use coroutines for simple frame/time sequences; cache `WaitForSeconds`, start/stop them by `IEnumerator`/`Coroutine` reference, never by string name; **NEVER** use `Invoke("...")`.
 9. **MUST** scale per-frame movement by `Time.deltaTime`; put Rigidbody work in `FixedUpdate` and move bodies with `AddForce` / `MovePosition`, not `transform`.
 10. **MUST** use the Unity 6 physics names `linearVelocity`, `linearDamping`, `angularDamping`, `PhysicsMaterial`.
@@ -244,11 +244,22 @@ private void Fire()
 **`DontDestroyOnLoad` only on root GameObjects, and only for the bootstrap scene's persistent services** (scene flow is defined in [11 Scenes, prefabs and workflow](./11-scenes-prefabs-workflow.md)).
 - *Source:* [Object.DontDestroyOnLoad](../reference/scripting/scriptref-object-dontdestroyonload.md).
 
-## Async: Awaitable and coroutines
+## Async: Awaitable, DOTween Sequence, and UniTask
 
-**Default to `Awaitable` for anything asynchronous** (delays, waiting for frames, scene loads, background computation, awaiting `AsyncOperation`). Coroutines are acceptable for short frame/time sequences that never need cancellation or a result. No third-party async libraries. **[project decision]**
-- *Why:* `Awaitable` is pooled (near-zero allocations), resumes synchronously in the same frame, knows about the main thread and `Update`/`FixedUpdate`, and supports cancellation tokens; `.NET Task` continuations wait for the next `Update` and capture a synchronization context.
+Three tools, three different jobs — pick by what you are composing, not by habit:
+
+| Composing… | Use | Not |
+|---|---|---|
+| A single wait (delay, next frame, one `AsyncOperation`, background work) | `Awaitable` | — |
+| Multiple DOTween tweens together (parallel `.Join()`, sequential `.Append()`) | DOTween `Sequence` | `Awaitable`/`UniTask` — Sequence already does this |
+| A DOTween tween/Sequence **and** an engine-native async op together (scene load, `Object.InstantiateAsync`, another `Awaitable`) — i.e. `WhenAll`/`WhenAny` across things that are not all tweens | UniTask (`.ToUniTask()` + `UniTask.WhenAll`/`WhenAny`) | `Awaitable` has no native `WhenAll`/`WhenAny`; wrapping in `Task` for it costs an allocation per call |
+
+**Default to `Awaitable`** for everything in the first row — it is pooled (near-zero allocations), resumes synchronously in the same frame, knows about the main thread and `Update`/`FixedUpdate`, and supports cancellation tokens; `.NET Task` continuations wait for the next `Update` and capture a synchronization context. **[project decision]**
 - *Source:* [Introduction to Awaitable](../reference/scripting/manual-async-awaitable-introduction.md), [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md), [Programming best practices — thread safety](../reference/scripting/manual-programming-best-practices.md).
+
+**Reach for UniTask only for the third row.** `Sequence.AppendCallback`/`OnComplete` cannot include a `SceneManager.LoadSceneAsync`/`AsyncOperation` or an `AsyncInstantiateOperation<T>` as a step — those are not tweens, DOTween has no vocabulary for them. UniTask converts both DOTween tweens and Unity's native async types to a common `UniTask` via `.ToUniTask()`, so they can be awaited together with `UniTask.WhenAll`/`WhenAny`. **MUST** add the `UNITASK_DOTWEEN_SUPPORT` scripting define (per-platform, in `ProjectSettings/ProjectSettings.asset`, alongside DOTween's own `DOTWEEN`/`DOTWEEN_UITOOLKIT`) to unlock DOTween's `.ToUniTask()` extension — it is off by default even with both packages installed. **[project decision, 2026-08-25]**
+- *Why:* Confirmed against Cysharp's own docs: UniTask supports "DOTween (Tween as awaitable)" once `UNITASK_DOTWEEN_SUPPORT` is defined, and `AsyncOperation`/`AsyncOperationHandle` convert the same way; `UniTask.WhenAll` composes them.
+- *Source:* [Cysharp/UniTask](https://github.com/Cysharp/UniTask), [Mastering async programming in Unity with UniTask and DOTween](https://codehamster.com/codes/mastering-asynchronous-programming-in-unity-with-unitask-and-dotween/).
 
 Rules for `Awaitable` code:
 
@@ -257,7 +268,7 @@ Rules for `Awaitable` code:
    - *Source:* [destroyCancellationToken](../reference/scripting/scriptref-monobehaviour-destroycancellationtoken.md), [Application.exitCancellationToken](../reference/scripting/scriptref-application-exitcancellationtoken.md), [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md).
 2. **Handle `OperationCanceledException`.** `WaitForSecondsAsync`, `NextFrameAsync` and friends throw it when the token fires; code after the `await` is skipped.
    - *Source:* [Awaitable.WaitForSecondsAsync](../reference/scripting/scriptref-awaitable-waitforsecondsasync.md), [Awaitable.NextFrameAsync](../reference/scripting/scriptref-awaitable-nextframeasync.md), [Awaitable API](../reference/scripting/scriptref-awaitable.md).
-3. **Never await an `Awaitable` more than once or store it for later.** Pooled instances are recycled after the first await; a second await is undefined behaviour. If you need `WhenAll`-style composition, wrap in a `Task` via an `AsTask` extension as the manual shows — and accept the allocation.
+3. **Never await an `Awaitable` more than once or store it for later.** Pooled instances are recycled after the first await; a second await is undefined behaviour. If you need `WhenAll`/`WhenAny`-style composition, that is UniTask's job (see above), not a reason to reach for `Task`.
    - *Source:* [Introduction to Awaitable](../reference/scripting/manual-async-awaitable-introduction.md), [Awaitable examples](../reference/scripting/manual-async-awaitable-examples.md).
 4. **Only touch Unity APIs on the main thread.** After `await Awaitable.BackgroundThreadAsync()` you must `await Awaitable.MainThreadAsync()` before using any `UnityEngine` object; the switch is local to the current method. Background work is also unavailable on the Web platform (no managed threads), so keep it out of gameplay code unless the feature is desktop-only. **[project decision]**
    - *Source:* [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md), [IL2CPP limitations — threads](../reference/scripting/manual-scripting-restrictions.md).
@@ -575,6 +586,7 @@ Rules:
 - ❌ `Invoke("Explode", 2f)` / `StartCoroutine("Blink")` → ✅ `Awaitable.WaitForSecondsAsync(2f, destroyCancellationToken)` / `m_blinkRoutine = StartCoroutine(Blink())`
 - ❌ `await Task.Delay(500)` / `Task.Run(...)` → ✅ `await Awaitable.WaitForSecondsAsync(0.5f, token)` / `await Awaitable.BackgroundThreadAsync()` then `MainThreadAsync()`
 - ❌ awaiting one stored `Awaitable` from two places → ✅ await once, or wrap in `Task` via `AsTask`
+- ❌ wrapping a DOTween tween in `Task` (`AsTask`) to `WhenAll` it with a scene load → ✅ `.ToUniTask()` both sides, `UniTask.WhenAll`
 - ❌ `yield return new WaitForSeconds(0.1f)` inside a loop → ✅ cached `m_wait` field
 - ❌ `DestroyImmediate(go)` in gameplay → ✅ `Destroy(go)`
 - ❌ `Log.Info($"pos {transform.position}", this)` in `Update` → ✅ remove, or `Debug.Assert`, or Profiler (see [05](./05-performance.md))
@@ -594,6 +606,7 @@ Rules:
 - [ ] Tags compared with `CompareTag`.
 - [ ] `Destroy` not `DestroyImmediate`; spawned-often objects are pooled.
 - [ ] Every `async Awaitable` method takes and forwards a `CancellationToken`; entry points are `async void` with `try/catch`; no double awaits; main thread restored before Unity API calls.
+- [ ] UniTask (if used) only composes a tween with a non-tween async op via `.ToUniTask()`; plain multi-tween composition uses DOTween `Sequence`, not UniTask or `Awaitable`.
 - [ ] Coroutines started/stopped by reference, yield instructions cached, no `Invoke(string)`.
 - [ ] Movement scaled by `Time.deltaTime`; Rigidbody code in `FixedUpdate`; Unity 6 physics names used.
 - [ ] Input read through `InputSystem.actions`; one-shot presses polled in `Update`; no `UnityEngine.Input`.
