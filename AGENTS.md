@@ -131,7 +131,7 @@ New-Item -ItemType Directory -Force Logs\TestResults | Out-Null
 
 Never pass `-quit` to a `-runTests` run (it kills the Editor before the tests finish); `-testPlatform PlayMode` runs the PlayMode suite. Full details, filters and exit codes: [08](docs/guidelines/08-testing-tooling.md).
 
-The official **Unity CLI** (`unity`, beta) wraps these — `unity test --mode editor --output "$PWD/Logs/TestResults"`, `unity build --profile Assets/RootsDance/Settings/BuildProfiles/<name>.asset -o "$PWD/Builds/<name>"` (Editor closed) — and, with the Editor **open** and `com.unity.pipeline` installed (team decision pending), drives it: `unity command recompile | run_tests | editor_play | console | screenshot | eval …`. How-to, syntax traps and agent safety rules: [docs/architecture/tooling/unity-cli-agent-workflow.md](docs/architecture/tooling/unity-cli-agent-workflow.md).
+The official **Unity CLI** (`unity`, beta) wraps these — `unity test --mode editor --output "$PWD/Logs/TestResults"`, `unity build --profile Assets/RootsDance/Settings/BuildProfiles/<name>.asset -o "$PWD/Builds/<name>"` (Editor closed) — and, with the Editor **open** and `com.unity.pipeline` installed (adopted 2026-08-25), drives it: `unity command recompile | run_tests | editor_play | console | screenshot | eval …`. How-to, syntax traps and agent safety rules: [docs/architecture/tooling/unity-cli-agent-workflow.md](docs/architecture/tooling/unity-cli-agent-workflow.md).
 
 ## Machine setup (every human, once per machine)
 

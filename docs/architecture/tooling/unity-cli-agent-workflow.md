@@ -2,7 +2,7 @@
 
 > **Scope:** Running tests and builds, and inspecting or driving the *open* Editor (Play mode, scenes, Console, screenshots, C# eval, breakpoints) from a terminal with the official Unity CLI and the `com.unity.pipeline` package — for teammates and for AI agents working on a machine where the Editor is open.
 > **Applies to:** everyone who runs `unity …` against this project; every agent instruction file (`AGENTS.md`, personal `CLAUDE.local.md`).
-> **Status:** verified 2026-08-25 on macOS (Apple Silicon), Unity 6000.3.22f1, Unity CLI 1.0.0-beta.5, `com.unity.pipeline` 0.5.0-exp.1. The package was added on branch `chore/agent-debug-workflow`; **the team decision is pending** (section 3). Anything marked **UNVERIFIED** was read from `unity <cmd> --help` or the docs, not exercised.
+> **Status:** verified 2026-08-25 on macOS (Apple Silicon), Unity 6000.3.22f1, Unity CLI 1.0.0-beta.5, `com.unity.pipeline` 0.5.0-exp.1. The package was added on branch `chore/agent-debug-workflow` and **adopted by the team on 2026-08-25** (section 3). Anything marked **UNVERIFIED** was read from `unity <cmd> --help` or the docs, not exercised.
 
 Owning guidelines: test/build commands and IDE debugging in [08](../../guidelines/08-testing-tooling.md); package policy in [09](../../guidelines/09-packages-systems.md); what is committed in [06](../../guidelines/06-version-control.md). This document adds the how-to on top of them and changes none of their rules.
 
@@ -59,7 +59,7 @@ The batch commands are **UNVERIFIED** in this project (the Editor was open durin
 
 **What changes in git.** Only `Packages/manifest.json` and `Packages/packages-lock.json` — commit both as `chore(packages): add com.unity.pipeline 0.5.0-exp.1` ([06](../../guidelines/06-version-control.md) rule 11). `Library/Pipeline/`, `Temp/pipeline_*.json` and `Logs/pipeline.log` (request logging, off by default) are already ignored.
 
-**Proposal — the team confirms or rejects. [project decision: pending]**
+**Adopted by the team on 2026-08-25 under the conditions below. [project decision]**
 
 1. Keep `com.unity.pipeline` on `develop` for the hackathon so every teammate (and their agents) can use sections 5–9 without touching the manifest; TL;DR rules 9–10 then apply to everyone.
 2. Nobody adds a `RuntimePipelineManager`; nobody opens the Settings window; the "not in automated mode" warning is accepted as known noise.
