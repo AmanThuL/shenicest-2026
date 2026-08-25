@@ -2,7 +2,7 @@
 
 > **Scope:** How we write and run automated tests (Unity Test Framework), measure coverage, produce builds from the Editor and the command line, set up IDEs and analyzers, and keep the Console clean.
 > **Applies to:** all C# under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests`, the build profiles under `Assets/RootsDance/Settings/BuildProfiles`, and every teammate's (and agent's) local toolchain.
-> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
+> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-25
 
 C# style itself (naming, braces, `.editorconfig` contents) is owned by [01 C# style](./01-csharp-style.md); assembly/folder layout by [02 Project structure](./02-project-structure.md); which logic goes into plain C# classes by [03 Architecture](./03-architecture-patterns.md); per-frame logging cost by [05 Performance](./05-performance.md); what is committed by [06 Version control](./06-version-control.md).
 
@@ -21,6 +21,7 @@ C# style itself (naming, braces, `.editorconfig` contents) is owned by [01 C# st
 12. **MUST** keep the Console free of errors and warnings from `RootsDance.*` assemblies on `develop` and `main`; **NEVER** call `Debug.Log*` outside `RootsDance.Core.Log` (and `_Sandbox/`), and never log from `Update`/`FixedUpdate`/`LateUpdate` — see [04](./04-unity-scripting-rules.md).
 13. **MUST** tag tests slower than ~1 s `[Explicit, Category("Integration")]` so **Run All** stays fast.
 14. **SHOULD** run Project Auditor before the final build; **MAY** run Code Coverage on `RootsDance.Runtime` to find untested logic — no coverage gate.
+15. **MAY** drive an *open* Editor from the shell with the official Unity CLI + `com.unity.pipeline` (recompile, tests, Play mode, Console, screenshots, C# eval) — how-to and safety rules in [Unity CLI agent workflow](../architecture/tooling/unity-cli-agent-workflow.md); **NEVER** save scenes/assets, build, or leave Play mode running / a debugger attached through it unless asked.
 
 ## What to test in a hackathon
 
@@ -236,6 +237,14 @@ Compile check without tests (agents): the same command with `-quit` instead of `
 
 Default Editor log when `-logFile` is omitted: macOS `~/Library/Logs/Unity/Editor.log`, Windows `%LOCALAPPDATA%\Unity\Editor\Editor.log`. Player logs: macOS `~/Library/Logs/<Company Name>/<Product Name>/Player.log`, Windows `%USERPROFILE%\AppData\LocalLow\<CompanyName>\<ProductName>\Player.log`. *Source:* [Log files reference](../reference/testing-tooling/manual-log-files.md).
 
+### Unity CLI (official)
+
+The Unity CLI (`unity`, 1.0.0-beta.5 — install, sign-in and `PATH` notes in the [tooling doc](../architecture/tooling/unity-cli-agent-workflow.md#1-what-you-need)) wraps the batch commands above and adds control of an *open* Editor:
+
+- Editor **closed** (same one-instance rule): `unity test --mode editor --output "$PWD/Logs/TestResults"` (`--mode playmode`, `--filter <regex>`) and `unity build --profile "Assets/RootsDance/Settings/BuildProfiles/macOS-Release.asset" -o "$PWD/Builds/macOS-Release"` spawn the same batchmode Editor as the `-runTests` / `-activeBuildProfile` commands; `unity run -- -executeMethod …` passes raw Editor arguments; `unity projects close` closes a running Editor gracefully. Documented from `--help` and the live docs, not yet exercised on this project (2026-08-25).
+- Editor **open** + `com.unity.pipeline` installed: `unity status`, then `unity command recompile` / `recompile_status`, `list_tests`, `--detach run_tests --mode editor` + `unity job wait <id>`, `editor_play` / `editor_stop`, `console --tail N`, `screenshot --view game --output <abs>`, `eval` / `eval_file`. Results are JSON on stdout only (`Logs/TestResults/` is not written). Syntax traps (`--name value` only, `--` for colliding options, server down during every domain reload), the verified scene-debugging loop and the agent safety rules live in the [tooling doc](../architecture/tooling/unity-cli-agent-workflow.md). Whether `com.unity.pipeline` stays in the manifest is a pending team decision ([09](./09-packages-systems.md)).
+- *Source:* [Unity CLI](https://docs.unity.com/en-us/unity-cli/unity-cli), [Unity CLI reference](https://docs.unity.com/en-us/unity-cli/unity-cli-reference), [Unity Pipeline package](https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package) — live pages, not snapshotted in `../reference/`.
+
 ## Code Coverage (optional)
 
 - Install `com.unity.testtools.codecoverage` (1.3) via **Package Manager > + > Add package by name**; open **Window > Analysis > Code Coverage**, tick **Enable Code Coverage**, select `RootsDance.Runtime` under **Included Assemblies**, run tests, open `index.htm`. Switch the Editor to **Debug** code optimization (status-bar bug icon) first — coverage is inaccurate in Release mode. Enabling coverage slows the Editor; disable it when done. **[project decision: no coverage threshold; use it to find untested pure logic]**
@@ -286,6 +295,7 @@ Default route — no script needed **[project decision]**:
 
 - `-projectPath` and `-quit` are required; `-batchmode`, `-logFile` and `-activeBuildProfile` are recommended. The profile path is relative to the project root; `-build` needs the platform's extension (`.exe`, `.app`). **One platform per invocation** — switching targets inside a batch session does not take effect. `Builds/` is gitignored. Output always goes to `Builds/<ProfileName>/` at the repo root (owner: this doc; [06](./06-version-control.md) ignores it). **[project decision]**
 - *Source:* [Build a player from the command line](../reference/testing-tooling/manual-build-command-line.md), [Editor command line arguments — build arguments](../reference/testing-tooling/manual-editorcommandlinearguments.md).
+- `unity build --profile <profile .asset> -o <dir>` (official Unity CLI, Editor closed) is the same build with nicer output — see [Unity CLI (official)](#unity-cli-official).
 
 Escape hatch — `-executeMethod` with a build script, only when the build needs extra steps (copy files, stamp a version). Lives in `RootsDance.Editor` (Editor-only assembly) at `Assets/RootsDance/Scripts/Editor/Build/BuildScript.cs`; the method must be `static`; throw to fail the process with exit code 1. **[project decision]**
 
@@ -372,10 +382,10 @@ Pick one; all three are supported and share the same project files. **[project d
 - **MUST** set **Edit > Preferences** (macOS: **Unity > Settings**) **> External Tools > External Script Editor** to your IDE, otherwise Unity does not generate/refresh the solution for it. After adding an asmdef or package, click **Regenerate project files** there (Rider CLI equivalent: `-batchmode -quit -projectPath … -executeMethod Packages.Rider.Editor.RiderScriptEditor.SyncSolution`).
 - **NEVER** install `com.unity.ide.vscode` — unsupported; the Visual Studio Editor package now serves VS Code.
 - **NEVER** commit `*.csproj`, `*.sln`, `.vscode/`, `.idea/` — Unity regenerates them; they are gitignored.
-- Debugging: set the Editor to **Debug** code optimization (status-bar bug icon, or **Preferences > General > Code Optimization On Startup**), then **Attach to Unity** (VS, F5), **Run and Debug → Unity Editor** (VS Code, F5), or Rider's attach. Players need **Development Build + Script Debugging**. Switch back to **Release** for representative Play-mode performance.
+- Debugging: set the Editor to **Debug** code optimization (status-bar bug icon, or **Preferences > General > Code Optimization On Startup**), then **Attach to Unity** (VS, F5), **Run and Debug → Unity Editor** (VS Code, F5), or Rider's attach. Players need **Development Build + Script Debugging**. Switch back to **Release** for representative Play-mode performance. Code Optimization can also be switched from the shell through the Unity CLI (`unity command eval` setting `CompilationPipeline.codeOptimization`; ≈ 14 s reload each way — [tooling doc §9](../architecture/tooling/unity-cli-agent-workflow.md#9-breakpoints)); in **Release** no debugger can attach at all, and while the Editor is stopped at a breakpoint it answers nothing, CLI included.
 - *Source:* [IDE support](../reference/testing-tooling/manual-scripting-ide-support.md), [Unity Development with VS Code](../reference/testing-tooling/code-visualstudio-com-unity.md), [Using Visual Studio Tools for Unity](../reference/testing-tooling/learn-microsoft-com-using-visual-studio-tools-for-unity.md), [How to debug with Visual Studio 2022](../reference/testing-tooling/how-to-debugging-with-microsoft-visual-studio-2022.md), [Using the Visual Studio Editor package](../reference/testing-tooling/ide-visualstudio-2-0-using-visual-studio-editor.md), [Using the JetBrains Rider Editor package](../reference/testing-tooling/ide-rider-3-0-using-the-jetbrains-rider-editor-package.md), [External Tools preferences](../reference/testing-tooling/manual-preferences-external-tools.md), [Debug C# code in Unity](../reference/testing-tooling/manual-managed-code-debugging.md).
 
-Agents without an IDE (Claude Code, Codex…): you cannot compile C# outside Unity. After editing scripts, run the EditMode CLI above (Editor closed) or ask the human to check the Console; never claim "it compiles" without one of these. **[project decision]**
+Agents without an IDE (Claude Code, Codex…): you cannot compile C# outside Unity. After editing scripts, run the EditMode CLI above (Editor closed), drive the open Editor through the Unity CLI (`recompile` → `recompile_status` → `run_tests`, [tooling doc](../architecture/tooling/unity-cli-agent-workflow.md)), or ask the human to check the Console; never claim "it compiles" without one of these. **[project decision]**
 
 ## Roslyn analyzers and `.editorconfig` severity
 
@@ -418,6 +428,7 @@ dotnet_diagnostic.IDE0055.severity = suggestion
 - ❌ Building from a platform entry with **Development Build** ticked "for now" → ✅ `*-Dev` and `*-Release` profile assets.
 - ❌ `BuildProfile.SetActiveBuildProfile(...)` or `BuildPlayerOptions.target` inside a batch build script to switch platform → ✅ `-activeBuildProfile` / `-buildTarget` on the command line, one platform per run.
 - ❌ Committing `.csproj`/`.sln`/`.vscode/launch.json` "so the agent can build" → ✅ agents use the CLI test run; project files stay generated.
+- ❌ An agent calling `unity command save_scene` / `save_all` / `build` (or `capture_* --save_path`) against the open Editor because it "seemed useful" → ✅ read-only inspection through the Pipeline; saving, building and Play-mode/debugger state changes only when the human asked, and `git status --short` unchanged afterwards ([tooling doc §10](../architecture/tooling/unity-cli-agent-workflow.md#10-safety-rules-for-agents)).
 - ❌ Copying `Microsoft.Unity.Analyzers.dll` into `Assets/` to get IDE hints → ✅ the IDE integration already provides them; `.editorconfig` carries severities.
 - ❌ `Debug.Log($"pos={transform.position}")` in `Update` → ✅ `Log.Info` behind a condition, or a Gizmo/`Debug.DrawRay` (development only).
 
@@ -433,6 +444,7 @@ dotnet_diagnostic.IDE0055.severity = suggestion
 - [ ] No new Console errors or warnings from `RootsDance.*` after **Clear on Recompile** + entering Play mode; no logging in per-frame callbacks; all logging goes through `RootsDance.Core.Log` (no direct `Debug.Log*` outside `Log` and `_Sandbox/`).
 - [ ] Build-related changes touch only the profile assets in `Assets/RootsDance/Settings/BuildProfiles/` (and `BuildScript.cs` if the escape hatch is used); `Builds/` output is not committed.
 - [ ] No `.csproj`, `.sln`, `.vscode/`, `.idea/`, analyzer DLLs or `.ruleset` files were added.
+- [ ] If the Unity CLI was used against an open Editor: Play mode stopped, no debugger attached, Code Optimization back to Release, `git status --short` unchanged ([tooling doc §10](../architecture/tooling/unity-cli-agent-workflow.md#10-safety-rules-for-agents)).
 
 ## Sources
 
@@ -512,3 +524,8 @@ dotnet_diagnostic.IDE0055.severity = suggestion
 74. [ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) — Optimize your game performance for consoles and PCs in Unity (Unity 6 edition) e-book — Remove Debug Log statements — https://cdn.bfldr.com/S5BC9Y64/at/xbhk7z8kvttn35t3nx45mm98/Optimize_your_game_performance_for_consoles_and_PCs_in_Unity_Unity_6_edition_e-book.pdf
 75. [how-to-advanced-programming-and-code-architecture.md](../reference/design-patterns/how-to-advanced-programming-and-code-architecture.md) — Advanced programming and code architecture (conditional logging) — https://unity.com/how-to/advanced-programming-and-code-architecture
 76. [how-to-debugging-with-microsoft-visual-studio-2022.md](../reference/testing-tooling/how-to-debugging-with-microsoft-visual-studio-2022.md) — How to debug code with Microsoft Visual Studio 2022 — https://unity.com/how-to/debugging-with-microsoft-visual-studio-2022
+77. Unity CLI (live, not downloaded) — https://docs.unity.com/en-us/unity-cli/unity-cli — consulted 2026-08-25 for install, `unity auth login`, `unity test` / `unity build` / `unity command`.
+78. Use Unity CLI (live, not downloaded) — https://docs.unity.com/en-us/unity-cli/use-unity-cli
+79. Unity CLI reference (live, not downloaded) — https://docs.unity.com/en-us/unity-cli/unity-cli-reference
+80. Unity Pipeline package — Unity Production Pipeline, local tools / CLI (live, not downloaded) — https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package
+81. `com.unity.pipeline` 0.5 package manual (live, not downloaded) — https://docs.unity3d.com/Packages/com.unity.pipeline@0.5/manual/index.html

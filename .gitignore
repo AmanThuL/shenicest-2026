@@ -124,3 +124,8 @@ InitTestScene*.unity*
 Thumbs.db
 .idea/
 .vscode/
+
+# Personal Claude Code files (one person / one machine): local instructions and permission grants.
+# Shared agent instructions are AGENTS.md / CLAUDE.md, which are committed (guideline 06).
+CLAUDE.local.md
+.claude/settings.local.json

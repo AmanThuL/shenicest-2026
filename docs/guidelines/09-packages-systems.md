@@ -37,6 +37,7 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | uGUI + TextMeshPro `com.unity.ugui` | 2.0 (core, fixed to Editor) | Present; use only per the UI section | [ref](../reference/packages/manual-com-unity-ugui.md), [ref](../reference/packages/ugui-2-0-textmeshpro-index.md) |
 | URP / Shader Graph | 17.3 (core) | Required — see [07](./07-rendering-urp.md) | [ref](../reference/packages/manual-pack-core.md) |
 | Test Framework `com.unity.test-framework` | 1.6 (core) | Required — see [08](./08-testing-tooling.md) | [ref](../reference/packages/manual-com-unity-test-framework.md) |
+| Unity Pipeline `com.unity.pipeline` | 0.5.0-exp.1 (experimental) | **Adopted 2026-08-25** — Editor/agent tooling only (official Unity CLI `unity command …` against the open Editor); trade-offs and rules in [Unity CLI agent workflow](../architecture/tooling/unity-cli-agent-workflow.md#3-the-package-decision-comunitypipeline-050-exp1) | [live](https://docs.unity3d.com/Packages/com.unity.pipeline@0.5/manual/index.html) |
 | ProBuilder `com.unity.probuilder` | 6.1 (released) | **Optional** (greyboxing) | [ref](../reference/packages/manual-pack-safe.md) |
 | Timeline `com.unity.timeline` | 1.8 (released) | **Not installed** (add when cutscenes are needed) | [ref](../reference/packages/manual-pack-safe.md) |
 | Addressables `com.unity.addressables` | 2.9.1 released for 6000.3; 3.x/4.0 also available | **Not installed** | [ref](../reference/packages/manual-com-unity-addressables.md) |
@@ -44,7 +45,7 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | Visual Scripting `com.unity.visualscripting` | 1.9 (released) | **Not installed** | [ref](../reference/packages/manual-pack-safe.md) |
 | Netcode for GameObjects | 2.13 (released) | **Not used** (single-player) | [ref](../reference/packages/manual-pack-safe.md) |
 
-Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
+Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below; re-added 2026-08-25 as Editor/agent tooling for Editor/agent tooling, see its table row), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
 
 *Why:* "Released" packages are the ones Unity has tested against this Editor version; core packages ship with the Editor and cannot be switched to another version. Everything else is a risk the hackathon cannot absorb.
 *Source:* [Released packages](../reference/packages/manual-pack-safe.md), [Core packages](../reference/packages/manual-pack-core.md), [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md).
@@ -66,6 +67,7 @@ Removed from the Universal 3D template manifest at import (2026-08-24), all with
 **NEVER** install pre-release or experimental packages (version `0.x`, `-exp`, `-pre`), and leave **Show Pre-release Package Versions** off.
 - *Why:* Experimental packages are unsupported; pre-release packages are supported but not yet verified for this Editor version; deprecated ones may be nonfunctional. Only *Released* packages have passed validation for 6000.3.
 - *Source:* [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md), [Install a UPM package from a registry](../reference/packages/manual-upm-ui-install.md).
+- Experimental packages wanted for Editor/agent **tooling** rather than gameplay (today: `com.unity.pipeline`, adopted 2026-08-25) are not exempt: same team decision, same standalone `chore(packages):` commit, and the trade-offs written down in [`docs/architecture/tooling/`](../architecture/tooling/unity-cli-agent-workflow.md) before the decision. **[project decision]**
 
 **NEVER** add a Git-URL dependency without team agreement. If agreed: pin it with `#<tag>` or a **full** commit hash, note that every machine needs Git ≥ 2.14 on `PATH`, and that LFS-tracked package content can silently import as pointer files.
 - *Why:* Unpinned Git dependencies resolve to "latest default branch", and the Package Manager's shallow clones do not reliably fetch LFS files.
