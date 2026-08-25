@@ -49,6 +49,7 @@ shenicest-2026/
 ├── docs/
 │   ├── README.md                # documentation index
 │   ├── third-party.md           # record of vendor-package exceptions (Odin's install path, local edits)
+│   ├── architecture/            # as-built runtime docs, contracts, decisions; tooling/ holds the Unity CLI agent workflow
 │   ├── guidelines/              # the 12 coding guidelines (index: guidelines/README.md)
 │   └── reference/               # 1,406 official Unity docs + third-party/odin-inspector/ (generated from the Odin XML docs)
 ├── Assets/
@@ -95,6 +96,7 @@ Sources: every rule links to a file in [docs/reference/](docs/reference/README.m
 
 - **Before coding:** read the TL;DR of the guideline(s) for the task. If you need an API detail, grep `docs/reference/` before guessing (`grep -ril "<term>" docs/reference/scripting`; for Odin: `grep -n '^### \`<Name>Attribute\`' -A 30 docs/reference/third-party/odin-inspector/attributes.md`).
 - **No Unity Editor on this machine?** You cannot compile or run tests yourself. Write code that follows [04](docs/guidelines/04-unity-scripting-rules.md), keep changes small, and say explicitly in your summary that the code is unverified until a teammate opens the project. Never claim "it compiles".
+- **Editor open on this machine + Unity CLI installed** (`unity status` answers `ready`)? You can compile, run tests, enter Play mode, read the Console and take screenshots against the open Editor — follow [docs/architecture/tooling/unity-cli-agent-workflow.md](docs/architecture/tooling/unity-cli-agent-workflow.md) and its safety rules: never save scenes/assets, build, or leave Play mode running or a debugger attached unless asked; `git status --short` must be unchanged afterwards.
 - **Creating assets from code or shell** (scripts, UXML/USS, asmdefs, folders): follow the tree in [02](docs/guidelines/02-project-structure.md). New files get their `.meta` when a teammate next opens the Editor — commit the `.meta` together with the file; never fabricate `.meta` files.
 - **Never edit** `.unity`, `.prefab`, `.asset`, `.mat`, `.controller`, `.inputactions` YAML/JSON by hand, `Packages/packages-lock.json`, anything under `Assets/ThirdParty/` or `Assets/Plugins/Sirenix/`, or `ProjectSettings/` outside a dedicated `chore:` commit (Odin writes its own `ODIN_INSPECTOR*` defines there — commit that churn, never hand-edit it).
 - **Git:** two long-lived branches — `main` (always opens and plays; submission builds come from it) and `develop` (integration). Work on `<type>/<kebab-name>` branches created from `develop` and merged back into `develop` by pull request; the integration owner merges `develop` into `main`. Commit messages are Conventional-Commit style, `<type>(<optional scope>): <what changed>`, imperative, ≤ 72 characters (`feat`, `fix`, `content`, `refactor`, `perf`, `docs`, `test`, `chore`). Small commits, stage files explicitly (no `git add -A`), never commit `Library/` or builds, never force-push `main` or `develop`. Only commit when the human asks.
@@ -128,6 +130,8 @@ New-Item -ItemType Directory -Force Logs\TestResults | Out-Null
 ```
 
 Never pass `-quit` to a `-runTests` run (it kills the Editor before the tests finish); `-testPlatform PlayMode` runs the PlayMode suite. Full details, filters and exit codes: [08](docs/guidelines/08-testing-tooling.md).
+
+The official **Unity CLI** (`unity`, beta) wraps these — `unity test --mode editor --output "$PWD/Logs/TestResults"`, `unity build --profile Assets/RootsDance/Settings/BuildProfiles/<name>.asset -o "$PWD/Builds/<name>"` (Editor closed) — and, with the Editor **open** and `com.unity.pipeline` installed (team decision pending), drives it: `unity command recompile | run_tests | editor_play | console | screenshot | eval …`. How-to, syntax traps and agent safety rules: [docs/architecture/tooling/unity-cli-agent-workflow.md](docs/architecture/tooling/unity-cli-agent-workflow.md).
 
 ## Machine setup (every human, once per machine)
 

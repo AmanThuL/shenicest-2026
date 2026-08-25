@@ -51,6 +51,13 @@ docs/architecture/
 |---|---|
 | [测试策略](decisions/测试策略.md) | 真相层单元测试边界、现有 EditMode 测试清单和何时新增测试。 |
 
+## 工具
+
+| 文档 | 用途 |
+|---|---|
+| [工具说明索引](tooling/README.md) | 调试、预览和接线工具的入口。 |
+| [Unity CLI 与 Pipeline：从 shell 驱动 Editor](tooling/unity-cli-agent-workflow.md) | 人和 AI agent 用官方 Unity CLI 跑测试/构建、对打开的 Editor 进 Play mode、读 Console、截图、eval C#、打断点的已验证流程（英文）；含 `com.unity.pipeline` 的取舍（待团队决定）和 agent 安全规则。 |
+
 ## 历史资料
 
 `archive/` 只用于追溯历史决策，不作为当前实现依据。入口与替代来源见
@@ -63,6 +70,7 @@ docs/architecture/
 3. 修改跨岗位接口：对应 `contracts/` 文档。
 4. 修改具体系统：对应 `systems/` 文档。
 5. 查询取舍原因：`decisions/`。
+6. 从 shell 驱动 Editor、给 AI agent 配工具：`tooling/`。
 
 ## 维护约定
 
