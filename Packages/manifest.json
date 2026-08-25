@@ -10,6 +10,7 @@
     }
   ],
   "dependencies": {
+    "com.cysharp.unitask": "2.5.11",
     "com.unity.ai.navigation": "2.0.14",
     "com.unity.cinemachine": "3.1.7",
     "com.unity.ide.rider": "3.0.40",
