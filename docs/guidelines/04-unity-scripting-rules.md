@@ -516,7 +516,7 @@ namespace RootsDance.Core
 
 | Assembly (`.asmdef`) | Folder | Platforms | References |
 |---|---|---|---|
-| `RootsDance.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`; add `Unity.TextMeshPro` / `UnityEngine.UI` only if uGUI is actually used. Root Namespace `RootsDance`. |
+| `RootsDance.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`, `UnityEngine.UI`, `Unity.TextMeshPro` (uGUI is the runtime UI system, [09](./09-packages-systems.md#ugui-runtime-ui)); add `Unity.AI.Navigation` when first used. Root Namespace `RootsDance`. |
 | `RootsDance.Editor` | `Scripts/Editor` | **Editor only** | `RootsDance.Runtime` |
 
 Test assemblies (`RootsDance.Tests.EditMode`, Editor only; `RootsDance.Tests.PlayMode`, Any Platform): exact JSON in [02 — assembly definitions](./02-project-structure.md). EditMode references `RootsDance.Runtime` and `RootsDance.Editor`; PlayMode references `RootsDance.Runtime`.

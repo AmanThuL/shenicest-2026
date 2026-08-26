@@ -119,6 +119,121 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &332961350
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 532922590}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.749025e-15
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.7431549
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.403274e-22
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000004371139
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_Name
+      value: Arms
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 5110fdcba45de40ee9584d5f15703d05, type: 2}
+    - target: {fileID: 5866666021909216657, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 332961355}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 332961354}
+  m_SourcePrefab: {fileID: 100100000, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+--- !u!4 &332961351 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+  m_PrefabInstance: {fileID: 332961350}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &332961352 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -3517959666279019685, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+  m_PrefabInstance: {fileID: 332961350}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &332961353 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+  m_PrefabInstance: {fileID: 332961350}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &332961354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 332961353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16bd3480ede594399809a2504f2cfda8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetDebugTrigger
+  m_viewBehaviour: {fileID: 332961355}
+  m_key: 22
+--- !u!114 &332961355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 332961353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c7dc3637573a43fca4e146eb1aecdcc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetAnimatorView
+  m_stateName: HelmetOff
+  m_removeClip: {fileID: -623603649343465320, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+  m_helmetRenderer: {fileID: 332961352}
 --- !u!1001 &532922589
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127,6 +242,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1633556529951712519, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_viewBehaviour
+      value: 
+      objectReference: {fileID: 332961355}
     - target: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_Name
       value: Player
@@ -173,7 +292,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6146614410336275913, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 332961351}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
 --- !u!4 &532922590 stripped
@@ -353,7 +475,7 @@ MonoBehaviour:
     m_Value: 0
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 532922590}

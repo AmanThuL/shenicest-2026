@@ -280,7 +280,7 @@ namespace RootsDance.Editor.Content
 
 **Custom drawers (`OdinValueDrawer<T>`, `OdinAttributeDrawer<T>`) and attribute processors need a team decision.** The attribute vocabulary plus one browser window is the expected total Odin footprint for the jam.
 
-**UI Toolkit is unaffected.** Odin draws the *Inspector* (IMGUI with optional embedded VisualElements); runtime UI stays UI Toolkit per [09](./09-packages-systems.md). Do not use `[DrawWithVisualElements]`.
+**Runtime UI is unaffected.** Odin draws the *Inspector* (IMGUI with optional embedded VisualElements) and touches Editor UI only; runtime UI is uGUI per [09](./09-packages-systems.md#ugui-runtime-ui). Do not use `[DrawWithVisualElements]`.
 
 ## Runtime and build impact
 

@@ -187,7 +187,7 @@ private void PlayerHealth_Died()
 - *Why:* Consistent casing makes names predictable for both humans and code completion; non-ASCII identifiers break some Unity command-line tooling.
 - *Source:* [Microsoft capitalization conventions](../reference/csharp-style/learn-microsoft-com-capitalization-conventions.md), [Microsoft general naming conventions](../reference/csharp-style/learn-microsoft-com-general-naming-conventions.md), [Style guide e-book, Identifier names](../reference/csharp-style/ebook-use-a-c-style-guide-for-clean-and-scalable-game-code-unity-6-edition-e.md).
 
-UI Toolkit names (USS classes, UXML names) are not C# identifiers; they use BEM kebab-case — see [09 Packages and systems](./09-packages-systems.md) and the [UI Toolkit naming conventions](../reference/csharp-style/manual-naming-conventions.md).
+UI GameObject names inside a screen prefab are not C# identifiers, but follow the same PascalCase convention and match the presenter field that references them — see [09 Packages and systems](./09-packages-systems.md#layout) and [02 Project structure](./02-project-structure.md).
 
 ## Formatting
 
@@ -595,7 +595,7 @@ The template cannot strip the `SO` suffix, so after creating the file edit the a
 19. [how-to-debugging-with-rosyln-analyzers.md](../reference/csharp-style/how-to-debugging-with-rosyln-analyzers.md) — How to debug game code with Roslyn Analyzers — https://unity.com/how-to/debugging-with-rosyln-analyzers
 20. [hc-210223733-how-to-customize-unity-script-templates.md](../reference/csharp-style/hc-210223733-how-to-customize-unity-script-templates.md) — How to customize Unity script templates (Unity Support) — https://support.unity.com/hc/en-us/articles/210223733-How-to-customize-Unity-script-templates
 21. [github-game-programming-patterns-demo-81-c-script-newbehaviourscript-cs-txt.md](../reference/csharp-style/github-game-programming-patterns-demo-81-c-script-newbehaviourscript-cs-txt.md) — game-programming-patterns-demo MonoBehaviour script template — https://raw.githubusercontent.com/Unity-Technologies/game-programming-patterns-demo/main/Assets/ScriptTemplates/81-C%23%20Script-NewBehaviourScript.cs.txt
-22. [manual-naming-conventions.md](../reference/csharp-style/manual-naming-conventions.md) — Unity 6.3 Manual: UI Toolkit naming conventions — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/naming-conventions.html
+22. [manual-naming-conventions.md](../reference/csharp-style/manual-naming-conventions.md) — Unity 6.3 Manual: naming conventions — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/naming-conventions.html
 23. [scriptref-serializefield.md](../reference/scripting/scriptref-serializefield.md) — Scripting API: SerializeField — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/SerializeField.html
 24. [manual-script-serialization-rules.md](../reference/scripting/manual-script-serialization-rules.md) — Unity 6.3 Manual: Serialization rules — https://docs.unity3d.com/6000.3/Documentation/Manual/script-serialization-rules.html
 25. [manual-upgradeguideunity63.md](../reference/unity6-release/manual-upgradeguideunity63.md) — Upgrade to Unity 6.3 (SerializeField restriction to fields) — https://docs.unity3d.com/6000.3/Documentation/Manual/UpgradeGuideUnity63.html

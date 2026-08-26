@@ -2,7 +2,7 @@
 
 > **Scope:** Where every file in the Unity project lives — the `Assets/` tree, reserved folder names, asset naming, assembly-definition layout, what `Packages/` contains, and what never goes under `Assets/`.
 > **Applies to:** everything under `Assets/` and `Packages/` in `shenicest-2026`; every teammate and every AI agent that creates, moves, renames or imports an asset.
-> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
+> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
 Related guidelines: [01 C# style](./01-csharp-style.md) (file/class naming), [06 Version control](./06-version-control.md) (git, LFS, `.meta` commits), [07 Rendering](./07-rendering-urp.md) (what the URP assets do), [08 Testing & tooling](./08-testing-tooling.md) (running tests, build profiles), [09 Packages](./09-packages-systems.md) (which packages we use), [11 Scenes & prefabs](./11-scenes-prefabs-workflow.md) (how to work inside scenes and prefabs).
 
@@ -27,9 +27,28 @@ Related guidelines: [01 C# style](./01-csharp-style.md) (file/class naming), [06
 
 What is and is not committed (`Assets/`, `Packages/`, `ProjectSettings/` and the repo files in; `Library/`, `Temp/`, `Logs/`, `UserSettings/`, builds out — including the ban on cloud-synced folders) is defined in [06](./06-version-control.md); this document only fixes *where* files live.
 
-**MUST NOT** add folders at the project root other than `docs/` (documentation), `Builds/` (ignored build output, one sub-folder per build profile — see [08](./08-testing-tooling.md)) and, only if needed, `SourceArt/` (DCC source files in mirrored sub-paths, LFS-tracked by extension — see [06](./06-version-control.md)).
+**MUST NOT** add folders at the project root other than `docs/` (documentation), `Builds/` (ignored build output, one sub-folder per build profile — see [08](./08-testing-tooling.md)), `Tools/` (DCC- and pipeline-side scripts that must not be imported by Unity — see below) and, only if needed, `SourceArt/` (DCC source files in mirrored sub-paths, LFS-tracked by extension — see [06](./06-version-control.md)).
 - *Why:* Unity recommends keeping content inside `Assets/` and avoiding extra root folders; we make exactly these exceptions because Unity would otherwise import the files (every `.md` becomes a TextAsset; every `.blend`/`.psd` is imported as a model/texture).
 - *Source:* [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md) (avoid extra root folders); [Text assets](../reference/project-structure/manual-class-textasset.md) (`.md`, `.txt`, `.json` import as TextAsset); [Authoring scenes and prefabs with version control](../reference/project-structure/blog-author-scenes-and-prefabs-with-verson-control.md) (keep source content outside `Assets`). **[project decision]** for the exact folder names.
+
+`Tools/` holds the asset-pipeline code that runs **outside** the Editor — Blender scripts, the
+Substance Painter remote-scripting client, pipeline stages, presets and per-asset configs
+**[project decision]**:
+
+```text
+Tools/
+  blender/     export_fbx.py + export profiles
+  pipeline/    the texture pipeline (rdpipe/, stages/, painter/, presets/, assets/)
+  unity/       model_import_profiles.json — read by the Editor postprocessors
+```
+
+- *Why:* these are `.py` and `.json` files that Unity would otherwise import as TextAssets, and
+  they are edited far more often than any asset; keeping them out of `Assets/` also keeps their
+  edits from generating `.meta` churn. `Tools/unity/*.json` is deliberately outside `Assets/` for
+  the same reason — the Editor reads it with `File.IO`, so changing it does **not** trigger a
+  reimport (use *RootsDance/Pipeline/Reimport Pipeline Models*).
+- How the two pipelines use it: [Blender → Unity 导出管线](../architecture/tooling/Blender到Unity导出管线.md),
+  [贴图管线](../architecture/tooling/贴图管线.md).
 
 ## 2. The `Assets/` root
 
@@ -46,7 +65,7 @@ What is and is not committed (`Assets/`, `Packages/`, `ProjectSettings/` and the
 - *Why:* Unity's organization e-book recommends a project-named root folder created by script, a `ThirdParty` folder so external assets can be updated without merge pain, a sandbox area split by username, and an `Assets/ScriptTemplates` folder for project script templates; underscore prefix puts a name alphabetically first.
 - *Source:* [Organization e-book (Unity 6 ed.)](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) pp. 13–25; [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md). Folder names are a **[project decision]**.
 
-Unity-forced root folders **MAY** be added later, and only at `Assets/` root because Unity requires that location: `StreamingAssets/` (raw files copied verbatim into builds), `Gizmos/` (icon images for `Gizmos.DrawIcon`), `Editor Default Resources/`. Unity-generated folders stay where Unity puts them and are committed as-is: `Assets/TextMesh Pro/` (from *Window > TextMeshPro > Import TMP Essential Resources*) and `Assets/UI Toolkit/` (Unity writes `UnityThemes/UnityDefaultTheme.tss` there when the first `UIDocument` is added; never move or rename it).
+Unity-forced root folders **MAY** be added later, and only at `Assets/` root because Unity requires that location: `StreamingAssets/` (raw files copied verbatim into builds), `Gizmos/` (icon images for `Gizmos.DrawIcon`), `Editor Default Resources/`. Unity-generated folders stay where Unity puts them and are committed as-is: `Assets/TextMesh Pro/` (from *Window > TextMeshPro > Import TMP Essential Resources*) and `Assets/UI Toolkit/` (Unity writes `UnityThemes/UnityDefaultTheme.tss` there for Editor UI; never move or rename it).
 - *Source:* [Reserved folder name reference](../reference/project-structure/manual-specialfolders.md); [StreamingAssets](../reference/project-structure/manual-streamingassets.md); [TextMesh Pro](../reference/packages/ugui-2-0-textmeshpro-index.md); [Theme style sheets](../reference/packages/manual-uie-tss.md).
 
 ## 3. `Assets/RootsDance/` — what goes where
@@ -75,11 +94,10 @@ Unity-forced root folders **MAY** be added later, and only at `Assets/` root bec
 | `Shaders/SubGraphs/` | `.shadersubgraph` reusable nodes | Sub-graphs are the "prefabs" of shaders: separate files avoid edit conflicts. |
 | `Textures/Characters/`, `Textures/Environment/`, `Textures/Props/` | `.png` textures for materials (not UI) | UI sprites go to `UI/Sprites/`. |
 | `Tests/EditMode/`, `Tests/PlayMode/` | Test C# with their own asmdefs | Section 8; running tests is [08](./08-testing-tooling.md). |
-| `UI/Documents/` | `.uxml` | UI Toolkit is the runtime UI system; the decision and its rationale are in [09](./09-packages-systems.md). |
-| `UI/Styles/` | `.uss`, `.tss` theme files | Project theme `RootsDance.tss` imports the generated `Assets/UI Toolkit/UnityThemes/UnityDefaultTheme.tss`. |
-| `UI/Sprites/` | UI textures/sprites, icons | |
-| `UI/Fonts/` | Generated Font Assets (`*_SDF.asset`) | |
-| `UI/` (root) | `PanelSettings.asset`, UITK Text Settings asset | Few files, so no subfolder. |
+| `UI/Sprites/` | UI textures/sprites, icons | Screen-space UI art. Non-UI textures go to `Textures/`. |
+| `UI/Fonts/` | Generated TMP Font Assets (`*_SDF.asset`) + their material presets | Source `.ttf`/`.otf` files stay in `Fonts/`. |
+| `UI/` (root) | TMP Settings asset if the project overrides it | Few files, so no subfolder. |
+| `Prefabs/UI/` | one screen prefab per menu/HUD/panel | uGUI is the runtime UI system, so a screen is a prefab, not an asset pair; the decision is in [09](./09-packages-systems.md#ugui-runtime-ui). |
 | `VFX/` | VFX Graph `.vfx` assets, VFX-only materials | Particle/VFX prefabs go to `Prefabs/VFX/`. |
 
 - *Why:* Splitting by asset type is the structure Unity's templates and e-book use; a fixed structure from day one avoids later moves, which most VCS record as delete + add and lose history.
@@ -102,14 +120,14 @@ Unity gives special meaning to these `Assets` subfolder names wherever they appe
 | `Editor` | Scripts compile into `Assembly-CSharp-Editor` (not in builds); allowed anywhere; MonoBehaviours inside cannot be components. An asmdef in the folder overrides this. | Only `Scripts/Editor/` (with `RootsDance.Editor.asmdef`) holds editor code; there is no other `Editor` folder in the project (editor-only *assets* live under `Settings/`, section 3). **NEVER** create an `Editor/` folder under `Scripts/Runtime/` — its scripts would join the runtime assembly and break player builds. |
 | `Editor Default Resources` | Assets loadable via `EditorGUIUtility.Load`; root of `Assets` only; max 1. | Not used. |
 | `Gizmos` | Icons for `Gizmos.DrawIcon`; root only; max 1. | Create only when needed. |
-| `Resources` | Everything inside is always built into the player and indexed at startup, whether referenced or not. | **NEVER** create one. Use serialized direct references (Inspector fields, ScriptableObject catalogs). Whatever `Resources/` sub-folder the TMP Essential Resources import itself creates inside `Assets/TextMesh Pro/` is tolerated and holds only TMP's own assets; our UI Toolkit text settings, font assets and style sheets are direct references from `PanelSettings`/UXML under `UI/` and need no `Resources` folder. |
+| `Resources` | Everything inside is always built into the player and indexed at startup, whether referenced or not. | **NEVER** create one. Use serialized direct references (Inspector fields, ScriptableObject catalogs). Whatever `Resources/` sub-folder the TMP Essential Resources import itself creates inside `Assets/TextMesh Pro/` is tolerated and holds only TMP's own assets; our own font assets and UI sprites under `UI/` are direct references from the screen prefabs and need no `Resources` folder. |
 | `Plugins` | Third-party plug-ins; scripts compile first (`Assembly-CSharp-firstpass`); `Plugins/x86_64` etc. set platform defaults. | `Assets/Plugins/` for binaries only (section 5). |
 | `StreamingAssets` | Files copied verbatim into the build; root only; max 1; read via `Application.streamingAssetsPath`. | Create only when a raw file (JSON, video) must ship unprocessed. Never put `.unity`, `.prefab`, `.asset` inside. |
 
 Hidden by the importer: folders/files starting with `.` (except under `StreamingAssets/`, where they are imported and shipped — never put a `.gitkeep` there), ending with `~`, named `cvs`, or with extension `.tmp`. The Editor's *Create > Folder* rewrites a leading `.` to `_`, so create dot-files from the shell.
 
 - *Why:* Reserved names change compilation order and build contents; accidental `Resources` folders bloat builds and slow startup.
-- *Source:* [Reserved folder name reference](../reference/project-structure/manual-specialfolders.md); [Predefined assemblies reference](../reference/project-structure/manual-script-compile-order-folders.md); [Introduction to the Resources system](../reference/project-structure/manual-loadingresourcesatruntime.md); [Direct reference asset management](../reference/project-structure/manual-assets-direct-reference.md); [StreamingAssets](../reference/project-structure/manual-streamingassets.md); [Introduction to assemblies — Editor folder](../reference/project-structure/manual-assembly-definitions-intro.md); [TextMesh Pro](../reference/packages/ugui-2-0-textmeshpro-index.md) (Essential Resources import). The manual's [UI Toolkit text tutorial](../reference/packages/manual-uie-get-started-with-text.md) creates a `Resources` folder by hand — we do not. No-`Resources` is also **[project decision]** 8; the UI Toolkit layout is **[project decision]**.
+- *Source:* [Reserved folder name reference](../reference/project-structure/manual-specialfolders.md); [Predefined assemblies reference](../reference/project-structure/manual-script-compile-order-folders.md); [Introduction to the Resources system](../reference/project-structure/manual-loadingresourcesatruntime.md); [Direct reference asset management](../reference/project-structure/manual-assets-direct-reference.md); [StreamingAssets](../reference/project-structure/manual-streamingassets.md); [Introduction to assemblies — Editor folder](../reference/project-structure/manual-assembly-definitions-intro.md); [TextMesh Pro](../reference/packages/ugui-2-0-textmeshpro-index.md) (Essential Resources import). No-`Resources` is **[project decision]** 8; the UI folder layout is **[project decision]**.
 
 ## 5. ThirdParty and Plugins
 
@@ -184,10 +202,9 @@ Hidden by the importer: folders/files starting with `.` (except under `Streaming
 | Timeline | `Animations/Timelines/` | `<Sequence>` | `IntroCutscene.playable` |
 | Audio clip | `Audio/SFX/`, `Audio/Music/` | `<Source>_<Event>[_NN]` / `<Track>` | `Footstep_Grass_01.wav`, `MainTheme.ogg` |
 | Audio mixer | `Audio/Mixers/` | `<Name>` | `Main.mixer` |
-| UXML document | `UI/Documents/` | `<Screen>` | `MainMenu.uxml`, `Hud.uxml` |
-| USS / TSS | `UI/Styles/` | `<Scope>` ; `Common.uss` for shared rules; project theme `RootsDance.tss` (imports Unity's generated default theme) | `MainMenu.uss` |
+| UI screen prefab | `Prefabs/UI/` | `<Screen>` | `MainMenu.prefab`, `Hud.prefab` |
 | Source font | `Fonts/` | vendor file name, no spaces | `Inter-Regular.ttf` |
-| Font asset | `UI/Fonts/` | `<Font>_SDF` | `Inter_SDF.asset` |
+| TMP font asset | `UI/Fonts/` | `<Font>_SDF` | `Inter_SDF.asset` |
 | Input actions | `Input/` | fixed | `RootsDance.inputactions` |
 | URP assets, renderers, global settings | `Settings/` | template names, unchanged; the verified names are recorded in [07](./07-rendering-urp.md) | `PC_RPAsset.asset`, `Mobile_RPAsset.asset` |
 | Volume profile | `Settings/VolumeProfiles/` | `<Context>Profile` for new ones; the template's own profile keeps its name and is moved into this folder | `ForestProfile.asset`, `MainMenuProfile.asset` |
@@ -198,9 +215,9 @@ Hidden by the importer: folders/files starting with `.` (except under `Streaming
 | Script | `Scripts/…` | file name = class name | `PlayerController.cs` — see [01](./01-csharp-style.md) |
 | Assembly definition | assembly root folder | fixed | `RootsDance.Runtime.asmdef` |
 
-Inside UXML/USS, element names and classes are kebab-case BEM (`.main-menu__button--primary`, `#submit-button`); file names follow the PascalCase rule above.
+Inside a screen prefab, UI GameObjects are PascalCase and named after what they are (`ResumeButton`, `HealthBar`, `ReportToast`), matching the presenter field that references them ([09](./09-packages-systems.md#layout)); file names follow the PascalCase rule above.
 
-- *Source:* texture-map names follow the URP Lit shader's slots ([Lit shader](../reference/rendering-urp/manual-lit-shader.md)); prefab variants are created next to their base ([Create variations of prefabs](../reference/project-structure/manual-prefabvariants.md)); `.fbx` is Unity's recommended exchange format ([Model file formats](../reference/project-structure/manual-3d-formats.md)) — making it the only accepted one is a **[project decision]**; presets per texture usage (albedo / normal / utility) and kebab-case UXML naming ([Organization e-book](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) pp. 23, 27); BEM for USS ([Best practices for USS](../reference/packages/manual-uie-uss-writingstylesheets.md)); the project-wide actions asset is created as `InputSystem_Actions` and we rename it ([Create project-wide actions](../reference/packages/inputsystem-1-20-create-project-wide-actions.md), **[project decision]** 5). All other patterns are **[project decision]**.
+- *Source:* texture-map names follow the URP Lit shader's slots ([Lit shader](../reference/rendering-urp/manual-lit-shader.md)); prefab variants are created next to their base ([Create variations of prefabs](../reference/project-structure/manual-prefabvariants.md)); `.fbx` is Unity's recommended exchange format ([Model file formats](../reference/project-structure/manual-3d-formats.md)) — making it the only accepted one is a **[project decision]**; presets per texture usage (albedo / normal / utility) ([Organization e-book](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) pp. 23, 27); the project-wide actions asset is created as `InputSystem_Actions` and we rename it ([Create project-wide actions](../reference/packages/inputsystem-1-20-create-project-wide-actions.md), **[project decision]** 5). All other patterns are **[project decision]**.
 
 GameObject names inside scenes and prefabs follow the same general rules; hierarchy conventions are in [11](./11-scenes-prefabs-workflow.md).
 
@@ -280,7 +297,7 @@ namespace RootsDance.Editor.Tools
 - *Why:* Names are fixed by this document and make the files below copy-pasteable on any machine; Unity requires one form per list and infers the Inspector's **Use GUIDs** state from the form found in the file. (Unity notes GUIDs survive renames — we never rename these assemblies.)
 - *Source:* [Assembly Definition file format](../reference/project-structure/manual-assembly-definition-file-format.md). **[project decision]**.
 
-**MUST** add a package assembly to `references` before using its API from `RootsDance.Runtime`: `Unity.InputSystem`, `Unity.Cinemachine` are in from the start; add `Unity.AI.Navigation`, `Unity.RenderPipelines.Universal.Runtime`, `Unity.TextMeshPro` only when first used. UI Toolkit (`UnityEngine.UIElements`) ships with the Editor, not as a package ([09](./09-packages-systems.md)), and needs no entry.
+**MUST** add a package assembly to `references` before using its API from `RootsDance.Runtime`: `Unity.InputSystem`, `Unity.Cinemachine` are in from the start; `UnityEngine.UI` and `Unity.TextMeshPro` are in as soon as there is a presenter (uGUI is the runtime UI system, [09](./09-packages-systems.md#ugui-runtime-ui)); add `Unity.AI.Navigation`, `Unity.RenderPipelines.Universal.Runtime` only when first used.
 - *Source:* assembly names from the package API pages ([PlayerInput](../reference/packages/inputsystem-1-20-unityengine-inputsystem-playerinput.md), [CinemachineCamera](../reference/packages/cinemachine-3-1-unity-cinemachine-cinemachinecamera.md), [NavMeshSurface](../reference/packages/ai-navigation-2-0-unity-ai-navigation-navmeshsurface.md)); [Automated tests how-to](../reference/testing-tooling/how-to-automated-tests-unity-test-framework.md) (adding `Unity.InputSystem` as an asmdef reference).
 
 **MUST** create the four files with exactly this content (create the two test folders with the Test Runner window's **Create a new Test Assembly Folder in the active path** — *Window > General > Test Runner* — or *Assets > Create > Testing > Test Assembly Folder*, the two code asmdefs with *Assets > Create > Scripting > Assembly Definition*, then edit the JSON to match exactly; the Inspector validates the result):
@@ -424,6 +441,7 @@ Package selection, versions, Git-URL dependencies, `pinnedPackages` and embeddin
 | Builds (`.app`, `.exe`, `Build/` folders) | `Builds/` at the repo root (gitignored) | Derived output; huge; `Unity.gitignore` already ignores `/Builds/`, `*.app`, `*.apk`. |
 | `.unitypackage` archives, zips, installers | Import, then delete the archive | Ignored by git; not an asset. |
 | DCC source files (`.blend`, `.psd`, `.ma`, `.max`, `.c4d`) | `SourceArt/<mirrored path>/` at the repo root, or a separate repo; export `.fbx` / `.png` into `Assets/` | Unity imports them automatically and `.blend/.ma/.max` fail to import on machines without the DCC app installed. |
+| Pipeline scripts and their configs (`.py`, pipeline `.json`) | `Tools/` at the repo root | Unity would import every `.py`/`.json` as a TextAsset and generate `.meta` churn; these run outside the Editor (Blender, Substance Painter, plain Python). See §1. |
 | Memory captures, recordings, logs, profiler data | `MemoryCaptures/`, `Recordings/` at root (gitignored) | Large and sometimes sensitive. |
 | IDE/solution files (`.csproj`, `.sln`, `.vs/`, `.idea/`) | Generated by Unity; never committed | Machine-specific. |
 | Experiments | `Assets/_Sandbox/<username>/` | Section 6. |
@@ -431,10 +449,28 @@ Package selection, versions, Git-URL dependencies, `pinnedPackages` and embeddin
 
 - *Source:* [Text assets](../reference/project-structure/manual-class-textasset.md); [Unity.gitignore](../reference/version-control/github-gitignore-unity-gitignore.md); [Model file formats](../reference/project-structure/manual-3d-formats.md); [Introduction to importing assets](../reference/project-structure/manual-importingassets.md) (Unity converts every supported file dropped into `Assets`); [Authoring scenes and prefabs with version control — source content](../reference/project-structure/blog-author-scenes-and-prefabs-with-verson-control.md). Folder names are **[project decision]**.
 
-## 12. Presets (optional, recommended for textures)
+## 12. Import settings are applied by script, not by hand
 
-**SHOULD** save import presets in `Settings/Presets/` (e.g. `TextureImporter_BaseMap`, `TextureImporter_Normal`) and apply them from the importer's preset icon, or register them as defaults in *Project Settings > Preset Manager*. The per-folder `AssetPostprocessor` approach from the manual **MAY** be adopted later; it is not required for the hackathon.
-- *Why:* Presets make commonly-forgotten import settings consistent across the team without scripting.
+**MUST NOT** hand-set import settings on any asset the pipelines own — models under
+`Meshes/` and textures under `Textures/` that come from Blender or Substance Painter. Two
+`AssetPostprocessor`s apply them on every import, so a re-export never needs the settings
+re-entered and never silently reverts to the importer defaults:
+
+| Postprocessor | Owns | Configured by |
+|---|---|---|
+| `Pipeline/BlenderModelPostprocessor.cs` | registered `.fbx` (rig type, axis bake, materials, clips) | `Tools/unity/model_import_profiles.json` |
+| `Pipeline/TexturePipelinePostprocessor.cs` | `Textures/**` matching `<Asset>_<Map>` | the map suffix + the PNG's own width |
+
+Both touch **only** what they recognise; every other asset imports exactly as Unity would.
+Details: [Blender → Unity 导出管线](../architecture/tooling/Blender到Unity导出管线.md) and
+[贴图管线](../architecture/tooling/贴图管线.md).
+
+**MAY** still use import presets in `Settings/Presets/` (e.g. `TextureImporter_BaseMap`) for
+one-off assets no pipeline owns — hand-placed reference images, third-party imports — applied
+from the importer's preset icon or *Project Settings > Preset Manager*.
+- *Why:* reproducibility. Re-importing the project has to produce the same settings without
+  anyone clicking through the Inspector, which a preset applied by hand does not guarantee.
+  Presets remain useful where no script owns the asset. **[project decision]**
 - *Source:* [Reusing settings with preset assets](../reference/project-structure/manual-presets.md); [Apply default presets by folder](../reference/project-structure/manual-defaultpresetsbyfolder.md); [Organization e-book — Presets](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md) p. 23–24. Folder is **[project decision]**.
 
 ## Anti-patterns
@@ -470,7 +506,7 @@ Package selection, versions, Git-URL dependencies, `pinnedPackages` and embeddin
 
 ## Appendix: folder tree
 
-Every directory below is created verbatim on the first structure commit, except the two Unity-generated ones (`TextMesh Pro/`, `UI Toolkit/`), which appear on their own when the TMP Essential Resources are imported and the first `UIDocument` is added. Directories that are still empty get a `.gitkeep`. Files shown in comments are the initial assets each folder holds (they are not directories).
+Every directory below is created verbatim on the first structure commit, except the two Unity-generated ones (`TextMesh Pro/`, `UI Toolkit/`), which Unity writes on its own. Directories that are still empty get a `.gitkeep`. Files shown in comments are the initial assets each folder holds (they are not directories).
 
 ```
 Assets/
@@ -531,17 +567,15 @@ Assets/
 │   │   ├── Characters/
 │   │   ├── Environment/
 │   │   └── Props/
-│   ├── UI/                          # PanelSettings.asset, text settings
-│   │   ├── Documents/
+│   ├── UI/                          # TMP settings asset, if overridden
 │   │   ├── Fonts/
-│   │   ├── Sprites/
-│   │   └── Styles/
+│   │   └── Sprites/
 │   └── VFX/
 ├── ThirdParty/
 ├── Plugins/
 ├── ScriptTemplates/                 # 1-Scripting__MonoBehaviour Script-NewMonoBehaviourScript.cs.txt, 2-Scripting__ScriptableObject Script-NewScriptableObjectScript.cs.txt
 ├── TextMesh Pro/                    # generated by the TMP import, untouched
-├── UI Toolkit/                      # generated by the first UIDocument, untouched
+├── UI Toolkit/                      # generated by Unity for Editor UI, untouched
 └── _Sandbox/
 ```
 
@@ -563,7 +597,7 @@ cd Assets && mkdir -p \
   RootsDance/Shaders/SubGraphs \
   RootsDance/Tests/{EditMode,PlayMode} \
   RootsDance/Textures/{Characters,Environment,Props} \
-  RootsDance/UI/{Documents,Fonts,Sprites,Styles} \
+  RootsDance/UI/{Fonts,Sprites} \
   RootsDance/VFX ThirdParty Plugins ScriptTemplates _Sandbox \
 && find . -type d -empty -exec touch '{}/.gitkeep' \;
 ```
@@ -616,8 +650,8 @@ Add your own `_Sandbox/<username>/` folder on first use; it is not pre-created f
 42. [cinemachine-3-1-unity-cinemachine-cinemachinecamera.md](../reference/packages/cinemachine-3-1-unity-cinemachine-cinemachinecamera.md) — CinemachineCamera API (assembly `Unity.Cinemachine`) — https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/api/Unity.Cinemachine.CinemachineCamera.html
 43. [ai-navigation-2-0-unity-ai-navigation-navmeshsurface.md](../reference/packages/ai-navigation-2-0-unity-ai-navigation-navmeshsurface.md) — NavMeshSurface API (assembly `Unity.AI.Navigation`) — https://docs.unity3d.com/Packages/com.unity.ai.navigation@2.0/api/Unity.AI.Navigation.NavMeshSurface.html
 44. [ugui-2-0-textmeshpro-index.md](../reference/packages/ugui-2-0-textmeshpro-index.md) — TextMesh Pro (Essential Resources import) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/index.html
-45. [manual-uie-get-started-with-text.md](../reference/packages/manual-uie-get-started-with-text.md) — UI Toolkit: Get started with text — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-with-text.html
-46. [manual-uie-uss-writingstylesheets.md](../reference/packages/manual-uie-uss-writingstylesheets.md) — Best practices for USS (BEM) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-USS-WritingStyleSheets.html
+45. [ugui-2-0-textmeshpro-fontassets.md](../reference/packages/ugui-2-0-textmeshpro-fontassets.md) — TextMesh Pro: Font Assets — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/FontAssets.html
+46. [ugui-2-0-index.md](../reference/packages/ugui-2-0-index.md) — Unity UI (uGUI) manual — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/index.html
 47. [manual-lit-shader.md](../reference/rendering-urp/manual-lit-shader.md) — URP Lit shader (texture slot names) — https://docs.unity3d.com/6000.3/Documentation/Manual/urp/lit-shader.html
 48. [ebook-introduction-to-the-universal-render-pipeline-for-advanced-unity-creat.md](../reference/rendering-urp/ebook-introduction-to-the-universal-render-pipeline-for-advanced-unity-creat.md) — Introduction to the Universal Render Pipeline for advanced Unity creators (Unity 6 edition; template `PC_RPAsset` / `Mobile_RPAsset`) — https://cdn.bfldr.com/S5BC9Y64/at/whp9vmcbhz45k7vrx6pchh/Introduction_to_the_Universal_Render_Pipeline_for_advanced_Unity_creators_Unity_6_edition.pdf
-49. [manual-uie-tss.md](../reference/packages/manual-uie-tss.md) — Theme style sheets (TSS; generated `Assets/UI Toolkit/UnityThemes/UnityDefaultTheme.tss`) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-tss.html
+49. [manual-uie-tss.md](../reference/packages/manual-uie-tss.md) — Theme style sheets (TSS; the generated `Assets/UI Toolkit/UnityThemes/UnityDefaultTheme.tss`) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-tss.html

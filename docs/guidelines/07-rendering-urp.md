@@ -332,7 +332,7 @@ namespace RootsDance.Rendering
 - *Why:* Every extra active camera runs the full render loop even if it draws nothing; Dithering reduces banding on gradients.
 - *Source:* [manual-add-and-remove-cameras-in-a-stack](../reference/rendering-urp/manual-add-and-remove-cameras-in-a-stack.md), [manual-camera-component-reference](../reference/rendering-urp/manual-camera-component-reference.md). The camera/Brain rule and Cinemachine usage (Follow, blends, impulse) are owned by [09 Packages](./09-packages-systems.md).
 
-**NEVER** add a camera stack for UI: UI Toolkit HUD/menus do not need a camera (see [09](./09-packages-systems.md)). **MAY** stack only for "3D model inside a 2D UI" or a first-person weapon/cockpit, and then:
+**NEVER** add a camera stack for UI: a Screen Space – Overlay canvas renders without a camera (see [09](./09-packages-systems.md#ugui-runtime-ui)). **MAY** stack only for "3D model inside a 2D UI" or a first-person weapon/cockpit, and then:
 1. Overlay cameras: **Render Type = Overlay**, added to the Base Camera's **Stack** list, **Culling Mask** reduced to their own layer; the Base Camera's Culling Mask excludes that layer.
 2. Post-processing enabled only on the last camera of the stack; no camera in the stack uses a 2D Renderer (2D and 3D renderers cannot be mixed); no TAA anywhere in the stack.
 3. Runtime changes through `camera.GetUniversalAdditionalCameraData().cameraStack` (a `List<Camera>`), never by toggling extra Base cameras.
@@ -402,7 +402,7 @@ namespace RootsDance.Rendering
 | Albedo / Base Map, emission colour | Default | **On** |
 | Normal map | **Normal map** | Off |
 | Metallic/occlusion/smoothness mask, height, any data map | Default | **Off** (pack into one RGBA when possible) |
-| UI sprites, UI Toolkit images | Sprite (2D and UI) | On |
+| UI sprites, canvas images | Sprite (2D and UI) | On |
 
 - *Source (table):* [how-to-mobile-game-optimization-tips-part-1](../reference/performance/how-to-mobile-game-optimization-tips-part-1.md) ("Textures that are not processed as color must not be in the sRGB color space … metallic, roughness, and normal maps"); the **Normal map** Texture Type and the packed mask are **[project decision]** following the URP Lit workflow in §9.1.
 - Size, Max Size, compression format, Read/Write and mipmap rules: [05 §7.1](./05-performance.md).

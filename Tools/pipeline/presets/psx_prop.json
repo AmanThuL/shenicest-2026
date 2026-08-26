@@ -1,0 +1,32 @@
+{
+  "extends": "_base",
+  "description": "Low-resolution retro prop. Derived from the look of the current placeholder asset (drillimpact PSX First Person Arms, 512px sheet) -- NOT a ratified project art direction. See docs/architecture/tooling/贴图管线.md section 11.",
+  "status": "unratified -- pending art-lead sign-off",
+  "texture": {
+    "resolution": 256,
+    "maps": ["BaseMap"]
+  },
+  "uv": {
+    "padding_px": 4,
+    "padding_reference_resolution": 256,
+    "padding_px_min": 2,
+    "target_texel_density_px_per_m": 128
+  },
+  "bake": {
+    "normal": false,
+    "world_space_normal": false,
+    "position": false,
+    "thickness": false,
+    "ambient_occlusion": true,
+    "curvature": true
+  },
+  "notes": [
+    "AO and curvature are still baked: they drive Painter's edge-wear and dirt generators, then get flattened into BaseMap. They are not shipped as separate Unity textures.",
+    "No normal map on purpose -- the hardware being imitated had none, and a normal map on a 256px sheet reads as noise.",
+    "Filter Mode stays Bilinear rather than Point: Point is a per-material look decision for the art lead, not something the texture pipeline should force on every asset."
+  ],
+  "unity": {
+    "max_size": 256,
+    "compression": "Automatic"
+  }
+}

@@ -36,7 +36,7 @@ AGENTS.md  ──►  docs/guidelines/README.md  ──►  docs/guidelines/NN-*
 | `design/` | 策划案、节点流程、叙事文本、关卡需求和玩法规则 |
 | `research/` | 尚未落定的外部调研、参考资料梳理和风格方向定义 |
 | `effects/` | 已定或待定的视觉表现、音频表现、UI/HUD 表现方案 |
-| `guidelines/` | Unity 6000.3 / C# / URP / UI Toolkit / 版本控制 / 测试工具链规则 |
+| `guidelines/` | Unity 6000.3 / C# / URP / uGUI / 版本控制 / 测试工具链规则 |
 | `reference/` | Unity 官方文档与资料的离线 Markdown 快照，含 `reference/third-party/odin-inspector/` |
 
 目录名使用英文 `snake_case`。中文文档保留可读的中文主题名；明确日期统一使用

@@ -2,7 +2,7 @@
 
 > **Scope:** Practical performance rules for the *Where the Roots Dance* 3D game — frame budget, profiling workflow, per-frame code hygiene, managed memory, pooling, physics, rendering, UI, audio, asset import and build size.
 > **Applies to:** All C# under `Assets/RootsDance/Scripts`, all scenes/prefabs/assets under `Assets/RootsDance/`, and the Project Settings that affect runtime performance.
-> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
+> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
 Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) owns event-function semantics, coroutines and `Awaitable`; [07 Rendering and URP](./07-rendering-urp.md) owns URP asset/renderer setup and lighting workflow; [08 Testing and tooling](./08-testing-tooling.md) owns Editor/IDE setup; [09 Packages and systems](./09-packages-systems.md) owns package choices. This document says *what to keep cheap and how to prove it*; those documents say *how to configure the feature*.
 
@@ -211,7 +211,7 @@ private void Update()
 }
 
 // ✅ Zero allocations: non-alloc query into a reused buffer, text updated only on change.
-// (m_label is a UnityEngine.UIElements.Label, m_enemyMask a serialized LayerMask.)
+// (m_label is a TMPro.TextMeshProUGUI, m_enemyMask a serialized LayerMask.)
 private readonly Collider[] m_overlapBuffer = new Collider[32];
 private int m_lastCount = -1;
 
@@ -550,35 +550,42 @@ Rendering-side import rules (sRGB, normal-map type, POT, Read/Write off, mipmaps
 
 ## 8. UI performance
 
-### 8.1 UI Toolkit (our runtime UI)
+### 8.1 uGUI (our runtime UI)
 
-**SHOULD** animate with transforms (`style.translate`, `scale`, `rotate`) and set `usageHints = UsageHints.DynamicTransform` on elements that move every frame (`GroupTransform` on a parent of many animated children). **NEVER** animate `top`/`left`/`width`/`height`/flex properties per frame — each change dirties layout.
-- *Source:* [Optimize performance of moving elements at runtime](../reference/performance/manual-uie-use-usage-hints-to-reduce-draw-calls-and-geometry-regeneration.md) · [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md)
-
-**MUST** hide with `style.display = DisplayStyle.None` (no render, no layout), not `opacity = 0` or off-screen moves, which still render and lay out. Rarely shown panels (settings, dialogs) **MAY** be `RemoveFromHierarchy()`-ed and re-added.
-- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md) (Show and hide elements, Overdraw)
-
-**MUST** use `ListView` (virtualised) for any scrollable list longer than a screen; never one `VisualElement` per data item.
-- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md) (Overdraw)
-
-**SHOULD** keep UI textures in one **Sprite Atlas**: a batch can hold at most eight textures; more breaks it into several draw calls. Prefer rectangular masks (`overflow: hidden`) over rounded-corner masks, which use the stencil buffer and break batches.
-- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md) (Uber shader and eight-texture limit, Masking)
-
-**SHOULD** avoid toggling USS classes on large hierarchies every frame (style resolution cascades); set inline style properties instead. Unregister event callbacks you no longer need. Do not build or query UI in `Update`.
-- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md) (Animations and transitions) · [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (UI Toolkit tips)
-
-**MAY** raise **Panel Settings > Vertex Budget** if the Frame Debugger shows the HUD split into several draw calls.
-- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md) (Vertex buffers)
-
-### 8.2 uGUI (only where UI Toolkit cannot do the job)
-
-- Split Canvases by update frequency (static vs dynamic); one dirty element rebuilds its whole Canvas.
-- Disable **Raycast Target** on every non-interactive Image/Text; remove `GraphicRaycaster` from non-interactive Canvases.
-- No Layout Groups on hot UI; use anchors. Never nest Layout Groups.
-- Hide by disabling the **Canvas component**, not the GameObject (keeps the mesh, no rebuild on re-enable).
-- Screen Space – Overlay unless a camera is required; if Camera/World Space, assign the camera explicitly (blank = `Camera.main` lookup).
-- No Animators on UI elements (they dirty the element every frame).
+**MUST** split Canvases by update frequency — a static canvas for the menu chrome, a separate one for anything that changes every frame. Any change to one graphic rebuilds the mesh of its **whole** canvas.
 - *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) · [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (UGUI tips)
+
+**MUST** turn **Raycast Target** off on every non-interactive `Image` / `TextMeshProUGUI`, and remove the `GraphicRaycaster` from canvases with nothing clickable in them.
+- *Why:* Every raycast target is tested on every pointer event, whether or not it can respond.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md)
+
+**MUST** assign a value to `TextMeshProUGUI.text` only when the value actually changed; **NEVER** in an unconditional `Update`.
+- *Why:* Each assignment allocates the string, marks the canvas dirty and re-generates the text mesh; an unchanged frame should cost nothing.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) (Canvas rebuilds)
+
+**SHOULD** lay out hot UI with plain `RectTransform` anchors instead of Layout Groups; **NEVER** nest Layout Groups, and never leave a `ContentSizeFitter` on content that changes every frame.
+- *Why:* A dirty element re-runs the layout pass for every layout group above it, so nesting multiplies the cost.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) · [Auto layout](../reference/packages/ugui-2-0-uiautolayout.md)
+
+**SHOULD** hide a panel by disabling its **Canvas component** rather than the GameObject when it is shown again soon (keeps the mesh, no rebuild on re-enable); disable the GameObject for panels that stay hidden for a long time.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md)
+
+**SHOULD** keep UI sprites in one **Sprite Atlas** so a screen batches into few draw calls, and keep every UI element on the same canvas using the same material/texture where possible.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) (Batching)
+
+**MUST** use Screen Space – Overlay unless a camera is genuinely required; for Camera/World Space, assign the camera explicitly (a blank field costs a `Camera.main` lookup per canvas).
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) · [Canvas](../reference/packages/ugui-2-0-uicanvas.md)
+
+**NEVER** put an `Animator` on a UI element — it dirties the element every frame whether or not the value changed; tween the `RectTransform`/`CanvasGroup` from code (DOTween, [04](./04-unity-scripting-rules.md)) instead.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md)
+
+**SHOULD** virtualise any scrollable list longer than a screen (pool a screenful of row prefabs and rebind them on scroll); never instantiate one row GameObject per data item.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md) (ScrollRect)
+
+### 8.2 UI Toolkit (Editor UI only)
+
+Runtime UI is uGUI ([09](./09-packages-systems.md#ugui-runtime-ui)); UI Toolkit appears only in Editor windows, custom Inspectors and property drawers, which do not ship in the player and are not covered by this document's runtime budgets. The one rule that still matters: do not build or query the element tree in an Editor `Update`/`OnGUI` loop.
+- *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md)
 
 ## 9. Project configuration, build size and Web
 
@@ -624,13 +631,13 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 - ❌ `Instantiate(bulletPrefab)` … `Destroy(gameObject, 3f)` → ✅ `ObjectPool<Projectile>` (section 4).
 - ❌ `renderer.material.color = Color.red;` on a batched prop → ✅ `sharedMaterial` for reads, a Material Variant asset or vertex colour for per-instance tint; never `MaterialPropertyBlock` in URP.
 - ❌ Ticking **Enable GPU Instancing** on URP materials, or enabling Dynamic Batching → ✅ SRP Batcher (on) + static batching; GPU Resident Drawer only when measured.
-- ❌ A second `Camera` for the weapon/UI/minimap "because it was easy" → ✅ One camera + Render Objects feature / UI Toolkit overlay; each camera is a full culling + render pass.
+- ❌ A second `Camera` for the weapon/UI/minimap "because it was easy" → ✅ One camera + Render Objects feature / a Screen Space – Overlay canvas; each camera is a full culling + render pass.
 - ❌ Mesh Collider on a thrown crate; `OnTriggerStay` counting overlaps → ✅ Box/compound primitives; `Enter`/`Exit` events with a cached count.
 - ❌ `Physics.OverlapSphere(...)` (allocates) every frame → ✅ `OverlapSphereNonAlloc` into a field buffer with a layer mask and `QueryTriggerInteraction.Ignore`.
 - ❌ Point light with shadows, four cascades, realtime reflection probe "for quality" → ✅ Baked lighting, shadow-casting lights and cascades per 07 §11, baked probes.
 - ❌ 4096² uncompressed PNG with Read/Write on, mipmaps off → ✅ 2048 max, DXT/BC7, Read/Write off, mipmaps on.
 - ❌ Stereo 48 kHz WAV on a 3D `AudioSource`, Decompress On Load for the music track → ✅ Mono, 44.1 kHz, Streaming for music.
-- ❌ `opacity = 0` to hide a UI Toolkit panel; animating `left`/`top` → ✅ `display: none`; `translate` + `DynamicTransform`.
+- ❌ `CanvasGroup.alpha = 0` to hide a panel (it still draws and still eats clicks); an `Animator` on a UI element → ✅ disable the `Canvas` component or the root GameObject; tween from code.
 - ❌ `GC.Collect()` "to be safe" at the end of a wave → ✅ Only in the scene-transition flow; find the allocations instead.
 - ❌ Deep Profile on for a whole session and quoting its numbers → ✅ Call Stacks for allocations, `ProfilerMarker`s for timing; Deep Profile briefly, for call trees only.
 
@@ -712,7 +719,7 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 58. [../reference/performance/manual-class-audioclip.md](../reference/performance/manual-class-audioclip.md) — Audio Clip Import Settings reference — https://docs.unity3d.com/6000.3/Documentation/Manual/class-AudioClip.html
 59. [../reference/performance/manual-mecanimpeformanceandoptimization.md](../reference/performance/manual-mecanimpeformanceandoptimization.md) — Animation performance and optimization — https://docs.unity3d.com/6000.3/Documentation/Manual/MecanimPeformanceandOptimization.html
 60. [../reference/scripting/manual-class-animator.md](../reference/scripting/manual-class-animator.md) — Animator component — https://docs.unity3d.com/6000.3/Documentation/Manual/class-Animator.html
-61. [../reference/performance/manual-uie-use-usage-hints-to-reduce-draw-calls-and-geometry-regeneration.md](../reference/performance/manual-uie-use-usage-hints-to-reduce-draw-calls-and-geometry-regeneration.md) — Optimize performance of moving elements at runtime (UI Toolkit) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-use-usage-hints-to-reduce-draw-calls-and-geometry-regeneration.html
+61. [../reference/packages/ugui-2-0-uiautolayout.md](../reference/packages/ugui-2-0-uiautolayout.md) — Auto layout (uGUI) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UIAutoLayout.html
 62. [../reference/performance/manual-optimizing-performance.md](../reference/performance/manual-optimizing-performance.md) — UI Toolkit for advanced Unity developers: Optimizing performance — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/optimizing-performance.html
 63. [../reference/performance/how-to-unity-ui-optimization-tips.md](../reference/performance/how-to-unity-ui-optimization-tips.md) — Unity UI performance optimization tips — https://unity.com/how-to/unity-ui-optimization-tips
 64. [../reference/performance/manual-reducingfilesize.md](../reference/performance/manual-reducingfilesize.md) — Reducing the file size of a build — https://docs.unity3d.com/6000.3/Documentation/Manual/ReducingFilesize.html
@@ -728,3 +735,4 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 74. [../reference/performance/scriptref-physics-raycastnonalloc.md](../reference/performance/scriptref-physics-raycastnonalloc.md) — Physics.RaycastNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.RaycastNonAlloc.html
 75. [../reference/scripting/scriptref-physics-overlapspherenonalloc.md](../reference/scripting/scriptref-physics-overlapspherenonalloc.md) — Physics.OverlapSphereNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.OverlapSphereNonAlloc.html
 76. [../reference/performance/manual-class-qualitysettings.md](../reference/performance/manual-class-qualitysettings.md) — Quality settings reference — https://docs.unity3d.com/6000.3/Documentation/Manual/class-QualitySettings.html
+77. [../reference/packages/ugui-2-0-uicanvas.md](../reference/packages/ugui-2-0-uicanvas.md) — Canvas (uGUI) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UICanvas.html

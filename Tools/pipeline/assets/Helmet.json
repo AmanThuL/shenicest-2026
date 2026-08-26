@@ -1,0 +1,22 @@
+{
+  "asset": "Helmet",
+  "category": "Props",
+  "preset": "psx_prop",
+  "source": {
+    "blend": "../psx-first-person-arms-free-game-assets/arms_rig_helmat.blend",
+    "object": "Helmet_Placeholder",
+    "licence": "CC0 -- drillimpact, PSX First Person Arms (itch.io)",
+    "note": "Third-party source art living OUTSIDE the repo. The pipeline opens it read-only and never writes back. Currently a placeholder sphere; replace with the real helmet mesh and re-run."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": true,
+    "material_slots": ["HelmetShell", "Visor"]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": ["HelmetShell", "HelmetVisor"]
+}
