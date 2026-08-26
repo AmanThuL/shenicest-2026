@@ -82,7 +82,7 @@ namespace RootsDance.Editor.Tools
 - *Why:* Unity moves the `.meta` automatically only when the operation happens inside the Editor; otherwise you must do it yourself or the asset is treated as brand new.
 - *Source:* [Asset metadata, "Moving and renaming assets"](../reference/project-structure/manual-assetmetadata.md), [Project organization e-book](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md).
 
-**MUST** (agents in particular) let the Editor import a new file before committing it. Files written by a coding agent (`Write`/`Edit` tools, scripts, UXML, `.asmdef`) have no `.meta` until the Editor regains focus and imports them. Workflow: write the file → focus the Editor (or *Assets > Refresh*) → confirm `<file>.meta` exists → stage both. **[project decision]**
+**MUST** (agents in particular) let the Editor import a new file before committing it. Files written by a coding agent (`Write`/`Edit` tools, scripts, `.asmdef`) have no `.meta` until the Editor regains focus and imports them. Workflow: write the file → focus the Editor (or *Assets > Refresh*) → confirm `<file>.meta` exists → stage both. **[project decision]**
 - *Why:* If two machines each generate a `.meta` for the same path, the GUIDs differ and the `.meta` conflicts on every merge; any reference made on one machine breaks on the other.
 - *Source:* consequence of [Asset metadata](../reference/project-structure/manual-assetmetadata.md).
 
@@ -298,7 +298,7 @@ git push origin main
 
 ## Resolving a conflict safely
 
-### Code and other text (`.cs`, `.uxml`, `.uss`, `.json`, `.md`)
+### Code and other text (`.cs`, `.json`, `.md`)
 
 Resolve in the IDE as usual, then compile in the Editor before committing the merge.
 

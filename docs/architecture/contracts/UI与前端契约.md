@@ -2,18 +2,21 @@
 
 > 前端工程师（UI owner）↔ gameplay 程序 ↔ UI 美术 三方的接线方式。
 > 上层规则：[运行时架构 D3.1 / D3.2](../运行时架构说明书.md)（一个 UI 文件属于哪一层，由它发命令还是读事件决定）。
-> 状态：三个 presenter 已落地 · 最后修订 2026-08-24
+> 状态：三个 presenter 已落地 · 最后修订 2026-08-26
+> UI 框架为 uGUI（[`guidelines/09`](../../guidelines/09-packages-systems.md#ugui-runtime-ui)）。**本文描述的是目标状态：仓库里现有的 presenter 与 `MainMenu` 仍是 UI Toolkit 实现，代码迁移是一个独立任务。**
 
 ---
 
 ## D19 —— 谁出什么
 
-UI 走 UI Toolkit（[`guidelines/09`](../../guidelines/09-packages-systems.md) 第 7 条）。三方各自交付什么文件，完整列在 [场景与资产所有权](场景与资产所有权.md#全项目所有权表)——那份文档是文件归属的唯一权威来源，这里不重复。
+UI 走 uGUI（[`guidelines/09`](../../guidelines/09-packages-systems.md) 第 7 条）：**一个界面 = `Prefabs/UI/` 下的一个 prefab**，Bootstrap 里一个 Screen Space – Overlay 的 `Canvas` 根加一个 `EventSystem`，所有文字用 `TextMeshProUGUI`。三方各自交付什么文件，完整列在 [场景与资产所有权](场景与资产所有权.md#全项目所有权表)——那份文档是文件归属的唯一权威来源，这里不重复。
 
-**一个文件只能有一个 owner。** UI 美术交稿，不直接改 `.uxml` / `.uss`。若团队实际习惯是 UI 美术在 UI Builder 里搭 uxml，就把这条反过来写——但必须二选一。
+**一个文件只能有一个 owner。** UI 美术交稿（`UI/Sprites/`、`UI/Fonts/`、视觉稿与配色规范），不直接改 `Prefabs/UI/` 下的 prefab。若团队实际习惯是 UI 美术自己搭 prefab，就把这条反过来写——但必须二选一。
 
-世界空间里的文字标签用 **TextMesh Pro 3D Text**，不用 UI Toolkit。
-头盔 HUD 是 screen-space overlay 的 `UIDocument`（污染浓度 / 信号强度）+ 相机上一个面罩 mesh 或全屏贴图，**不做 world-space UI**。
+界面 prefab 是 YAML，**不可手工 merge**（[`guidelines/06`](../../guidelines/06-version-control.md)）。所以一个界面一个 prefab、一个 owner；两个人要同时改同一个界面，先在群里说，拆成两个 prefab 或排队改。
+
+世界空间里的文字标签用 **TextMesh Pro 3D Text**。
+头盔 HUD 是 screen-space overlay 的 canvas（污染浓度 / 信号强度）+ 相机上一个面罩 mesh 或全屏贴图，**不做 world-space UI**。
 
 ---
 
@@ -24,8 +27,9 @@ UI 走 UI Toolkit（[`guidelines/09`](../../guidelines/09-packages-systems.md) �
 ```csharp
 using RootsDance.Core;      // 只读数据类型：ReportEntry / ReportUpdate / IWorldStateReader
 using RootsDance.Events;    // 频道资产
+using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 ```
 
 出现 `using RootsDance.Player` / `Interaction` / `Investigation` / `World` / `App` 就是越界，review 直接打回。
@@ -36,17 +40,19 @@ using UnityEngine.UIElements;
 
 ---
 
-## UXML 元素契约
+## 界面元素契约
 
-presenter 依赖的元素 `name` 列在这里，**同时必须写在 UXML 顶部的注释里**。改样式随意，**改 name 等于改接口**。
+presenter 通过 `[SerializeField]` 引用拿到每个控件，所以接口是 **presenter 的字段 + prefab 里必须存在的那几个控件**，不再是元素名字符串。改样式、改层级、改排版随意；**删控件或换组件类型等于改接口**。
 
-| 元素 | 类型 | 用途 | 消费者 |
+| prefab 内控件（GameObject 名） | 组件 | 用途 | 消费者 |
 |---|---|---|---|
-| `subtitle__text` | Label | 无线电 / 内心独白 / 设备提示 / 调查结果 | `SubtitlePresenter` |
-| `prompt__label` | Label | 准星下方的「采样 / 识别」提示 | `InteractionPromptPresenter` |
-| `report-toast` | VisualElement | 报告更新提示的容器 | `ReportToastPresenter` |
-| `report-toast__title` | Label | 「官方探索报告已更新」 | `ReportToastPresenter` |
-| `report-toast__line` | Label | 「土壤样本：01」 | `ReportToastPresenter` |
+| `SubtitleText` | TextMeshProUGUI | 无线电 / 内心独白 / 设备提示 / 调查结果 | `SubtitlePresenter` |
+| `PromptLabel` | TextMeshProUGUI | 准星下方的「采样 / 识别」提示 | `InteractionPromptPresenter` |
+| `ReportToast` | 容器 GameObject（整体显隐） | 报告更新提示的容器 | `ReportToastPresenter` |
+| `ReportToastTitle` | TextMeshProUGUI | 「官方探索报告已更新」 | `ReportToastPresenter` |
+| `ReportToastLine` | TextMeshProUGUI | 「土壤样本：01」 | `ReportToastPresenter` |
+
+控件被删掉或换了类型，Inspector 里对应字段会变成 `None`，Play 时抛 `NullReferenceException`——这是有意的：接口断了要在编辑器里就看得见，而不是运行时静默失效。
 
 ---
 
@@ -75,7 +81,7 @@ presenter 依赖的元素 `name` 列在这里，**同时必须写在 UXML 顶部
 
 **具体例子**：`RootsDance > Build UI Sandbox (Test)` 菜单（`Scripts/Editor/Tools/SandboxUiTestBuilder.cs`）一键把这套沙盒搭出来，落在 `Assets/_Sandbox/UISandboxDemo/`（团队共用的演示位置，跟个人的 `_Sandbox/<用户名>/` 分开）：
 
-1. 菜单执行后会补全缺失的频道资产（`InteractionPrompt`、`RadioLine`、`Monologue`、`Notice`、`InvestigationResult`），生成 `Test_PanelSettings.asset`，把三个 presenter（`InteractionPromptPresenter` / `ReportToastPresenter` / `SubtitlePresenter`）挂到 `Test_HUD.prefab` 上并接好对应频道，再建一个只放这个 prefab 实例的 `Test_UISandbox.unity`。
+1. 菜单执行后会补全缺失的频道资产（`InteractionPrompt`、`RadioLine`、`Monologue`、`Notice`、`InvestigationResult`），生成界面所需的资产，把三个 presenter（`InteractionPromptPresenter` / `ReportToastPresenter` / `SubtitlePresenter`）挂到 `Test_HUD.prefab` 上并接好对应频道，再建一个只放这个 prefab 实例的 `Test_UISandbox.unity`。
 2. 打开 `Test_UISandbox.unity`，按 Play。
 3. 在 Project 窗口选中 `Data/Events/InteractionPrompt.asset`，Inspector 里填一段文字，点 **Raise**——HUD 上的对应文本立刻出现，全程没有加载任何关卡、没有玩家、没有 gameplay 代码在跑。
 4. `Test_` 前缀的文件都是一次性产物，不要往 `Assets/RootsDance/UI/` 或 `Prefabs/UI/` 里搬；那两个目录是 UI owner 的正式交付物，归属见[场景与资产所有权](场景与资产所有权.md)。

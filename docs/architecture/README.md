@@ -36,7 +36,7 @@ docs/architecture/
 | [场景与资产所有权](contracts/场景与资产所有权.md) | 全员 | 场景、prefab、ProjectSettings 和跨岗位文件所有权。 |
 | [表现层驱动契约](contracts/表现层驱动契约.md) | gameplay 程序、技术美术 | 四个 View 接口、高亮方案与音频边界。 |
 | [美术资产交付规范](contracts/美术资产交付规范.md) | 场景美术、技术美术、gameplay 程序 | FBX 轴向、pivot、碰撞体和 prefab variant。 |
-| [UI 与前端契约](contracts/UI与前端契约.md) | 前端工程师、gameplay 程序、UI 美术 | UXML 元素名、频道清单和代码边界。 |
+| [UI 与前端契约](contracts/UI与前端契约.md) | 前端工程师、gameplay 程序、UI 美术 | 界面 prefab 的控件契约、频道清单和代码边界。 |
 
 ## 当前系统
 
