@@ -9,8 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6146614410336275913}
+  - component: {fileID: 6295360982917947931}
   m_Layer: 0
-  m_Name: m_head
+  m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,6 +32,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6772109266663148318}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6295360982917947931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155275765654697866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a407ebae978d9466aafbe6874f5dfe19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.InteractionRaycaster
+  m_rayOrigin: {fileID: 6146614410336275913}
+  m_config: {fileID: 11400000, guid: d297beb6a7b544380a52fd60a91da75d, type: 2}
+  m_input: {fileID: 2523268967826309828}
+  m_toolUse: {fileID: 8247901955320014799}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
 --- !u!1 &4558733782070972204
 GameObject:
   m_ObjectHideFlags: 0
@@ -44,6 +62,9 @@ GameObject:
   - component: {fileID: 2523268967826309828}
   - component: {fileID: 1168216218860767587}
   - component: {fileID: 3067282954758705644}
+  - component: {fileID: 8247901955320014799}
+  - component: {fileID: 1171756524664913336}
+  - component: {fileID: 1633556529951712519}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -65,6 +86,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6146614410336275913}
+  - {fileID: 6619876958255799071}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &6049714687628792457
@@ -132,3 +154,145 @@ MonoBehaviour:
   m_head: {fileID: 6146614410336275913}
   m_config: {fileID: 11400000, guid: 65d61d1a7216e48c5bc2676c2bc699f5, type: 2}
   m_lockCursor: 1
+--- !u!114 &8247901955320014799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6556dbc0f76df4c02a6fa3021671686e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.ToolUseController
+  m_timeout: 8
+--- !u!114 &1171756524664913336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2523ae7fe9e4f44f8aa8bf5a2091c3c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Investigation.InvestigationService
+  m_resultShown: {fileID: 11400000, guid: 5b070311161ba4ea98e8b10b625f2f16, type: 2}
+  m_monologueRequested: {fileID: 11400000, guid: b3c40bd8b027844a1a63baa868ec919b, type: 2}
+  m_noticeRequested: {fileID: 11400000, guid: a609440e92c16426eb84a8155d1561c4, type: 2}
+--- !u!114 &1633556529951712519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3080dd1577a354906876536a50cbb340, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetController
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_unlockFlag: flow.helmet_removable
+  m_noticeRequested: {fileID: 11400000, guid: a609440e92c16426eb84a8155d1561c4, type: 2}
+  m_noticeText: "\u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u4F4E\u4E8E\u9632\u62A4\u9608\u503C\u3002\u53EF\u89E3\u9664\u73AF\u5883\u9694\u79BB\u3002"
+  m_input: {fileID: 2523268967826309828}
+  m_viewBehaviour: {fileID: 0}
+--- !u!1 &7328758966602893407
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6619876958255799071}
+  - component: {fileID: 6560711370145607413}
+  - component: {fileID: 913213895676966938}
+  - component: {fileID: 2797468011312323324}
+  m_Layer: 11
+  m_Name: TriggerProbe
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6619876958255799071
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7328758966602893407}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6772109266663148318}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &6560711370145607413
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7328758966602893407}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.45
+  m_Height: 1.9
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &913213895676966938
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7328758966602893407}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &2797468011312323324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7328758966602893407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bce85c77f29264dd588cc7af65c62abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerTriggerProbe

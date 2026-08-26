@@ -22,7 +22,7 @@ MonoBehaviour:
   m_groundCheckDistance: 0.15
   m_groundLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   m_lookSensitivity: 1.5
   m_pitchLimit: 25
   m_lookSmoothTime: 0.03
