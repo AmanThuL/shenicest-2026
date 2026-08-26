@@ -157,7 +157,7 @@ namespace RootsDance.Editor.Pipeline
                     ? entry.ClipName
                     : entry.ClipName + "_" + i;
 
-                clips[i].loopTime = false;
+                clips[i].loopTime = entry.LoopTime;
                 clips[i].lockRootRotation = false;
             }
 

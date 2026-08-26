@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RootsDance.Player;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -49,6 +50,7 @@ namespace RootsDance.Editor.Tools
             }
 
             Transform existing = head.Find(k_ArmsObjectName);
+            PreservedFraming preserved = CaptureFraming(existing);
 
             if (existing != null)
             {
@@ -81,6 +83,8 @@ namespace RootsDance.Editor.Tools
             serializedTrigger.ApplyModifiedPropertiesWithoutUndo();
 
             LinkHelmetController(head, view);
+            RestoreFraming(arms.transform, preserved);
+            ArmsFramingBuilder.Refresh(arms.transform);
 
             EditorSceneManager.MarkSceneDirty(gameplay);
             EditorSceneManager.SaveScene(gameplay);
@@ -94,6 +98,72 @@ namespace RootsDance.Editor.Tools
 
             Debug.Log($"HelmetTestRigBuilder: arms wired under {head.name} and {k_GameplayPath} saved. "
                 + "Press Play and hit H to run the removal.");
+        }
+
+        /// <summary>
+        /// Framing a human tuned by hand. This builder replaces the whole Arms object, which would
+        /// otherwise throw away every hand-set offset on every rebuild, so it is lifted off the old
+        /// rig and put back on the new one.
+        /// </summary>
+        private class PreservedFraming
+        {
+            public Vector3 m_positionOffset;
+            public Vector3 m_rotationOffset;
+            public string m_previewState;
+            public List<ArmsViewOffset.ClipFraming> m_clips = new List<ArmsViewOffset.ClipFraming>();
+        }
+
+        private static PreservedFraming CaptureFraming(Transform existing)
+        {
+            PreservedFraming preserved = new PreservedFraming();
+
+            if (existing == null)
+            {
+                return preserved;
+            }
+
+            ArmsViewOffset view = existing.GetComponent<ArmsViewOffset>();
+
+            if (view == null)
+            {
+                return preserved;
+            }
+
+            preserved.m_positionOffset = view.PositionOffset;
+            preserved.m_rotationOffset = view.RotationOffset;
+            preserved.m_previewState = view.PreviewState;
+            preserved.m_clips.AddRange(view.Clips);
+            return preserved;
+        }
+
+        /// <summary>
+        /// Puts the tuning back and re-anchors. Reads the local pose before adding the component:
+        /// <see cref="ArmsViewOffset"/> is <c>[ExecuteAlways]</c>, so AddComponent fires
+        /// OnEnable -> Apply() and overwrites the pose that <see cref="AnchorByCameraBone"/> just set.
+        /// The per-clip entries go back untouched; <see cref="ArmsFramingBuilder"/> recomputes the
+        /// machine-derived fields immediately afterwards and keeps the tweaks.
+        /// </summary>
+        private static void RestoreFraming(Transform arms, PreservedFraming preserved)
+        {
+            Vector3 anchorPosition = arms.localPosition;
+            Vector3 anchorRotation = arms.localRotation.eulerAngles;
+
+            ArmsViewOffset view = arms.GetComponent<ArmsViewOffset>();
+
+            if (view == null)
+            {
+                view = arms.gameObject.AddComponent<ArmsViewOffset>();
+            }
+
+            view.BasePosition = anchorPosition;
+            view.BaseRotation = anchorRotation;
+            view.PositionOffset = preserved.m_positionOffset;
+            view.RotationOffset = preserved.m_rotationOffset;
+            view.PreviewState = preserved.m_previewState;
+
+            view.Clips.Clear();
+            view.Clips.AddRange(preserved.m_clips);
+            view.RebuildLookup();
         }
 
         private static Scene OpenLevel()
@@ -135,21 +205,32 @@ namespace RootsDance.Editor.Tools
         }
 
         /// <summary>
-        /// Puts the rig's own "camera" bone on the player's head pivot, so the arms sit exactly where
-        /// they were framed in Blender. That bone carries no keys in this clip, so the offset is constant.
+        /// Puts the rig's own bind-pose <c>camera</c> bone on the player's head pivot, so the arms
+        /// sit exactly where they were framed in Blender.
+        /// <para>
+        /// Measure the gap in world space and convert it into the <i>parent's</i> frame, because
+        /// that is the frame <c>localPosition</c> is expressed in. Taking
+        /// <c>-arms.InverseTransformPoint(bone)</c> instead yields a vector in the rig's own frame
+        /// and assigns it unconverted: the rig is yawed 180 degrees, so any X or Z in the bone's
+        /// offset comes back sign-flipped and the arms land mirrored across the head. It survived
+        /// only because this rig's camera bone sits on the head's Y axis, where X and Z are zero.
+        /// </para>
+        /// This is the same measurement <see cref="ArmsFramingBuilder"/> makes for a clip's
+        /// correction — here at bind pose, there at the clip's frame 0.
         /// </summary>
         private static void AnchorByCameraBone(Transform arms)
         {
+            Transform head = arms.parent;
             Transform cameraBone = FindDeep(arms, "camera");
 
-            if (cameraBone == null)
+            if (cameraBone == null || head == null)
             {
                 Debug.LogWarning("HelmetTestRigBuilder: no 'camera' bone in the rig; leaving the arms at the head pivot.");
                 return;
             }
 
             arms.localPosition = Vector3.zero;
-            arms.localPosition = -arms.InverseTransformPoint(cameraBone.position);
+            arms.localPosition = head.InverseTransformVector(head.position - cameraBone.position);
         }
 
         private static void ConfigureAnimator(GameObject arms)

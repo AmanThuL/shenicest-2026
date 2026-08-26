@@ -149,6 +149,7 @@ namespace RootsDance.Editor.Pipeline
             [SerializeField] private string m_profile;
             [SerializeField] private string m_manifest;
             [SerializeField] private string m_clipName;
+            [SerializeField] private bool m_loopTime;
             [SerializeField] private MaterialRemap[] m_materials;
 
             /// <summary>Project-relative path of the FBX, for example <c>Assets/.../Arms.fbx</c>.</summary>
@@ -161,6 +162,12 @@ namespace RootsDance.Editor.Pipeline
 
             /// <summary>Name for the imported clip. Empty keeps whatever the FBX carries.</summary>
             public string ClipName => m_clipName;
+
+            /// <summary>
+            /// Loop Time for the imported clip. Absent or <c>false</c> suits a one-shot action;
+            /// a locomotion cycle whose first and last frame match sets it to <c>true</c>.
+            /// </summary>
+            public bool LoopTime => m_loopTime;
 
             public MaterialRemap[] Materials => m_materials ?? Array.Empty<MaterialRemap>();
         }

@@ -53,6 +53,7 @@ Assets/RootsDance/Scripts/Editor/Pipeline/
 | 内容 | 路径 |
 |---|---|
 | 手臂模型 + clip | `Assets/RootsDance/Meshes/Characters/Arms.fbx` |
+| 匍匐前进 clip | `Assets/RootsDance/Meshes/Characters/Arms_Crawl.fbx` |
 | 头盔模型 | `Assets/RootsDance/Meshes/Props/Helmet.fbx` |
 | 材质 | `Assets/RootsDance/Materials/` |
 | provenance manifest | `SourceArt/Export/<Asset>.export.json` |
@@ -147,7 +148,37 @@ FBX 导出器勾了 Baked Animation 后，会把约束求解后的姿态逐帧�
 - `RootsDance/Pipeline/Reimport Pipeline Models` —— 配置在 `Assets/` 外，Unity 不会自动感知编辑，改完点这个
 - `RootsDance/Pipeline/Check Model Sources` —— 比对 manifest 里记的 `.blend` 修改时间，报出落后于源文件的模型
 
-**新增资产要登记**：在 `m_assets` 里加一条（`m_path` / `m_profile` / `m_manifest` / `m_clipName` / `m_materials`），否则该 FBX 走 Unity 默认导入。
+**新增资产要登记**：在 `m_assets` 里加一条（`m_path` / `m_profile` / `m_manifest` / `m_clipName` / `m_loopTime` / `m_materials`），否则该 FBX 走 Unity 默认导入。
+
+`m_loopTime` 控制 clip 的 Loop Time：缺省或 `false` 适用于一次性动作（`Arms_HelmetOff`），首尾帧一致的循环动作（`Arms_Crawl`）填 `true`。
+
+### 8.1 `camera` 骨：取景是**每个动画**一份
+
+`camera` 骨表示「这个动画里眼睛在哪」，**每个 action 各有一份**：可以整段偏移，可以叠 bob，也可以完全不 K、全程停在绑定姿势。
+
+Unity 的相机**不跟随**这根骨（Cinemachine 第一人称相机跟的是 `Head`）。clip 里烘进去的任何眼睛位移，都会表现为「手臂离眼睛差了那么远」——看起来手变长或变短。所以补偿是 **clip 的属性，不是 rig 的属性**：一个全局偏移只可能对其中一个 clip 是对的，其余全错。
+
+拆成两半，因为两半要反着处理：
+
+| 成分 | 去向 | 理由 |
+|---|---|---|
+| **恒定部分** | 补偿到**手臂**（`ArmsViewOffset`） | 拿去推视点会在状态切换那一帧把玩家的眼睛弹一下 |
+| **时变部分** | 驱动**视点**（`CameraBoneViewBob`） | 这就是作者 K 的 bob，本来就该让玩家感觉到 |
+
+`ArmsViewOffset` 上三层相加，三层各有其主：
+
+- `m_basePosition` 锚点 —— 把**绑定姿势**的 camera 骨放到 head 支点上，建 rig 时写一次
+- `m_clips[].m_correction` / `m_referenceBonePosition` / `m_animatesCameraBone` —— 机器算的，`RootsDance > Refresh Arms Framing` 遍历 controller 里每个 state、采样 clip 第 0 帧后写入
+- `m_positionOffset`（所有 clip）/ `m_clips[].m_tweak`（单个 clip）—— **人调的口味，工具永不覆写**
+
+调某个动画的取景 = 改那个 clip 的 `m_tweak`；改所有动画 = 改 `m_positionOffset`。`m_previewState` 决定不进 Play 模式时 Scene 视图按哪个 clip 取景。**新增动画不需要手输数字**：在 Blender 里给那个 action 的 `camera` 骨 K 帧，导出，重跑 `Refresh Arms Framing`。
+
+改这块之前必须知道的两条约束：
+
+1. **FBX 烘焙会给每根骨写满关键帧**，所以「有没有 camera 骨曲线」证明不了什么——完全不动 camera 骨的 clip，导出后同样带一整套数值相同的键。只有**数值真的变化**的曲线才算作者 K 的 bob（`m_animatesCameraBone` 按此判定）。
+2. **`Animator.Rebind()` 在 Edit 模式下不会把骨骼恢复成绑定姿势**，量出来的是上一次采样残留的姿势。绑定姿势要从**源模型资产**上读（`PrefabUtility.GetCorrespondingObjectFromSource`），资产里的骨永远在绑定姿势。
+
+**这张表按 Animator state 名索引。** 改用 Timeline 的 Animation Track 驱动 clip 时表里查不到（Timeline 没有 Animator state），会静默退回零补偿——换驱动方式之前先给表换索引键。
 
 ---
 
@@ -195,15 +226,8 @@ clip 时长按 `(120−1)/30 = 3.9667 s` 计，不是 4.0 s——首尾帧都算
 4. **`Helmet.fbx` 未登记进 `model_import_profiles.json`**——它的 `HelmetShell` / `Visor` 材质资产还不存在，登记后 Unity 会在 mesh 旁边自动抽材质，违反 guidelines/02。等贴图管线产出材质后补条目。
 5. **`Tools/pipeline/stages/export_mesh.py` 与本导出器功能重叠**，应合并为一个导出实现。
 6. **源 `.blend` 尚未移入 `SourceArt/Blender/`**（§3 已按目标路径写）。移动后 manifest 的 `m_blend` 会从 `../psx-...` 变成项目内相对路径。
-7. **第三方素材授权未记录**——手臂资产是 itch.io 的 CC0（drillimpact / PSX First Person Arms），应在 [third-party.md](../../third-party.md) 留一条。
-
----
-
-## 11. 与 00-05 的关系
-
-摘头盔是 [切片 00 实施计划](../systems/切片00_实施计划.md) 的 **00-05**，触发点是 `FlagRaised` 频道上的 `flow.helmet_removed`。按 **D21**，gameplay 侧先用「HUD 淡出 + 短暂黑屏 + 呼吸声切换」占位，正式演出走 **Timeline**，因此本 clip 由 Timeline 的 Animation Track 驱动，不进 Animator 状态机。
-
-**这条 clip 不得阻塞主流程验收**：实施计划要求「不允许任何美术资产阻塞『从开场到调查完成可以完整运行』」。
+7. **导出器不检查对象的视图隐藏状态。** `select_only()` 只挡住不在 view layer 的对象；被 `hide_get()`（眼睛图标 / <kbd>H</kbd>）隐藏的对象 `select_set()` 会静默失败，FBX 导出器跳过它，而 manifest 的 `m_exportedObjects` 仍按命令行参数记录，于是 manifest 声称导出的对象其实不在 FBX 里。`Helmet_Placeholder` 当前处于隐藏状态。修复方向：`select_only()` 一并检查 `hide_get()` 并报错。
+8. **第三方素材授权未记录**——手臂资产是 itch.io 的 CC0（drillimpact / PSX First Person Arms），应在 [third-party.md](../../third-party.md) 留一条。
 
 ---
 
