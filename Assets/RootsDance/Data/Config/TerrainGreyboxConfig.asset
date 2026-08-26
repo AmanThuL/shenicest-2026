@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d9ce33e3fc034c90893257b1502bb04, type: 3}
+  m_Name: TerrainGreyboxConfig
+  m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.Terrain.TerrainGreyboxConfigSO
+  m_params:
+    TerrainPosition: {x: -144, y: -8, z: -32}
+    TerrainSize: {x: 288, y: 48, z: 288}
+    HeightmapResolution: 513
+    AlphamapResolution: 512
+    RingCenter: {x: 0, y: 112}
+    RingWarpAmplitude: 5
+    RingWarpAmplitudeFine: 3
+    RingWarpPhase: 0.7
+    RadialProfile:
+    - Radius: 0
+      Height: 7
+    - Radius: 44
+      Height: 7
+    - Radius: 52
+      Height: 6
+    - Radius: 60
+      Height: 5
+    - Radius: 68
+      Height: 5.6
+    - Radius: 74
+      Height: 6
+    - Radius: 82
+      Height: 6.2
+    - Radius: 90
+      Height: 5.4
+    - Radius: 100
+      Height: 4
+    - Radius: 112
+      Height: 8
+    - Radius: 122
+      Height: 3
+    - Radius: 130
+      Height: 4
+    - Radius: 137
+      Height: 8
+    - Radius: 150
+      Height: 14
+    - Radius: 200
+      Height: 18
+    NorthRiseHeight: 12
+    NorthRiseStartZ: 150
+    NorthRiseEndZ: 250
+    TerraceCenter: {x: 0, y: 112}
+    TerraceHalfExtents: {x: 38.21682, y: 32.516663}
+    TerraceYawDegrees: 0
+    TerraceCornerRadius: 8
+    TerraceHeight: 7
+    TerraceBlend: 8
+    FlatSpots:
+    - Center: {x: 0, y: -10}
+      Radius: 6
+      Blend: 8
+      Height: 3
+    - Center: {x: -12, y: 39}
+      Radius: 4
+      Blend: 6
+      Height: 6
+    - Center: {x: 44, y: 105}
+      Radius: 5
+      Blend: 6
+      Height: 4
+    Paths:
+    - Nodes:
+      - Position: {x: 0, y: -10}
+        Height: 3
+      - Position: {x: -7, y: 4}
+        Height: 7
+      - Position: {x: -15, y: 18}
+        Height: 4
+      - Position: {x: -16, y: 28}
+        Height: 5.2
+      - Position: {x: -12, y: 39}
+        Height: 6
+      - Position: {x: -6, y: 52}
+        Height: 5
+      - Position: {x: 0, y: 66}
+        Height: 6.4
+      - Position: {x: 0, y: 80}
+        Height: 7
+      HalfWidth: 2.5
+      Blend: 4
+    - Nodes:
+      - Position: {x: 4, y: 79}
+        Height: 7
+      - Position: {x: 24, y: 81}
+        Height: 7
+      - Position: {x: 38, y: 82}
+        Height: 7
+      - Position: {x: 44, y: 95}
+        Height: 5.2
+      - Position: {x: 44, y: 105}
+        Height: 4
+      HalfWidth: 2
+      Blend: 3
+    DetailNoiseAmplitude: 0.5
+    DetailNoiseFrequency: 0.04
+    RingRadiusAB: 112
+    RingRadiusBC: 90
+    RingRadiusCD: 68
+    RingRadiusDE: 55
+    SplatBlend: 4
+  m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_terrainDataPath: Assets/RootsDance/Scenes/Levels/Main/Main_TerrainData.asset
+  m_labBlockout: {fileID: 919132149155446097, guid: 0f04effc217a84eee9c6b6dfa4ed8cd9, type: 3}
+  m_labPosition: {x: -48.859238, y: 6.819171, z: 418.49118}
+  m_labYawDegrees: -90
+  m_deriveTerraceFromLab: 1
+  m_labIncludedChildren:
+  - Fence1
+  - Fence2
+  - Fence3
+  - Group81
+  - Group87
+  - Group106
+  - Group107
+  - Group108
+  - Group109
+  - Group110
+  - Group128
+  - Group147
+  - Group165
+  - Group166
+  - Group184
+  - Group185
+  - Group186
+  - Group187
+  m_anchors:
+  - m_name: Anchor_Center
+    m_specPosition: {x: 0, y: 7, z: 112}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-01_Wake
+    m_specPosition: {x: 0, y: 3, z: -10}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-07_GrassPlatform
+    m_specPosition: {x: -12, y: 6, z: 39}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-09_MainGate
+    m_specPosition: {x: 0, y: 7, z: 80}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-10_Sign
+    m_specPosition: {x: -12, y: 7, z: 83}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-11_Poster
+    m_specPosition: {x: -40, y: 7, z: 96}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-14_ExhaustFan
+    m_specPosition: {x: 36, y: 11, z: 103}
+    m_useSpecHeight: 1
+  - m_name: Anchor_00-16_ServiceEntrance
+    m_specPosition: {x: 41, y: 4, z: 105}
+    m_useSpecHeight: 0

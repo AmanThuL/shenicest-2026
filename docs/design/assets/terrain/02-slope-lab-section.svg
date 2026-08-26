@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">从苏醒点到坡上实验室的地形剖面</title>
+  <desc id="desc">显示外环脊谷起伏、异色草带、水平建筑台地、坡下检修入口、植物玻璃房采光和建议地形高度范围。</desc>
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#76846c"/><stop offset="1" stop-color="#433e34"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d7eee6" stop-opacity="0.82"/><stop offset="1" stop-color="#82ada3" stop-opacity="0.56"/>
+    </linearGradient>
+    <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="16" refY="9" orient="auto"><path d="M0 0L18 9L0 18Z" fill="#d7653f"/></marker>
+    <marker id="sunArrow" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="16" refY="9" orient="auto"><path d="M0 0L18 9L0 18Z" fill="#e7aa3d"/></marker>
+    <style>
+      text { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; fill: #26362f; }
+      .label { font-size: 26px; font-weight: 650; }
+      .small { font-size: 20px; }
+      .tiny { font-size: 17px; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f5f1e8"/>
+  <text x="70" y="70" font-size="34" font-weight="720">外环到坡上实验室 · 纵向剖面</text>
+  <text x="70" y="106" class="small" fill="#5f6a63">建筑坐落在水平切填台地上；“坡上”不等于倾斜建筑，也不等于整栋地下化。</text>
+
+  <!-- Sky and reference height lines. -->
+  <g stroke="#c8c4b9" stroke-width="2" stroke-dasharray="8 10">
+    <line x1="115" y1="185" x2="1500" y2="185"/><line x1="115" y1="355" x2="1500" y2="355"/>
+    <line x1="115" y1="525" x2="1500" y2="525"/><line x1="115" y1="695" x2="1500" y2="695"/>
+  </g>
+  <g class="small">
+    <text x="42" y="192">+40 m</text><text x="42" y="362">+24 m</text><text x="55" y="532">+8 m</text><text x="56" y="702">−8 m</text>
+  </g>
+
+  <!-- Terrain body. -->
+  <path d="M115 615 C200 608 252 550 333 535 C412 519 480 590 562 575 C650 558 714 528 794 548 C866 566 914 570 984 536 L1040 523 L1080 505 L1125 480 L1174 450 L1218 438 L1260 445 L1302 428 L1360 412 L1422 420 L1500 410 L1500 780 L115 780Z"
+        fill="url(#soil)" stroke="#37493e" stroke-width="5"/>
+  <!-- Cut/fill terrace. -->
+  <path d="M958 536 L1015 493 L1288 493 L1360 412 L1422 420" fill="#8d887a" stroke="#5c6159" stroke-width="5"/>
+  <path d="M1015 493 H1288" stroke="#d9d1c0" stroke-width="9"/>
+
+  <!-- Facility horizontal structure. -->
+  <g stroke="#35443f" stroke-width="5">
+    <rect x="1048" y="383" width="210" height="108" fill="#b6b7a9"/>
+    <path d="M1072 383 C1092 290 1211 290 1232 383Z" fill="url(#glass)"/>
+    <path d="M1100 383 C1115 326 1189 326 1204 383" fill="none" stroke="#6f9990" stroke-width="3"/>
+    <line x1="1152" y1="300" x2="1152" y2="383" stroke="#6f9990" stroke-width="3"/>
+    <rect x="1008" y="410" width="40" height="81" fill="#858d85"/>
+    <rect x="1258" y="410" width="72" height="81" fill="#858d85"/>
+  </g>
+  <!-- Plants in glass room. -->
+  <g stroke="#416444" stroke-width="4" fill="none" stroke-linecap="round">
+    <path d="M1121 454v-52m0 22l-20-14m20 3l21-18M1178 454v-63m0 30l-23-18m23 2l24-17"/>
+  </g>
+
+  <!-- Maintenance entrance downslope and transition vestibule. -->
+  <path d="M1317 455 L1361 462 L1361 522 L1317 510Z" fill="#545d59" stroke="#26362f" stroke-width="5"/>
+  <path d="M1361 492 C1402 496 1423 522 1448 548" fill="none" stroke="#d7653f" stroke-width="7" marker-end="url(#arrow)"/>
+  <line x1="1380" y1="438" x2="1380" y2="586" stroke="#d7653f" stroke-width="3" stroke-dasharray="9 8"/>
+
+  <!-- Player path. -->
+  <path d="M155 596 C244 576 281 530 348 531 C432 533 482 578 561 571 C646 563 710 531 794 545 C868 557 930 562 994 523"
+        fill="none" stroke="#fff2d9" stroke-width="19" stroke-linecap="round"/>
+  <path d="M155 596 C244 576 281 530 348 531 C432 533 482 578 561 571 C646 563 710 531 794 545 C868 557 930 562 994 523"
+        fill="none" stroke="#d7653f" stroke-width="7" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <!-- Sun rays. -->
+  <g stroke="#e7aa3d" stroke-width="5" opacity="0.9" marker-end="url(#sunArrow)">
+    <path d="M970 183 L1086 299"/><path d="M1052 169 L1131 283"/><path d="M1137 170 L1174 282"/>
+  </g>
+  <circle cx="950" cy="165" r="34" fill="#edbd58"/>
+
+  <!-- Labels and elevations. -->
+  <g>
+    <circle cx="155" cy="596" r="11" fill="#d7653f"/><text x="132" y="648" class="label">苏醒点</text><text x="130" y="675" class="small">约 +3 m</text>
+    <text x="272" y="488" class="label">外环土脊</text><text x="286" y="514" class="small">约 +8 m</text>
+    <text x="455" y="628" class="label">浅谷</text><text x="458" y="654" class="small">约 +4 m</text>
+    <text x="625" y="502" class="label">异色草带</text><text x="654" y="528" class="small">约 +6 m</text>
+    <text x="826" y="612" class="label">接近鞍部</text><text x="856" y="638" class="small">约 +5 m</text>
+    <text x="1007" y="555" class="label">水平台地约 +7 m</text>
+    <text x="1070" y="267" class="label">植物玻璃房／阳光房</text>
+    <text x="1077" y="293" class="small">穹顶顶点约 +23.7 m，保留天空和太阳路径</text>
+    <rect x="1260" y="327" width="285" height="92" rx="14" fill="#fffaf0" stroke="#c9bda8" stroke-width="2"/>
+    <text x="1280" y="365" class="label">坡下检修入口</text>
+    <text x="1280" y="397" class="small">入口平台约 +4 m</text>
+    <path d="M1335 419 L1326 456" fill="none" stroke="#526159" stroke-width="3"/>
+    <rect x="1260" y="548" width="285" height="94" rx="14" fill="#fffaf0" stroke="#d49a7f" stroke-width="2"/>
+    <text x="1280" y="584" class="small" fill="#b64e35">室外／实验室加载边界</text>
+    <text x="1280" y="615" class="small" fill="#b64e35">门斗预载，S0 安全线后切换</text>
+    <path d="M1380 548 L1380 505" fill="none" stroke="#b64e35" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(102 810)">
+    <rect width="1390" height="54" rx="14" fill="#fffaf0" stroke="#c9bda8"/>
+    <text x="22" y="35" class="small">建议 Terrain：288 m × 288 m，Position Y = −8 m，Height = 48 m（上限 +40 m）。建筑定稿后再锁定台地收口。</text>
+  </g>
+</svg>
