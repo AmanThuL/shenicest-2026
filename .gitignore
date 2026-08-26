@@ -129,3 +129,7 @@ Thumbs.db
 # Shared agent instructions are AGENTS.md / CLAUDE.md, which are committed (guideline 06).
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Superpowers agent workflow (rudyz): design specs / implementation plans and the SDD scratch workspace stay local
+docs/superpowers/
+.superpowers/
