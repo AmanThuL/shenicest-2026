@@ -85,6 +85,19 @@
           "m_asset": "Assets/RootsDance/Materials/Arms.mat"
         }
       ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_KeypadPoke.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_KeypadPoke.export.json",
+      "m_clipName": "Arms_KeypadPoke",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
     }
   ]
 }

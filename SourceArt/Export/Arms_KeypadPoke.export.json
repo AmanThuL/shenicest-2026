@@ -1,0 +1,17 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms_KeypadPoke.fbx",
+  "m_blend": "../psx-first-person-arms-free-game-assets/arms_rig_helmat.blend",
+  "m_blendModifiedUtc": "2026-08-26T20:26:29+00:00",
+  "m_action": "keypad_poke",
+  "m_armature": "ArmsRig",
+  "m_frameStart": 1,
+  "m_frameEnd": 50,
+  "m_fps": 30,
+  "m_exportedObjects": [
+    "ArmsMesh",
+    "ArmsRig"
+  ],
+  "m_blenderVersion": "4.5.3 LTS",
+  "m_profile": "Tools/blender/profiles/fps_arms.json",
+  "m_exportedUtc": "2026-08-26T20:34:34+00:00"
+}
