@@ -136,3 +136,6 @@ __pycache__/
 # Superpowers agent workflow (rudyz): design specs / implementation plans and the SDD scratch workspace stay local
 docs/superpowers/
 .superpowers/
+
+# AmbientCG mask source channels: Unity ignores '~' folders, git must not
+!Assets/ThirdParty/Environment/**/Source~/

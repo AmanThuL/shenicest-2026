@@ -37,3 +37,11 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
 - **Placeholder status:** the helmet in this file is a placeholder sphere, and its `Visor` material
   slot has no faces assigned. It is a stand-in until the real helmet model arrives.
 - CC0 imposes no attribution requirement; this entry exists for provenance, not obligation.
+
+## ambientCG — `Assets/ThirdParty/Environment/AmbientCG/`
+
+- **Version/date:** downloaded 2026-08-26 from the ambientCG library.
+- **Path:** `Assets/ThirdParty/Environment/AmbientCG/<Id>/` for `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, - **Licence:** CC0 1.0 Universal — see `AmbientCG/LICENSE.md` and `AmbientCG/SOURCE.md` (one record covering all seven ids).
+- **No local edits.**
+- **What's imported:** the `_Color` and `_NormalGL` 1K JPGs (imported by the Editor as sRGB colour / linear normal map respectively via `EnvironmentAssetPostprocessor`); the `_AmbientOcclusion`, `_Roughness` and `_Displacement` JPGs live in each `<Id>/Source~/` folder, which Unity's importer ignores (folder name ends in `~`) — they are read directly off disk by `RootsDance/Terrain/Pack Terrain Layer Masks` to bake `Assets/RootsDance/Textures/Environment/Terrain<LayerName>_Mask.png` (packed AO/Roughness/Displacement; the file is named after the terrain layer the id feeds, e.g. `Ground103` → `TerrainAshDry_Mask.png`), then never imported as their own textures.
+- **Left out (spec decision 12):** the `.blend`/`.mtlx`/`.tres`/`.usdc` source files, the `_NormalDX` and `_Metalness` variants (URP uses the OpenGL normal convention and the terrain layers are non-metallic), and the preview `.png` thumbnail — none of these are consumed by the terrain layer pipeline. `` was imported for the trail layer in the first pass and removed in the Task 8 tuning pass when `Gravel043` took over that layer.
