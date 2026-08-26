@@ -3,7 +3,10 @@
     "rootNamespace": "RootsDance.Editor",
     "references": [
         "RootsDance.Runtime",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"
