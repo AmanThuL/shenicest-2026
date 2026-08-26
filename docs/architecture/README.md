@@ -57,6 +57,7 @@ docs/architecture/
 |---|---|
 | [工具说明索引](tooling/README.md) | 调试、预览和接线工具的入口。 |
 | [Unity CLI 与 Pipeline：从 shell 驱动 Editor](tooling/unity-cli-agent-workflow.md) | 人和 AI agent 用官方 Unity CLI 跑测试/构建、对打开的 Editor 进 Play mode、读 Console、截图、eval C#、打断点的已验证流程（英文）；含 `com.unity.pipeline` 的取舍（待团队决定）和 agent 安全规则。 |
+| [Blender → Unity 导出管线](tooling/Blender到Unity导出管线.md) | 绑定/动画资产的 FBX 导出与导入设置清单、约束是否需要预先 bake 的实测结论、手持道具挂接方案，以及 D14 对蒙皮动画的补充（选项 1 对 armature 无效，提案增加选项 4）。 |
 
 ## 历史资料
 
