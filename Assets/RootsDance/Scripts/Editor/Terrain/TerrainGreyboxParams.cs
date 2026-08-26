@@ -150,7 +150,18 @@ namespace RootsDance.Editor.Terrain
         public float RingRadiusDE = 55f;
 
         /// <summary>Width of the crossfade between neighbouring splat rings, in metres.</summary>
-        public float SplatBlend = 4f;
+        public float SplatBlend = 8f;
+
+        /// <summary>Amplitude of the low-frequency Perlin offset applied to ring boundaries, in metres.</summary>
+        public float BandNoiseAmplitude = 10f;
+
+        /// <summary>Frequency of the ring-boundary offset noise, in cycles per metre.</summary>
+        public float BandNoiseFrequency = 0.015f;
+
+        /// <summary>
+        /// Extra half-width the trail splat layer adds beyond each path's <c>HalfWidth</c>, in metres.
+        /// </summary>
+        public float TrailExtraWidth = 1f;
 
         /// <summary>
         /// Builds the spec defaults: the radial profile, the three flat spots and the two height paths that the

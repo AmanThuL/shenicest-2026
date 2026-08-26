@@ -11,6 +11,7 @@ namespace RootsDance.Tests.EditMode.Pipeline
         [TestCase("Crate_Occlusion.png", "Crate", TextureMapKind.Occlusion)]
         [TestCase("Sign01_Emission.tga", "Sign01", TextureMapKind.Emission)]
         [TestCase("Assets/RootsDance/Textures/Props/Helmet_Height.png", "Helmet", TextureMapKind.Height)]
+        [TestCase("TerrainAshDry_Mask.png", "TerrainAshDry", TextureMapKind.Mask)]
         public void TryParse_ConventionalName_ReturnsSetAndKind(
             string fileName, string expectedSet, TextureMapKind expectedKind)
         {
@@ -39,6 +40,7 @@ namespace RootsDance.Tests.EditMode.Pipeline
         [TestCase(TextureMapKind.Metallic, false)]
         [TestCase(TextureMapKind.Occlusion, false)]
         [TestCase(TextureMapKind.Height, false)]
+        [TestCase(TextureMapKind.Mask, false)]
         public void IsColorMap_DataMapsAreLinear(TextureMapKind kind, bool expected)
         {
             Assert.AreEqual(expected, TextureMapNaming.IsColorMap(kind));

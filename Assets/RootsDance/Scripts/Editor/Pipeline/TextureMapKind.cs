@@ -21,6 +21,12 @@ namespace RootsDance.Editor.Pipeline
         Occlusion,
         Emission,
         Height,
+
+        /// <summary>
+        /// URP Terrain Lit / Lit mask map — R metallic, G occlusion, B height, A smoothness.
+        /// Packed data, so it is imported linear and its alpha is never treated as opacity.
+        /// </summary>
+        Mask,
     }
 
     /// <summary>Parses and classifies RootsDance texture file names.</summary>

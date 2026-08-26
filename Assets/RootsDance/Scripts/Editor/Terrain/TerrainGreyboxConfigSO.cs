@@ -86,6 +86,9 @@ namespace RootsDance.Editor.Terrain
         [SerializeField, TitleGroup("Anchors")]
         private AnchorDefinition[] m_anchors = CreateDefaultAnchors();
 
+        [SerializeField, TitleGroup("Terrain Layers"), ListDrawerSettings(IsReadOnly = true)]
+        private TerrainLayerDefinition[] m_layers = CreateDefaultLayers();
+
         /// <summary>The generator parameters. Mutable on purpose — the builder writes derived
         /// terrace numbers back into it before generating.</summary>
         public TerrainGreyboxParams Params => m_params;
@@ -117,6 +120,47 @@ namespace RootsDance.Editor.Terrain
 
         /// <summary>The Chapter-00 review anchors.</summary>
         public AnchorDefinition[] Anchors => m_anchors;
+
+        /// <summary>Per-splat-layer textures and tints; the builder wires missing textures on every build.</summary>
+        public TerrainLayerDefinition[] Layers => m_layers;
+
+        /// <summary>
+        /// One definition per splat layer, in <c>TerrainSplatGenerator</c> order; textures are wired by
+        /// the builder from <c>TerrainLayerMaskPacker.k_LayerSources</c>. Editing these values in code
+        /// does not reach an already-serialized config asset — press "Reset Terrain Layers" in the
+        /// Inspector to pull the new defaults into it.
+        /// </summary>
+        /// <returns>A new array of length <c>TerrainSplatGenerator.k_LayerCount</c>.</returns>
+        public static TerrainLayerDefinition[] CreateDefaultLayers()
+        {
+            TerrainLayerDefinition[] layers = new TerrainLayerDefinition[TerrainSplatGenerator.k_LayerCount];
+
+            // URP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is a
+            // multiplicative colour cast chosen against each CC0 set's own colour — cool casts pull the warm
+            // soils towards the greybox palette — and a lifted floor (tintMin) compresses a set's contrast,
+            // which is what turns a saturated green into a cold grey-green without a second texture.
+            layers[TerrainSplatGenerator.k_LayerAshDry] =
+                new TerrainLayerDefinition("AshDry", 8f, new Color(0.72f, 0.78f, 0.95f));
+            layers[TerrainSplatGenerator.k_LayerHumusDead] =
+                new TerrainLayerDefinition("HumusDead", 7f, new Color(0.62f, 0.52f, 0.44f));
+            layers[TerrainSplatGenerator.k_LayerGrassBand] =
+                new TerrainLayerDefinition("GrassBand", 6f, new Color(0.44f, 0.47f, 0.48f),
+                    // Alpha stays 1, matching Color.black — only the RGB floor is being lifted here.
+                    // Grass003 is a saturated lawn; nearly equal RGB in the ceiling plus a lifted floor
+                    // is what turns it into the cold grey-green the chapter's C band asks for.
+                    new Color(0.21f, 0.22f, 0.23f));
+            layers[TerrainSplatGenerator.k_LayerStableSoil] =
+                // Ground037 is a mossy soil: a green-leaning tint alone made the D ring read as a mown
+                // lawn from eye height, so the ceiling is neutral and the floor is lifted as well.
+                new TerrainLayerDefinition("StableSoil", 7f, new Color(0.60f, 0.62f, 0.60f),
+                    new Color(0.18f, 0.18f, 0.18f));
+            layers[TerrainSplatGenerator.k_LayerResearchGround] =
+                new TerrainLayerDefinition("ResearchGround", 4f, new Color(0.78f, 0.80f, 0.80f));
+            layers[TerrainSplatGenerator.k_LayerTrail] =
+                new TerrainLayerDefinition("Trail", 3f, new Color(0.50f, 0.48f, 0.45f));
+
+            return layers;
+        }
 
         /// <summary>
         /// The spec anchors from the Chapter-00 blockout. The exhaust fan sits on the building wall,
@@ -159,6 +203,13 @@ namespace RootsDance.Editor.Terrain
         private void BuildFromInspector()
         {
             TerrainGreyboxBuilder.Build(this);
+        }
+
+        /// <summary>Drops every hand-tuned layer value back to <see cref="CreateDefaultLayers"/>.</summary>
+        [Button("Reset Terrain Layers"), TitleGroup("Terrain Layers")]
+        private void ResetLayersFromInspector()
+        {
+            TerrainGreyboxBuilder.ResetLayerDefinitions(this);
         }
     }
 }

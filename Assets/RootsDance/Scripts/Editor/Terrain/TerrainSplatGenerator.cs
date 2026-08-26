@@ -8,8 +8,8 @@ namespace RootsDance.Editor.Terrain
     /// </summary>
     public static class TerrainSplatGenerator
     {
-        /// <summary>Number of splat layers the greybox terrain uses: A, B, C, D, E.</summary>
-        public const int k_LayerCount = 5;
+        /// <summary>Number of splat layers the greybox terrain uses: A, B, C, D, E, Trail.</summary>
+        public const int k_LayerCount = 6;
 
         /// <summary>Layer index of A — Ash_Dry, the outermost ring.</summary>
         public const int k_LayerAshDry = 0;
@@ -17,7 +17,7 @@ namespace RootsDance.Editor.Terrain
         /// <summary>Layer index of B — Humus_Dead.</summary>
         public const int k_LayerHumusDead = 1;
 
-        /// <summary>Layer index of C — GrassBand_Greybox.</summary>
+        /// <summary>Layer index of C — GrassBand.</summary>
         public const int k_LayerGrassBand = 2;
 
         /// <summary>Layer index of D — Stable_Soil.</summary>
@@ -26,10 +26,17 @@ namespace RootsDance.Editor.Terrain
         /// <summary>Layer index of E — Research_Ground, the lab terrace.</summary>
         public const int k_LayerResearchGround = 4;
 
+        /// <summary>Layer index of F — Trail, the mud corridor along the height paths.</summary>
+        public const int k_LayerTrail = 5;
+
+        private const float k_BandNoiseOffsetX = 91.7f;
+        private const float k_BandNoiseOffsetZ = 23.1f;
+
         /// <summary>
         /// Bakes the whole splatmap. Index order matches <c>TerrainData.SetAlphamaps</c>: the first index runs
         /// along +Z, the second along +X, the third is the layer. Weights sum to one per cell; layer order is
-        /// 0 = A Ash_Dry, 1 = B Humus_Dead, 2 = C GrassBand_Greybox, 3 = D Stable_Soil, 4 = E Research_Ground.
+        /// 0 = A Ash_Dry, 1 = B Humus_Dead, 2 = C GrassBand, 3 = D Stable_Soil, 4 = E Research_Ground,
+        /// 5 = F Trail.
         /// </summary>
         /// <param name="p">Terrain parameters.</param>
         /// <returns>
@@ -73,7 +80,7 @@ namespace RootsDance.Editor.Terrain
         /// <param name="p">Terrain parameters.</param>
         /// <param name="worldX">World X, in metres.</param>
         /// <param name="worldZ">World Z, in metres.</param>
-        /// <returns>The dominant layer index, 0..4.</returns>
+        /// <returns>The dominant layer index, 0..5.</returns>
         public static int DominantLayer(TerrainGreyboxParams p, float worldX, float worldZ)
         {
             float[] weights = new float[k_LayerCount];
@@ -91,6 +98,64 @@ namespace RootsDance.Editor.Terrain
             return dominant;
         }
 
+        /// <summary>Warped radius plus a low-frequency Perlin offset so ring boundaries are not equal-width.</summary>
+        /// <param name="p">Terrain parameters.</param>
+        /// <param name="worldX">World X, in metres.</param>
+        /// <param name="worldZ">World Z, in metres.</param>
+        /// <returns>The noisy warped radius, in metres.</returns>
+        public static float NoisyRadius(TerrainGreyboxParams p, float worldX, float worldZ)
+        {
+            float radius = TerrainHeightmapGenerator.WarpedRadius(p, worldX, worldZ);
+            if (p.BandNoiseAmplitude <= 0f)
+            {
+                return radius;
+            }
+
+            float noise = Mathf.PerlinNoise(
+                worldX * p.BandNoiseFrequency + k_BandNoiseOffsetX,
+                worldZ * p.BandNoiseFrequency + k_BandNoiseOffsetZ);
+            return radius + (noise - 0.5f) * 2f * p.BandNoiseAmplitude;
+        }
+
+        /// <summary>
+        /// One on a path centre line, fading to zero over <c>HalfWidth + TrailExtraWidth + Blend</c>.
+        /// </summary>
+        /// <param name="p">Terrain parameters.</param>
+        /// <param name="worldX">World X, in metres.</param>
+        /// <param name="worldZ">World Z, in metres.</param>
+        /// <returns>The trail weight in 0..1, the largest weight across all paths.</returns>
+        public static float TrailWeight(TerrainGreyboxParams p, float worldX, float worldZ)
+        {
+            if (p.Paths == null)
+            {
+                return 0f;
+            }
+
+            Vector2 point = new Vector2(worldX, worldZ);
+            float best = 0f;
+            for (int i = 0; i < p.Paths.Length; i++)
+            {
+                HeightPath path = p.Paths[i];
+                if (path == null || path.Nodes == null || path.Nodes.Length < 2)
+                {
+                    continue;
+                }
+
+                float heightAtClosest;
+                float distance = TerrainHeightmapGenerator.DistanceToPolyline(path.Nodes, point, out heightAtClosest);
+                float inner = path.HalfWidth + p.TrailExtraWidth;
+                float weight = path.Blend <= 0f
+                    ? (distance <= inner ? 1f : 0f)
+                    : 1f - TerrainHeightmapGenerator.SmoothStep01((distance - inner) / path.Blend);
+                if (weight > best)
+                {
+                    best = weight;
+                }
+            }
+
+            return best;
+        }
+
         /// <summary>
         /// Fills <paramref name="weights"/> with the normalised layer weights at a world position.
         /// </summary>
@@ -100,7 +165,7 @@ namespace RootsDance.Editor.Terrain
         /// <param name="weights">Destination buffer of length <c>k_LayerCount</c>; overwritten.</param>
         private static void SampleWeights(TerrainGreyboxParams p, float worldX, float worldZ, float[] weights)
         {
-            float radius = TerrainHeightmapGenerator.WarpedRadius(p, worldX, worldZ);
+            float radius = NoisyRadius(p, worldX, worldZ);
             float outsideAB = RingStep(p, radius, p.RingRadiusAB);
             float outsideBC = RingStep(p, radius, p.RingRadiusBC);
             float outsideCD = RingStep(p, radius, p.RingRadiusCD);
@@ -114,6 +179,14 @@ namespace RootsDance.Editor.Terrain
             weights[k_LayerGrassBand] = (outsideCD - outsideBC) * ring;
             weights[k_LayerStableSoil] = (outsideDE - outsideCD) * ring;
             weights[k_LayerResearchGround] = (1f - outsideDE) * ring + terrace;
+
+            float trail = TrailWeight(p, worldX, worldZ);
+            for (int layer = 0; layer < k_LayerTrail; layer++)
+            {
+                weights[layer] *= 1f - trail;
+            }
+
+            weights[k_LayerTrail] = trail;
 
             float sum = 0f;
             for (int layer = 0; layer < weights.Length; layer++)

@@ -10,8 +10,9 @@ namespace RootsDance.Editor.Terrain
 {
     /// <summary>
     /// Turns <see cref="TerrainGreyboxConfigSO"/> into the real greybox in
-    /// <c>Main_Environment.unity</c>: a Unity Terrain driven by the pure generators, five flat-colour
-    /// terrain layers, the lab blockout on its terrace and the Chapter-00 anchor markers. Idempotent —
+    /// <c>Main_Environment.unity</c>: a Unity Terrain driven by the pure generators, one terrain layer
+    /// per splat band (textured from the CC0 ground sets, or flat greybox colour while a definition has
+    /// no albedo), the lab blockout on its terrace and the Chapter-00 anchor markers. Idempotent —
     /// running it twice yields the same hierarchy. This is the one sanctioned tool that saves a scene.
     /// Menu: RootsDance &gt; Terrain &gt; Build Greybox Terrain.
     /// </summary>
@@ -90,7 +91,7 @@ namespace RootsDance.Editor.Terrain
 
             Scene scene;
 
-            if (!TryOpenTargetScene(config, out scene))
+            if (!TerrainSceneUtility.TryOpenTargetScene(config.ScenePath, nameof(TerrainGreyboxBuilder), out scene))
             {
                 return;
             }
@@ -104,7 +105,7 @@ namespace RootsDance.Editor.Terrain
                 return;
             }
 
-            UnityEngine.TerrainLayer[] layers = EnsureLayerAssets();
+            UnityEngine.TerrainLayer[] layers = EnsureLayerAssets(config);
 
             if (layers == null)
             {
@@ -204,7 +205,7 @@ namespace RootsDance.Editor.Terrain
 
             if (config == null)
             {
-                EnsureFolder(ParentFolderOf(k_ConfigPath));
+                TerrainSceneUtility.EnsureFolder(TerrainSceneUtility.ParentFolderOf(k_ConfigPath));
                 config = ScriptableObject.CreateInstance<TerrainGreyboxConfigSO>();
                 AssetDatabase.CreateAsset(config, k_ConfigPath);
                 Debug.Log($"TerrainGreyboxBuilder: created the default config asset at {k_ConfigPath}.");
@@ -233,50 +234,12 @@ namespace RootsDance.Editor.Terrain
         }
 
         /// <summary>
-        /// Keeps the target scene when it is already active; otherwise opens it single — but refuses
-        /// to do so while any open scene has unsaved changes, because that would throw them away.
-        /// </summary>
-        private static bool TryOpenTargetScene(TerrainGreyboxConfigSO config, out Scene scene)
-        {
-            scene = default(Scene);
-            string path = config.ScenePath;
-            Scene active = SceneManager.GetActiveScene();
-
-            if (active.path == path)
-            {
-                scene = active;
-                return true;
-            }
-
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene open = SceneManager.GetSceneAt(i);
-
-                if (open.isDirty)
-                {
-                    Debug.LogError($"TerrainGreyboxBuilder: scene '{open.name}' has unsaved changes. "
-                        + $"Save or discard them, then run the builder again ({path} is not open).");
-                    return false;
-                }
-            }
-
-            if (!File.Exists(path))
-            {
-                Debug.LogError($"TerrainGreyboxBuilder: target scene {path} does not exist.");
-                return false;
-            }
-
-            scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-            return scene.IsValid();
-        }
-
-        /// <summary>
         /// Deletes the PlaytestLevelBuilder leftovers (the 100 m plane and the landmark cubes) from
         /// <c>_Geometry</c>. Everything else, <c>_Lighting/Sun</c> included, is left alone.
         /// </summary>
         private static void RemovePlaytestPlaceholders(Scene scene)
         {
-            Transform geometry = FindRoot(scene, k_GeometryRootName);
+            Transform geometry = TerrainSceneUtility.FindRoot(scene, k_GeometryRootName);
 
             if (geometry == null)
             {
@@ -318,7 +281,7 @@ namespace RootsDance.Editor.Terrain
                 return false;
             }
 
-            Transform geometry = EnsureRoot(scene, k_GeometryRootName);
+            Transform geometry = TerrainSceneUtility.EnsureRoot(scene, k_GeometryRootName);
             Transform existing = geometry.Find(k_LabObjectName);
 
             if (existing != null
@@ -516,9 +479,10 @@ namespace RootsDance.Editor.Terrain
 
             names[TerrainSplatGenerator.k_LayerAshDry] = "AshDry";
             names[TerrainSplatGenerator.k_LayerHumusDead] = "HumusDead";
-            names[TerrainSplatGenerator.k_LayerGrassBand] = "GrassBandGreybox";
+            names[TerrainSplatGenerator.k_LayerGrassBand] = "GrassBand";
             names[TerrainSplatGenerator.k_LayerStableSoil] = "StableSoil";
             names[TerrainSplatGenerator.k_LayerResearchGround] = "ResearchGround";
+            names[TerrainSplatGenerator.k_LayerTrail] = "Trail";
 
             return names;
         }
@@ -534,36 +498,43 @@ namespace RootsDance.Editor.Terrain
             colors[TerrainSplatGenerator.k_LayerGrassBand] = new Color32(0x8F, 0xB0, 0x8A, 0xFF);
             colors[TerrainSplatGenerator.k_LayerStableSoil] = new Color32(0x4F, 0x6B, 0x4A, 0xFF);
             colors[TerrainSplatGenerator.k_LayerResearchGround] = new Color32(0x8C, 0x8C, 0x86, 0xFF);
+            colors[TerrainSplatGenerator.k_LayerTrail] = new Color32(0x5A, 0x4A, 0x3A, 0xFF);
 
             return colors;
         }
 
         /// <summary>
-        /// Creates (once) the five flat-colour base maps and their <c>TerrainLayer</c> assets, and
-        /// re-applies the layer settings every run so the assets cannot drift.
+        /// Creates (once) the flat greybox base maps and the <c>TerrainLayer</c> assets, and re-applies
+        /// every layer setting on each run so the assets cannot drift. A layer whose definition carries
+        /// an albedo is textured from the CC0 ground set; the others keep the flat greybox colour.
         /// </summary>
+        /// <param name="config">The config asset holding the layer definitions.</param>
         /// <returns>One layer per splat layer, or null when the layer tables are inconsistent.</returns>
-        private static UnityEngine.TerrainLayer[] EnsureLayerAssets()
+        private static UnityEngine.TerrainLayer[] EnsureLayerAssets(TerrainGreyboxConfigSO config)
         {
             int layerCount = TerrainSplatGenerator.k_LayerCount;
+            int sourceCount = TerrainLayerMaskPacker.k_LayerSources.GetLength(0);
 
-            if (k_LayerNames.Length != layerCount || k_LayerColors.Length != layerCount)
+            if (k_LayerNames.Length != layerCount || k_LayerColors.Length != layerCount || sourceCount != layerCount)
             {
-                Debug.LogError($"TerrainGreyboxBuilder: the layer tables hold {k_LayerNames.Length} names and "
-                    + $"{k_LayerColors.Length} colours, but the splat generator has {layerCount} layers. "
-                    + "Fix CreateLayerNames/CreateLayerColors before building.");
+                Debug.LogError($"TerrainGreyboxBuilder: the layer tables hold {k_LayerNames.Length} names, "
+                    + $"{k_LayerColors.Length} colours and {sourceCount} mask sources, but the splat generator "
+                    + $"has {layerCount} layers. Fix CreateLayerNames/CreateLayerColors/"
+                    + "TerrainLayerMaskPacker.k_LayerSources before building.");
                 return null;
             }
 
-            EnsureFolder(k_LayerTextureFolder);
-            EnsureFolder(k_TerrainLayerFolder);
+            TerrainSceneUtility.EnsureFolder(k_LayerTextureFolder);
+            TerrainSceneUtility.EnsureFolder(k_TerrainLayerFolder);
+            EnsureLayerTexturesWired(config);
 
+            TerrainLayerDefinition[] definitions = config.Layers;
             UnityEngine.TerrainLayer[] layers = new UnityEngine.TerrainLayer[layerCount];
 
             for (int i = 0; i < layerCount; i++)
             {
-                string texturePath = $"{k_LayerTextureFolder}/TL_{k_LayerNames[i]}_BaseMap.png";
-                Texture2D texture = EnsureLayerTexture(texturePath, k_LayerColors[i]);
+                TerrainLayerDefinition definition =
+                    definitions != null && i < definitions.Length ? definitions[i] : null;
 
                 string layerPath = $"{k_TerrainLayerFolder}/TL_{k_LayerNames[i]}.terrainlayer";
                 UnityEngine.TerrainLayer layer = AssetDatabase.LoadAssetAtPath<UnityEngine.TerrainLayer>(layerPath);
@@ -574,11 +545,17 @@ namespace RootsDance.Editor.Terrain
                     layer = new UnityEngine.TerrainLayer();
                 }
 
-                layer.diffuseTexture = texture;
-                layer.tileSize = new Vector2(k_LayerTileSize, k_LayerTileSize);
+                if (definition != null && definition.HasTextures)
+                {
+                    ApplyTexturedLayer(layer, definition);
+                }
+                else
+                {
+                    ApplyFlatLayer(layer, i);
+                }
+
                 layer.tileOffset = Vector2.zero;
                 layer.specular = Color.black;
-                layer.smoothness = 0f;
                 layer.metallic = 0f;
 
                 if (isNew)
@@ -596,7 +573,166 @@ namespace RootsDance.Editor.Terrain
             return layers;
         }
 
-        /// <summary>Writes a 4x4 solid-colour PNG the first time, then enforces the import settings.</summary>
+        /// <summary>Applies one CC0 ground set to a terrain layer, tinted and remapped for this level.</summary>
+        private static void ApplyTexturedLayer(UnityEngine.TerrainLayer layer, TerrainLayerDefinition definition)
+        {
+            layer.diffuseTexture = definition.Albedo;
+            layer.normalMapTexture = definition.Normal;
+            layer.maskMapTexture = definition.Mask;
+            layer.normalScale = definition.NormalScale;
+            layer.tileSize = Vector2.one * definition.TileSize;
+
+            // URP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is the
+            // layer's colour cast and the floor is how much of the source's contrast survives; the ceiling's
+            // alpha must stay 1 (the shader reads .w as "use opacity as density").
+            layer.diffuseRemapMin = definition.TintMin;
+            layer.diffuseRemapMax = definition.Tint;
+
+            // R metallic (kept at 0), G occlusion, B height, A smoothness. The alpha ceiling turns the
+            // packed 1 − roughness into this layer's smoothness range.
+            layer.maskMapRemapMin = Vector4.zero;
+            layer.maskMapRemapMax = new Vector4(0f, 1f, 1f, definition.Smoothness * 2f);
+            layer.smoothness = definition.Smoothness;
+        }
+
+        /// <summary>Applies the flat greybox colour of splat layer <paramref name="index"/>.</summary>
+        private static void ApplyFlatLayer(UnityEngine.TerrainLayer layer, int index)
+        {
+            string texturePath = $"{k_LayerTextureFolder}/TerrainGreybox{k_LayerNames[index]}_BaseMap.png";
+
+            layer.diffuseTexture = EnsureLayerTexture(texturePath, k_LayerColors[index]);
+            layer.normalMapTexture = null;
+            layer.maskMapTexture = null;
+            layer.normalScale = 1f;
+            layer.tileSize = new Vector2(k_LayerTileSize, k_LayerTileSize);
+            layer.diffuseRemapMin = Color.black;
+            layer.diffuseRemapMax = Color.white;
+            layer.maskMapRemapMin = Vector4.zero;
+            layer.maskMapRemapMax = Vector4.one;
+            layer.smoothness = 0f;
+        }
+
+        /// <summary>
+        /// Fills in the textures of every layer definition that has none, from the CC0 ground set the
+        /// mask packer uses. Import settings are not touched here — <c>TexturePipelinePostprocessor</c>
+        /// owns everything under <c>Assets/RootsDance/Textures/</c> and the environment postprocessor
+        /// owns <c>Assets/ThirdParty/Environment/</c>.
+        /// </summary>
+        /// <param name="config">The config asset whose <c>m_layers</c> array is written through.</param>
+        private static void EnsureLayerTexturesWired(TerrainGreyboxConfigSO config)
+        {
+            SerializedObject serialized = new SerializedObject(config);
+            SerializedProperty layers = serialized.FindProperty("m_layers");
+            int layerCount = TerrainSplatGenerator.k_LayerCount;
+
+            // A config asset written before the layer definitions existed has no array at all.
+            if (layers.arraySize != layerCount)
+            {
+                WriteDefaultLayerDefinitions(layers);
+            }
+
+            for (int i = 0; i < layerCount; i++)
+            {
+                SerializedProperty element = layers.GetArrayElementAtIndex(i);
+                string name = k_LayerNames[i];
+                string id = TerrainLayerMaskPacker.k_LayerSources[i, 1];
+
+                // Each field is gated independently so a mask that is missing on the first build (or
+                // later deleted, or whose GUID changed) is re-wired on the next build instead of being
+                // skipped forever because the albedo alone was already assigned.
+                if (element.FindPropertyRelative("m_albedo").objectReferenceValue == null)
+                {
+                    AssignTexture(element, "m_albedo", TerrainLayerMaskPacker.ColorPath(id), name);
+                }
+
+                if (element.FindPropertyRelative("m_normal").objectReferenceValue == null)
+                {
+                    AssignTexture(element, "m_normal", TerrainLayerMaskPacker.NormalPath(id), name);
+                }
+
+                if (element.FindPropertyRelative("m_mask").objectReferenceValue == null)
+                {
+                    AssignTexture(element, "m_mask", TerrainLayerMaskPacker.MaskPath(name), name);
+                }
+            }
+
+            if (serialized.ApplyModifiedPropertiesWithoutUndo())
+            {
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        /// <summary>
+        /// Resets the config's layer definitions to <see cref="TerrainGreyboxConfigSO.CreateDefaultLayers"/>,
+        /// dropping any texture assignment. Used when the tint/tile defaults in code have moved on.
+        /// </summary>
+        /// <param name="config">The config asset to rewrite; a null config is ignored.</param>
+        public static void ResetLayerDefinitions(TerrainGreyboxConfigSO config)
+        {
+            if (config == null)
+            {
+                return;
+            }
+
+            SerializedObject serialized = new SerializedObject(config);
+            WriteDefaultLayerDefinitions(serialized.FindProperty("m_layers"));
+
+            // This is the Inspector button path (a human pressed "Reset Terrain Layers"), so the write
+            // must be undoable — unlike the automatic wiring in EnsureLayerTexturesWired, which runs on
+            // every build and would otherwise spam the undo stack.
+            serialized.ApplyModifiedProperties();
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>Writes the code defaults into the serialized <c>m_layers</c> array.</summary>
+        /// <param name="layers">The <c>m_layers</c> array property; resized to the default count.</param>
+        private static void WriteDefaultLayerDefinitions(SerializedProperty layers)
+        {
+            TerrainLayerDefinition[] defaults = TerrainGreyboxConfigSO.CreateDefaultLayers();
+            layers.arraySize = defaults.Length;
+
+            for (int i = 0; i < defaults.Length; i++)
+            {
+                SerializedProperty element = layers.GetArrayElementAtIndex(i);
+
+                element.FindPropertyRelative("m_name").stringValue = defaults[i].Name;
+                element.FindPropertyRelative("m_albedo").objectReferenceValue = null;
+                element.FindPropertyRelative("m_normal").objectReferenceValue = null;
+                element.FindPropertyRelative("m_mask").objectReferenceValue = null;
+                element.FindPropertyRelative("m_tileSize").floatValue = defaults[i].TileSize;
+                element.FindPropertyRelative("m_tint").colorValue = defaults[i].Tint;
+                element.FindPropertyRelative("m_tintMin").colorValue = defaults[i].TintMin;
+                element.FindPropertyRelative("m_smoothness").floatValue = defaults[i].Smoothness;
+                element.FindPropertyRelative("m_normalScale").floatValue = defaults[i].NormalScale;
+            }
+
+            Debug.Log($"TerrainGreyboxBuilder: wrote {defaults.Length} default terrain-layer definitions "
+                + "into the config asset.");
+        }
+
+        /// <summary>Assigns one texture into a layer definition, warning when the asset is missing.</summary>
+        private static void AssignTexture(
+            SerializedProperty element, string fieldName, string assetPath, string layerName)
+        {
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+
+            if (texture == null)
+            {
+                Debug.LogWarning($"TerrainGreyboxBuilder: layer '{layerName}' has no texture at {assetPath}; "
+                    + "it keeps the flat greybox colour. Run RootsDance/Terrain/Pack Terrain Layer Masks "
+                    + "and check the CC0 import.");
+                return;
+            }
+
+            element.FindPropertyRelative(fieldName).objectReferenceValue = texture;
+        }
+
+        /// <summary>
+        /// Writes a 4x4 solid-colour PNG the first time. Import settings are left to
+        /// <c>TexturePipelinePostprocessor</c>, which owns this folder.
+        /// </summary>
         private static Texture2D EnsureLayerTexture(string assetPath, Color color)
         {
             if (!File.Exists(assetPath))
@@ -614,42 +750,6 @@ namespace RootsDance.Editor.Terrain
                 File.WriteAllBytes(assetPath, source.EncodeToPNG());
                 UnityEngine.Object.DestroyImmediate(source);
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
-            }
-
-            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
-
-            if (importer != null)
-            {
-                bool changed = false;
-
-                if (!importer.sRGBTexture)
-                {
-                    importer.sRGBTexture = true;
-                    changed = true;
-                }
-
-                if (importer.mipmapEnabled)
-                {
-                    importer.mipmapEnabled = false;
-                    changed = true;
-                }
-
-                if (importer.wrapMode != TextureWrapMode.Repeat)
-                {
-                    importer.wrapMode = TextureWrapMode.Repeat;
-                    changed = true;
-                }
-
-                if (importer.textureCompression != TextureImporterCompression.Uncompressed)
-                {
-                    importer.textureCompression = TextureImporterCompression.Uncompressed;
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    importer.SaveAndReimport();
-                }
             }
 
             return AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
@@ -684,7 +784,7 @@ namespace RootsDance.Editor.Terrain
             }
 
             string path = config.TerrainDataPath;
-            EnsureFolder(ParentFolderOf(path));
+            TerrainSceneUtility.EnsureFolder(TerrainSceneUtility.ParentFolderOf(path));
 
             UnityEngine.TerrainData terrainData = AssetDatabase.LoadAssetAtPath<UnityEngine.TerrainData>(path);
 
@@ -738,7 +838,7 @@ namespace RootsDance.Editor.Terrain
         private static UnityEngine.Terrain EnsureTerrainObject(
             TerrainGreyboxConfigSO config, UnityEngine.TerrainData terrainData, Scene scene)
         {
-            Transform geometry = EnsureRoot(scene, k_GeometryRootName);
+            Transform geometry = TerrainSceneUtility.EnsureRoot(scene, k_GeometryRootName);
             Transform existing = geometry.Find(k_TerrainObjectName);
             GameObject terrainObject;
 
@@ -746,7 +846,7 @@ namespace RootsDance.Editor.Terrain
             {
                 terrainObject = UnityEngine.Terrain.CreateTerrainGameObject(terrainData);
                 terrainObject.name = k_TerrainObjectName;
-                MoveToScene(terrainObject, scene);
+                TerrainSceneUtility.MoveToScene(terrainObject, scene);
                 terrainObject.transform.SetParent(geometry, true);
                 Undo.RegisterCreatedObjectUndo(terrainObject, "Create Terrain_Main");
             }
@@ -822,7 +922,7 @@ namespace RootsDance.Editor.Terrain
             }
 
             Material material = EnsureAnchorMaterial();
-            Transform anchorRoot = EnsureRoot(scene, k_AnchorRootName);
+            Transform anchorRoot = TerrainSceneUtility.EnsureRoot(scene, k_AnchorRootName);
             float terrainBaseY = terrain.transform.position.y;
 
             for (int i = 0; i < anchors.Length; i++)
@@ -848,7 +948,7 @@ namespace RootsDance.Editor.Terrain
                         UnityEngine.Object.DestroyImmediate(collider);
                     }
 
-                    MoveToScene(marker, scene);
+                    TerrainSceneUtility.MoveToScene(marker, scene);
                     marker.transform.SetParent(anchorRoot, true);
                     Undo.RegisterCreatedObjectUndo(marker, "Create anchor marker");
                 }
@@ -893,7 +993,7 @@ namespace RootsDance.Editor.Terrain
                     return null;
                 }
 
-                EnsureFolder(k_MaterialFolder);
+                TerrainSceneUtility.EnsureFolder(k_MaterialFolder);
                 material = new Material(shader);
                 material.name = Path.GetFileNameWithoutExtension(k_AnchorMaterialPath);
                 AssetDatabase.CreateAsset(material, k_AnchorMaterialPath);
@@ -906,63 +1006,6 @@ namespace RootsDance.Editor.Terrain
             }
 
             return material;
-        }
-
-        private static Transform FindRoot(Scene scene, string name)
-        {
-            GameObject[] roots = scene.GetRootGameObjects();
-
-            for (int i = 0; i < roots.Length; i++)
-            {
-                if (roots[i].name == name)
-                {
-                    return roots[i].transform;
-                }
-            }
-
-            return null;
-        }
-
-        private static Transform EnsureRoot(Scene scene, string name)
-        {
-            Transform existing = FindRoot(scene, name);
-
-            if (existing != null)
-            {
-                return existing;
-            }
-
-            GameObject created = new GameObject(name);
-            MoveToScene(created, scene);
-            Undo.RegisterCreatedObjectUndo(created, "Create " + name);
-            return created.transform;
-        }
-
-        private static void MoveToScene(GameObject target, Scene scene)
-        {
-            if (target.scene != scene)
-            {
-                SceneManager.MoveGameObjectToScene(target, scene);
-            }
-        }
-
-        private static string ParentFolderOf(string assetPath)
-        {
-            return Path.GetDirectoryName(assetPath).Replace('\\', '/');
-        }
-
-        private static void EnsureFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path))
-            {
-                return;
-            }
-
-            string parent = ParentFolderOf(path);
-            string folderName = Path.GetFileName(path);
-
-            EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, folderName);
         }
     }
 }

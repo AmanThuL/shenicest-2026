@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RootsDance.Editor.Terrain;
+using UnityEngine;
 
 namespace RootsDance.Tests.EditMode.Terrain
 {
@@ -28,15 +29,49 @@ namespace RootsDance.Tests.EditMode.Terrain
             }
         }
 
-        [TestCase(0f, -10f, 0, TestName = "wake is A Ash_Dry")]
-        [TestCase(-14f, 14f, 1, TestName = "valley is B Humus_Dead")]
-        [TestCase(-12f, 39f, 2, TestName = "grass platform is C GrassBand")]
-        [TestCase(0f, 52f, 3, TestName = "saddle is D Stable_Soil")]
+        [TestCase(30f, -10f, 0, TestName = "wake lowland off the trail is A Ash_Dry")]
+        [TestCase(-30f, 14f, 1, TestName = "valley is B Humus_Dead")]
+        [TestCase(-24f, 39f, 2, TestName = "grass band is C GrassBand")]
+        [TestCase(12f, 52f, 3, TestName = "saddle is D Stable_Soil")]
         [TestCase(0f, 112f, 4, TestName = "lab centre is E Research_Ground")]
-        public void DominantLayer_SpecAnchor_IsExpectedRing(float x, float z, int expectedLayer)
+        [TestCase(-7f, 4f, 5, TestName = "main route node is Trail")]
+        [TestCase(44f, 95f, 5, TestName = "service ring node is Trail")]
+        public void DominantLayer_SpecPoint_IsExpectedLayer(float x, float z, int expectedLayer)
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             Assert.AreEqual(expectedLayer, TerrainSplatGenerator.DominantLayer(p, x, z));
+        }
+
+        [Test]
+        public void TrailWeight_OnPathCentre_IsOne_AndFarAway_IsZero()
+        {
+            TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
+            Assert.AreEqual(1f, TerrainSplatGenerator.TrailWeight(p, -7f, 4f), 1e-3f);
+            Assert.AreEqual(0f, TerrainSplatGenerator.TrailWeight(p, 60f, -20f), 1e-3f);
+        }
+
+        [Test]
+        public void NoisyRadius_WithZeroAmplitude_EqualsWarpedRadius()
+        {
+            TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
+            p.BandNoiseAmplitude = 0f;
+            Assert.AreEqual(TerrainHeightmapGenerator.WarpedRadius(p, 10f, 20f),
+                TerrainSplatGenerator.NoisyRadius(p, 10f, 20f), 1e-4f);
+        }
+
+        [Test]
+        public void NoisyRadius_DefaultAmplitude_StaysWithinAmplitudeOfWarpedRadius()
+        {
+            TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
+            for (float x = -140f; x <= 140f; x += 17f)
+            {
+                for (float z = -30f; z <= 250f; z += 19f)
+                {
+                    float delta = TerrainSplatGenerator.NoisyRadius(p, x, z)
+                        - TerrainHeightmapGenerator.WarpedRadius(p, x, z);
+                    Assert.LessOrEqual(Mathf.Abs(delta), p.BandNoiseAmplitude + 1e-3f, $"({x},{z})");
+                }
+            }
         }
 
         /// <summary>
@@ -52,9 +87,21 @@ namespace RootsDance.Tests.EditMode.Terrain
             Assert.AreEqual(TerrainSplatGenerator.k_LayerCount, TerrainGreyboxBuilder.k_LayerColors.Length);
             Assert.AreEqual("AshDry", names[TerrainSplatGenerator.k_LayerAshDry]);
             Assert.AreEqual("HumusDead", names[TerrainSplatGenerator.k_LayerHumusDead]);
-            Assert.AreEqual("GrassBandGreybox", names[TerrainSplatGenerator.k_LayerGrassBand]);
+            Assert.AreEqual("GrassBand", names[TerrainSplatGenerator.k_LayerGrassBand]);
             Assert.AreEqual("StableSoil", names[TerrainSplatGenerator.k_LayerStableSoil]);
             Assert.AreEqual("ResearchGround", names[TerrainSplatGenerator.k_LayerResearchGround]);
+            Assert.AreEqual("Trail", names[TerrainSplatGenerator.k_LayerTrail]);
+
+            // Pins TerrainLayerMaskPacker.k_LayerSources' row order to the same constants, so a 7th
+            // splat layer (or a reordered table) is caught here instead of throwing IndexOutOfRange at
+            // TerrainGreyboxBuilder.EnsureLayerAssets / EnsureLayerTexturesWired.
+            string[,] sources = TerrainLayerMaskPacker.k_LayerSources;
+            Assert.AreEqual(TerrainSplatGenerator.k_LayerCount, sources.GetLength(0));
+
+            for (int i = 0; i < TerrainSplatGenerator.k_LayerCount; i++)
+            {
+                Assert.AreEqual(names[i], sources[i, 0], $"k_LayerSources row {i}");
+            }
         }
     }
 }
