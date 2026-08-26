@@ -130,6 +130,9 @@ Thumbs.db
 CLAUDE.local.md
 .claude/settings.local.json
 
+# Python bytecode from Tools/ pipeline scripts
+__pycache__/
+*.py[cod]
 # Superpowers agent workflow (rudyz): design specs / implementation plans and the SDD scratch workspace stay local
 docs/superpowers/
 .superpowers/

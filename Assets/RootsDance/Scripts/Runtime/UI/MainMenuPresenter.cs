@@ -2,20 +2,16 @@ using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Events;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 namespace RootsDance.UI
 {
     /// <summary>
-    /// UXML contract: a Button named "main-menu__start-button". Clicking it requests the target
-    /// level; GameBootstrap's SceneLoader then tears this scene down along with everything else
-    /// non-Bootstrap and loads the target level's scenes.
+    /// Clicking Start requests the target level; GameBootstrap's SceneLoader then tears this scene
+    /// down along with everything else non-Bootstrap and loads the target level's scenes.
     /// </summary>
-    [RequireComponent(typeof(UIDocument))]
     public class MainMenuPresenter : MonoBehaviour
     {
-        private const string k_StartButtonName = "main-menu__start-button";
-
         [Header("Broadcasts on")]
         [SerializeField] private LevelEventChannelSO m_loadLevelRequested;
 
@@ -23,41 +19,17 @@ namespace RootsDance.UI
         [Tooltip("Level loaded when the player presses Start.")]
         [SerializeField] private LevelSO m_levelToLoad;
 
-        private UIDocument m_document;
-        private Button m_startButton;
-
-        private void Awake()
-        {
-            m_document = GetComponent<UIDocument>();
-        }
+        [Header("Widgets")]
+        [SerializeField] private Button m_startButton;
 
         private void OnEnable()
         {
-            VisualElement documentRoot = m_document.rootVisualElement;
-
-            if (documentRoot == null)
-            {
-                Log.Error("MainMenuPresenter has no root visual element.", this);
-                return;
-            }
-
-            m_startButton = documentRoot.Q<Button>(k_StartButtonName);
-
-            if (m_startButton == null)
-            {
-                Log.Error($"UXML is missing an element named '{k_StartButtonName}'.", this);
-                return;
-            }
-
-            m_startButton.clicked += OnStartClicked;
+            m_startButton.onClick.AddListener(OnStartClicked);
         }
 
         private void OnDisable()
         {
-            if (m_startButton != null)
-            {
-                m_startButton.clicked -= OnStartClicked;
-            }
+            m_startButton.onClick.RemoveListener(OnStartClicked);
         }
 
         private void OnStartClicked()

@@ -1,6 +1,8 @@
 # Third-party plugin records
 
 > **Scope:** Exceptions and unavoidable deviations for content under `Assets/ThirdParty/` and `Assets/Plugins/`, as required by [docs/guidelines/02-project-structure.md](guidelines/02-project-structure.md) §5. One entry per package; when adding one, record the exact version, path, *why* it's an exception, and every file you had to touch (so the edit can be re-applied after a vendor update).
+>
+> Third-party **art** assets are recorded here too (licence and provenance), even though their source files live outside `Assets/` under `SourceArt/`.
 
 ## Odin Inspector and Serializer (Sirenix) — `Assets/Plugins/Sirenix/`
 
@@ -22,3 +24,16 @@
 ## IngameDebugConsole (yasirkula) — UPM package
 
 Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the OpenUPM scoped registry added to `Packages/manifest.json`), not vendored under `Assets/`. No exception needed — this is the preferred path per [09-packages-systems.md](guidelines/09-packages-systems.md); no entry required here.
+
+## PSX First Person Arms (drillimpact) — art asset, `SourceArt/Blender/`
+
+- **Licence: CC0** (public domain). Source: drillimpact, "PSX First Person Arms" on itch.io.
+- **What is used:** `arms_rig_helmat.blend` — the rigged first-person arms, its 20 actions, and the
+  512px `arms_01.png` sheet. `Arms.fbx`, `Arms_HelmetOff` and `Assets/RootsDance/Textures/Characters/arms_01.png`
+  all derive from it.
+- **Local additions:** a non-deforming `helmet_socket` bone under `root`, driven by a Child Of
+  constraint, added so the helmet hand-off is pure skeletal animation
+  ([Blender → Unity 导出管线](architecture/tooling/Blender到Unity导出管线.md) §7).
+- **Placeholder status:** the helmet in this file is a placeholder sphere, and its `Visor` material
+  slot has no faces assigned. It is a stand-in until the real helmet model arrives.
+- CC0 imposes no attribution requirement; this entry exists for provenance, not obligation.
