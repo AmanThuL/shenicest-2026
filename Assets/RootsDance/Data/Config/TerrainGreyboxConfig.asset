@@ -113,7 +113,10 @@ MonoBehaviour:
     RingRadiusBC: 90
     RingRadiusCD: 68
     RingRadiusDE: 55
-    SplatBlend: 4
+    SplatBlend: 8
+    BandNoiseAmplitude: 10
+    BandNoiseFrequency: 0.015
+    TrailExtraWidth: 1
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_terrainDataPath: Assets/RootsDance/Scenes/Levels/Main/Main_TerrainData.asset
   m_labBlockout: {fileID: 919132149155446097, guid: 0f04effc217a84eee9c6b6dfa4ed8cd9, type: 3}
@@ -164,3 +167,58 @@ MonoBehaviour:
   - m_name: Anchor_00-16_ServiceEntrance
     m_specPosition: {x: 41, y: 4, z: 105}
     m_useSpecHeight: 0
+  m_layers:
+  - m_name: AshDry
+    m_albedo: {fileID: 2800000, guid: 4e6440fa0e08e40c5abaef64cb1fb018, type: 3}
+    m_normal: {fileID: 2800000, guid: 7ce7e586b814f4fff90a0d52883b7c27, type: 3}
+    m_mask: {fileID: 2800000, guid: 1c2b51d8115fa4feea8957d39ae87cb3, type: 3}
+    m_tileSize: 8
+    m_tint: {r: 0.72, g: 0.78, b: 0.95, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: HumusDead
+    m_albedo: {fileID: 2800000, guid: 34a721d7766b948aabe2a2140584013a, type: 3}
+    m_normal: {fileID: 2800000, guid: a7e7f48b0baae4a3c845856234ba84fb, type: 3}
+    m_mask: {fileID: 2800000, guid: bf99f3fbb495b4879bef48e0caf92a0c, type: 3}
+    m_tileSize: 7
+    m_tint: {r: 0.62, g: 0.52, b: 0.44, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: GrassBand
+    m_albedo: {fileID: 2800000, guid: 206257a698a2b4642a229b2dd931173a, type: 3}
+    m_normal: {fileID: 2800000, guid: 2e4e5cca640864dd087e536490c5f84e, type: 3}
+    m_mask: {fileID: 2800000, guid: c9a69f5e4d8b1408ebea142b944084d9, type: 3}
+    m_tileSize: 6
+    m_tint: {r: 0.44, g: 0.47, b: 0.48, a: 1}
+    m_tintMin: {r: 0.21, g: 0.22, b: 0.23, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: StableSoil
+    m_albedo: {fileID: 2800000, guid: 7e857f5e604794bf48b76a7440e33a73, type: 3}
+    m_normal: {fileID: 2800000, guid: 00a1c5477e90f4947810a1ebe54fdb56, type: 3}
+    m_mask: {fileID: 2800000, guid: 77a71f4b1b019407eb3e054b3929ccb3, type: 3}
+    m_tileSize: 7
+    m_tint: {r: 0.6, g: 0.62, b: 0.6, a: 1}
+    m_tintMin: {r: 0.18, g: 0.18, b: 0.18, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: ResearchGround
+    m_albedo: {fileID: 2800000, guid: 32c3fbc7246c242dc9d4171554e100d1, type: 3}
+    m_normal: {fileID: 2800000, guid: 9eb0da33792874fca868a995338aa7c3, type: 3}
+    m_mask: {fileID: 2800000, guid: aa40dba2cb65a4ea5a7813ed6f66135f, type: 3}
+    m_tileSize: 4
+    m_tint: {r: 0.78, g: 0.8, b: 0.8, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: Trail
+    m_albedo: {fileID: 2800000, guid: 396fc5e22f50a4ccf834993384a5b1b8, type: 3}
+    m_normal: {fileID: 2800000, guid: ec70d1bf6c3d94d7b99df3f6b3634751, type: 3}
+    m_mask: {fileID: 2800000, guid: 3b8f348e14495464eb8ad68d41961ec6, type: 3}
+    m_tileSize: 3
+    m_tint: {r: 0.5, g: 0.48, b: 0.45, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
