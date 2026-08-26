@@ -518,7 +518,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 3895
 --- !u!114 &3981727702119639599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -533,6 +533,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.InteractionPromptPresenter
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_label: {fileID: 7434390835923941734}
+  m_border: {fileID: 0}
+  m_flashColor: {r: 1, g: 1, b: 1, a: 1}
+  m_motion:
+    m_stepSeconds: 0.06666667
+    m_flashSteps: 2
+    m_writeChunkSize: 4
+    m_jitterSteps: 4
 --- !u!114 &5102483600370819578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -553,6 +560,11 @@ MonoBehaviour:
   m_root: {fileID: 7319836010641377030}
   m_title: {fileID: 552111012228367764}
   m_line: {fileID: 2702260721714768062}
+  m_motion:
+    m_stepSeconds: 0.06666667
+    m_flashSteps: 2
+    m_writeChunkSize: 4
+    m_jitterSteps: 4
 --- !u!114 &5810545969481138671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -572,6 +584,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5b070311161ba4ea98e8b10b625f2f16, type: 2}
   m_autoHideSeconds: 4
   m_label: {fileID: 7528798708051830449}
+  m_motion:
+    m_stepSeconds: 0.06666667
+    m_flashSteps: 2
+    m_writeChunkSize: 4
+    m_jitterSteps: 4
 --- !u!1 &2462751962366263120
 GameObject:
   m_ObjectHideFlags: 0

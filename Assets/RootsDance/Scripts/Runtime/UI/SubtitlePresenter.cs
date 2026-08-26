@@ -7,6 +7,10 @@ namespace RootsDance.UI
     /// <summary>
     /// Shows one line of text at a time — radio, inner monologue, device notices — by listening to
     /// any number of string channels. An empty string hides the element.
+    /// <para>
+    /// Motion: the line is written to the screen in chunks, the way a machine writes, rather than
+    /// appearing whole or crawling out one character at a time.
+    /// </para>
     /// </summary>
     public class SubtitlePresenter : MonoBehaviour
     {
@@ -20,7 +24,19 @@ namespace RootsDance.UI
         [Header("Widgets")]
         [SerializeField] private TextMeshProUGUI m_label;
 
+        [Header("Motion")]
+        [SerializeField] private TerminalMotionProfile m_motion = new TerminalMotionProfile();
+
+        private CanvasGroup m_labelGroup;
         private float m_remaining;
+
+        private void Awake()
+        {
+            if (m_label != null)
+            {
+                m_labelGroup = TerminalMotion.EnsureCanvasGroup(m_label.gameObject);
+            }
+        }
 
         private void OnEnable()
         {
@@ -59,6 +75,9 @@ namespace RootsDance.UI
                     m_channels[i].EventRaised -= OnTextRequested;
                 }
             }
+
+            TerminalMotion.Kill(m_labelGroup);
+            TerminalMotion.Kill(m_label);
         }
 
         private void OnTextRequested(string text)
@@ -69,8 +88,20 @@ namespace RootsDance.UI
 
         private void Show(string text)
         {
-            m_label.text = text;
-            m_label.gameObject.SetActive(!string.IsNullOrEmpty(text));
+            bool isVisible = !string.IsNullOrEmpty(text);
+
+            if (!isVisible)
+            {
+                TerminalMotion.Kill(m_label);
+                TerminalMotion.HardCut(m_labelGroup);
+                m_label.text = text;
+                m_label.gameObject.SetActive(false);
+                return;
+            }
+
+            m_label.gameObject.SetActive(true);
+            TerminalMotion.Snap(m_labelGroup);
+            TerminalMotion.TerminalWrite(m_label, text, m_motion);
         }
     }
 }
