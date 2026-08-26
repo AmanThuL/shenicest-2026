@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PLACEHOLDER LAYOUT - functionality only. UI owner replaces this with the real look;
+  keep the element name below (main-menu__start-button) or update MainMenuPresenter.cs to match.
+-->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="/Assets/RootsDance/UI/Styles/MainMenu.uss" />
+    <ui:VisualElement name="main-menu" class="main-menu">
+        <ui:Label name="main-menu__title" class="main-menu__title" text="Where the Roots Dance" />
+        <ui:Button name="main-menu__start-button" class="main-menu__start-button" text="开始游戏" />
+    </ui:VisualElement>
+</ui:UXML>

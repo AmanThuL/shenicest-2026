@@ -4,8 +4,8 @@ namespace RootsDance.App
     public static class ScenePaths
     {
         public const string k_Bootstrap = "Assets/RootsDance/Scenes/Bootstrap.unity";
-        public const string k_MainMenu = "Assets/RootsDance/Scenes/MainMenu.unity";
-        public const string k_Level00Environment = "Assets/RootsDance/Scenes/Levels/Level00/Level00_Environment.unity";
-        public const string k_Level00Gameplay = "Assets/RootsDance/Scenes/Levels/Level00/Level00_Gameplay.unity";
+        public const string k_MainMenu = "Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity";
+        public const string k_MainEnvironment = "Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity";
+        public const string k_MainGameplay = "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
     }
 }

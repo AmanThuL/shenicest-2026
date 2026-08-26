@@ -14,6 +14,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Gameplay.unity
     guid: d2ad0ae3f32d04aea9821f27dc8888c4
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+    guid: c8005d29cd6f7491ba0e90a134e28977
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity
+    guid: 7fe9ea91681084c77b49ed39168833a4
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity
+    guid: 0ec12772141794c39a36cd8a87ec0068
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
