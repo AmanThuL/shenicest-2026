@@ -92,6 +92,7 @@ Unity-forced root folders **MAY** be added later, and only at `Assets/` root bec
 | `Settings/` | Render-pipeline and Editor settings assets | `Settings/HDRP/` holds the pipeline itself — `HDRP_Desktop.asset` (the one `HDRenderPipelineAsset`), `HDRenderPipelineGlobalSettings.asset`, `DefaultVolumeProfile.asset`, `DefaultLookDevProfile.asset`; never rename them, and the fixed names are recorded in [07](./07-rendering-hdrp.md#1-pipeline-assets-and-where-they-live). Other sub-folders: `Settings/Presets/` (`.preset`), `Settings/SceneTemplates/` (`.scenetemplate`), `Settings/BuildProfiles/` (build profile assets, see [08](./08-testing-tooling.md)), `Settings/VolumeProfiles/` (per-level Volume profiles), `Settings/Lighting/` (see [07](./07-rendering-hdrp.md#5-lighting-workflow)). **No `.cs` files anywhere under `Settings/`** — a script here would silently compile into the predefined `Assembly-CSharp`. |
 | `Shaders/` | `.shadergraph`, hand-written `.shader`/`.hlsl` | |
 | `Shaders/SubGraphs/` | `.shadersubgraph` reusable nodes | Sub-graphs are the "prefabs" of shaders: separate files avoid edit conflicts. |
+| `Shaders/PostProcess/` | hand-written `.shader` files for custom post-processes | e.g. `PsxPostProcess.shader`, paired with `RootsDance.Rendering.PsxPostProcess` ([07](./07-rendering-hdrp.md#4-custom-rendering-custom-passes-and-custom-post-process)). |
 | `Textures/Characters/`, `Textures/Environment/`, `Textures/Props/` | `.png` textures for materials (not UI) | UI sprites go to `UI/Sprites/`. |
 | `Tests/EditMode/`, `Tests/PlayMode/` | Test C# with their own asmdefs | Section 8; running tests is [08](./08-testing-tooling.md). |
 | `UI/Sprites/` | UI textures/sprites, icons | Screen-space UI art. Non-UI textures go to `Textures/`. |
@@ -253,7 +254,7 @@ Tests.PlayMode ───────────────┘
 | `Data/` (`RootsDance.Data`) | ScriptableObject class definitions (`…SO`) |
 | `Events/` (`RootsDance.Events`) | event-channel classes |
 | `Player/`, `Cameras/`, `UI/` | feature code |
-| `Rendering/` (`RootsDance.Rendering`) | create only when the first HDRP Custom Pass / Custom Post Process is written ([07](./07-rendering-hdrp.md#4-custom-rendering-custom-passes-and-custom-post-process)) |
+| `Rendering/` (`RootsDance.Rendering`) | exists since 2026-08-27, first occupant `PsxPostProcess` ([07](./07-rendering-hdrp.md#4-custom-rendering-custom-passes-and-custom-post-process)) |
 
 Dependency direction inside the assembly: `Core`/`Events`/`Data` ← feature namespaces ← `App`. A feature namespace never references another feature's concrete types (rule owned by [03](./03-architecture-patterns.md)). **[project decision]**
 
