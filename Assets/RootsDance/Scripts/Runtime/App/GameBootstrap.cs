@@ -28,6 +28,10 @@ namespace RootsDance.App
         [Tooltip("Every accepted official-report entry, with its section count for the UI.")]
         [SerializeField] private ReportUpdateEventChannelSO m_reportUpdated;
 
+        [Tooltip("The new time of day, every time it actually changes. Lighting and the flashlight "
+            + "listen here; unlike a flag this value is not monotonic and can change back.")]
+        [SerializeField] private TimeOfDayEventChannelSO m_timeOfDayChanged;
+
         [Header("Startup")]
         [Tooltip("Loaded when Play starts from Bootstrap with no other scene open. Leave empty while "
             + "there is no main menu; then always press Play from a level scene.")]
@@ -63,6 +67,7 @@ namespace RootsDance.App
             // component can subscribe in OnEnable without knowing whether the bootstrap loaded yet.
             m_worldState.FlagRaised += OnFlagRaised;
             m_worldState.ReportEntryAdded += OnReportEntryAdded;
+            m_worldState.TimeOfDayChanged += OnTimeOfDayChanged;
         }
 
         private void OnEnable()
@@ -122,6 +127,7 @@ namespace RootsDance.App
             {
                 m_worldState.FlagRaised -= OnFlagRaised;
                 m_worldState.ReportEntryAdded -= OnReportEntryAdded;
+                m_worldState.TimeOfDayChanged -= OnTimeOfDayChanged;
             }
         }
 
@@ -143,6 +149,14 @@ namespace RootsDance.App
             // The count is resolved here so presentation code never reads the world state.
             m_reportUpdated.RaiseEvent(
                 new ReportUpdate(entry, m_worldState.CountReportEntries(entry.Category)));
+        }
+
+        private void OnTimeOfDayChanged(TimeOfDay phase)
+        {
+            if (m_timeOfDayChanged != null)
+            {
+                m_timeOfDayChanged.RaiseEvent(phase);
+            }
         }
 
         private void OnLoadLevelRequested(LevelSO level)
