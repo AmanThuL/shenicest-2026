@@ -15,12 +15,14 @@ namespace RootsDance.Player
         private const string k_LookHoldAction = "Player/LookHold";
         private const string k_SprintAction = "Player/Sprint";
         private const string k_InteractAction = "Player/Interact";
+        private const string k_FlashlightAction = "Player/Flashlight";
 
         private InputAction m_move;
         private InputAction m_look;
         private InputAction m_lookHold;
         private InputAction m_sprint;
         private InputAction m_interact;
+        private InputAction m_flashlight;
 
         public Vector2 MoveInput => m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
 
@@ -34,6 +36,9 @@ namespace RootsDance.Player
         /// <summary>True on the frame the interact button went down. Read from Update only.</summary>
         public bool InteractPressedThisFrame => m_interact != null && m_interact.WasPressedThisFrame();
 
+        /// <summary>True on the frame the flashlight button went down. Read from Update only.</summary>
+        public bool FlashlightPressedThisFrame => m_flashlight != null && m_flashlight.WasPressedThisFrame();
+
         private void Awake()
         {
             m_move = Resolve(k_MoveAction);
@@ -41,6 +46,7 @@ namespace RootsDance.Player
             m_lookHold = Resolve(k_LookHoldAction);
             m_sprint = Resolve(k_SprintAction);
             m_interact = Resolve(k_InteractAction);
+            m_flashlight = Resolve(k_FlashlightAction);
         }
 
         private void OnEnable()
@@ -52,6 +58,7 @@ namespace RootsDance.Player
             Enable(m_lookHold);
             Enable(m_sprint);
             Enable(m_interact);
+            Enable(m_flashlight);
         }
 
         private InputAction Resolve(string actionPath)
