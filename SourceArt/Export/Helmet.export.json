@@ -1,0 +1,16 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Props/Helmet.fbx",
+  "m_blend": "SourceArt/Blender/Helmet/Helmet.blend",
+  "m_blendModifiedUtc": "2026-08-27T07:39:20+00:00",
+  "m_action": "",
+  "m_armature": "",
+  "m_frameStart": 1,
+  "m_frameEnd": 250,
+  "m_fps": 24,
+  "m_exportedObjects": [
+    "Helmet"
+  ],
+  "m_blenderVersion": "4.5.3 LTS",
+  "m_profile": "Tools/blender/profiles/static_prop.json",
+  "m_exportedUtc": "2026-08-27T07:54:23+00:00"
+}

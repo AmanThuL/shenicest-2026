@@ -17,6 +17,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: HelmetShell
+    second: {fileID: 2100000, guid: db61640e8500f4372a4acebfe76560dd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: No Name
     second: {fileID: 2100000, guid: e5c1e50afd3a74f6bbb4590dc6c46d31, type: 2}
   materials:
@@ -151,6 +156,6 @@ ModelImporter:
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
   userData: helmet_off (1-120 @ 30fps) from arms_rig_helmat.blend via Blender 4.5.3
-    LTS, profile Tools/blender/profiles/fps_arms.json, exported 2026-08-26T12:19:12+00:00
+    LTS, profile Tools/blender/profiles/fps_arms.json, exported 2026-08-27T07:54:12+00:00
   assetBundleName: 
   assetBundleVariant: 
