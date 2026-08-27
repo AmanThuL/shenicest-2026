@@ -11,6 +11,7 @@ checklist. This file only says how to run the code.
 
 ```
 export_fbx.py              the exporter; knows no asset names
+validate_wrist.py          per-frame joint-rotation validator; knows no asset names
 profiles/fps_arms.json     skinned + animated: bake every frame, no decimation
 profiles/static_prop.json  static prop: no animation baked
 ```
@@ -63,6 +64,32 @@ Run it from the Unity project root, which is what `--project-root .` refers to.
   Name what ships with `--action` / `--actions`.
 * **It will not export Empties.** `object_types` is fixed to `ARMATURE` + `MESH`, and
   `use_selection` is forced on, so only what you named is written.
+
+## Validate joint rotations (broken wrists)
+
+Recurring failure mode: an Action poses a hand far beyond what a wrist can do
+(the hand copies its IK target's orientation and nothing stops it), and the break
+is only noticed while scrubbing. `validate_wrist.py` sweeps every frame of the
+named Actions, decomposes each child joint's rotation relative to its parent into
+twist + swing, and exits non-zero when a frame exceeds the limits — run it before
+delivering animation changes:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  SourceArt/Blender/ArmsRig/arms_rig_all.blend \
+  --python Tools/blender/validate_wrist.py -- \
+  --armature ArmsRig \
+  --joints forearm.R:hand.R,forearm.L:hand.L \
+  --max-twist 92 --max-swing 85
+```
+
+Omit `--actions` to check every Action in the file. Exit codes: 0 clean,
+2 violations, 1 usage error. The file is evaluated as saved, so stored-pose
+pollution (scrubbing one Action, then saving while another is active) is caught
+too. The arms rig additionally carries `WristLimit` (Limit Rotation) constraints
+on `hand.R`/`hand.L` (±80° flex, ±90° pronation, ±40° deviation) that clamp
+every Action at evaluation time; the validator thresholds sit just above those
+limits, so a regression means someone removed or muted the constraints.
 
 ## Notes
 
