@@ -86,6 +86,8 @@ Unity 侧无需任何手工步骤。
 - 不带：相对路径按 `.blend` 所在目录解析，`--output Assets/...` 会写到 `.blend` 旁边。
 - 绝对路径任何时候原样接受。
 
+**整个集合一次导出**：`--collection Architectures` 代替 `--objects`，导出该集合（含子集合）下所有带面的 MESH 物体；无面的线框重复体跳过，艺术家在大纲里取消勾选（从视图层排除）的子集合视为“不属于模型”而跳过并记入 manifest 的 `m_excludedObjects`，用眼睛图标隐藏的物体仍报错。首个使用者：实验室白模 `LabBlockout.fbx`（`GAIA1_v2.blend`，2026-08-27）。
+
 **一次导多个 action**：`--actions knife_idle,jab.L` 产出 `Arms_knife_idle.fbx` / `Arms_jab.L.fbx`，各带一份 manifest，帧范围各取自对应 Action。
 
 **action 名直接进文件名**：`jab.L` 会产出带点的 `Arms_jab.L.fbx`，不符合 guidelines/02 命名规则。交付前先在 Blender 里把 action 改成 PascalCase。
@@ -142,6 +144,8 @@ FBX 导出器勾了 Baked Animation 后，会把约束求解后的姿态逐帧�
 - **Rig** — `Generic`。**不要用 Humanoid**：只有双臂、没有完整人形骨骼，重定向会改写逐帧手 K 的第一人称动作。`optimizeGameObjects` 关
 - **Animation** — `importAnimation` 开、压缩 `Off`、clip 命名 `Arms_HelmetOff`
 - **Materials** — `External` + `BasedOnMaterialName` + `Everywhere`，材质重定向到 `Assets/RootsDance/Materials/`，避免 Unity 在 mesh 旁边另建 `Materials/`
+
+`static_blockout` profile（实验室白模）：同 `static_prop`，但 `m_globalScale = 0.4`（V2 建筑比例决策见 [全章节地形与场景空间设计方案](../../design/全章节地形与场景空间设计方案.md) §0 第 8 条）、`m_addCollider` 开（白模是可走的灰盒几何）、`m_materialImportMode = None`（白色默认材质）。
 
 两个 Editor 菜单：
 

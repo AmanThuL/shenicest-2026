@@ -234,6 +234,15 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--collection",
+        help=(
+            "Blender collection name. Exports every MESH object linked "
+            "under it (child collections included) that carries at "
+            "least one polygon; edge-only helper meshes are skipped."
+        ),
+    )
+
+    parser.add_argument(
         "--armature",
         help=(
             "Optional armature object name. Required when using "
@@ -286,14 +295,21 @@ def parse_args():
     # argv, not sys.argv: everything before Blender's '--' belongs to Blender.
     args = parser.parse_args(argv)
 
-    if args.objects and args.selection:
+    selectors = [
+        bool(args.objects),
+        bool(args.selection),
+        bool(args.collection),
+    ]
+
+    if sum(selectors) > 1:
         parser.error(
-            "--objects and --selection are mutually exclusive"
+            "--objects, --selection and --collection are mutually "
+            "exclusive"
         )
 
-    if not args.objects and not args.selection:
+    if sum(selectors) == 0:
         parser.error(
-            "one of --objects or --selection is required"
+            "one of --objects, --selection or --collection is required"
         )
 
     if args.actions and args.action:
@@ -491,6 +507,79 @@ def get_objects_from_names(names):
         )
 
     return objects
+
+
+def get_objects_from_collection(name):
+    """
+    Resolve every exportable MESH object under a collection.
+
+    Child collections are included. Meshes without polygons (edge-only
+    wireframe duplicates that CAD exports leave behind) are skipped
+    because Unity imports them as empty meshes. Hidden objects cannot be
+    selected and would be dropped silently by the FBX exporter, so they
+    fail loudly here instead.
+    """
+
+    collection = bpy.data.collections.get(name)
+
+    if collection is None:
+        raise RuntimeError(
+            "collection not found in this .blend: " + name
+        )
+
+    view_layer_objects = bpy.context.view_layer.objects
+
+    objects = []
+    hidden = []
+    excluded = []
+    skipped_faceless = 0
+
+    for obj in collection.all_objects:
+        if obj.type != "MESH":
+            continue
+
+        if len(obj.data.polygons) == 0:
+            skipped_faceless += 1
+            continue
+
+        # A collection unchecked in the outliner is excluded from the
+        # view layer: the artist removed it from the model on purpose.
+        if obj.name not in view_layer_objects:
+            excluded.append(obj.name)
+            continue
+
+        if obj.hide_get() or obj.hide_viewport:
+            hidden.append(obj.name)
+            continue
+
+        objects.append(obj)
+
+    if hidden:
+        raise RuntimeError(
+            "hidden objects in collection '" + name + "' cannot be "
+            "exported; unhide them or move them out: "
+            + ", ".join(hidden)
+        )
+
+    if not objects:
+        raise RuntimeError(
+            "collection has no exportable mesh objects: " + name
+        )
+
+    print(
+        "collection '" + name + "': "
+        + str(len(objects)) + " mesh objects, "
+        + str(skipped_faceless) + " faceless meshes skipped, "
+        + str(len(excluded)) + " objects in excluded collections skipped"
+    )
+
+    if excluded:
+        print(
+            "excluded from the view layer (not exported): "
+            + ", ".join(excluded)
+        )
+
+    return objects, excluded
 
 
 def get_selected_objects():
@@ -775,6 +864,8 @@ def write_manifest(
     exported_objects,
     profile_path,
     project_root=None,
+    collection_name=None,
+    excluded_objects=None,
 ):
     """
     Write portable provenance information.
@@ -819,10 +910,20 @@ def write_manifest(
             bpy.context.scene.render.fps
         ),
 
+        "m_exportedCollection": (
+            collection_name
+            if collection_name
+            else ""
+        ),
+
         "m_exportedObjects": [
             obj.name
             for obj in exported_objects
         ],
+
+        "m_excludedObjects": list(
+            excluded_objects or []
+        ),
 
         "m_blenderVersion": (
             bpy.app.version_string
@@ -1000,6 +1101,8 @@ def export_one(
             exported_objects=exported_objects,
             profile_path=profile_path,
             project_root=args.project_root,
+            collection_name=args.collection,
+            excluded_objects=args.excluded_objects,
         )
 
     size = os.path.getsize(
@@ -1050,16 +1153,26 @@ def main():
         project_root,
     )
 
+    excluded_objects = []
+
     if args.objects:
         exported_objects = (
             get_objects_from_names(
                 args.objects.split(",")
             )
         )
+    elif args.collection:
+        exported_objects, excluded_objects = (
+            get_objects_from_collection(
+                args.collection
+            )
+        )
     else:
         exported_objects = (
             get_selected_objects()
         )
+
+    args.excluded_objects = excluded_objects
 
     armature = get_armature(
         args,
