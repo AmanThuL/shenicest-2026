@@ -33,6 +33,8 @@ Material:
     - _GlowRadius: 1.6
     - _GlowStrength: 1.35
     - _GlowThreshold: 0.26
+    - _GrainGate: 0
+    - _GrainPerceptual: 0
     - _GrainRate: 24
     - _GrainStrength: 0.0255
     - _LumaCeiling: 0.9
