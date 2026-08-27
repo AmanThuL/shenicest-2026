@@ -232,7 +232,7 @@ namespace RootsDance.Editor.Environment
                 for (int i = 0; i < vendor.Length; i++)
                 {
                     string vendorName = vendor[i] == null ? "<none>" : vendor[i].name;
-                    string paletteKey = ResolveMaterialKey(entry, vendorName);
+                    string paletteKey = ResolveMaterialKey(entry, vendorName, renderer.gameObject.name);
                     Material material;
 
                     if (!palette.TryGetValue(paletteKey, out material))
@@ -244,7 +244,7 @@ namespace RootsDance.Editor.Environment
 
                     replaced[i] = material;
 
-                    if (seen.Add(vendorName))
+                    if (seen.Add(vendorName + "|" + paletteKey))
                     {
                         if (mapping.Length > 0)
                         {
@@ -262,15 +262,26 @@ namespace RootsDance.Editor.Environment
             return mapping.ToString();
         }
 
-        private static string ResolveMaterialKey(PrefabEntry entry, string vendorName)
+        /// <summary>
+        /// First rule whose fragment appears in the vendor material name, then in the renderer's GameObject
+        /// name (vendor packs that share one material between trunk and crown split them by mesh name), else
+        /// the entry's default key.
+        /// </summary>
+        private static string ResolveMaterialKey(PrefabEntry entry, string vendorName, string rendererName)
         {
-            string lowered = vendorName.ToLowerInvariant();
+            string loweredMaterial = vendorName.ToLowerInvariant();
+            string loweredRenderer = rendererName.ToLowerInvariant();
 
             if (entry.Materials != null)
             {
                 foreach (MaterialRule rule in entry.Materials)
                 {
-                    if (!string.IsNullOrEmpty(rule.NameContains) && lowered.Contains(rule.NameContains))
+                    if (string.IsNullOrEmpty(rule.NameContains))
+                    {
+                        continue;
+                    }
+
+                    if (loweredMaterial.Contains(rule.NameContains) || loweredRenderer.Contains(rule.NameContains))
                     {
                         return rule.MaterialKey;
                     }

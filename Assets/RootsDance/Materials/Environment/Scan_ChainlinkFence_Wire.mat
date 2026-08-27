@@ -353,7 +353,7 @@ Material:
     - _MetaWetnessValue: 1
     - _MotionBaseDelayValue: 0
     - _MotionBaseIntensityValue: 0
-    - _MotionBaseMaskMode: 3
+    - _MotionBaseMaskMode: 4
     - _MotionBaseNoiseValue: 0.5
     - _MotionBasePhaseValue: 0
     - _MotionBasePivotValue: 0.8
@@ -370,7 +370,7 @@ Material:
     - _MotionIntensityValue: 0
     - _MotionSmallDelayValue: 0
     - _MotionSmallIntensityValue: 0
-    - _MotionSmallMaskMode: 1
+    - _MotionSmallMaskMode: 4
     - _MotionSmallNoiseValue: 0.5
     - _MotionSmallPhaseValue: 0
     - _MotionSmallPivotValue: 0.2
@@ -378,7 +378,7 @@ Material:
     - _MotionSmallSpeedValue: 5
     - _MotionSmallTillingValue: 5
     - _MotionTinyIntensityValue: 0
-    - _MotionTinyMaskMode: 2
+    - _MotionTinyMaskMode: 4
     - _MotionTinyNoiseValue: 1
     - _MotionTinySpeedValue: 10
     - _MotionTinyTillingValue: 50

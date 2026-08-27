@@ -94,6 +94,15 @@ the only derived data lives under `Assets/RootsDance/`.
   used: it needs the separately sold *TVE Conversion Presets* package and, without a preset, replaces materials with
   blank ones. `RootsDance > Environment > Create TVE Manager Prefab` builds `Prefabs/Systems/TVEManager.prefab`; every
   Environment scene that uses these prefabs needs one instance (materials read wind/tint/wetness from it).
+- **Prefab World Builder palettes** (2026-08-27): six palettes in PWB's data folder
+  (`Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Resources/Data/Palettes/PWB_*.txt` + thumbnail PNGs),
+  one brush per prefab — `DeadTree_Sparse` (winter trees upright + embedded, winter bushes, dry branches),
+  `RootRock_Clutter` (roots, moss rocks, dead trunks; surface-aligned, scale 0.7–1.3), `DryLowGrowth` (bush07/08,
+  small grass patches), `Transition_Growth` (Niwl grass/fern/bush/ivy; surface-aligned, orient up), `BrokenBoundary`
+  (fence, barrier; no random rotation/scale), `CampEvidence` (clipboard, binder, lab props). Generated once through the
+  public `PluginMaster.PaletteManager`/`MultibrushSettings` API from an Editor eval (PWB has no asmdef, so
+  `RootsDance.Editor` cannot reference it); edit them in *Tools > Plugin Master > Prefab World Builder > Palette* from
+  now on.
 - **Not imported because of licence vs. public repo:** *Barriers Retro PSX* (gataki) and *PSX Large Terrain Rock Pack 2*
   (Caliber Creations) both forbid redistributing their files, and `AmanThuL/shenicest-2026` is public — committing the
   FBX would be redistribution. Poly Haven's `concrete_road_barrier` and `modular_chainlink_fence` cover the boundary pool;

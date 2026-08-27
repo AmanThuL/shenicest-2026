@@ -107,7 +107,7 @@ PrefabInstance:
     - target: {fileID: -7635826562936255635, guid: a202e3a3e5c334d978ecc3561b615453, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 8e1642df8a9bd4596b727b0752a6fd17, type: 2}
+      objectReference: {fileID: 2100000, guid: 97de105eb7c2849dcbe61262b0997b0e, type: 2}
     - target: {fileID: 919132149155446097, guid: a202e3a3e5c334d978ecc3561b615453, type: 3}
       propertyPath: m_Name
       value: tree02_winter

@@ -139,9 +139,12 @@ namespace RootsDance.Editor.Environment
         public static readonly PrefabEntry[] Entries =
         {
             // --- DeadTree_Sparse: Retro PSX Nature winter trees and bushes -------------------------------
+            // The FBX trees split into "treeNN" (trunk + branches) and "treeNN_top" (crown cards) sharing one
+            // vendor material: the crown gets the wind material, the trunk the static one. tree02 is the OBJ
+            // export with both merged into one mesh, so it stays a static tree.
             PsxTree("tree01_winter", "Psx_Tree01_Winter"),
             new PrefabEntry("tree02_winter", k_Retro + "Trees/tree02_winter.obj", k_Vegetation,
-                ColliderKind.TrunkCapsule, k_NoRules, "Psx_Tree02_Winter", 1f),
+                ColliderKind.TrunkCapsule, k_NoRules, "Psx_Tree02_Winter_Trunk", 1f),
             PsxTree("tree03_winter", "Psx_Tree03_Winter"),
             PsxTree("tree04_winter", "Psx_Tree04_Winter"),
             PsxTree("tree05_winter", "Psx_Tree05_Winter"),
@@ -218,10 +221,11 @@ namespace RootsDance.Editor.Environment
             Lab("ppe_safety_glasses")
         };
 
-        private static PrefabEntry PsxTree(string key, string material)
+        private static PrefabEntry PsxTree(string key, string crownMaterial)
         {
+            MaterialRule[] rules = { new MaterialRule("_top", crownMaterial) };
             return new PrefabEntry(key, $"{k_Retro}Trees/{key}.fbx", k_Vegetation, ColliderKind.TrunkCapsule,
-                k_NoRules, material, 1f);
+                rules, crownMaterial + "_Trunk", 1f);
         }
 
         private static PrefabEntry PsxBush(string key, string material)

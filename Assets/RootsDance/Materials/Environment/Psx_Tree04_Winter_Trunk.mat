@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Psx_Tree02_Winter
+  m_Name: Psx_Tree04_Winter_Trunk
   m_Shader: {fileID: 4800000, guid: 7befaa6f41d00a6478d5f4af21d66518, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -20,7 +20,6 @@ Material:
   - TVE_FOURTH_MASK_SAMPLE_MAIN_UV
   - TVE_FOURTH_SAMPLE_MAIN_UV
   - TVE_MAIN_SAMPLE_MAIN_UV
-  - TVE_MOTION
   - TVE_OVERLAY_SAMPLE_PLANAR_2D
   - TVE_PIVOT_SINGLE
   - TVE_SECOND_MASK_SAMPLE_MAIN_UV
@@ -45,6 +44,7 @@ Material:
   - TransparentBackfaceDebugDisplay
   - TransparentDepthPrepass
   - TransparentDepthPostpass
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -70,7 +70,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainAlbedoTex:
-        m_Texture: {fileID: 2800000, guid: dc095152404674b8c9c61b428337afe5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 93d33ae8e31934d4f99508e4bc63d134, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainNormalTex:
@@ -82,7 +82,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetaAlbedoTex:
-        m_Texture: {fileID: 2800000, guid: dc095152404674b8c9c61b428337afe5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 93d33ae8e31934d4f99508e4bc63d134, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MotionMaskTex:
@@ -316,7 +316,7 @@ Material:
     - _IsConverted: 1
     - _IsCustomShader: 0
     - _IsGeneralShader: 1
-    - _IsIdentifier: 4
+    - _IsIdentifier: 54
     - _IsLightingType: 3
     - _IsObjectType: 2
     - _IsShaderType: 1
@@ -353,8 +353,8 @@ Material:
     - _MetaVariationValue: 1
     - _MetaWetnessValue: 1
     - _MotionBaseDelayValue: 0
-    - _MotionBaseIntensityValue: 1
-    - _MotionBaseMaskMode: 3
+    - _MotionBaseIntensityValue: 0
+    - _MotionBaseMaskMode: 4
     - _MotionBaseNoiseValue: 0.5
     - _MotionBasePhaseValue: 0
     - _MotionBasePivotValue: 0.8
@@ -368,18 +368,18 @@ Material:
     - _MotionFlowMode: 0
     - _MotionFlowValue: 1
     - _MotionHighlightValue: 0
-    - _MotionIntensityValue: 1
+    - _MotionIntensityValue: 0
     - _MotionSmallDelayValue: 0
-    - _MotionSmallIntensityValue: 0.5
-    - _MotionSmallMaskMode: 1
+    - _MotionSmallIntensityValue: 0
+    - _MotionSmallMaskMode: 4
     - _MotionSmallNoiseValue: 0.5
     - _MotionSmallPhaseValue: 0
     - _MotionSmallPivotValue: 0.2
     - _MotionSmallPushValue: 9.588676
     - _MotionSmallSpeedValue: 5
     - _MotionSmallTillingValue: 5
-    - _MotionTinyIntensityValue: 0.3
-    - _MotionTinyMaskMode: 2
+    - _MotionTinyIntensityValue: 0
+    - _MotionTinyMaskMode: 4
     - _MotionTinyNoiseValue: 1
     - _MotionTinySpeedValue: 10
     - _MotionTinyTillingValue: 50
@@ -595,7 +595,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     - _emissive_power_value: 1
-    - _motion_small_mode: 1
+    - _motion_small_mode: 0
     - _render_coverage: 0
     - _render_cull: 0
     - _render_dst: 0

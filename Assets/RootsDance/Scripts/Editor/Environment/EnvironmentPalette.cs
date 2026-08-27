@@ -76,12 +76,20 @@ namespace RootsDance.Editor.Environment
         private static readonly int k_TveMotionTinyId = Shader.PropertyToID("_MotionTinyIntensityValue");
         private static readonly int k_TveSubsurfaceId = Shader.PropertyToID("_SubsurfaceIntensityValue");
         private static readonly int k_TveIsConvertedId = Shader.PropertyToID("_IsConverted");
+        private static readonly int k_TveMotionBaseMaskId = Shader.PropertyToID("_MotionBaseMaskMode");
+        private static readonly int k_TveMotionSmallMaskId = Shader.PropertyToID("_MotionSmallMaskMode");
+        private static readonly int k_TveMotionTinyMaskId = Shader.PropertyToID("_MotionTinyMaskMode");
         private static readonly int k_TveFlattenId = Shader.PropertyToID("_FlattenIntensityValue");
         private static readonly int k_TveFlattenSphereId = Shader.PropertyToID("_FlattenSphereValue");
 
         // PSX card foliage: a 256 px sheet loses its thinnest twigs at the default 0.5 clip, and TVE's Flatten
         // block spherifies the shading normals so crossed cards read as one volume instead of flat planes.
         private const float k_CardAlphaClip = 0.35f;
+
+        // _Motion*MaskMode: TVE defaults to vertex colours (A/G/B), which the converter would have baked. These
+        // meshes carry none, so the mask reads 1 everywhere and the trunk base sways with the crown; the
+        // procedural Height mask (0 at the pivot, 1 at the top) is what keeps the trunk planted.
+        private const float k_MotionMaskHeight = 4f;
         private const float k_CardFlatten = 0.8f;
         private static readonly int k_TveObjectTypeId = Shader.PropertyToID("_IsObjectType");
 
@@ -146,12 +154,18 @@ namespace RootsDance.Editor.Environment
         {
             // Retro PSX Nature (elegantcrow): 6 winter trees, 6 winter bushes, 2 plain bushes. One 256/128 px
             // card texture per model, no normal map. Trees are one material (trunk + crown in one sheet).
+            // "_Trunk" is the same sheet without wind for the trunk mesh; the crown keeps the swaying Tree spec.
             TveSpec.Tree("Psx_Tree01_Winter", k_RetroRoot + "/Textures/Trees/tree01_winter.png", k_DeadTint),
-            TveSpec.Tree("Psx_Tree02_Winter", k_RetroRoot + "/Textures/Trees/tree02_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree01_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree01_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree02_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree02_winter.png", k_DeadTint),
             TveSpec.Tree("Psx_Tree03_Winter", k_RetroRoot + "/Textures/Trees/tree03_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree03_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree03_winter.png", k_DeadTint),
             TveSpec.Tree("Psx_Tree04_Winter", k_RetroRoot + "/Textures/Trees/tree04_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree04_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree04_winter.png", k_DeadTint),
             TveSpec.Tree("Psx_Tree05_Winter", k_RetroRoot + "/Textures/Trees/tree05_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree05_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree05_winter.png", k_DeadTint),
             TveSpec.Tree("Psx_Tree06_Winter", k_RetroRoot + "/Textures/Trees/tree06_winter.png", k_DeadTint),
+            TveSpec.Trunk("Psx_Tree06_Winter_Trunk", k_RetroRoot + "/Textures/Trees/tree06_winter.png", k_DeadTint),
             TveSpec.Leaf("Psx_Bush01_Winter", k_RetroRoot + "/Textures/Bushes/bush1_winter.png", k_DeadTint),
             TveSpec.Leaf("Psx_Bush02_Winter", k_RetroRoot + "/Textures/Bushes/bush2_winter.png", k_DeadTint),
             TveSpec.Leaf("Psx_Bush03_Winter", k_RetroRoot + "/Textures/Bushes/bush3_winter.png", k_DeadTint),
@@ -356,6 +370,9 @@ namespace RootsDance.Editor.Environment
             material.SetFloat(k_TveMotionBaseId, spec.MotionPrimary);
             material.SetFloat(k_TveMotionSmallId, spec.MotionSecond);
             material.SetFloat(k_TveMotionTinyId, spec.MotionLeaves);
+            material.SetFloat(k_TveMotionBaseMaskId, k_MotionMaskHeight);
+            material.SetFloat(k_TveMotionSmallMaskId, k_MotionMaskHeight);
+            material.SetFloat(k_TveMotionTinyMaskId, k_MotionMaskHeight);
             material.SetFloat(k_TveSubsurfaceId, spec.Subsurface ? 1f : 0f);
 
             // Tells TVE the maps were assigned on purpose, so SetMaterialSettings does not go looking for
@@ -453,7 +470,7 @@ namespace RootsDance.Editor.Environment
             public readonly bool Subsurface;
 
             /// <summary>Alpha-card foliage (PSX trees/bushes, Niwl plants): looser clip and spherified shading.</summary>
-            public bool Cards { get { return Motion > 0f; } }
+            public bool Cards { get { return Cutout && TwoSided && NormalPath == null; } }
 
             /// <summary>TVE object type (<see cref="k_ObjectProp"/>, <see cref="k_ObjectBark"/>, <see cref="k_ObjectLeaf"/>).</summary>
             public readonly int ObjectType;
@@ -501,18 +518,29 @@ namespace RootsDance.Editor.Environment
                     k_ScanSmoothness, false);
             }
 
-            /// <summary>PSX tree sheet: one cutout Standard Lit material for trunk and crown; trunk bending plus a little flutter.</summary>
+            /// <summary>
+            /// PSX crown cards: cutout Standard Lit. The primary bend is kept low — it displaces the whole crown
+            /// mesh, and on a crown that is a separate mesh from its static trunk anything above ~0.3 visibly
+            /// tears the two apart. Most of the life comes from the second/leaves layers.
+            /// </summary>
             public static TveSpec Tree(string key, string albedoPath, Color tint)
             {
                 return new TveSpec(key, albedoPath, null, tint, k_PsxSmoothness, true, true, false,
-                    k_ObjectBark, 1f, 1f, 0.5f, 0.3f);
+                    k_ObjectBark, 1f, 0.1f, 0.2f, 0.15f);
+            }
+
+            /// <summary>PSX trunk + branches: same cutout sheet as the crown, no wind, flat shading.</summary>
+            public static TveSpec Trunk(string key, string albedoPath, Color tint)
+            {
+                return new TveSpec(key, albedoPath, null, tint, k_PsxSmoothness, true, true, false,
+                    k_ObjectBark, 0f, 0f, 0f, 0f);
             }
 
             /// <summary>Bush / crown cards: cutout Subsurface Lit, both faces, all three wind layers.</summary>
             public static TveSpec Leaf(string key, string albedoPath, Color tint)
             {
                 return new TveSpec(key, albedoPath, null, tint, k_PsxSmoothness, true, true, true,
-                    k_ObjectLeaf, 1f, 1f, 1f, 1f);
+                    k_ObjectLeaf, 1f, 0.5f, 0.5f, 0.5f);
             }
 
             /// <summary>Grass / fern / ivy cards: cutout Subsurface Lit, both faces, bending plus flutter.</summary>
