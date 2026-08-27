@@ -98,6 +98,19 @@
           "m_asset": "Assets/RootsDance/Materials/Arms.mat"
         }
       ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_StandUp.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_StandUp.export.json",
+      "m_clipName": "Arms_StandUp",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
     }
   ]
 }

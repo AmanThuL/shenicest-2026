@@ -702,7 +702,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -5017592257503144421, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.99999994
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -5017592257503144421, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1610,7 +1610,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2622728846968580051, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.9999999
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2622728846968580051, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.y
@@ -1618,7 +1618,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2622728846968580051, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.99999994
       objectReference: {fileID: 0}
     - target: {fileID: 2622728846968580051, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2197,12 +2197,16 @@ PrefabInstance:
       value: 6.4960785
       objectReference: {fileID: 0}
     - target: {fileID: 6863894136133341375, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863894136133341375, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.99999994
+      value: 0.9999999
       objectReference: {fileID: 0}
     - target: {fileID: 6863894136133341375, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.99999994
+      value: 0.9999998
       objectReference: {fileID: 0}
     - target: {fileID: 6863894136133341375, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2462,11 +2466,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8281505836931623794, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.9999999
+      value: 0.99999994
       objectReference: {fileID: 0}
     - target: {fileID: 8281505836931623794, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.9999999
+      value: 0.99999994
       objectReference: {fileID: 0}
     - target: {fileID: 8281505836931623794, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2781,6 +2785,11 @@ MonoBehaviour:
     m_referenceBonePosition: {x: -2.749025e-15, y: 1.7431549, z: 0}
     m_animatesCameraBone: 0
     m_tweak: {x: 0, y: 0, z: 0}
+  - m_stateName: StandUp
+    m_correction: {x: -0.015000006, y: 0.007954955, z: -0.18799973}
+    m_referenceBonePosition: {x: -0.014999989, y: 1.7351999, z: -0.18799973}
+    m_animatesCameraBone: 1
+    m_tweak: {x: 0, y: 0, z: 0}
   m_previewState: HelmetOff
   m_basePosition: {x: 2.749025e-15, y: -1.7431549, z: 2.403274e-22}
   m_baseRotation: {x: -0, y: 180, z: 0}
@@ -2831,6 +2840,8 @@ MonoBehaviour:
   m_bindings:
   - m_key: 30
     m_stateName: KeypadPoke
+  - m_key: 33
+    m_stateName: StandUp
   m_idleState: HelmetOff
 --- !u!1001 &532922589
 PrefabInstance:
