@@ -7,6 +7,7 @@
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],
