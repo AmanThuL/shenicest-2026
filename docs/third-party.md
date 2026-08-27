@@ -107,3 +107,14 @@ the only derived data lives under `Assets/RootsDance/`.
   (Caliber Creations) both forbid redistributing their files, and `AmanThuL/shenicest-2026` is public — committing the
   FBX would be redistribution. Poly Haven's `concrete_road_barrier` and `modular_chainlink_fence` cover the boundary pool;
   rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it.
+
+## Kenney Particle Pack (Kenney) — `Assets/ThirdParty/VFX/KenneyParticlePack/`
+
+- **Version:** 1.1. Downloaded 2026-08-27 from <https://kenney.nl/assets/particle-pack>; record in the folder's `SOURCE.md`.
+- **Licence:** CC0 1.0 (`LICENSE.txt` in the folder) — public-domain dedication, commercial use allowed, credit optional.
+- **Copied:** only `circle_05.png` and `light_01.png` (the soft-blob and soft-glow sprites) out of 80; the rest can be
+  copied from the same zip when a VFX needs them.
+- **No local edits.**
+- **Usage:** colour + emissive maps of the generated opening-atmosphere particle materials
+  (`Assets/RootsDance/VFX/VFX_ContaminationMotes.mat`, `VFX_AnomalousSpores.mat`, written by
+  `OpeningVfxPrefabBuilder`); see [07](guidelines/07-rendering-hdrp.md) §6 for the opening volumes.
