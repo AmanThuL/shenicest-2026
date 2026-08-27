@@ -1,7 +1,7 @@
 # ambientCG — licence
 
 All ambientCG materials in this folder (`Ground103`, `Ground106`, `Grass003`, `Ground037`, `Concrete044D`,
-`Gravel043`) are released by ambientCG under the **CC0 1.0 Universal** licence — public domain,
+`Gravel043`, `Ground068`, `Ground086`, `Concrete032`; Ground068/Ground086/Concrete032 added 2026-08-27) are released by ambientCG under the **CC0 1.0 Universal** licence — public domain,
 no attribution required, free for commercial use. Licence terms: <https://ambientcg.com/index.php?license>
 
 Asset pages:
@@ -12,3 +12,6 @@ Asset pages:
 - Ground037 — <https://ambientcg.com/a/Ground037>
 - Concrete044D — <https://ambientcg.com/a/Concrete044D>
 - Gravel043 — <https://ambientcg.com/a/Gravel043>
+- Ground068 — <https://ambientcg.com/a/Ground068>
+- Ground086 — <https://ambientcg.com/a/Ground086>
+- Concrete032 — <https://ambientcg.com/a/Concrete032>

@@ -80,89 +80,42 @@ namespace RootsDance.Editor.Environment
 
     /// <summary>
     /// The static list of every vendor model that becomes a dressing prefab, with its category, collider,
-    /// material rules and the uniform scale measured against the greybox (birches 6-10 m, Kenney rocks
-    /// 0.5-2 m, Kenney road signs 2-3 m, PSX barrier ~1 m, Quaternius sci-fi wall 4 m).
+    /// material rules and the uniform scale applied to the wrapper root. Scales start at 1 (Poly Haven, Niwl
+    /// and the PSX packs export in metres); the builder logs every prefab's world bounds so an outlier can be
+    /// corrected here.
+    /// <para>
+    /// Pools (see the outdoor asset brief): dead trees + winter bushes for the outer dead ring, root/rock clutter,
+    /// dry low growth, transition growth (Niwl), the broken boundary (fence, barrier) and camp evidence (Lab
+    /// Assets, clipboard, binder).
+    /// </para>
     /// </summary>
     public static class EnvironmentPrefabTable
     {
-        /// <summary>Prefab sub-folder for trees, bushes, grass, logs and mushrooms.</summary>
+        /// <summary>Prefab sub-folder for trees, bushes, grass, ferns and ivy.</summary>
         public const string k_Vegetation = "Vegetation";
 
-        /// <summary>Prefab sub-folder for the Kenney rock and stone set.</summary>
+        /// <summary>Prefab sub-folder for the rock and root clutter.</summary>
         public const string k_Rocks = "Rocks";
 
-        /// <summary>Prefab sub-folder for the photogrammetry hero props.</summary>
+        /// <summary>Prefab sub-folder for the photogrammetry hero pieces (dead trunks, branches).</summary>
         public const string k_Heroes = "Heroes";
 
-        /// <summary>Prefab sub-folder for man-made props: barriers, signs, pipes, sci-fi panels.</summary>
+        /// <summary>Prefab sub-folder for man-made boundary props: fence, concrete barrier.</summary>
         public const string k_Facility = "Facility";
 
+        /// <summary>Prefab sub-folder for the hand-held camp evidence: sampling and recording tools.</summary>
+        public const string k_Props = "Props";
+
         private const string k_ThirdPartyRoot = "Assets/ThirdParty/Environment/";
-        private const string k_Nature = k_ThirdPartyRoot + "Quaternius/UltimateNature/";
-        private const string k_SciFi = k_ThirdPartyRoot + "Quaternius/ModularSciFi/";
-        private const string k_KenneyNature = k_ThirdPartyRoot + "Kenney/NatureKit/";
-        private const string k_KenneyRoad = k_ThirdPartyRoot + "Kenney/RoadKit/";
-        private const string k_KenneyFactory = k_ThirdPartyRoot + "Kenney/FactoryKit/";
-        private const string k_Psx = k_ThirdPartyRoot + "Retroarchy/PsxRoadBarriers/";
+        private const string k_Retro = k_ThirdPartyRoot + "RetroPSXNature/Models/";
+        private const string k_Niwl = k_ThirdPartyRoot + "NiwlPlants/Models/";
         private const string k_PolyHaven = k_ThirdPartyRoot + "PolyHaven/Models/";
+        private const string k_Lab = k_ThirdPartyRoot + "LabAssetsCC0/Models/";
 
         private static readonly MaterialRule[] k_NoRules = new MaterialRule[0];
 
-        // Quaternius names its foliage by colour (Green, DarkGreen, Orange, LightOrange); the leaf/foliage
-        // fragments are kept so a differently named pack still lands on the right palette key.
-        private static readonly MaterialRule[] k_LeafDeadRules =
-        {
-            new MaterialRule("green", "Leaf_Dead"),
-            new MaterialRule("leaf", "Leaf_Dead"),
-            new MaterialRule("leaves", "Leaf_Dead"),
-            new MaterialRule("foliage", "Leaf_Dead"),
-            new MaterialRule("crown", "Leaf_Dead")
-        };
-
-        private static readonly MaterialRule[] k_LeafAliveRules =
-        {
-            new MaterialRule("green", "Leaf_Alive"),
-            new MaterialRule("leaf", "Leaf_Alive"),
-            new MaterialRule("leaves", "Leaf_Alive"),
-            new MaterialRule("foliage", "Leaf_Alive"),
-            new MaterialRule("crown", "Leaf_Alive")
-        };
-
-        private static readonly MaterialRule[] k_LeafHalfRules =
-        {
-            new MaterialRule("orange", "Leaf_Half"),
-            new MaterialRule("green", "Leaf_Half"),
-            new MaterialRule("leaf", "Leaf_Half"),
-            new MaterialRule("leaves", "Leaf_Half"),
-            new MaterialRule("foliage", "Leaf_Half"),
-            new MaterialRule("crown", "Leaf_Half")
-        };
-
-        private static readonly MaterialRule[] k_PlantRules =
-        {
-            new MaterialRule("berr", "Mushroom_Red")
-        };
-
-        // Stumps and logs carry moss (Quaternius calls it Green/DarkGreen) and small mushrooms.
-        private static readonly MaterialRule[] k_WoodRules =
-        {
-            new MaterialRule("mushroom_top", "Mushroom_Red"),
-            new MaterialRule("mushroom", "Mushroom_Tan"),
-            new MaterialRule("moss", "Rock_Moss"),
-            new MaterialRule("green", "Rock_Moss")
-        };
-
-        private static readonly MaterialRule[] k_MushroomRedRules =
-        {
-            new MaterialRule("red", "Mushroom_Red"),
-            new MaterialRule("cap", "Mushroom_Red")
-        };
-
-        private static readonly MaterialRule[] k_RockRules =
-        {
-            new MaterialRule("moss", "Rock_Moss"),
-            new MaterialRule("grass", "Rock_Moss")
-        };
+        // Lab Assets are modelled in centimetres (a test-tube rack measures 36 x 14 x 9 units).
+        private const float k_LabScale = 0.01f;
 
         private static readonly MaterialRule[] k_PineRootsRules =
         {
@@ -170,173 +123,129 @@ namespace RootsDance.Editor.Environment
             new MaterialRule("_b", "Scan_PineRoots_B")
         };
 
-        // Kenney's road and factory kits ship a single "colormap" atlas material per model, so these
-        // fragments never hit; the per-model DefaultMaterial carries the look instead.
-        private static readonly MaterialRule[] k_SignRules =
+        private static readonly MaterialRule[] k_FenceRules =
         {
-            new MaterialRule("sign", "Sign_Face"),
-            new MaterialRule("face", "Sign_Face"),
-            new MaterialRule("board", "Sign_Face"),
-            new MaterialRule("white", "Sign_Face")
+            new MaterialRule("wire", "Scan_ChainlinkFence_Wire"),
+            new MaterialRule("post", "Scan_ChainlinkFence_Posts")
         };
 
-        private static readonly MaterialRule[] k_ValveRules =
+        // Lab Assets: "Solid" is the palette strip, "Solid - 25%" the vendor's 25 % opacity glass.
+        private static readonly MaterialRule[] k_LabRules =
         {
-            new MaterialRule("valve", "Metal_Rust"),
-            new MaterialRule("red", "Metal_Rust")
+            new MaterialRule("25%", "Lab_Glass")
         };
 
-        // Quaternius sci-fi panels: Main/DarkGrey are the wall, Light is the emissive strip, Accent the trim.
-        private static readonly MaterialRule[] k_WallRules =
+        /// <summary>Every dressing prefab, in build order.</summary>
+        public static readonly PrefabEntry[] Entries =
         {
-            new MaterialRule("door", "Metal_Rust"),
-            new MaterialRule("light", "Sign_Face"),
-            new MaterialRule("accent", "Metal_Dark")
+            // --- DeadTree_Sparse: Retro PSX Nature winter trees and bushes -------------------------------
+            PsxTree("tree01_winter", "Psx_Tree01_Winter"),
+            new PrefabEntry("tree02_winter", k_Retro + "Trees/tree02_winter.obj", k_Vegetation,
+                ColliderKind.TrunkCapsule, k_NoRules, "Psx_Tree02_Winter", 1f),
+            PsxTree("tree03_winter", "Psx_Tree03_Winter"),
+            PsxTree("tree04_winter", "Psx_Tree04_Winter"),
+            PsxTree("tree05_winter", "Psx_Tree05_Winter"),
+            PsxTree("tree06_winter", "Psx_Tree06_Winter"),
+            PsxBush("bush01_winter", "Psx_Bush01_Winter"),
+            PsxBush("bush02_winter", "Psx_Bush02_Winter"),
+            PsxBush("bush03_winter", "Psx_Bush03_Winter"),
+            PsxBush("bush04_winter", "Psx_Bush04_Winter"),
+            PsxBush("bush05_winter", "Psx_Bush05_Winter"),
+            PsxBush("bush06_winter", "Psx_Bush06_Winter"),
+
+            // --- DryLowGrowth: the two plain Retro bushes (fall sheet) ---------------------------------
+            PsxBush("bush07", "Psx_Bush07_Fall"),
+            PsxBush("bush08", "Psx_Bush08_Fall"),
+
+            // --- Transition_Growth: Niwl grass patches, ferns, bushes, ivy ----------------------------
+            Niwl("M3D_grass_patch_1", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_2", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_3", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_4", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_5", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_6", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_7", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_grass_patch_8", "Grass", "Niwl_Plants_General"),
+            Niwl("M3D_fern-1", "Ferns", "Niwl_Plants_General"),
+            Niwl("M3D_fern-2", "Ferns", "Niwl_Plants_General"),
+            Niwl("M3D_bush-1", "Bushes", "Niwl_Plants_General"),
+            Niwl("M3D_bush-2", "Bushes", "Niwl_Plants_General"),
+            Niwl("M3D_bush-3", "Bushes", "Niwl_Plants_General"),
+            Niwl("M3D_bush-4", "Bushes", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_1", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_2", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_3", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_4", "Ivy", "Niwl_Plants_Bunch"),
+
+            // --- Dead wood heroes (Poly Haven scans) -------------------------------------------------
+            Scan("dead_tree_trunk", k_Heroes, ColliderKind.MeshConvex, k_NoRules, "Scan_DeadTreeTrunk"),
+            Scan("dead_tree_trunk_02", k_Heroes, ColliderKind.MeshConvex, k_NoRules, "Scan_DeadTreeTrunk02"),
+            Scan("dry_branches_medium_01", k_Heroes, ColliderKind.None, k_NoRules, "Scan_DryBranchesMedium01"),
+
+            // --- RootRock_Clutter (Poly Haven scans) ------------------------------------------------
+            Scan("pine_roots", k_Rocks, ColliderKind.MeshConvex, k_PineRootsRules, "Scan_PineRoots_A"),
+            Scan("root_cluster_01", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RootCluster01"),
+            Scan("root_cluster_02", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RootCluster02"),
+            Scan("single_root", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_SingleRoot"),
+            Scan("rock_moss_set_01", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet01"),
+            Scan("rock_moss_set_02", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet02"),
+
+            // --- BrokenBoundary ----------------------------------------------------------------------
+            Scan("modular_chainlink_fence", k_Facility, ColliderKind.Box, k_FenceRules, "Scan_ChainlinkFence_Posts"),
+            Scan("concrete_road_barrier", k_Facility, ColliderKind.Box, k_NoRules, "Scan_ConcreteRoadBarrier"),
+
+            // --- CampEvidence ------------------------------------------------------------------------
+            Scan("clipboard", k_Props, ColliderKind.Box, k_NoRules, "Scan_Clipboard"),
+            Scan("binder_notebook", k_Props, ColliderKind.Box, k_NoRules, "Scan_BinderNotebook"),
+            Lab("bottle_test_tube_rack"),
+            Lab("bottle_glassware_test_tube_medium"),
+            Lab("bottle_glassware_test_tube_small"),
+            Lab("bottle_glassware_vial_medium"),
+            Lab("bottle_glassware_reagent_bottle_medium"),
+            Lab("bottle_glassware_reagent_bottle_small"),
+            Lab("bottle_glassware_centrifuge_tube"),
+            Lab("bottle_dropper"),
+            Lab("bottle_plastic_bottle_medium"),
+            Lab("dish_petridish"),
+            Lab("dish_watch_glass"),
+            Lab("misc_wash_bottle"),
+            Lab("misc_scale"),
+            Lab("misc_magnifying_glass"),
+            Lab("heating_equipment_thermometer"),
+            Lab("heating_equipment_forceps"),
+            Lab("clamp_tube_clamp"),
+            Lab("ppe_rubber_gloves"),
+            Lab("ppe_safety_glasses")
         };
 
-        private static PrefabEntry[] s_entries;
-
-        /// <summary>
-        /// Every dressing prefab the builder produces, in build order. Built lazily rather than from a
-        /// static field initializer: <see cref="BuildEntries"/> reads the <c>k_*Rules</c> arrays above, and a
-        /// field initializer would tie correctness to declaration order within this class.
-        /// </summary>
-        public static PrefabEntry[] Entries
+        private static PrefabEntry PsxTree(string key, string material)
         {
-            get
-            {
-                if (s_entries == null)
-                {
-                    s_entries = BuildEntries();
-                }
-
-                return s_entries;
-            }
+            return new PrefabEntry(key, $"{k_Retro}Trees/{key}.fbx", k_Vegetation, ColliderKind.TrunkCapsule,
+                k_NoRules, material, 1f);
         }
 
-        private static PrefabEntry[] BuildEntries()
+        private static PrefabEntry PsxBush(string key, string material)
         {
-            List<PrefabEntry> list = new List<PrefabEntry>(128);
-
-            AddSeries(list, k_Nature, "BirchTree_Dead_", 1, 5, k_Vegetation, ColliderKind.TrunkCapsule,
-                k_LeafDeadRules, "Bark_Dead", 2.4f);
-            AddSeries(list, k_Nature, "Willow_Dead_", 1, 5, k_Vegetation, ColliderKind.TrunkCapsule,
-                k_LeafDeadRules, "Bark_Dead", 2.6f);
-            AddSeries(list, k_Nature, "BirchTree_", 1, 5, k_Vegetation, ColliderKind.TrunkCapsule,
-                k_LeafAliveRules, "Bark_Alive", 2f);
-            AddSeries(list, k_Nature, "CommonTree_", 1, 3, k_Vegetation, ColliderKind.TrunkCapsule,
-                k_LeafAliveRules, "Bark_Alive", 2.4f);
-            AddSeries(list, k_Nature, "BirchTree_Autumn_", 1, 3, k_Vegetation, ColliderKind.TrunkCapsule,
-                k_LeafHalfRules, "Bark_Alive", 2f);
-
-            AddSeries(list, k_Nature, "Bush_", 1, 2, k_Vegetation, ColliderKind.None,
-                k_PlantRules, "Plant_Cold", 1f);
-            AddSeries(list, k_Nature, "Plant_", 1, 5, k_Vegetation, ColliderKind.None,
-                k_PlantRules, "Plant_Cold", 1f);
-            Add(list, k_Nature + "BushBerries_1.fbx", k_Vegetation, ColliderKind.None,
-                k_PlantRules, "Plant_Cold", 1f);
-            AddMany(list, k_KenneyNature, new[] { "plant_bush", "plant_bushLarge", "plant_bushSmall", "grass_leafs",
-                "grass_large" }, k_Vegetation, ColliderKind.None, k_PlantRules, "Plant_Cold", 2f);
-
-            AddMany(list, k_Nature, new[] { "Grass", "Grass_2", "Grass_Short" }, k_Vegetation, ColliderKind.None,
-                k_NoRules, "Grass_Silver", 0.5f);
-
-            AddMany(list, k_Nature, new[] { "TreeStump", "WoodLog" }, k_Vegetation, ColliderKind.Box,
-                k_WoodRules, "Wood_Log", 1f);
-            AddMany(list, k_Nature, new[] { "TreeStump_Moss", "WoodLog_Moss" }, k_Vegetation, ColliderKind.Box,
-                k_WoodRules, "Wood_Log", 1f);
-            Add(list, k_KenneyNature + "log_large.fbx", k_Vegetation, ColliderKind.Box, k_WoodRules, "Wood_Log", 2f);
-            Add(list, k_KenneyNature + "stump_round.fbx", k_Vegetation, ColliderKind.Box, k_WoodRules, "Wood_Log",
-                2.5f);
-
-            AddMany(list, k_KenneyNature, new[] { "mushroom_tan", "mushroom_tanGroup", "mushroom_tanTall" },
-                k_Vegetation, ColliderKind.None, k_NoRules, "Mushroom_Tan", 1.5f);
-            Add(list, k_KenneyNature + "mushroom_redGroup.fbx", k_Vegetation, ColliderKind.None,
-                k_MushroomRedRules, "Mushroom_Tan", 1.5f);
-            Add(list, k_KenneyNature + "hanging_moss.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, "Plant_Cold", 2f);
-
-            AddLetters(list, k_KenneyNature, "rock_large", 'A', 'F', k_Rocks, ColliderKind.MeshConvex,
-                k_RockRules, "Rock_Grey", 1.6f);
-            AddLetters(list, k_KenneyNature, "rock_tall", 'A', 'D', k_Rocks, ColliderKind.MeshConvex,
-                k_RockRules, "Rock_Grey", 1.6f);
-            AddLetters(list, k_KenneyNature, "stone_large", 'A', 'C', k_Rocks, ColliderKind.MeshConvex,
-                k_RockRules, "Rock_Grey", 1.6f);
-            AddLetters(list, k_KenneyNature, "rock_small", 'A', 'D', k_Rocks, ColliderKind.None,
-                k_RockRules, "Rock_Grey", 1.6f);
-
-            Add(list, k_PolyHaven + "DeadTreeTrunk/dead_tree_trunk_1k.fbx", k_Heroes, ColliderKind.MeshConvex,
-                k_NoRules, "Scan_DeadTreeTrunk", 1f);
-            Add(list, k_PolyHaven + "TreeStump02/tree_stump_02_1k.fbx", k_Heroes, ColliderKind.MeshConvex,
-                k_NoRules, "Scan_TreeStump02", 1f);
-            Add(list, k_PolyHaven + "PineRoots/pine_roots_1k.fbx", k_Heroes, ColliderKind.MeshConvex,
-                k_PineRootsRules, "Scan_PineRoots_A", 1f);
-            Add(list, k_PolyHaven + "DryBranchesMedium01/dry_branches_medium_01_1k.fbx", k_Heroes,
-                ColliderKind.None, k_NoRules, "Scan_DryBranchesMedium01", 1f);
-            Add(list, k_PolyHaven + "RockMossSet02/rock_moss_set_02_1k.fbx", k_Heroes, ColliderKind.None,
-                k_NoRules, "Scan_RockMossSet02", 1f);
-
-            AddMany(list, k_Psx, new[] { "road_barrier", "road_barrier_broken", "pole" }, k_Facility,
-                ColliderKind.Box, k_NoRules, "Psx_RoadBarrier", 1.8f);
-
-            AddMany(list, k_KenneyRoad, new[] { "road-sign-empty", "road-sign-empty-hanging" },
-                k_Facility, ColliderKind.Box, k_SignRules, "Sign_Face", 5f);
-            Add(list, k_KenneyRoad + "sign-highway.fbx", k_Facility, ColliderKind.Box, k_SignRules, "Sign_Face", 4f);
-            Add(list, k_KenneyRoad + "electricity-pole.fbx", k_Facility, ColliderKind.Box, k_SignRules,
-                "Metal_Dark", 5f);
-            AddMany(list, k_KenneyRoad, new[] { "construction-fence", "construction-barrier", "dumpster" },
-                k_Facility, ColliderKind.Box, k_NoRules, "Metal_Rust", 5f);
-
-            AddMany(list, k_KenneyFactory, new[] { "pipe-large", "pipe-large-long", "pipe-large-bend",
-                "pipe-large-junction", "catwalk-straight" }, k_Facility, ColliderKind.Box, k_NoRules,
-                "Metal_Dark", 1f);
-            Add(list, k_KenneyFactory + "catwalk-stairs.fbx", k_Facility, ColliderKind.MeshConvex, k_NoRules,
-                "Metal_Dark", 1f);
-            Add(list, k_KenneyFactory + "pipe-large-valve.fbx", k_Facility, ColliderKind.Box, k_ValveRules,
-                "Metal_Dark", 1f);
-
-            AddSeries(list, k_SciFi, "Details_Vent_", 1, 5, k_Facility, ColliderKind.Box, k_NoRules,
-                "Metal_Dark", 1f);
-            AddMany(list, k_SciFi, new[] { "RoofTile_Vents", "Details_Pipes_Long", "Details_Pipes_Medium",
-                "Door_Single" }, k_Facility, ColliderKind.Box, k_NoRules, "Metal_Dark", 1f);
-            AddMany(list, k_SciFi, new[] { "DoorSingle_Wall_SideA", "Wall_Empty" }, k_Facility, ColliderKind.Box,
-                k_WallRules, "Concrete_Pale", 1f);
-
-            return list.ToArray();
+            return new PrefabEntry(key, $"{k_Retro}Bushes/{key}.fbx", k_Vegetation, ColliderKind.None,
+                k_NoRules, material, 1f);
         }
 
-        private static void Add(List<PrefabEntry> list, string modelPath, string category, ColliderKind collider,
-            MaterialRule[] rules, string defaultMaterial, float scale)
+        private static PrefabEntry Niwl(string key, string folder, string material)
         {
-            string key = Path.GetFileNameWithoutExtension(modelPath);
-            list.Add(new PrefabEntry(key, modelPath, category, collider, rules, defaultMaterial, scale));
+            return new PrefabEntry(key, $"{k_Niwl}{folder}/{key}.fbx", k_Vegetation, ColliderKind.None,
+                k_NoRules, material, 1f);
         }
 
-        private static void AddMany(List<PrefabEntry> list, string folder, string[] names, string category,
-            ColliderKind collider, MaterialRule[] rules, string defaultMaterial, float scale)
+        private static PrefabEntry Scan(string key, string category, ColliderKind collider, MaterialRule[] rules,
+            string material)
         {
-            foreach (string name in names)
-            {
-                Add(list, folder + name + ".fbx", category, collider, rules, defaultMaterial, scale);
-            }
+            return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", category, collider, rules, material, 1f);
         }
 
-        private static void AddSeries(List<PrefabEntry> list, string folder, string prefix, int first, int last,
-            string category, ColliderKind collider, MaterialRule[] rules, string defaultMaterial, float scale)
+        private static PrefabEntry Lab(string key)
         {
-            for (int i = first; i <= last; i++)
-            {
-                Add(list, $"{folder}{prefix}{i}.fbx", category, collider, rules, defaultMaterial, scale);
-            }
-        }
-
-        private static void AddLetters(List<PrefabEntry> list, string folder, string prefix, char first, char last,
-            string category, ColliderKind collider, MaterialRule[] rules, string defaultMaterial, float scale)
-        {
-            for (char c = first; c <= last; c++)
-            {
-                Add(list, $"{folder}{prefix}{c}.fbx", category, collider, rules, defaultMaterial, scale);
-            }
+            return new PrefabEntry(key, $"{k_Lab}{key}.fbx", k_Props, ColliderKind.Box, k_LabRules, "Lab_Palette",
+                k_LabScale);
         }
     }
 }

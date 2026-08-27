@@ -70,7 +70,7 @@ namespace RootsDance.Editor.Environment
         // out of the batching/occluder sets so it can be swayed or culled per instance later.
         private static readonly HashSet<string> k_NoShadowMaterials = new HashSet<string>
         {
-            "Grass_Silver", "Plant_Cold", "Mushroom_Tan", "Mushroom_Red"
+            "Niwl_Plants_General", "Niwl_Plants_Bunch"
         };
 
         private static Dictionary<string, string> s_categoryByKey;

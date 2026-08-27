@@ -58,7 +58,43 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
 ## ambientCG — `Assets/ThirdParty/Environment/AmbientCG/`
 
 - **Version/date:** downloaded 2026-08-26 from the ambientCG library.
-- **Path:** `Assets/ThirdParty/Environment/AmbientCG/<Id>/` for `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, - **Licence:** CC0 1.0 Universal — see `AmbientCG/LICENSE.md` and `AmbientCG/SOURCE.md` (one record covering all seven ids).
+- **Path:** `Assets/ThirdParty/Environment/AmbientCG/<Id>/` for `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, Ground068, Ground086, Concrete032} (the last three added 2026-08-27 for the mud/humus terrain layers and the lab blockout normal map).
+- **Licence:** CC0 1.0 Universal — see `AmbientCG/LICENSE.md` and `AmbientCG/SOURCE.md` (one record covering all nine ids).
 - **No local edits.**
 - **What's imported:** the `_Color` and `_NormalGL` 1K JPGs (imported by the Editor as sRGB colour / linear normal map respectively via `EnvironmentAssetPostprocessor`); the `_AmbientOcclusion`, `_Roughness` and `_Displacement` JPGs live in each `<Id>/Source~/` folder, which Unity's importer ignores (folder name ends in `~`) — they are read directly off disk by `RootsDance/Terrain/Pack Terrain Layer Masks` to bake `Assets/RootsDance/Textures/Environment/Terrain<LayerName>_Mask.png` (packed AO/Roughness/Displacement; the file is named after the terrain layer the id feeds, e.g. `Ground103` → `TerrainAshDry_Mask.png`), then never imported as their own textures.
 - **Left out (spec decision 12):** the `.blend`/`.mtlx`/`.tres`/`.usdc` source files, the `_NormalDX` and `_Metalness` variants (Unity/HDRP samples OpenGL-convention normal maps and the terrain layers are non-metallic), and the preview `.png` thumbnail — none of these are consumed by the terrain layer pipeline. `` was imported for the trail layer in the first pass and removed in the Task 8 tuning pass when `Gravel043` took over that layer.
+
+## Outdoor dressing packs (2026-08-27) — `Assets/ThirdParty/Environment/<Vendor>/`
+
+Curated subsets of the team candidate library (`室外场景候选素材/素材总索引.md`), imported for the six Prefab World Builder
+pools (DeadTree_Sparse, RootRock_Clutter, DryLowGrowth, Transition_Growth, BrokenBoundary, CampEvidence). Each vendor
+folder carries its own `SOURCE.md` (exact file list, selection rationale) and `LICENSE.md`. Vendor files are verbatim;
+the only derived data lives under `Assets/RootsDance/`.
+
+| Folder | Vendor | Licence | What |
+|---|---|---|---|
+| `RetroPSXNature/` | elegantcrow, *Retro PSX Nature Pack* (itch.io) | **No licence text on the saved page** — index lists CC0; confirm on the live page before the submission build | 6 winter trees (`tree02_winter` is the OBJ: the vendor FBX is empty), 6 winter bushes, `bush07`/`bush08`, their 128/256 px sheets |
+| `NiwlPlants/` | Niwl-Games / Khaleer, *Plants* (itch.io) | CC0 1.0 | 8 grass patches, 2 ferns, 4 bushes, ivy 1–4, the two `T_Plants_General*` atlases |
+| `PolyHaven/` | Poly Haven | CC0 1.0 | `Models/`: dead_tree_trunk(_02), dry_branches_medium_01, pine_roots, root_cluster_01/02, single_root, rock_moss_set_01/02, modular_chainlink_fence, concrete_road_barrier, clipboard, binder_notebook (1K). `Textures/`: brown_mud_02, aerial_ground_rock (AO/rough/disp in `Source~/`, same convention as ambientCG) |
+| `LabAssetsCC0/` | MilkAndBanana via OpenGameArt *Lab Assets* | CC0 1.0 | 19 hand-held sampling/recording props (centimetre scale — the prefab table scales them by 0.01) |
+
+- **Local edits (PolyHaven only):** the 22 `.exr` normal/roughness/metal maps were converted to 8-bit linear PNG
+  (`exrmetrics` → `ffmpeg -apply_trc linear` → `magick -depth 8`; mean values verified against the float source, no
+  gamma applied). Command and evidence in `PolyHaven/SOURCE.md`.
+- **Derived textures** in `Assets/RootsDance/Textures/Environment/`: `ChainlinkFenceWire_BaseMap.png` (Poly Haven wire
+  `_diff` + `_alpha` packed into RGBA with `magick … -compose CopyOpacity`) and `LabPalette_BaseMap.png` (the 256×1 palette
+  strip every Lab Assets FBX embeds, extracted verbatim and tiled to 256×256 so the texture pipeline accepts it).
+- **Import rules:** `EnvironmentAssetPostprocessor` — Retro PSX textures point-filtered/uncompressed, `_nor_` maps as
+  normal maps, `_alpha_/_metal_/_rough` linear, Niwl models with calculated normals and no tangents.
+- **Materials and prefabs:** `RootsDance > Environment > Build Environment Prefabs` (`EnvironmentPalette` +
+  `EnvironmentPrefabTable` + `EnvironmentPrefabBuilder`) writes one **The Visual Engine** material per vendor texture set
+  to `Assets/RootsDance/Materials/Environment/` (`General Standard Lit` for trees/props/scans, `General Subsurface Lit`
+  for bush/plant cards; `TVEUtils.SetMaterialSettings` + the "The Visual Engine" label) and 64 prefabs to
+  `Assets/RootsDance/Prefabs/Environment/{Vegetation,Heroes,Rocks,Facility,Props}/`. TVE's own Asset Converter is not
+  used: it needs the separately sold *TVE Conversion Presets* package and, without a preset, replaces materials with
+  blank ones. `RootsDance > Environment > Create TVE Manager Prefab` builds `Prefabs/Systems/TVEManager.prefab`; every
+  Environment scene that uses these prefabs needs one instance (materials read wind/tint/wetness from it).
+- **Not imported because of licence vs. public repo:** *Barriers Retro PSX* (gataki) and *PSX Large Terrain Rock Pack 2*
+  (Caliber Creations) both forbid redistributing their files, and `AmanThuL/shenicest-2026` is public — committing the
+  FBX would be redistribution. Poly Haven's `concrete_road_barrier` and `modular_chainlink_fence` cover the boundary pool;
+  rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it.
