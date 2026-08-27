@@ -1,0 +1,78 @@
+---
+title: "Skin and diffusive surfaces (subsurface scattering)"
+page_title: "Skin and diffusive surfaces (subsurface scattering) | High Definition Render Pipeline | 17.3.0"
+source_url: "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/skin-and-diffusive-surfaces-subsurface-scattering.html"
+final_url: "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/skin-and-diffusive-surfaces-subsurface-scattering.html"
+topic: "rendering-hdrp"
+publisher: "Unity Technologies"
+fetched: "2026-08-27"
+kind: "html"
+---
+
+# Skin and diffusive surfaces (subsurface scattering)
+
+**Subsurface Scattering** handles light that penetrates and moves within the area under a surface. Use it to make organic materials, like skin, look smooth and natural rather than rough and plastic-like. HDRP implements subsurface scattering using a screen-space blur technique.
+
+Subsurface scattering also handles the light that penetrates GameObjects from behind and makes those GameObjects look transparent. For certain types of objects, the screen-space blur effect may not make a large visual difference. Therefore, HDRP implements two material types:
+
+- **Subsurface Scattering** implements both the screen-space blur effect and transmission (you can disable the latter).
+- **Translucent** only models transmission.
+
+## Enable Subsurface Scattering
+
+To enable subsurface scattering in your [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/HDRP-Asset.html):
+
+1.  In the HDRP Asset’s Inspector window, go to the **Material** section and enable the **Subsurface Scattering** checkbox.
+2.  When you enable the **Subsurface Scattering** checkbox, HDRP displays the **High Quality** option. You can Enable this option to increase the sample count and reduce the amount of visual noise the blur pass can cause by under sampling. Note that this is around two and a half times more resource intensive than the default quality.
+3.  Go to **Edit \> Project Settings \> HDRP Default Settings** and, in the **Default Frame Settings** section, under the **Lighting** subsection, enable **Subsurface Scattering** and **Transmission**.
+
+HDRP stores most subsurface scattering settings in a [Diffusion Profile](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html). HDRP supports up to 15 custom Diffusion Profiles in view at the same time, but you can override which Diffusion Profiles HDRP uses and thus use as many Diffusion Profiles as you want throughout your project. To do this, use the [Diffusion Profile List](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Diffusion-Profile.html) in the [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-volumes.html) system. This [override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/volume-component.html) lets you specify 15 custom Diffusion Profiles which HDRP can use for a Camera within the override's Volume.
+
+To create a Diffusion Profile, navigate to **Assets \> Create \> Rendering \> HDRP Diffusion Profile**. For HDRP to detect it, you must add it to the **Diffusion Profile List** of the [Diffusion Profile List Component](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Diffusion-Profile.html) in an active [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-volumes.html).
+
+Refer to [Diffusion Profile reference](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html) for more information.
+
+### Subsurface border attenuation
+
+HDRP includes support for an approximation of occlusion in Subsurface Scattering (SSS), referred to as **Border Attenuation**. When enabled, **Border Attenuation** darkens the Subsurface Scattering effect near the borders of an object. A border is defined as an area where the material transitions to another material without Subsurface Scattering or to a material with a different diffusion profile.
+
+To enable **Border Attenuation**, in the HDRP asset go in the Material Section, under the Subsurface scattering toggle, enable **Support Border Attenuation**.
+
+#### Use cases
+
+Border Attenuation is particularly useful when working with diffusion profiles that have a large radius. It enhances detail in the light simulation, making it especially beneficial for rendering complex surfaces like eyes, which typically present challenges for Subsurface Scattering.
+
+#### Performances
+
+Enabling Border Attenuation incurs a minor performance cost on the GPU. This cost scales linearly with the number of samples used in the Subsurface Scattering process.
+
+#### Border Attenuation Color
+
+When border attenuation is enabled, a new option is available in the diffusion profile allowing you to specify the color for samples that hit the border. This simulates the effect of light being transmitted from one surface to another through Subsurface Scattering. It only affects Subsurface Scattering when two materials with different diffusion profiles are adjacent to each other.
+
+## Add subsurface scattering to a Material
+
+To add subsurface scattering to a Material:
+
+1.  Open the Material in the Inspector.
+2.  In the **Surface Options** section, set the Material’s **Material Type** to **Subsurface Scattering** or **Translucent**, depending on the effect you want.
+3.  In the Surface Inputs section, select [Diffusion Profile](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html) and assign a diffusion profile.
+4.  If a warning box appears below the Diffusion Profile property, select **Fix**.
+
+The following image displays grass in an environment scene. In the left image the grass renders correctly. The grass in the right image has the bright magenta tint that HDRP applies to a Material that doesn't have a valid diffusion profile:
+
+![Grass in an environment scene: In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile.](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/images/missing_profile.png)
+
+The Material appears bright magenta in the following cases:
+
+- The Material doesn't have a diffusion profile assigned.
+
+- The Diffusion profile assigned in the Material is not included in a [Diffusion Profile List](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html)
+
+### Customizing Subsurface Scattering
+
+When you select **Subsurface Scattering** or **Translucent** from the **Material Type** drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Material-Type.html) and the [Diffusion Profile documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html).
+
+Materials and Shader Graphs that use subsurface scattering do not use the Metallic property. This creates available space in the GBuffer to store all data related to subsurface scattering.
+
+You can learn more about HDRP’s subsurface scattering implementation in our [Efficient Screen-Space Subsurface Scattering](http://advances.realtimerendering.com/s2018/Efficient%20screen%20space%20subsurface%20scattering%20Siggraph%202018.pdf) presentation.
