@@ -50,7 +50,9 @@
   texture, no extra camera). Assemblies `CurvedUIUtility` + `CurvedUIUtility.Editor` ride along; `RootsDance.Editor`
   references the runtime assembly.
 - **Local edits** (re-apply after a vendor update):
-  - `Editor/Internal/UIHelper.cs` — `FindObjectOfType<EventSystem>` → `FindFirstObjectByType` (obsolete in Unity 6).
+  - `Editor/Internal/UIHelper.cs` — `FindObjectOfType<EventSystem>` → `FindFirstObjectByType` (obsolete in Unity 6);
+    dropped `using UnityEditor.Experimental.SceneManagement` (namespace removed in Unity 6 — a compile error that
+    took every script assembly down with it; `PrefabStageUtility` resolves via `UnityEditor.SceneManagement`).
   - `Runtime/Internal/CurvedTextMeshProUnderline.cs` — did not compile against Unity 6's bundled TMP:
     the `TMP_MANUALLY_GET_UNDERLINE` block (`GetUnderlineSpecialCharacter` + `m_Underline.character`) now runs
     unconditionally (the define's version check can never match the uGUI-bundled TMP), `uvs0` is typed `Vector4[]`
