@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using RootsDance.Editor.Rendering;
 using RootsDance.Editor.Terrain;
 using RootsDance.Rendering;
@@ -46,6 +47,19 @@ namespace RootsDance.Editor.Environment
             }
 
             Build(OpeningAtmosphereParams.CreateDefault(), overwriteTuned: true);
+        }
+
+        /// <summary>
+        /// Batch equivalent of the overwrite menu entry (no dialog):
+        /// <c>-executeMethod RootsDance.Editor.Environment.OpeningAtmosphereBuilder.RebuildFromCommandLine</c>.
+        /// Resets every Opening profile and the Sun to the seed values. Throws on failure.
+        /// </summary>
+        public static void RebuildFromCommandLine()
+        {
+            if (!Build(OpeningAtmosphereParams.CreateDefault(), overwriteTuned: true))
+            {
+                throw new InvalidOperationException($"{k_LogPrefix}: rebuild failed — see the log above.");
+            }
         }
 
         /// <summary>
@@ -203,6 +217,8 @@ namespace RootsDance.Editor.Environment
             Set(fog.albedo, look.FogAlbedo);
             Set(fog.anisotropy, look.FogAnisotropy);
             Set(fog.globalLightProbeDimmer, look.AmbientDimmer);
+            Set(fog.depthExtent, look.FogVolumetricDistance);
+            Set(fog.multipleScatteringIntensity, look.FogMultipleScattering);
             Set(fog.denoisingMode, FogDenoisingMode.Gaussian);
 
             Exposure exposure = GetOrAdd<Exposure>(profile);
@@ -411,10 +427,19 @@ namespace RootsDance.Editor.Environment
 
             RemoveChildrenNotNamed(root, names);
 
+            // One material/prefab per kind: ensure (and re-apply the recipe to) each kind once per build.
+            Dictionary<OpeningVfxKind, GameObject> prefabs = new Dictionary<OpeningVfxKind, GameObject>();
+
             for (int i = 0; i < p.Emitters.Length; i++)
             {
                 OpeningVfxEmitter emitter = p.Emitters[i];
-                GameObject prefab = OpeningVfxPrefabBuilder.EnsurePrefab(emitter.Kind);
+                GameObject prefab;
+
+                if (!prefabs.TryGetValue(emitter.Kind, out prefab))
+                {
+                    prefab = OpeningVfxPrefabBuilder.EnsurePrefab(emitter.Kind);
+                    prefabs[emitter.Kind] = prefab;
+                }
 
                 if (prefab == null)
                 {

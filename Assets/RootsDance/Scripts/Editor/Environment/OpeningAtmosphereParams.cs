@@ -21,6 +21,12 @@ namespace RootsDance.Editor.Environment
         public float FogAnisotropy;
         /// <summary>Fog override Ambient Light Probe Dimmer, 0 = no dimming.</summary>
         public float AmbientDimmer;
+        /// <summary>Fog override Volumetric Fog Distance (depth extent of the volumetric buffer), in metres.</summary>
+        public float FogVolumetricDistance;
+        /// <summary>
+        /// Fog override Multiple Scattering Intensity (0..2); dense single-scattering fog reads too dark.
+        /// </summary>
+        public float FogMultipleScattering;
         public Color SkyTop;
         public Color SkyMiddle;
         public Color SkyBottom;
@@ -137,12 +143,13 @@ namespace RootsDance.Editor.Environment
                     BlendDistance = 6f, Priority = 10f,
                     Look = new OpeningLook
                     {
-                        FogAttenuationDistance = 28f, FogBaseHeight = 0f, FogMaximumHeight = 25f,
-                        FogTint = new Color(0.92f, 0.86f, 0.66f), FogAlbedo = new Color(0.84f, 0.80f, 0.64f),
-                        FogAnisotropy = 0.20f, AmbientDimmer = 0.35f,
-                        SkyTop = new Color(0.36f, 0.35f, 0.27f), SkyMiddle = new Color(0.58f, 0.55f, 0.41f),
-                        SkyBottom = new Color(0.66f, 0.62f, 0.47f), SkyDiffusion = 1.6f, SkyExposure = 12f,
-                        FixedExposure = 12.7f, Contrast = 6f, Saturation = -28f,
+                        FogAttenuationDistance = 10f, FogBaseHeight = 12f, FogMaximumHeight = 40f,
+                        FogTint = new Color(1.15f, 1.08f, 0.85f), FogAlbedo = new Color(0.95f, 0.90f, 0.74f),
+                        FogAnisotropy = 0.20f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
+                        FogMultipleScattering = 1.0f,
+                        SkyTop = new Color(0.50f, 0.48f, 0.38f), SkyMiddle = new Color(0.78f, 0.74f, 0.56f),
+                        SkyBottom = new Color(0.86f, 0.82f, 0.62f), SkyDiffusion = 1.6f, SkyExposure = 12f,
+                        FixedExposure = 12.3f, Contrast = 6f, Saturation = -28f,
                         ColorFilter = new Color(0.96f, 0.92f, 0.80f),
                         VignetteIntensity = 0.34f, GrainIntensity = 0.35f, BloomIntensity = 0.04f,
                         PsxIntensity = 1f, PsxPixelScale = 3, PsxColorLevels = 20, PsxDither = 0.6f,
@@ -155,12 +162,13 @@ namespace RootsDance.Editor.Environment
                     BlendDistance = 6f, Priority = 11f,
                     Look = new OpeningLook
                     {
-                        FogAttenuationDistance = 45f, FogBaseHeight = 2f, FogMaximumHeight = 30f,
-                        FogTint = new Color(0.88f, 0.86f, 0.72f), FogAlbedo = new Color(0.82f, 0.81f, 0.70f),
-                        FogAnisotropy = 0.15f, AmbientDimmer = 0.35f,
-                        SkyTop = new Color(0.36f, 0.38f, 0.31f), SkyMiddle = new Color(0.57f, 0.57f, 0.46f),
-                        SkyBottom = new Color(0.64f, 0.64f, 0.52f), SkyDiffusion = 1.5f, SkyExposure = 12f,
-                        FixedExposure = 12.6f, Contrast = 6f, Saturation = -24f,
+                        FogAttenuationDistance = 16f, FogBaseHeight = 12f, FogMaximumHeight = 40f,
+                        FogTint = new Color(1.10f, 1.06f, 0.90f), FogAlbedo = new Color(0.94f, 0.92f, 0.80f),
+                        FogAnisotropy = 0.15f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
+                        FogMultipleScattering = 1.0f,
+                        SkyTop = new Color(0.50f, 0.52f, 0.44f), SkyMiddle = new Color(0.76f, 0.76f, 0.62f),
+                        SkyBottom = new Color(0.84f, 0.84f, 0.70f), SkyDiffusion = 1.5f, SkyExposure = 12f,
+                        FixedExposure = 12.2f, Contrast = 6f, Saturation = -24f,
                         ColorFilter = new Color(0.95f, 0.94f, 0.85f),
                         VignetteIntensity = 0.30f, GrainIntensity = 0.30f, BloomIntensity = 0.05f,
                         PsxIntensity = 1f, PsxPixelScale = 3, PsxColorLevels = 24, PsxDither = 0.6f,
@@ -173,12 +181,13 @@ namespace RootsDance.Editor.Environment
                     BlendDistance = 5f, Priority = 12f,
                     Look = new OpeningLook
                     {
-                        FogAttenuationDistance = 60f, FogBaseHeight = -1f, FogMaximumHeight = 22f,
-                        FogTint = new Color(0.74f, 0.78f, 0.72f), FogAlbedo = new Color(0.70f, 0.74f, 0.70f),
-                        FogAnisotropy = 0.10f, AmbientDimmer = 0.45f,
-                        SkyTop = new Color(0.30f, 0.34f, 0.32f), SkyMiddle = new Color(0.48f, 0.52f, 0.47f),
-                        SkyBottom = new Color(0.55f, 0.58f, 0.52f), SkyDiffusion = 1.4f, SkyExposure = 12f,
-                        FixedExposure = 12.9f, Contrast = 8f, Saturation = -20f,
+                        FogAttenuationDistance = 18f, FogBaseHeight = 12f, FogMaximumHeight = 35f,
+                        FogTint = new Color(0.95f, 1.00f, 0.94f), FogAlbedo = new Color(0.86f, 0.90f, 0.86f),
+                        FogAnisotropy = 0.10f, AmbientDimmer = 0.15f, FogVolumetricDistance = 100f,
+                        FogMultipleScattering = 0.8f,
+                        SkyTop = new Color(0.38f, 0.42f, 0.40f), SkyMiddle = new Color(0.60f, 0.64f, 0.58f),
+                        SkyBottom = new Color(0.68f, 0.72f, 0.64f), SkyDiffusion = 1.4f, SkyExposure = 12f,
+                        FixedExposure = 12.5f, Contrast = 8f, Saturation = -20f,
                         ColorFilter = new Color(0.90f, 0.94f, 0.90f),
                         VignetteIntensity = 0.30f, GrainIntensity = 0.30f, BloomIntensity = 0.06f,
                         PsxIntensity = 1f, PsxPixelScale = 3, PsxColorLevels = 28, PsxDither = 0.55f,
@@ -191,12 +200,13 @@ namespace RootsDance.Editor.Environment
                     BlendDistance = 6f, Priority = 13f,
                     Look = new OpeningLook
                     {
-                        FogAttenuationDistance = 90f, FogBaseHeight = 3f, FogMaximumHeight = 40f,
-                        FogTint = new Color(0.80f, 0.88f, 0.82f), FogAlbedo = new Color(0.76f, 0.84f, 0.78f),
-                        FogAnisotropy = 0.10f, AmbientDimmer = 0.20f,
-                        SkyTop = new Color(0.42f, 0.50f, 0.48f), SkyMiddle = new Color(0.62f, 0.70f, 0.66f),
-                        SkyBottom = new Color(0.68f, 0.74f, 0.68f), SkyDiffusion = 1.3f, SkyExposure = 12f,
-                        FixedExposure = 12.4f, Contrast = 4f, Saturation = -12f,
+                        FogAttenuationDistance = 20f, FogBaseHeight = 12f, FogMaximumHeight = 45f,
+                        FogTint = new Color(1.00f, 1.08f, 1.02f), FogAlbedo = new Color(0.90f, 0.96f, 0.92f),
+                        FogAnisotropy = 0.10f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
+                        FogMultipleScattering = 1.0f,
+                        SkyTop = new Color(0.50f, 0.58f, 0.56f), SkyMiddle = new Color(0.72f, 0.80f, 0.76f),
+                        SkyBottom = new Color(0.78f, 0.84f, 0.78f), SkyDiffusion = 1.3f, SkyExposure = 12f,
+                        FixedExposure = 12.0f, Contrast = 4f, Saturation = -12f,
                         ColorFilter = new Color(0.92f, 0.98f, 0.94f),
                         VignetteIntensity = 0.24f, GrainIntensity = 0.25f, BloomIntensity = 0.08f,
                         PsxIntensity = 1f, PsxPixelScale = 3, PsxColorLevels = 32, PsxDither = 0.5f,
