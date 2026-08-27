@@ -386,6 +386,17 @@ namespace RootsDance.Editor.Environment
                     },
                     GapChance = 0.28f, PanelLean = 15f, PostLean = 11f, Seed = 1106,
                 },
+
+                // Lab terrace: a broken divider between the two v3 buildings. It starts in the inner corner
+                // where the SW wing's south side meets the annex's NE wall and runs ESE across the forecourt,
+                // stopping ~9 m short of the trail so the route passes its broken end; a short stub closes the
+                // north side between the hall's north corner and the wing's NW corner, dying on the terrace's
+                // NW slope.
+                Ring("Lab_Divider_South", 1121, 0.36f,
+                    new Vector2(-11.9f, 124.6f), new Vector2(-2.5f, 120.4f), new Vector2(6.2f, 115.3f),
+                    new Vector2(15.4f, 110.4f)),
+                Ring("Lab_Divider_North", 1122, 0.3f,
+                    new Vector2(-27.6f, 128.1f), new Vector2(-30.8f, 130.6f), new Vector2(-34.1f, 133.4f)),
             };
         }
 
