@@ -19,7 +19,7 @@ Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) ow
 9. **MUST** pass a serialized `LayerMask`, an explicit `QueryTriggerInteraction` and the shortest max distance to every physics query; layers and the collision matrix are owned by [09](./09-packages-systems.md#layers-and-the-collision-matrix).
 10. **MUST** share materials and keep them SRP-Batcher compatible (the SRP Batcher is always on in HDRP); **NEVER** read `Renderer.material` or use `MaterialPropertyBlock` on batched objects (use `sharedMaterial` or Material Variants, per [07 §9.2](./07-rendering-hdrp.md#92-srp-batcher-compatibility)).
 11. **MUST** run exactly one Unity `Camera` (rule owned by [09](./09-packages-systems.md) and [11](./11-scenes-prefabs-workflow.md)); every extra enabled camera re-runs culling, sorting and batching.
-12. **SHOULD** stay inside [07](./07-rendering-hdrp.md)'s lighting budgets: static lighting baked (APV per 07), shadow-casting lights only as 07 §11 allows; **NEVER** a shadow-casting point light.
+12. **SHOULD** stay inside [07](./07-rendering-hdrp.md)'s lighting budgets: lights Realtime today, Mixed + baked GI/APV only once baking starts (07 §5.3), shadow-casting lights only as 07 §11 allows; **NEVER** a shadow-casting point light.
 13. **MUST** import assets per the tables in section 7: textures Max Size ≤ 2048 and GPU-compressed (POT, Read/Write, mipmaps per [07 §10](./07-rendering-hdrp.md#10-texture-import-settings-that-affect-rendering)); meshes Read/Write off; 3D audio mono, load type by clip size.
 14. **SHOULD** wrap every non-trivial per-frame system in a `ProfilerMarker` named `RootsDance.<System>.<Phase>` so it shows up by name in the Profiler.
 15. **NEVER** ship `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` ([04](./04-unity-scripting-rules.md#logging)), which compiles out of release builds.
@@ -627,7 +627,7 @@ If the team ever wants a browser build, that is a pipeline decision (back to URP
 - ❌ A second `Camera` for the weapon/UI/minimap "because it was easy" → ✅ One camera + an HDRP Custom Pass / a Screen Space – Overlay canvas; HDRP has no camera stacking and each camera is a full culling + render pass.
 - ❌ Mesh Collider on a thrown crate; `OnTriggerStay` counting overlaps → ✅ Box/compound primitives; `Enter`/`Exit` events with a cached count.
 - ❌ `Physics.OverlapSphere(...)` (allocates) every frame → ✅ `OverlapSphereNonAlloc` into a field buffer with a layer mask and `QueryTriggerInteraction.Ignore`.
-- ❌ Point light with shadows, four cascades, realtime reflection probe "for quality" → ✅ Baked lighting, shadow-casting lights and cascades per 07 §11, baked probes.
+- ❌ Point light with shadows, four cascades, realtime reflection probe "for quality" → ✅ Lights Realtime today (baked GI/APV once baking starts, 07 §5.3), shadow-casting lights and cascades per 07 §11, baked reflection probes.
 - ❌ 4096² uncompressed PNG with Read/Write on, mipmaps off → ✅ 2048 max, DXT/BC7, Read/Write off, mipmaps on.
 - ❌ Stereo 48 kHz WAV on a 3D `AudioSource`, Decompress On Load for the music track → ✅ Mono, 44.1 kHz, Streaming for music.
 - ❌ `CanvasGroup.alpha = 0` to hide a panel (it still draws and still eats clicks); an `Animator` on a UI element → ✅ disable the `Canvas` component or the root GameObject; tween from code.
@@ -644,7 +644,7 @@ If the team ever wants a browser build, that is a pipeline decision (back to URP
 - [ ] Repeatedly spawned objects go through `ObjectPool<T>` with reset-on-release; nothing `Instantiate`s/`Destroy`s in a gameplay loop.
 - [ ] No `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` (04).
 - [ ] No `Renderer.material` reads, no `MaterialPropertyBlock`, no **Enable GPU Instancing** on HDRP materials; new materials use `HDRP/Lit`, `HDRP/Unlit` or an HDRP-target Shader Graph.
-- [ ] Still exactly one active Unity `Camera` (09/11); new lights are baked or within 07 §11's shadow-casting budget.
+- [ ] Still exactly one active Unity `Camera` (09/11); new lights are Realtime (07 §5.3) and within 07 §11's shadow-casting budget.
 - [ ] New textures: Max Size per 7.1, compressed, and the 07 §10 import rules (POT, Read/Write off, mipmaps correct). New meshes: Read/Write off, Optimize Mesh on. New audio: WAV source, mono for 3D, load type per clip size.
 - [ ] Project Settings changes (Physics, Time, Quality, Player) are in their own commit and called out in the PR description.
 - [ ] New per-frame system has a `ProfilerMarker` named `RootsDance.<System>.<Phase>`.

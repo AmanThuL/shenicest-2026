@@ -11,7 +11,7 @@
 3. **MUST** implement custom rendering as an HDRP **Custom Pass** (a `CustomPass` subclass run by a `CustomPassVolume`) or a **Custom Post Process** (a `CustomPostProcessVolumeComponent` registered in HDRP graphics settings). **NEVER** `ScriptableRendererFeature` / `ScriptableRenderPass` / `RecordRenderGraph` (URP-only APIs), **NEVER** `Graphics.Blit` or `CommandBuffer.Blit`.
 4. **MUST** keep **Color Space = Linear** (Player settings). HDRP does not support gamma space at all.
 5. **MUST** light each level from its `<Level>_Environment.unity` scene: one Directional light named `Sun` in **lux** at real-world magnitudes, one **Global Volume** whose profile sets **Fixed** exposure, and **Adaptive Probe Volumes** as the light-probe system. Lightmaps are opt-in (§5.5).
-6. **MUST** apply post-processing, sky and fog only through **Volume** components and Volume Profile assets named `<Context>Profile` in `Assets/RootsDance/Settings/VolumeProfiles/`; one global Volume per level, in that level's `_Environment` scene.
+6. **MUST** apply post-processing, sky and fog only through **Volume** components and Volume Profile assets named `<Context>Profile` in `Assets/RootsDance/Settings/VolumeProfiles/`; one global Volume per level, in that level's `_Environment` scene (or its optional `_Lighting` split scene when present, per [11](./11-scenes-prefabs-workflow.md)).
 7. **MUST** keep the single `Main Camera` in `Bootstrap.unity` and its `HDAdditionalCameraData`. **HDRP has no camera stacking** — overlays are a uGUI canvas, a custom pass or a render texture (§7).
 8. **MUST** use HDRP shaders only: `HDRP/Lit` by default, `HDRP/Unlit`, `HDRP/TerrainLit` for terrain, Shader Graph with an **HDRP target** for anything custom. Built-in and URP shaders render magenta; uGUI shaders must not include URP headers.
 9. **MUST** keep materials SRP-Batcher compatible: no `MaterialPropertyBlock`, **Material Variants** for colour/texture variations, and `HDMaterial.ValidateMaterial` after every scripted material change (§9.2, §9.5).
@@ -71,12 +71,12 @@ Assets/RootsDance/Settings/
 | Rendering > **LOD Bias** | **1** | Neutral; LOD tuning belongs to [05](./05-performance.md). |
 | Lighting > **Screen Space Ambient Occlusion** | **On** | The one screen-space effect we keep; it is driven by an **Ambient Occlusion** volume override (§6) and adds contact darkening that probe lighting alone cannot give. |
 | Lighting > **Screen Space Global Illumination** | **Off** | Expensive, noisy, and redundant next to APV. |
-| Lighting > **Volumetrics** | **On**, **High Quality off** | Volumetric fog is the look (§5.8); High Quality can cost up to eight times as much. |
+| Lighting > **Volumetrics** | **On** | Volumetric fog is the look (§5.8); the asset has no separate quality switch — volumetric quality is the level Fog override's **Quality** level (Medium in the level profiles). |
 | Lighting > **Light Layers** | default | Not used; leave as created. |
 | Lighting > **Lens Flare (data-driven)** | default | Not used yet, but cheap while no flare asset exists; leave as created. |
 | Light Probe Lighting > **Light Probe System** | **Adaptive Probe Volumes** | §5.4. |
 | Reflections > **Screen Space Reflection** (opaque and **Transparent**) | **Off** | The most expensive reflection technique; baked reflection probes plus sky reflection cover our surfaces (§5.7). |
-| Sky / Shadows > **Shadowmask** | default | We bake nothing yet (§5.3); revisit together with the Lighting Mode. |
+| Lighting > Shadows > **Shadowmask** | default | We bake nothing yet (§5.3); revisit together with the Lighting Mode. |
 | Shadows > shadow atlases and resolution tiers | defaults | Budgets in §11; per-light resolution comes from the tiers, not from raw numbers. |
 | Material > **Subsurface Scattering** | **Off** | No skin or translucent hero material in this game. |
 | Water, Volumetric Clouds | **Off** | Unused subsystems; both cost memory and variants, and the water system is incompatible with MSAA. |
@@ -282,7 +282,7 @@ Current scenes: `Sun` = **20 000 lux** in both `Main` and `PlayerTest`, colour t
 
 ## 6. Post-processing via Volumes
 
-**MUST** set up post-processing per level exactly like this: the level's `_Environment` scene holds one **GameObject > Volume > Global Volume** named `Global Volume`, **Is Global** on, **Priority 0**, whose **Profile** is `Assets/RootsDance/Settings/VolumeProfiles/<Context>Profile.asset` (`MainProfile.asset`, `PlayerTestProfile.asset`); effects are **Add Override** entries on that profile. `Bootstrap.unity`, `MainMenu.unity` and every `_Gameplay` part contain no Volume. **[project decision]**
+**MUST** set up post-processing per level exactly like this: the level's `_Environment` scene (or its optional `_Lighting` split scene when present, per [11](./11-scenes-prefabs-workflow.md)) holds one **GameObject > Volume > Global Volume** named `Global Volume`, **Is Global** on, **Priority 0**, whose **Profile** is `Assets/RootsDance/Settings/VolumeProfiles/<Context>Profile.asset` (`MainProfile.asset`, `PlayerTestProfile.asset`); effects are **Add Override** entries on that profile. `Bootstrap.unity`, `MainMenu.unity` and every `_Gameplay` part contain no Volume. **[project decision]**
 - *Why:* HDRP evaluates every enabled Volume by camera position and interpolates; the two default volumes (the project's Default Volume Profile and the HDRP asset's quality profile) sit at the lowest priority, so a level's Global Volume always wins. Keeping one Volume per level in one scene means one file to merge and one place to look.
 - *Source:* [understand-volumes](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-understand-volumes.md), [set-up-a-volume](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-set-up-a-volume.md), [volume-component](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-volume-component.md), [create-a-volume-profile](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-create-a-volume-profile.md), [post-processing-main](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-post-processing-main.md).
 
@@ -294,9 +294,9 @@ Allowed overrides on a level profile — this is the canonical set; [05 §6.4](.
 | **Visual Environment** + **Gradient Sky** | §5.9 |
 | **Fog** | §5.8 |
 | **Shadows** (`HDShadowSettings`) | §5.6 |
-| **Ambient Occlusion** (SSAO) | default intensity; the HDRP asset switch is on (§2) |
+| **Ambient Occlusion** (SSAO) | intensity 0.6, Quality Medium; the HDRP asset switch is on (§2) |
 | **Tonemapping** | **Neutral** (ACES only if the art direction asks and everyone re-grades) |
-| **Bloom** | low intensity, **High Quality Filtering off** |
+| **Bloom** | Quality Medium, intensity 0.1, threshold 0, scatter 0.7, **High Quality Filtering on** |
 | **Color Adjustments** | post-exposure, contrast, saturation |
 | **White Balance** | temperature/tint, for scene mood |
 | **Vignette** | mild |
@@ -406,7 +406,8 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace RootsDance.Rendering
 {
-    /// <summary>Creates HDRP Lit materials for Editor tooling. Runtime code shares materials instead (05 §6.1).</summary>
+    /// <summary>Creates HDRP Lit materials for Editor tooling. Runtime code shares materials
+    /// instead (05 §6.1).</summary>
     public static class LitMaterialFactory
     {
         private static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
@@ -514,7 +515,7 @@ Work through the list top to bottom; stop at the first hit.
 - [ ] `HDRP_Desktop.asset` is the **Default Render Pipeline** in Graphics *and* the **Render Pipeline Asset** of the single `Desktop` quality level; no level was added, renamed or reordered.
 - [ ] `HDRenderPipelineGlobalSettings.asset`, `DefaultVolumeProfile.asset` and `DefaultLookDevProfile.asset` are referenced in **Graphics > HDRP** and live in `Assets/RootsDance/Settings/HDRP/`; `Assets/HDRPDefaultResources/` does not exist.
 - [ ] The **HDRP Wizard** reports no outstanding fixes; Player **Color Space = Linear**.
-- [ ] The HDRP asset still matches the §2 table (Forward Only, MSAA off, Volumetrics on/HQ off, SSAO on, SSR/SSGI/SSS/decals/water/clouds/ray tracing/dynamic resolution off, custom pass on, APV as the probe system); any diff is explained in the commit.
+- [ ] The HDRP asset still matches the §2 table (Forward Only, MSAA off, Volumetrics on, SSAO on, SSR/SSGI/SSS/decals/water/clouds/ray tracing/dynamic resolution off, custom pass on, APV as the probe system); any diff is explained in the commit.
 - [ ] No `ScriptableRendererFeature`, `ScriptableRenderPass`, `RecordRenderGraph` or `*.Blit` anywhere; new passes are `CustomPass` subclasses in `Scripts/Runtime/Rendering` with `Setup`/`Execute`/`Cleanup` paired, and the asmdef references were added in the same commit.
 - [ ] Every custom post-process is registered in **Graphics > HDRP > Custom Post Process Orders**.
 - [ ] The level `_Environment` scene has: one Directional light `Sun` in lux, one `Global Volume` with its `<Context>Profile`, and (once baking starts) one global Adaptive Probe Volume; the `_Gameplay` part has no light, Volume or APV.
