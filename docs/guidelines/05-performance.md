@@ -4,7 +4,7 @@
 > **Applies to:** All C# under `Assets/RootsDance/Scripts`, all scenes/prefabs/assets under `Assets/RootsDance/`, and the Project Settings that affect runtime performance.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
-Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) owns event-function semantics, coroutines and `Awaitable`; [07 Rendering and URP](./07-rendering-urp.md) owns URP asset/renderer setup and lighting workflow; [08 Testing and tooling](./08-testing-tooling.md) owns Editor/IDE setup; [09 Packages and systems](./09-packages-systems.md) owns package choices. This document says *what to keep cheap and how to prove it*; those documents say *how to configure the feature*.
+Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) owns event-function semantics, coroutines and `Awaitable`; [07 Rendering and HDRP](./07-rendering-hdrp.md) owns HDRP asset/global settings setup and the lighting workflow; [08 Testing and tooling](./08-testing-tooling.md) owns Editor/IDE setup; [09 Packages and systems](./09-packages-systems.md) owns package choices. This document says *what to keep cheap and how to prove it*; those documents say *how to configure the feature*.
 
 ## TL;DR — rules at a glance
 
@@ -17,10 +17,10 @@ Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) ow
 7. **MUST** keep **Incremental GC** enabled (Player Settings default); **NEVER** call `System.GC.Collect()` during gameplay — only in the scene-transition flow.
 8. **MUST** give dynamic bodies primitive colliders (sphere/capsule/box, compound if needed); non-convex Mesh Colliders are for static geometry only.
 9. **MUST** pass a serialized `LayerMask`, an explicit `QueryTriggerInteraction` and the shortest max distance to every physics query; layers and the collision matrix are owned by [09](./09-packages-systems.md#layers-and-the-collision-matrix).
-10. **MUST** keep the SRP Batcher on and share materials; **NEVER** read `Renderer.material` or use `MaterialPropertyBlock` on batched objects (use `sharedMaterial` or Material Variants, per [07 §9.2](./07-rendering-urp.md#92-srp-batcher-compatibility)).
+10. **MUST** share materials and keep them SRP-Batcher compatible (the SRP Batcher is always on in HDRP); **NEVER** read `Renderer.material` or use `MaterialPropertyBlock` on batched objects (use `sharedMaterial` or Material Variants, per [07 §9.2](./07-rendering-hdrp.md#92-srp-batcher-compatibility)).
 11. **MUST** run exactly one Unity `Camera` (rule owned by [09](./09-packages-systems.md) and [11](./11-scenes-prefabs-workflow.md)); every extra enabled camera re-runs culling, sorting and batching.
-12. **SHOULD** stay inside [07](./07-rendering-urp.md)'s lighting budgets: static lighting baked (APV per 07), shadow-casting lights only as 07 §11 allows; **NEVER** a shadow-casting point light.
-13. **MUST** import assets per the tables in section 7: textures Max Size ≤ 2048 and GPU-compressed (POT, Read/Write, mipmaps per [07 §10](./07-rendering-urp.md#10-texture-import-settings-that-affect-rendering)); meshes Read/Write off; 3D audio mono, load type by clip size.
+12. **SHOULD** stay inside [07](./07-rendering-hdrp.md)'s lighting budgets: static lighting baked (APV per 07), shadow-casting lights only as 07 §11 allows; **NEVER** a shadow-casting point light.
+13. **MUST** import assets per the tables in section 7: textures Max Size ≤ 2048 and GPU-compressed (POT, Read/Write, mipmaps per [07 §10](./07-rendering-hdrp.md#10-texture-import-settings-that-affect-rendering)); meshes Read/Write off; 3D audio mono, load type by clip size.
 14. **SHOULD** wrap every non-trivial per-frame system in a `ProfilerMarker` named `RootsDance.<System>.<Phase>` so it shows up by name in the Profiler.
 15. **NEVER** ship `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` ([04](./04-unity-scripting-rules.md#logging)), which compiles out of release builds.
 
@@ -31,18 +31,20 @@ Related guidelines: [04 Unity scripting rules](./04-unity-scripting-rules.md) ow
 Use **frame time in milliseconds**, never fps, when talking about performance. 60 fps is 16.66 ms; 56.25 fps is 17.77 ms — the same 1.1 ms that separates 900 fps from 450 fps. Even a single frame over budget during gameplay is a visible hitch; menus and loading screens may exceed it.
 - *Source:* [Ultimate guide to profiling (Unity 6)](../reference/performance/ebook-ultimate-guide-to-profiling-games-e-book-unity-6-edition.md) · [Best practices for profiling game performance](../reference/performance/how-to-best-practices-for-profiling-game-performance.md)
 
-| Budget item | Desktop (primary) | Web (secondary) | How to read it |
-|---|---|---|---|
-| Target frame time (gameplay) | **16.6 ms** (60 fps) | 33.3 ms (30 fps) acceptable | Profiler Highlights module, target 60 / 30 |
-| Worst frame on min-spec (gameplay) | frame time never above 33.3 ms | never above 50 ms | Highlights "Bottlenecks" count must be 0 over a 300-frame capture with the target set to 30 / 20 fps |
-| CPU main thread (scripts + physics + animation + UI) | ≤ 8 ms | ≤ 16 ms | CPU module, Timeline, `PlayerLoop` minus `WaitForTargetFPS` |
-| — of which scripts (`BehaviourUpdate`, `LateUpdate`, coroutines) | ≤ 3 ms | ≤ 6 ms | Hierarchy view, `BehaviourUpdate` / `PreLateUpdate.ScriptRunBehaviourLateUpdate` |
-| — of which physics (`FixedBehaviourUpdate`, `Physics.*`) | ≤ 2 ms | ≤ 4 ms | Physics module / `Physics.Processing` |
-| Render thread + culling | ≤ 5 ms | ≤ 10 ms | Timeline, render thread row |
-| GPU time (1080p) | ≤ 12 ms | ≤ 25 ms | Highlights "GPU Time" |
-| `GC.Alloc` per steady-state gameplay frame | **0 B** | **0 B** (Web GC only runs at end of frame) | Hierarchy view, GC.Alloc column, Memory module "GC allocated in frame" |
-| System Used Memory | ≤ 2 GB | Unity heap ≤ 1 GB | Memory Profiler snapshot, Summary tab |
-| Investigate when (Stats overlay) | Batches > 1000 or SetPass > 200 | Batches > 500 or SetPass > 100 | Game view Stats |
+| Budget item | Desktop (the only target) | How to read it |
+|---|---|---|
+| Target frame time (gameplay) | **16.6 ms** (60 fps) | Profiler Highlights module, target 60 |
+| Worst frame on min-spec (gameplay) | frame time never above 33.3 ms | Highlights "Bottlenecks" count must be 0 over a 300-frame capture with the target set to 30 fps |
+| CPU main thread (scripts + physics + animation + UI) | ≤ 8 ms | CPU module, Timeline, `PlayerLoop` minus `WaitForTargetFPS` |
+| — of which scripts (`BehaviourUpdate`, `LateUpdate`, coroutines) | ≤ 3 ms | Hierarchy view, `BehaviourUpdate` / `PreLateUpdate.ScriptRunBehaviourLateUpdate` |
+| — of which physics (`FixedBehaviourUpdate`, `Physics.*`) | ≤ 2 ms | Physics module / `Physics.Processing` |
+| Render thread + culling | ≤ 5 ms | Timeline, render thread row |
+| GPU time (1080p) | ≤ 12 ms | Highlights "GPU Time" |
+| `GC.Alloc` per steady-state gameplay frame | **0 B** | Hierarchy view, GC.Alloc column, Memory module "GC allocated in frame" |
+| System Used Memory | ≤ 2 GB | Memory Profiler snapshot, Summary tab |
+| Investigate when (Stats overlay) | Batches > 1000 or SetPass > 200 | Game view Stats |
+
+HDRP is a desktop-only pipeline (no WebGL/WebGPU, no mobile — see [09](./09-packages-systems.md#package-inventory-for-60003)), so there is one budget column, and the GPU one is the tight one: HDRP's per-frame cost (volumetrics, shadow atlases, post) is higher than URP's at the same content.
 
 The frame-time targets follow Unity's guidance (30 fps = 33.33 ms, 60 fps = 16.66 ms); the split into sub-budgets, the memory caps and the batch thresholds are **[project decision]** — provisional until the min-spec machine is confirmed (see 1.5). The CPU and GPU each get the *full* frame time because Unity runs them in parallel; both must individually fit.
 - *Why:* A budget gives every system owner a number to check against instead of "it feels slow".
@@ -426,25 +428,25 @@ private bool IsGrounded()
 
 ## 6. Rendering
 
-URP asset, renderer and lighting setup are configured per [07 Rendering and URP](./07-rendering-urp.md). The rules below say which knobs performance depends on and when to turn them.
+HDRP asset, global settings, Frame Settings and lighting setup are configured per [07 Rendering and HDRP](./07-rendering-hdrp.md). The rules below say which knobs performance depends on and when to turn them.
 
 ### 6.1 Draw calls and batching
 
-The draw-call strategy for this project **[project decision — follows the manual's URP table, except that the GPU Resident Drawer, which the manual recommends enabling, stays off until a profile justifies it (07 TL;DR 14)]**:
+The draw-call strategy for this project **[project decision — the GPU Resident Drawer, which the manual recommends enabling, stays off until a profile justifies it]**:
 
 | Feature | State | Rule |
 |---|---|---|
-| SRP Batcher (URP asset) | **on** (template default) | **MUST** stay on. Use URP Lit/Unlit/Shader Graph materials only (all SRP-Batcher compatible). Check a custom shader's "SRP Batcher: compatible" line in the Inspector |
-| GPU Instancing checkbox on materials | **off** | **NEVER** tick it in URP — extra shader variants, and it is not how URP instances |
+| SRP Batcher | **always on** | HDRP has no SRP Batcher checkbox — it is part of the pipeline and cannot be turned off. Use `HDRP/Lit`, `HDRP/Unlit` and HDRP-target Shader Graph materials only (all SRP-Batcher compatible); check a hand-written shader's "SRP Batcher: compatible" line in the Inspector |
+| GPU Instancing checkbox on materials | **off** | **NEVER** tick it — extra shader variants, and it is not how HDRP instances |
 | Static Batching (Player Settings) | on (Unity default) | Mark non-moving environment **Batching Static**; disable Static Batching only when the GPU Resident Drawer is enabled |
 | Dynamic Batching | **off** | **NEVER** — CPU cost of finding ≤ 300-vertex meshes outweighs a modern draw call |
-| GPU Resident Drawer (URP asset > **GPU Resident Drawer** = **Instanced Drawing**) | **off by default** | **MAY** enable when the Profiler shows a render-thread/draw-call-bound frame *and* the scene has many instances of the same mesh. Prerequisites: Forward+ (ours), **Graphics > Shader Stripping > BatchRendererGroup Variants = Keep All**, SRP Batcher on; then disable Static Batching. Builds get slower (all BRG variants compile) |
-| GPU Occlusion Culling (Universal Renderer) | off | Only together with the GPU Resident Drawer, in scenes with a lot of occlusion; can cost more than it saves otherwise |
-| `MaterialPropertyBlock` | **never** | Breaks SRP Batcher and GPU Resident Drawer batching; rule and the Material Variants alternative are in [07 §9.2](./07-rendering-urp.md#92-srp-batcher-compatibility) |
+| GPU Resident Drawer (HDRP asset > **Rendering** > **GPU Resident Drawer** = **Instanced Drawing**) | **off by default** | **MAY** enable when the Profiler shows a render-thread/draw-call-bound frame *and* the scene has many instances of the same mesh. Prerequisites: **Project Settings > Graphics > Shader Stripping > BatchRendererGroup Variants = Keep All**, Mesh Renderers only, a compute-shader-capable graphics API; then disable Static Batching. Builds get slower (all BRG variants compile) |
+| GPU Occlusion Culling (HDRP asset > **Rendering**) | off | Only together with the GPU Resident Drawer, in scenes with a lot of occlusion; can cost more than it saves otherwise |
+| `MaterialPropertyBlock` | **never** | Breaks SRP Batcher and GPU Resident Drawer batching; rule and the Material Variants alternative are in [07 §9.2](./07-rendering-hdrp.md#92-srp-batcher-compatibility) |
 
-- *Source:* [Choose a method for optimizing draw calls](../reference/performance/manual-optimizing-draw-calls-choose-method.md) · [Batching meshes](../reference/performance/manual-drawcallbatching.md) · [GPU instancing](../reference/performance/manual-gpuinstancing.md) · [SRP Batcher compatibility](../reference/rendering-urp/manual-srpbatcher-materials.md) · [Enable the GPU Resident Drawer](../reference/rendering-urp/manual-gpu-resident-drawer.md) · [GPU Resident Drawer compatibility](../reference/rendering-urp/manual-make-object-compatible-gpu-rendering.md) · [GPU occlusion culling](../reference/rendering-urp/manual-gpu-culling.md)
+- *Source:* [Choose a method for optimizing draw calls](../reference/performance/manual-optimizing-draw-calls-choose-method.md) · [Batching meshes](../reference/performance/manual-drawcallbatching.md) · [GPU instancing](../reference/performance/manual-gpuinstancing.md) · [Scriptable Render Pipeline Batcher (HDRP)](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-srpbatcher.md) · [Use the GPU Resident Drawer (HDRP)](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-gpu-resident-drawer.md) · [HDRP Asset reference — Rendering section](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-hdrp-asset.md)
 
-**MUST** share materials: few textures (atlas where practical), few shaders, many materials is fine with the SRP Batcher. **NEVER** read `Renderer.material` on a scene object — it silently clones the material and breaks the batch; read `Renderer.sharedMaterial`. Tinting a single instance is a design question: prefer a Material Variant asset or a shader that reads vertex colour (SRP-Batcher compatibility rules: [07 §9.2](./07-rendering-urp.md#92-srp-batcher-compatibility)).
+**MUST** share materials: few textures (atlas where practical), few shaders, many materials is fine with the SRP Batcher. **NEVER** read `Renderer.material` on a scene object — it silently clones the material and breaks the batch; read `Renderer.sharedMaterial`. Tinting a single instance is a design question: prefer a Material Variant asset or a shader that reads vertex colour (SRP-Batcher compatibility rules: [07 §9.2](./07-rendering-hdrp.md#92-srp-batcher-compatibility)).
 - *Source:* [Managing GPU usage for PC and console](../reference/performance/how-to-gpu-optimization.md) · [Mobile/XR/Web e-book](../reference/performance/ebook-optimize-your-game-performance-for-mobile-xr-and-the-web-in-unity-unit.md) (Be careful with Renderer.material)
 
 **MUST** check the Frame Debugger when the Stats overlay exceeds the thresholds in 1.1; it tells you *why* a draw call could not be batched with the previous one. Keep shader keyword/variant count low — every variant change breaks an SRP batch.
@@ -452,7 +454,7 @@ The draw-call strategy for this project **[project decision — follows the manu
 
 ### 6.2 Cameras and culling
 
-**MUST** keep exactly one active Unity `Camera` — the rule lives in [09](./09-packages-systems.md) (camera conventions) and [11](./11-scenes-prefabs-workflow.md) (scene contents); this section only explains the cost: every enabled `Camera` runs culling, sorting and batching (`Inl_RenderCameraStack` per camera in the Profiler). Camera stacking only for the cases documented in [07 §7](./07-rendering-urp.md#7-cameras-and-cinemachine), never a second camera "just for the weapon/UI".
+**MUST** keep exactly one active Unity `Camera` — the rule lives in [09](./09-packages-systems.md) (camera conventions) and [11](./11-scenes-prefabs-workflow.md) (scene contents); this section only explains the cost: every enabled `Camera` runs culling, sorting and batching (one full render per camera in the Profiler). HDRP has no camera stacking at all — a second enabled camera is a second complete frame — so never add one "just for the weapon/UI"; overlays go on the Screen Space – Overlay canvas or through a Custom Pass ([07 §4](./07-rendering-hdrp.md#4-custom-rendering-custom-passes-and-custom-post-process)).
 - *Source:* [Best practices for profiling](../reference/performance/how-to-best-practices-for-profiling-game-performance.md) (five cameras example) · [Managing GPU usage](../reference/performance/how-to-gpu-optimization.md) (Check multiple Camera views)
 
 **SHOULD** set a tight far clip plane and `Camera.layerCullDistances` for small-object layers (props, debris) so they cull before the far plane.
@@ -472,9 +474,9 @@ The draw-call strategy for this project **[project decision — follows the manu
 
 ### 6.4 Lights, shadows, post-processing budget
 
-Per-scene lighting, shadow and post-processing budgets (lights visible at once, shadow-casting lights per tier, cascades per tier, baked reflection probes, the allowed post-processing overrides) are owned by [07 §11 Render budgets](./07-rendering-urp.md#11-render-budgets-per-content-scene-per-camera-view), [07 §5.5 Shadows](./07-rendering-urp.md#55-shadows) and [07 §6 Post-processing](./07-rendering-urp.md#6-post-processing-via-volumes); do not tune them here. Why they matter for the GPU: each shadow-casting point light is six shadow passes (a spot light is one); every extra cascade adds shadow draw calls; a realtime reflection probe re-renders six cubemap faces; fullscreen post effects are the usual GPU bottleneck; baked light (APV per 07) is free at runtime; `Mesh Renderer > Cast Shadows = Off` on small props removes shadow casters.
+Per-scene lighting, shadow and post-processing budgets (lights visible at once, shadow-casting lights, cascades, baked reflection probes, the allowed Volume overrides) are owned by [07 §11 Render budgets](./07-rendering-hdrp.md#11-render-budgets), [07 §5 Lighting workflow](./07-rendering-hdrp.md#5-lighting-workflow) and [07 §6 Post-processing](./07-rendering-hdrp.md#6-post-processing-via-volumes); do not tune them here. Why they matter for the GPU in HDRP: every shadow-casting light rents space in a shared **shadow atlas** sized on the HDRP asset — a point light takes six tiles (a spot light one), and when the atlas overflows HDRP drops or rescales shadows instead of getting slower, so the symptom is visual, not a frame spike; every extra cascade adds shadow draw calls; **volumetric fog and volumetric lighting are a fixed-cost froxel pass** that scales with the volumetric quality setting, not with content, so turning it on is a budget decision made once in 07, not per scene; a realtime reflection probe re-renders six cubemap faces; fullscreen post effects are the usual GPU bottleneck; baked light (APV per 07) is free at runtime; `Mesh Renderer > Cast Shadows = Off` on small props removes shadow casters.
 
-- *Source:* [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (Common lighting optimizations, Profile post-processing) · [Adjust settings to improve performance in URP](../reference/rendering-urp/manual-optimize-for-better-performance.md) · [Shadow cascades performance](../reference/performance/manual-shadow-cascades-performance.md) · [Optimize reflections](../reference/performance/manual-refprobeperformance.md)
+- *Source:* [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (Common lighting optimizations, Profile post-processing) · [Shadows in HDRP (shadow atlas)](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-shadows-in-hdrp.md) · [Volumetric lighting](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-volumetric-lighting.md) · [Shadow cascades performance](../reference/performance/manual-shadow-cascades-performance.md) · [Optimize reflections](../reference/performance/manual-refprobeperformance.md)
 
 **SHOULD** treat overdraw as the first GPU suspect: overlapping transparent particles, UI and foliage. Check with the Rendering Debugger; reduce particle counts and alpha-blended layers before touching shaders.
 - *Source:* [Reduce rendering work on the CPU or GPU](../reference/performance/manual-optimizinggraphicsperformance.md) · [Mobile/XR/Web e-book](../reference/performance/ebook-optimize-your-game-performance-for-mobile-xr-and-the-web-in-unity-unit.md) (Minimize overdraw)
@@ -484,8 +486,8 @@ Per-scene lighting, shadow and post-processing budgets (lights visible at once, 
 
 ### 6.5 Frame pacing
 
-**MUST** ship desktop builds with **VSync Count = Every V Blank** and leave `Application.targetFrameRate` untouched; Unity recommends `vSyncCount` over `targetFrameRate` on desktop because the latter micro-stutters. **MUST** keep `Application.targetFrameRate = -1` (default) on Web. Do not hard-code an assumed refresh rate anywhere.
-- *Source:* [Application.targetFrameRate](../reference/performance/scriptref-application-targetframerate.md) · [QualitySettings.vSyncCount](../reference/performance/scriptref-qualitysettings-vsynccount.md) · [Mobile/XR/Web e-book](../reference/performance/ebook-optimize-your-game-performance-for-mobile-xr-and-the-web-in-unity-unit.md) (Web framerate)
+**MUST** ship desktop builds with **VSync Count = Every V Blank** and leave `Application.targetFrameRate` untouched; Unity recommends `vSyncCount` over `targetFrameRate` on desktop because the latter micro-stutters. Do not hard-code an assumed refresh rate anywhere.
+- *Source:* [Application.targetFrameRate](../reference/performance/scriptref-application-targetframerate.md) · [QualitySettings.vSyncCount](../reference/performance/scriptref-qualitysettings-vsynccount.md)
 
 **MAY** lower `Application.targetFrameRate` (desktop with VSync off) or use `OnDemandRendering` in static fullscreen menus; also disable the 3D camera when a fullscreen UI covers it.
 - *Source:* [Reduce rendering work on the CPU or GPU](../reference/performance/manual-optimizinggraphicsperformance.md) (Reducing the frequency of rendering) · [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md)
@@ -497,7 +499,7 @@ Don't rely on defaults for every asset; the import settings below are the projec
 
 ### 7.1 Textures
 
-Rendering-side import rules (sRGB, normal-map type, POT, Read/Write off, mipmaps on for 3D / off for UI) are owned by [07 §10](./07-rendering-urp.md#10-texture-import-settings-that-affect-rendering); the performance-specific settings are:
+Rendering-side import rules (sRGB, normal-map type, POT, Read/Write off, mipmaps on for 3D / off for UI) are owned by [07 §10](./07-rendering-hdrp.md#10-texture-import-settings-that-affect-rendering); the performance-specific settings are:
 
 | Setting | Value | Why |
 |---|---|---|
@@ -587,14 +589,14 @@ Rendering-side import rules (sRGB, normal-map type, POT, Read/Write off, mipmaps
 Runtime UI is uGUI ([09](./09-packages-systems.md#ugui-runtime-ui)); UI Toolkit appears only in Editor windows, custom Inspectors and property drawers, which do not ship in the player and are not covered by this document's runtime budgets. The one rule that still matters: do not build or query the element tree in an Editor `Update`/`OnGUI` loop.
 - *Source:* [UI Toolkit: Optimizing performance](../reference/performance/manual-optimizing-performance.md)
 
-## 9. Project configuration, build size and Web
+## 9. Project configuration and build size
 
 | Setting | Value | Rule |
 |---|---|---|
 | Player > Scripting Backend | Mono for daily iteration, **IL2CPP** for the submission build if the module is installed **[project decision]** | IL2CPP runs faster but builds slower |
 | Player > Managed Stripping Level | default (do not raise during the jam) | Higher levels need `link.xml`/`[Preserve]` care; not worth the risk |
-| Player > Auto Graphics API | off; list only the graphics APIs we ship (the list itself is configured per [07](./07-rendering-urp.md)) | Fewer shader variants, faster builds |
-| Quality levels | exactly the levels the Universal 3D template created, each bound to its own URP asset — never add, rename, reorder or delete them (owned by [07](./07-rendering-urp.md#3-quality-tiers)) | Each level/URP asset contributes shader variants; the set is settled in 07 |
+| Player > Auto Graphics API | off; list only the graphics APIs we ship (the list itself is configured per [07](./07-rendering-hdrp.md)) | Fewer shader variants, faster builds |
+| Quality levels | exactly one level, `Desktop`, bound to `Settings/HDRP/HDRP_Desktop.asset` — never add, rename, reorder or delete levels (owned by [07 §3](./07-rendering-hdrp.md#3-quality-tiers)) | Each level/HDRP asset contributes shader variants; the set is settled in 07 |
 | Graphics > Always Included Shaders | remove what we don't use | Each entry compiles all variants into the build |
 | `Resources/` folder | none (project decision 8) | Everything in Resources ships and is indexed at startup |
 | Player > Stack Trace | Log: None; Warning/Error: ScriptOnly in release builds **[project decision]** | Stack capture is expensive |
@@ -604,21 +606,12 @@ Runtime UI is uGUI ([09](./09-packages-systems.md#ugui-runtime-ui)); UI Toolkit 
 **SHOULD** check build size with the Editor log after a build (**Console > ⋮ > Open Editor Log**, assets listed by size); textures and audio dominate, so revisit section 7 before anything else. Remove test assets bundled with third-party packages that are not referenced.
 - *Source:* [Reducing the file size of a build](../reference/performance/manual-reducingfilesize.md) · [Mobile/XR/Web e-book](../reference/performance/ebook-optimize-your-game-performance-for-mobile-xr-and-the-web-in-unity-unit.md) (Remove unused resources)
 
-### 9.1 Web build (secondary target)
+### 9.1 No Web build
 
-| Setting (Player > Web > Publishing Settings) | Value |
-|---|---|
-| Compression Format | **Brotli** (needs https hosting); Gzip if the host cannot serve Brotli |
-| Decompression Fallback | **disabled** (server must serve pre-compressed files); enable only if the host cannot be configured |
-| Data Caching | enabled |
-| Enable Exceptions | **None** unless gameplay relies on exceptions; otherwise keep WebAssembly 2023 on |
-| WebAssembly 2023 | **on** (SIMD, smaller code) |
-| Strip Engine Code | **on** |
-| Code Optimization | Disk Size during development; **Disk Size with LTO** for the final upload (slow build) |
-| `Application.targetFrameRate` | -1 (browser animation rate; Safari caps at 60) |
+**NEVER** add a Web (or mobile) build target: HDRP does not support WebGL or WebGPU, and does not support mobile platforms. The project ships desktop standalone only (Windows/macOS), so there is no Brotli/decompression/`WebAssembly 2023` configuration to tune and no second frame budget — section 1.1 has the one budget that applies. Switching the active build target to Web produces a project that cannot render.
 
-Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithreading, CPU-side WebGL draw dispatch is slower than native — batching and zero per-frame allocations matter more than on desktop. Keep the Unity heap small; profile with the Unity Profiler plus Chrome DevTools / Firefox Profiler.
-- *Source:* [Mobile/XR/Web e-book](../reference/performance/ebook-optimize-your-game-performance-for-mobile-xr-and-the-web-in-unity-unit.md) (Platform-specific tips for Unity Web Builds) · [Web performance considerations](../reference/performance/manual-webgl-performance.md) · [Memory in Unity Web](../reference/performance/manual-webgl-memory.md) · [Garbage collection modes](../reference/performance/manual-performance-incremental-garbage-collection.md)
+If the team ever wants a browser build, that is a pipeline decision (back to URP), not a Player-settings change; raise it with the rendering owner and [07](./07-rendering-hdrp.md) before anything else.
+- *Source:* [HDRP system requirements](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-system-requirements.md) (supported platforms) · [Choose a render pipeline](../reference/rendering-urp/manual-choose-a-render-pipeline.md) (HDRP targets high-end desktop/console only)
 
 ## Anti-patterns
 
@@ -629,9 +622,9 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 - ❌ `enemies.Where(e => e.IsAlive).OrderBy(e => dist).First()` in a per-frame method → ✅ `for` loop with a running minimum over a reused list.
 - ❌ `yield return new WaitForSeconds(0.1f)` in a loop → ✅ Cache the `WaitForSeconds`, or `await Awaitable.WaitForSecondsAsync(...)`.
 - ❌ `Instantiate(bulletPrefab)` … `Destroy(gameObject, 3f)` → ✅ `ObjectPool<Projectile>` (section 4).
-- ❌ `renderer.material.color = Color.red;` on a batched prop → ✅ `sharedMaterial` for reads, a Material Variant asset or vertex colour for per-instance tint; never `MaterialPropertyBlock` in URP.
-- ❌ Ticking **Enable GPU Instancing** on URP materials, or enabling Dynamic Batching → ✅ SRP Batcher (on) + static batching; GPU Resident Drawer only when measured.
-- ❌ A second `Camera` for the weapon/UI/minimap "because it was easy" → ✅ One camera + Render Objects feature / a Screen Space – Overlay canvas; each camera is a full culling + render pass.
+- ❌ `renderer.material.color = Color.red;` on a batched prop → ✅ `sharedMaterial` for reads, a Material Variant asset or vertex colour for per-instance tint; never `MaterialPropertyBlock` in HDRP.
+- ❌ Ticking **Enable GPU Instancing** on HDRP materials, or enabling Dynamic Batching → ✅ the always-on SRP Batcher + static batching; GPU Resident Drawer only when measured.
+- ❌ A second `Camera` for the weapon/UI/minimap "because it was easy" → ✅ One camera + an HDRP Custom Pass / a Screen Space – Overlay canvas; HDRP has no camera stacking and each camera is a full culling + render pass.
 - ❌ Mesh Collider on a thrown crate; `OnTriggerStay` counting overlaps → ✅ Box/compound primitives; `Enter`/`Exit` events with a cached count.
 - ❌ `Physics.OverlapSphere(...)` (allocates) every frame → ✅ `OverlapSphereNonAlloc` into a field buffer with a layer mask and `QueryTriggerInteraction.Ignore`.
 - ❌ Point light with shadows, four cascades, realtime reflection probe "for quality" → ✅ Baked lighting, shadow-casting lights and cascades per 07 §11, baked probes.
@@ -650,7 +643,7 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 - [ ] Physics queries use `*NonAlloc` with a field buffer, a `LayerMask`, an explicit `QueryTriggerInteraction` and a max distance; dynamic bodies use primitive/compound colliders.
 - [ ] Repeatedly spawned objects go through `ObjectPool<T>` with reset-on-release; nothing `Instantiate`s/`Destroy`s in a gameplay loop.
 - [ ] No `Debug.Log` in per-frame paths; dev-only logging goes through `RootsDance.Core.Log` (04).
-- [ ] No `Renderer.material` reads, no `MaterialPropertyBlock`, no **Enable GPU Instancing** on URP materials; new materials use URP Lit/Unlit/Shader Graph.
+- [ ] No `Renderer.material` reads, no `MaterialPropertyBlock`, no **Enable GPU Instancing** on HDRP materials; new materials use `HDRP/Lit`, `HDRP/Unlit` or an HDRP-target Shader Graph.
 - [ ] Still exactly one active Unity `Camera` (09/11); new lights are baked or within 07 §11's shadow-casting budget.
 - [ ] New textures: Max Size per 7.1, compressed, and the 07 §10 import rules (POT, Read/Write off, mipmaps correct). New meshes: Read/Write off, Optimize Mesh on. New audio: WAV source, mono for 3D, load type per clip size.
 - [ ] Project Settings changes (Physics, Time, Quality, Player) are in their own commit and called out in the PR description.
@@ -695,11 +688,11 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 34. [../reference/performance/manual-optimizing-draw-calls-choose-method.md](../reference/performance/manual-optimizing-draw-calls-choose-method.md) — Choose a method for optimizing draw calls — https://docs.unity3d.com/6000.3/Documentation/Manual/optimizing-draw-calls-choose-method.html
 35. [../reference/performance/manual-drawcallbatching.md](../reference/performance/manual-drawcallbatching.md) — Introduction to batching meshes — https://docs.unity3d.com/6000.3/Documentation/Manual/DrawCallBatching.html
 36. [../reference/performance/manual-gpuinstancing.md](../reference/performance/manual-gpuinstancing.md) — Introduction to GPU instancing — https://docs.unity3d.com/6000.3/Documentation/Manual/GPUInstancing.html
-37. [../reference/rendering-urp/manual-srpbatcher-materials.md](../reference/rendering-urp/manual-srpbatcher-materials.md) — Check whether a GameObject is compatible with the SRP Batcher in URP — https://docs.unity3d.com/6000.3/Documentation/Manual/SRPBatcher-Materials.html
-38. [../reference/rendering-urp/manual-gpu-resident-drawer.md](../reference/rendering-urp/manual-gpu-resident-drawer.md) — Enable the GPU Resident Drawer in URP — https://docs.unity3d.com/6000.3/Documentation/Manual/urp/gpu-resident-drawer.html
-39. [../reference/rendering-urp/manual-make-object-compatible-gpu-rendering.md](../reference/rendering-urp/manual-make-object-compatible-gpu-rendering.md) — Make a GameObject compatible with the GPU Resident Drawer in URP — https://docs.unity3d.com/6000.3/Documentation/Manual/urp/make-object-compatible-gpu-rendering.html
-40. [../reference/rendering-urp/manual-gpu-culling.md](../reference/rendering-urp/manual-gpu-culling.md) — Enable GPU occlusion culling in URP — https://docs.unity3d.com/6000.3/Documentation/Manual/urp/gpu-culling.html
-41. [../reference/rendering-urp/manual-optimize-for-better-performance.md](../reference/rendering-urp/manual-optimize-for-better-performance.md) — Adjust settings to improve performance in URP — https://docs.unity3d.com/6000.3/Documentation/Manual/urp/optimize-for-better-performance.html
+37. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-srpbatcher.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-srpbatcher.md) — Scriptable Render Pipeline Batcher (HDRP; always on, compatibility rules) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/SRPBatcher.html
+38. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-gpu-resident-drawer.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-gpu-resident-drawer.md) — Use the GPU Resident Drawer (HDRP) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/gpu-resident-drawer.html
+39. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-hdrp-asset.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-hdrp-asset.md) — HDRP Asset reference (Rendering section: GPU Resident Drawer, GPU Occlusion Culling; shadow atlases) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/HDRP-Asset.html
+40. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-reduce-shader-variants.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-reduce-shader-variants.md) — Reduce shader variants (HDRP) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reduce-shader-variants.html
+41. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-quality-settings.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-quality-settings.md) — Quality settings in HDRP (quality levels bound to HDRP assets) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/quality-settings.html
 42. [../reference/performance/how-to-gpu-optimization.md](../reference/performance/how-to-gpu-optimization.md) — Managing GPU usage for PC and console games — https://unity.com/how-to/gpu-optimization
 43. [../reference/performance/manual-optimizinggraphicsperformance.md](../reference/performance/manual-optimizinggraphicsperformance.md) — Reduce rendering work on the CPU or GPU — https://docs.unity3d.com/6000.3/Documentation/Manual/OptimizingGraphicsPerformance.html
 44. [../reference/performance/manual-occlusionculling.md](../reference/performance/manual-occlusionculling.md) — Occlusion culling — https://docs.unity3d.com/6000.3/Documentation/Manual/OcclusionCulling.html
@@ -724,15 +717,18 @@ Remember: no Incremental GC on Web (GC runs only at frame end), no C# multithrea
 63. [../reference/performance/how-to-unity-ui-optimization-tips.md](../reference/performance/how-to-unity-ui-optimization-tips.md) — Unity UI performance optimization tips — https://unity.com/how-to/unity-ui-optimization-tips
 64. [../reference/performance/manual-reducingfilesize.md](../reference/performance/manual-reducingfilesize.md) — Reducing the file size of a build — https://docs.unity3d.com/6000.3/Documentation/Manual/ReducingFilesize.html
 65. [../reference/performance/manual-managed-code-stripping.md](../reference/performance/manual-managed-code-stripping.md) — Managed code stripping — https://docs.unity3d.com/6000.3/Documentation/Manual/managed-code-stripping.html
-66. [../reference/performance/manual-webgl-performance.md](../reference/performance/manual-webgl-performance.md) — Web performance considerations — https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-performance.html
-67. [../reference/performance/manual-webgl-memory.md](../reference/performance/manual-webgl-memory.md) — Memory in Unity Web — https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-memory.html
-68. [../reference/scripting/scriptref-shader-propertytoid.md](../reference/scripting/scriptref-shader-propertytoid.md) — Shader.PropertyToID — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Shader.PropertyToID.html
-69. [../reference/scripting/scriptref-animator-stringtohash.md](../reference/scripting/scriptref-animator-stringtohash.md) — Animator.StringToHash — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Animator.StringToHash.html
-70. [../reference/scripting/scriptref-gameobject-comparetag.md](../reference/scripting/scriptref-gameobject-comparetag.md) — GameObject.CompareTag — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/GameObject.CompareTag.html
-71. [../reference/scripting/scriptref-component-trygetcomponent.md](../reference/scripting/scriptref-component-trygetcomponent.md) — Component.TryGetComponent — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Component.TryGetComponent.html
-72. [../reference/scripting/manual-async-awaitable-introduction.md](../reference/scripting/manual-async-awaitable-introduction.md) — Introduction to asynchronous programming with Awaitable — https://docs.unity3d.com/6000.3/Documentation/Manual/async-awaitable-introduction.html
-73. [../reference/scripting/github-unitycsreference-unityengineobject-bindings-cs.md](../reference/scripting/github-unitycsreference-unityengineobject-bindings-cs.md) — UnityEngine.Object bindings, 6000.3 branch (`Object.Instantiate` overloads) — https://raw.githubusercontent.com/Unity-Technologies/UnityCsReference/6000.3/Runtime/Export/Scripting/UnityEngineObject.bindings.cs
-74. [../reference/performance/scriptref-physics-raycastnonalloc.md](../reference/performance/scriptref-physics-raycastnonalloc.md) — Physics.RaycastNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.RaycastNonAlloc.html
-75. [../reference/scripting/scriptref-physics-overlapspherenonalloc.md](../reference/scripting/scriptref-physics-overlapspherenonalloc.md) — Physics.OverlapSphereNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.OverlapSphereNonAlloc.html
-76. [../reference/performance/manual-class-qualitysettings.md](../reference/performance/manual-class-qualitysettings.md) — Quality settings reference — https://docs.unity3d.com/6000.3/Documentation/Manual/class-QualitySettings.html
-77. [../reference/packages/ugui-2-0-uicanvas.md](../reference/packages/ugui-2-0-uicanvas.md) — Canvas (uGUI) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UICanvas.html
+66. [../reference/performance/manual-webgl-memory.md](../reference/performance/manual-webgl-memory.md) — Memory in Unity Web — https://docs.unity3d.com/6000.3/Documentation/Manual/webgl-memory.html
+67. [../reference/scripting/scriptref-shader-propertytoid.md](../reference/scripting/scriptref-shader-propertytoid.md) — Shader.PropertyToID — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Shader.PropertyToID.html
+68. [../reference/scripting/scriptref-animator-stringtohash.md](../reference/scripting/scriptref-animator-stringtohash.md) — Animator.StringToHash — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Animator.StringToHash.html
+69. [../reference/scripting/scriptref-gameobject-comparetag.md](../reference/scripting/scriptref-gameobject-comparetag.md) — GameObject.CompareTag — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/GameObject.CompareTag.html
+70. [../reference/scripting/scriptref-component-trygetcomponent.md](../reference/scripting/scriptref-component-trygetcomponent.md) — Component.TryGetComponent — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Component.TryGetComponent.html
+71. [../reference/scripting/manual-async-awaitable-introduction.md](../reference/scripting/manual-async-awaitable-introduction.md) — Introduction to asynchronous programming with Awaitable — https://docs.unity3d.com/6000.3/Documentation/Manual/async-awaitable-introduction.html
+72. [../reference/scripting/github-unitycsreference-unityengineobject-bindings-cs.md](../reference/scripting/github-unitycsreference-unityengineobject-bindings-cs.md) — UnityEngine.Object bindings, 6000.3 branch (`Object.Instantiate` overloads) — https://raw.githubusercontent.com/Unity-Technologies/UnityCsReference/6000.3/Runtime/Export/Scripting/UnityEngineObject.bindings.cs
+73. [../reference/performance/scriptref-physics-raycastnonalloc.md](../reference/performance/scriptref-physics-raycastnonalloc.md) — Physics.RaycastNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.RaycastNonAlloc.html
+74. [../reference/scripting/scriptref-physics-overlapspherenonalloc.md](../reference/scripting/scriptref-physics-overlapspherenonalloc.md) — Physics.OverlapSphereNonAlloc — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Physics.OverlapSphereNonAlloc.html
+75. [../reference/performance/manual-class-qualitysettings.md](../reference/performance/manual-class-qualitysettings.md) — Quality settings reference — https://docs.unity3d.com/6000.3/Documentation/Manual/class-QualitySettings.html
+76. [../reference/packages/ugui-2-0-uicanvas.md](../reference/packages/ugui-2-0-uicanvas.md) — Canvas (uGUI) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UICanvas.html
+77. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-shadows-in-hdrp.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-shadows-in-hdrp.md) — Shadows in HDRP (shadow atlas budget) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Shadows-in-HDRP.html
+78. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-volumetric-lighting.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-volumetric-lighting.md) — Volumetric lighting (fixed-cost froxel pass) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Volumetric-Lighting.html
+79. [../reference/rendering-hdrp/render-pipelines-high-definition-17-3-system-requirements.md](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-system-requirements.md) — HDRP system requirements (no Web, no mobile) — https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/System-Requirements.html
+80. [../reference/rendering-urp/manual-choose-a-render-pipeline.md](../reference/rendering-urp/manual-choose-a-render-pipeline.md) — Choose a render pipeline (6000.3 Manual; HDRP platform scope) — https://docs.unity3d.com/6000.3/Documentation/Manual/choose-a-render-pipeline.html
