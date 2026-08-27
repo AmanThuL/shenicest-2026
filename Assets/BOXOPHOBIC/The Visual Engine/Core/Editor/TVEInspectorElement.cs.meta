@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 1dffb778cbe4dcb4789f6d5b408d4070
+timeCreated: 1521550686
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Editor/TVEInspectorElement.cs
+  uploadId: 974988

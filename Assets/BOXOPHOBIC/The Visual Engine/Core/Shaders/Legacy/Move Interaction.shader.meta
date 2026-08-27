@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c57d7b0e4587b32438e867cd0a17d7b0
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Move Interaction.shader
+  uploadId: 974988

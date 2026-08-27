@@ -3,6 +3,8 @@
     "rootNamespace": "RootsDance.Editor",
     "references": [
         "RootsDance.Runtime",
+        "Boxophobic.TheVisualEngine.Runtime",
+        "Boxophobic.Utils.Scripts",
         "Unity.Cinemachine",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",

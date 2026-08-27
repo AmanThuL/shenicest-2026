@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 947a79bd19d4b8e46835240e033f082b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/If Visual
+    Data.asset
+  uploadId: 974988

@@ -3,8 +3,8 @@
 - **Vendor:** ambientCG
 - **URL:** <https://ambientcg.com/> (per-asset pages listed in `LICENSE.md`)
 - **Licence:** CC0 1.0 Universal (see `LICENSE.md`)
-- **Downloaded:** 2026-08-26
-- **Copied files** (6 materials, `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043}):
+- **Downloaded:** 2026-08-26 (Ground068/Ground086/Concrete032 added 2026-08-27)
+- **Copied files** (9 materials, `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, Ground068, Ground086, Concrete032}):
   - `<Id>/<Id>_1K-JPG_Color.jpg`
   - `<Id>/<Id>_1K-JPG_NormalGL.jpg`
   - `<Id>/Source~/<Id>_1K-JPG_AmbientOcclusion.jpg`

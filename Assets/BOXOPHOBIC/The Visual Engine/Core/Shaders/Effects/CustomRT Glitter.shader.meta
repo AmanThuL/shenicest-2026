@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 04ca7d57fb75eae4e8ae7b1cc6e6f525
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Effects/CustomRT Glitter.shader
+  uploadId: 974988

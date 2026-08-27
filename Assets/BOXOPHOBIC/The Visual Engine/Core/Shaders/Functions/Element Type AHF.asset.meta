@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: b00673d66c4387f4c897d2cdee2cf253
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Element Type
+    AHF.asset
+  uploadId: 974988

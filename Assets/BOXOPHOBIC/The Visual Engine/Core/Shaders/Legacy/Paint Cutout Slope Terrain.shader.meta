@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 15e437ecb361f354e998b5791dd75653
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Paint Cutout
+    Slope Terrain.shader
+  uploadId: 974988

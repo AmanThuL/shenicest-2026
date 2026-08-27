@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 759e4a8e180e4394894ca631860b2bc3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Compute Color
+    Data.asset
+  uploadId: 974988

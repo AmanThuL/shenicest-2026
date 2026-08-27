@@ -16,6 +16,16 @@ namespace RootsDance.Editor.Environment
         private const string k_ThirdPartyRoot = "Assets/ThirdParty/Environment/";
         private const int k_MaxTextureSize = 1024;
 
+        // Packs whose textures are authored at PSX resolution (<= 256 px): keep every pixel.
+        private static readonly string[] k_PixelArtFolders =
+        {
+            k_ThirdPartyRoot + "RetroPSXNature/"
+        };
+
+        // Niwl exports its LOD3 meshes without normals, so importing them as-is logs a tangent warning; the
+        // pack has no normal maps, so tangents are skipped altogether.
+        private const string k_RecalculateNormalsFolder = k_ThirdPartyRoot + "NiwlPlants/";
+
         private bool IsInScope()
         {
             return assetPath.StartsWith(k_ThirdPartyRoot);
@@ -33,7 +43,8 @@ namespace RootsDance.Editor.Environment
             bool isNormal = name.Contains("normal") || name.Contains("_nor_");
             bool isMask = name.EndsWith("_mask") || name.Contains("_arm_") || name.Contains("_rough")
                 || name.Contains("_ao_") || name.Contains("ambientocclusion") || name.Contains("displacement")
-                || name.Contains("_disp_") || name.Contains("opacity");
+                || name.Contains("_disp_") || name.Contains("opacity") || name.Contains("_alpha_")
+                || name.Contains("_metal_");
             bool isHdr = assetPath.EndsWith(".hdr") || assetPath.EndsWith(".exr");
 
             importer.maxTextureSize = k_MaxTextureSize;
@@ -65,15 +76,30 @@ namespace RootsDance.Editor.Environment
 
             importer.textureType = TextureImporterType.Default;
             importer.sRGBTexture = !isMask;
+            // Card textures carry their cutout in alpha; dilating the colour under it stops dark fringes.
+            importer.alphaIsTransparency = !isMask;
 
             // Vendor PSX textures (<= 256 px) keep their pixels: point filtering, no compression artefacts.
-            if (name.Contains("lowrez") || name.Contains("psx"))
+            if (name.Contains("lowrez") || name.Contains("psx") || IsPixelArtFolder())
             {
                 importer.filterMode = FilterMode.Point;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.mipmapEnabled = false;
                 importer.streamingMipmaps = false;
             }
+        }
+
+        private bool IsPixelArtFolder()
+        {
+            foreach (string folder in k_PixelArtFolders)
+            {
+                if (assetPath.StartsWith(folder))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnPreprocessModel()
@@ -95,6 +121,13 @@ namespace RootsDance.Editor.Environment
             importer.importBlendShapes = false;
             importer.generateSecondaryUV = false;
             importer.addCollider = false;
+
+            if (assetPath.StartsWith(k_RecalculateNormalsFolder))
+            {
+                importer.importNormals = ModelImporterNormals.Calculate;
+                importer.importTangents = ModelImporterTangents.None;
+            }
+
             // Keep vendor materials as sub-assets: EnvironmentPrefabBuilder remaps them by name.
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             importer.materialLocation = ModelImporterMaterialLocation.InPrefab;

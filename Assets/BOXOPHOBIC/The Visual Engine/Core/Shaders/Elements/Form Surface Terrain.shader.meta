@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 32980ad591cc3b54a96bc6d2601d067e
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/Form Surface
+    Terrain.shader
+  uploadId: 974988

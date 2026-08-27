@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0b0708bfdf8373d42836d79693151114
+timeCreated: 1572421036
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Compute Motion
+    Fade.asset
+  uploadId: 974988

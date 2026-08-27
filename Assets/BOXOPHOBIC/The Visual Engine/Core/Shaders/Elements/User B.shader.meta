@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 1bc744b6a0798014a9f6ef7f95ca8ab7
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/User B.shader
+  uploadId: 974988

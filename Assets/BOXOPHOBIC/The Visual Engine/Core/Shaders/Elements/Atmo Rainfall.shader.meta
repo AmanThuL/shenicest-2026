@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 428d12c630a40244499a6b6cc2b2b30c
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/Atmo Rainfall.shader
+  uploadId: 974988

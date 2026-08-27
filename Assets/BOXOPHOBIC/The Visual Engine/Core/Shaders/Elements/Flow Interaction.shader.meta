@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c2aed2f308142f94fa04326437ee0005
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/Flow Interaction.shader
+  uploadId: 974988

@@ -21,6 +21,23 @@
   - **Unverified:** this repo currently has no Unity Editor access to confirm in-Editor that DOTween runs cleanly (zero console errors/warnings) with no settings asset present. A teammate should open the project once and confirm before relying on this pattern further.
 - **Usage:** `using DG.Tweening;` in any `RootsDance.Runtime` file that needs it.
 
+## The Visual Engine (BOXOPHOBIC) — `Assets/BOXOPHOBIC/` + `Assets/BOXOPHOBIC+/`
+
+- **Version:** 22.0.0 (`Version.asset` data `2200`), HDRP support package "High Definition 6000.0+". Imported 2026-08-27.
+- **Vendor-required paths.** The editor tooling hard-codes the user folder `Assets/BOXOPHOBIC+` (`BoxoUtils.GetUserFolder()`, `TVEShaderManager`, `TVEMaterialManager`, `TVEAssetManager`, `TVEMaterialUpgrader`, `TVESceneDebugger`), and the installer/upgrader locates the core folder next to it — so both trees stay at the `Assets/` root instead of `Assets/ThirdParty/`.
+- **Removed after import** (re-import the Asset Store package if any of it is ever needed): `The Visual Engine/Demo/` (412 MB — nine demo scenes, demo vegetation prefabs, terrain and textures), `The Visual Engine/Learn/` (tutorial scene) and `The Visual Engine/Core/Pipelines/` (the three per-pipeline `.unitypackage` archives; the HDRP one was already applied by the installer, and [02](guidelines/02-project-structure.md) §5 forbids `.unitypackage` files under `Assets/`). Two `Core/Resources/Internal *TexRT.mat` materials keep stale Amplify property slots pointing at a deleted demo texture; their shader (`CustomRT Drops`) only samples `_DropsTex`, so this is harmless.
+- **No local edits.** `Assets/BOXOPHOBIC+/User/The Visual Engine/{Version,Pipeline}.asset` are written by the vendor installer and are committed so the installer does not re-run on other machines.
+- The installer writes `THE_VISUAL_ENGINE_V22;THE_VISUAL_ENGINE_HD` into `ProjectSettings/ProjectSettings.asset` (Standalone group) and sets vertex compression / script execution order for its own scripts. Its `Core/Resources/` folder is vendor-internal (the `Resources/` ban in [02](guidelines/02-project-structure.md) §4 is about project-owned content).
+- **Usage:** vegetation/wind/interaction shaders and the `TVE Manager` scene component; rendering rules in [07](guidelines/07-rendering-hdrp.md). Manual: `Assets/BOXOPHOBIC/The Visual Engine/The Visual Engine.pdf`.
+
+## Prefab World Builder (PluginMaster) — `Assets/PluginMaster/`
+
+- **Version:** 4.12.2. Imported 2026-08-27. Editor-only (everything is under `DesignTools/Editor/`), no runtime code, no samples shipped.
+- **Vendor-required path.** `PWBData.RELATIVE_TOOL_DIR = "PluginMaster/DesignTools/Editor/PrefabWorldBuilder"` and `Resources/Data/PWBData.txt` (`_rootDirectory`) pin the tool to `Assets/PluginMaster/…`, so it stays at the `Assets/` root instead of `Assets/ThirdParty/`.
+- **No local edits.**
+- PWB stores its palettes under `Resources/Data/` inside its own tree and its shortcut profiles + data-dir pointer in `ProjectSettings/PWBSettings.txt` (both committed — palettes are shared team content). It adds `PWB_HDRP` to the Standalone scripting defines.
+- **Usage:** prefab painting / placement for level dressing ([11](guidelines/11-scenes-prefabs-workflow.md)). Manual: `Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Documentation/Prefab World Builder Documentation.pdf`.
+
 ## IngameDebugConsole (yasirkula) — UPM package
 
 Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the OpenUPM scoped registry added to `Packages/manifest.json`), not vendored under `Assets/`. No exception needed — this is the preferred path per [09-packages-systems.md](guidelines/09-packages-systems.md); no entry required here.
@@ -41,7 +58,52 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
 ## ambientCG — `Assets/ThirdParty/Environment/AmbientCG/`
 
 - **Version/date:** downloaded 2026-08-26 from the ambientCG library.
-- **Path:** `Assets/ThirdParty/Environment/AmbientCG/<Id>/` for `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, - **Licence:** CC0 1.0 Universal — see `AmbientCG/LICENSE.md` and `AmbientCG/SOURCE.md` (one record covering all seven ids).
+- **Path:** `Assets/ThirdParty/Environment/AmbientCG/<Id>/` for `<Id>` ∈ {Ground103, Ground106, Grass003, Ground037, Concrete044D, Gravel043, Ground068, Ground086, Concrete032} (the last three added 2026-08-27 for the mud/humus terrain layers and the lab blockout normal map).
+- **Licence:** CC0 1.0 Universal — see `AmbientCG/LICENSE.md` and `AmbientCG/SOURCE.md` (one record covering all nine ids).
 - **No local edits.**
 - **What's imported:** the `_Color` and `_NormalGL` 1K JPGs (imported by the Editor as sRGB colour / linear normal map respectively via `EnvironmentAssetPostprocessor`); the `_AmbientOcclusion`, `_Roughness` and `_Displacement` JPGs live in each `<Id>/Source~/` folder, which Unity's importer ignores (folder name ends in `~`) — they are read directly off disk by `RootsDance/Terrain/Pack Terrain Layer Masks` to bake `Assets/RootsDance/Textures/Environment/Terrain<LayerName>_Mask.png` (packed AO/Roughness/Displacement; the file is named after the terrain layer the id feeds, e.g. `Ground103` → `TerrainAshDry_Mask.png`), then never imported as their own textures.
 - **Left out (spec decision 12):** the `.blend`/`.mtlx`/`.tres`/`.usdc` source files, the `_NormalDX` and `_Metalness` variants (Unity/HDRP samples OpenGL-convention normal maps and the terrain layers are non-metallic), and the preview `.png` thumbnail — none of these are consumed by the terrain layer pipeline. `` was imported for the trail layer in the first pass and removed in the Task 8 tuning pass when `Gravel043` took over that layer.
+
+## Outdoor dressing packs (2026-08-27) — `Assets/ThirdParty/Environment/<Vendor>/`
+
+Curated subsets of the team candidate library (`室外场景候选素材/素材总索引.md`), imported for the six Prefab World Builder
+pools (DeadTree_Sparse, RootRock_Clutter, DryLowGrowth, Transition_Growth, BrokenBoundary, CampEvidence). Each vendor
+folder carries its own `SOURCE.md` (exact file list, selection rationale) and `LICENSE.md`. Vendor files are verbatim;
+the only derived data lives under `Assets/RootsDance/`.
+
+| Folder | Vendor | Licence | What |
+|---|---|---|---|
+| `RetroPSXNature/` | elegantcrow, *Retro PSX Nature Pack* (itch.io) | **No licence text on the saved page** — index lists CC0; confirm on the live page before the submission build | 6 winter trees (`tree02_winter` is the OBJ: the vendor FBX is empty), 6 winter bushes, `bush07`/`bush08`, their 128/256 px sheets |
+| `NiwlPlants/` | Niwl-Games / Khaleer, *Plants* (itch.io) | CC0 1.0 | 8 grass patches, 2 ferns, 4 bushes, ivy 1–4, the two `T_Plants_General*` atlases |
+| `PolyHaven/` | Poly Haven | CC0 1.0 | `Models/`: dead_tree_trunk(_02), dry_branches_medium_01, pine_roots, root_cluster_01/02, single_root, rock_moss_set_01/02, modular_chainlink_fence, concrete_road_barrier, clipboard, binder_notebook (1K). `Textures/`: brown_mud_02, aerial_ground_rock (AO/rough/disp in `Source~/`, same convention as ambientCG) |
+| `LabAssetsCC0/` | MilkAndBanana via OpenGameArt *Lab Assets* | CC0 1.0 | 19 hand-held sampling/recording props (centimetre scale — the prefab table scales them by 0.01) |
+
+- **Local edits (PolyHaven only):** the 22 `.exr` normal/roughness/metal maps were converted to 8-bit linear PNG
+  (`exrmetrics` → `ffmpeg -apply_trc linear` → `magick -depth 8`; mean values verified against the float source, no
+  gamma applied). Command and evidence in `PolyHaven/SOURCE.md`.
+- **Derived textures** in `Assets/RootsDance/Textures/Environment/`: `ChainlinkFenceWire_BaseMap.png` (Poly Haven wire
+  `_diff` + `_alpha` packed into RGBA with `magick … -compose CopyOpacity`) and `LabPalette_BaseMap.png` (the 256×1 palette
+  strip every Lab Assets FBX embeds, extracted verbatim and tiled to 256×256 so the texture pipeline accepts it).
+- **Import rules:** `EnvironmentAssetPostprocessor` — Retro PSX textures point-filtered/uncompressed, `_nor_` maps as
+  normal maps, `_alpha_/_metal_/_rough` linear, Niwl models with calculated normals and no tangents.
+- **Materials and prefabs:** `RootsDance > Environment > Build Environment Prefabs` (`EnvironmentPalette` +
+  `EnvironmentPrefabTable` + `EnvironmentPrefabBuilder`) writes one **The Visual Engine** material per vendor texture set
+  to `Assets/RootsDance/Materials/Environment/` (`General Standard Lit` for trees/props/scans, `General Subsurface Lit`
+  for bush/plant cards; `TVEUtils.SetMaterialSettings` + the "The Visual Engine" label) and 64 prefabs to
+  `Assets/RootsDance/Prefabs/Environment/{Vegetation,Heroes,Rocks,Facility,Props}/`. TVE's own Asset Converter is not
+  used: it needs the separately sold *TVE Conversion Presets* package and, without a preset, replaces materials with
+  blank ones. `RootsDance > Environment > Create TVE Manager Prefab` builds `Prefabs/Systems/TVEManager.prefab`; every
+  Environment scene that uses these prefabs needs one instance (materials read wind/tint/wetness from it).
+- **Prefab World Builder palettes** (2026-08-27): six palettes in PWB's data folder
+  (`Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Resources/Data/Palettes/PWB_*.txt` + thumbnail PNGs),
+  one brush per prefab — `DeadTree_Sparse` (winter trees upright + embedded, winter bushes, dry branches),
+  `RootRock_Clutter` (roots, moss rocks, dead trunks; surface-aligned, scale 0.7–1.3), `DryLowGrowth` (bush07/08,
+  small grass patches), `Transition_Growth` (Niwl grass/fern/bush/ivy; surface-aligned, orient up), `BrokenBoundary`
+  (fence, barrier; no random rotation/scale), `CampEvidence` (clipboard, binder, lab props). Generated once through the
+  public `PluginMaster.PaletteManager`/`MultibrushSettings` API from an Editor eval (PWB has no asmdef, so
+  `RootsDance.Editor` cannot reference it); edit them in *Tools > Plugin Master > Prefab World Builder > Palette* from
+  now on.
+- **Not imported because of licence vs. public repo:** *Barriers Retro PSX* (gataki) and *PSX Large Terrain Rock Pack 2*
+  (Caliber Creations) both forbid redistributing their files, and `AmanThuL/shenicest-2026` is public — committing the
+  FBX would be redistribution. Poly Haven's `concrete_road_barrier` and `modular_chainlink_fence` cover the boundary pool;
+  rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it.

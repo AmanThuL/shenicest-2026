@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 76a047a3c6d71ef43a5a04c44acfe677
+labels:
+- The Visual Engine
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Materials/Orb Particles.mat
+  uploadId: 974988

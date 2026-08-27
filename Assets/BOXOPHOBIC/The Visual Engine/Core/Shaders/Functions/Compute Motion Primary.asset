@@ -1,0 +1,184 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b2425a2284af743826c689403a4924, type: 3}
+  m_Name: Compute Motion Primary
+  m_EditorClassIdentifier: 
+  m_functionInfo: "// Made with Amplify Shader Editor v1.9.9.12\n// Available at
+    the Unity Asset Store - http://u3d.as/y3X \n/*ASEBEGIN\nVersion=19912\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":474,\"pos\":[-2304,-2304],\"params\":[\"Inherit\",\"False\",\"Texture\",\"10\",\"0\",\"False\",\"1\",\"0\",\"SAMPLER2D\",\"0.2,0,0\",\"False\",\"1\",\"SAMPLER2D\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":420,\"pos\":[-2304,-2240],\"params\":[\"Inherit\",\"False\",\"Position\",\"3\",\"1\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":802,\"pos\":[-2304,-2048],\"params\":[\"Inherit\",\"False\",\"Wind
+    DirWS\",\"2\",\"2\",\"False\",\"1\",\"0\",\"FLOAT2\",\"1,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":755,\"pos\":[-128,-896],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":756,\"pos\":[64,-896],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":757,\"pos\":[-384,-768],\"params\":[\"Inherit\",\"False\",\"753\",\"Input_MotionDelay\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":754,\"pos\":[-384,-896],\"params\":[\"Inherit\",\"False\",\"853\",\"Input_WindValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":882,\"pos\":[-128,-512],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":815,\"pos\":[256,-896],\"params\":[\"Half\",\"False\",\"Wind_Delay\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SaturateNode,
+    AmplifyShaderEditor\",\"id\":895,\"pos\":[32,-512],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.NegateNode,
+    AmplifyShaderEditor\",\"id\":500,\"pos\":[-1856,-512],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":501,\"pos\":[-1536,-512],\"params\":[\"Inherit\",\"False\",\"3\",\"3\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":502,\"pos\":[-2304,-448],\"params\":[\"Inherit\",\"False\",\"321\",\"Input_MotionTilling\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":499,\"pos\":[-2048,-512],\"params\":[\"Inherit\",\"False\",\"FLOAT2\",\"0\",\"2\",\"2\",\"3\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":498,\"pos\":[-2304,-512],\"params\":[\"Inherit\",\"False\",\"419\",\"Input_PositionWO\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RangedFloatNode,
+    AmplifyShaderEditor\",\"id\":507,\"pos\":[-2304,-384],\"params\":[\"Half\",\"False\",\"Constant\",\"_Float1\",\"Float
+    1\",\"1\",\"0\",\"Create\",\"True\",\"0\",\"0\",\"0\",\"False\",\"0\",\"False\",\"Object\",\"-1\",\"\",\"0.005\",\"0\",\"0\",\"0\",\"0\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":515,\"pos\":[-1344,-512],\"params\":[\"Half\",\"False\",\"Noise_Coord\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":516,\"pos\":[-1344,-128],\"params\":[\"Half\",\"False\",\"Noise_Speed\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":506,\"pos\":[-2304,-64],\"params\":[\"Inherit\",\"False\",\"62\",\"Input_MotionSpeed\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":883,\"pos\":[192,-512],\"params\":[\"Half\",\"False\",\"Push_Mask\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":630,\"pos\":[-2304,-1984],\"params\":[\"Inherit\",\"False\",\"Wind
+    Value\",\"1\",\"3\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":702,\"pos\":[-384,128],\"params\":[\"Inherit\",\"False\",\"552\",\"Input_MotionNoise\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":475,\"pos\":[-1920,-2304],\"params\":[\"Half\",\"False\",\"Input_NoiseTex\",\"-1\",\"True\",\"1\",\"0\",\"SAMPLER2D\",\"0\",\"False\",\"1\",\"SAMPLER2D\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":419,\"pos\":[-1920,-2240],\"params\":[\"Half\",\"False\",\"Input_PositionWO\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":803,\"pos\":[-1920,-2048],\"params\":[\"Half\",\"False\",\"Input_WindDirWS\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":853,\"pos\":[-1920,-1984],\"params\":[\"Half\",\"False\",\"Input_WindValue\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":880,\"pos\":[-384,-512],\"params\":[\"Inherit\",\"False\",\"806\",\"Input_PushAlpha\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":894,\"pos\":[-384,-448],\"params\":[\"Inherit\",\"False\",\"888\",\"Input_ReactValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor\",\"id\":956,\"pos\":[-128,192],\"params\":[\"Inherit\",\"False\",\"Math
+    Pow\",\"-1\",\"\",\"127433\",\"d5e7388c7ea73a24e845a390445f0e22\",\"1,23,0\",\"1\",\"6\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":701,\"pos\":[64,128],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":811,\"pos\":[1728,0],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0,0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":875,\"pos\":[1152,-128],\"params\":[\"Inherit\",\"False\",\"4\",\"4\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"3\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":876,\"pos\":[768,64],\"params\":[\"Inherit\",\"False\",\"871\",\"Input_MotionValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":810,\"pos\":[768,0],\"params\":[\"Inherit\",\"False\",\"853\",\"Input_WindValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":896,\"pos\":[768,128],\"params\":[\"Inherit\",\"False\",\"815\",\"Wind_Delay\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":859,\"pos\":[768,-128],\"params\":[\"Half\",\"False\",\"Bend_Dir\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":812,\"pos\":[1408,320],\"params\":[\"Inherit\",\"False\",\"883\",\"Push_Mask\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":951,\"pos\":[2304,256],\"params\":[\"Inherit\",\"False\",\"883\",\"Push_Mask\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":950,\"pos\":[2304,128],\"params\":[\"Inherit\",\"False\",\"685\",\"Noise_Params\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"COLOR\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":949,\"pos\":[2496,128],\"params\":[\"Inherit\",\"False\",\"FLOAT\",\"1\",\"1\",\"2\",\"3\",\"1\",\"0\",\"COLOR\",\"0,0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleAddOpNode,
+    AmplifyShaderEditor\",\"id\":957,\"pos\":[256,128],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SaturateNode,
+    AmplifyShaderEditor\",\"id\":959,\"pos\":[384,128],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":789,\"pos\":[-384,-128],\"params\":[\"Inherit\",\"False\",\"803\",\"Input_WindDirWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":646,\"pos\":[512,-128],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0,0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":647,\"pos\":[-384,-64],\"params\":[\"Inherit\",\"False\",\"825\",\"Noise_DirWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":877,\"pos\":[1152,256],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":890,\"pos\":[768,320],\"params\":[\"Inherit\",\"False\",\"888\",\"Input_ReactValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":804,\"pos\":[-2304,-1664],\"params\":[\"Inherit\",\"False\",\"Push
+    DirWS\",\"2\",\"7\",\"False\",\"1\",\"0\",\"FLOAT2\",\"1,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":752,\"pos\":[-2304,-1152],\"params\":[\"Inherit\",\"False\",\"Motion
+    Delay\",\"1\",\"12\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":872,\"pos\":[-2304,-1088],\"params\":[\"Inherit\",\"False\",\"Motion
+    Value\",\"1\",\"11\",\"False\",\"1\",\"0\",\"FLOAT\",\"4\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":807,\"pos\":[-1920,-1664],\"params\":[\"Half\",\"False\",\"Input_PushDirWS\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":753,\"pos\":[-1920,-1152],\"params\":[\"Half\",\"False\",\"Input_MotionDelay\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":871,\"pos\":[-1920,-1088],\"params\":[\"Half\",\"False\",\"Input_MotionValue\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":954,\"pos\":[-2304,-1920],\"params\":[\"Inherit\",\"False\",\"Wind
+    Noise\",\"1\",\"4\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":955,\"pos\":[-1920,-1920],\"params\":[\"Half\",\"False\",\"Input_WindNoise\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":964,\"pos\":[-2304,-128],\"params\":[\"Inherit\",\"False\",\"963\",\"Input_WindTime\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":887,\"pos\":[-2304,-1408],\"params\":[\"Inherit\",\"False\",\"Motion
+    React\",\"1\",\"10\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":888,\"pos\":[-1920,-1408],\"params\":[\"Half\",\"False\",\"Input_ReactValue\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":805,\"pos\":[-2304,-1472],\"params\":[\"Inherit\",\"False\",\"Push
+    Alpha\",\"1\",\"9\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":806,\"pos\":[-1920,-1472],\"params\":[\"Half\",\"False\",\"Input_PushAlpha\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":857,\"pos\":[-2304,-1600],\"params\":[\"Inherit\",\"False\",\"Push
+    Noise\",\"1\",\"8\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":858,\"pos\":[-1920,-1600],\"params\":[\"Half\",\"False\",\"Input_PushNoise\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":320,\"pos\":[-2304,-832],\"params\":[\"Inherit\",\"False\",\"Motion
+    Tilling\",\"1\",\"15\",\"True\",\"1\",\"0\",\"FLOAT\",\"4\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":221,\"pos\":[-2304,-768],\"params\":[\"Inherit\",\"False\",\"Motion
+    Speed\",\"1\",\"16\",\"False\",\"1\",\"0\",\"FLOAT\",\"4\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleAddOpNode,
+    AmplifyShaderEditor\",\"id\":570,\"pos\":[-2080,-832],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0.2\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":321,\"pos\":[-1920,-832],\"params\":[\"Half\",\"False\",\"Input_MotionTilling\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":62,\"pos\":[-1920,-768],\"params\":[\"Half\",\"False\",\"Input_MotionSpeed\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":552,\"pos\":[-1920,-1024],\"params\":[\"Half\",\"False\",\"Input_MotionNoise\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":551,\"pos\":[-2304,-1024],\"params\":[\"Inherit\",\"False\",\"Motion
+    Noise\",\"1\",\"13\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":969,\"pos\":[-2304,-960],\"params\":[\"Inherit\",\"False\",\"Motion
+    Phase\",\"1\",\"14\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":968,\"pos\":[-1920,-960],\"params\":[\"Half\",\"False\",\"Input_MotionPhase\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleAddOpNode,
+    AmplifyShaderEditor\",\"id\":970,\"pos\":[-1536,-128],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":962,\"pos\":[-2304,-1792],\"params\":[\"Inherit\",\"False\",\"Wind
+    Time\",\"1\",\"6\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":963,\"pos\":[-1920,-1792],\"params\":[\"Half\",\"False\",\"Input_WindTime\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":972,\"pos\":[-2304,-1856],\"params\":[\"Inherit\",\"False\",\"Wind
+    Phase\",\"1\",\"5\",\"False\",\"1\",\"0\",\"FLOAT\",\"1\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":973,\"pos\":[-1920,-1856],\"params\":[\"Half\",\"False\",\"Input_WindPhase\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":596,\"pos\":[-2304,448],\"params\":[\"Inherit\",\"False\",\"515\",\"Noise_Coord\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":595,\"pos\":[-2304,384],\"params\":[\"Inherit\",\"False\",\"475\",\"Input_NoiseTex\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"SAMPLER2D\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.ScaleAndOffsetNode,
+    AmplifyShaderEditor\",\"id\":824,\"pos\":[-1600,512],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"2\",\"False\",\"2\",\"FLOAT\",\"-1\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":823,\"pos\":[-1760,512],\"params\":[\"Inherit\",\"False\",\"FLOAT2\",\"0\",\"1\",\"2\",\"3\",\"1\",\"0\",\"COLOR\",\"0,0,0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":825,\"pos\":[-1344,512],\"params\":[\"Half\",\"False\",\"Noise_DirWS\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":685,\"pos\":[-1344,384],\"params\":[\"Half\",\"False\",\"Noise_Params\",\"-1\",\"True\",\"1\",\"0\",\"COLOR\",\"0,0,0,0\",\"False\",\"1\",\"COLOR\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":597,\"pos\":[-2304,576],\"params\":[\"Inherit\",\"False\",\"516\",\"Noise_Speed\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":505,\"pos\":[-1792,-128],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":975,\"pos\":[-2304,64],\"params\":[\"Inherit\",\"False\",\"973\",\"Input_WindPhase\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor\",\"id\":635,\"pos\":[-1984,384],\"params\":[\"Inherit\",\"False\",\"Compute
+    Flow Map\",\"-1\",\"\",\"127436\",\"47b4a92df17039e4d8b606acbee2f25e\",\"1,66,0\",\"5\",\"20\",\"SAMPLER2D\",\"0,0\",\"False\",\"3\",\"FLOAT2\",\"0,0\",\"False\",\"21\",\"FLOAT2\",\"0,0\",\"False\",\"15\",\"FLOAT\",\"0.5\",\"False\",\"68\",\"FLOAT\",\"0.5\",\"False\",\"1\",\"COLOR\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":958,\"pos\":[64,256],\"params\":[\"Inherit\",\"False\",\"955\",\"Input_WindNoise\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor\",\"id\":762,\"pos\":[2304,-128],\"params\":[\"Inherit\",\"False\",\"Compute
+    World To Object\",\"-1\",\"\",\"127440\",\"43689197aca2215468f21517b7704b98\",\"0\",\"1\",\"38\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"19\"]}\n{\"type\":\"AmplifyShaderEditor.StaticSwitch,
+    AmplifyShaderEditor\",\"id\":808,\"pos\":[1920,-128],\"params\":[\"Inherit\",\"False\",\"Property\",\"TVE_MOTION_PUSH_ELEMENT\",\"TVE_MOTION_PUSH_ELEMENT\",\"20\",\"0\",\"Create\",\"False\",\"0\",\"0\",\"0\",\"False\",\"0\",\"False\",\"\",\"0\",\"0\",\"0\",\"False\",\"TVE_MOTION_FLOW\",\"Toggle\",\"2\",\"Key0\",\"Key1\",\"Fetch\",\"True\",\"True\",\"Vertex\",\"9\",\"1\",\"FLOAT2\",\"0,0\",\"False\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"2\",\"FLOAT2\",\"0,0\",\"False\",\"3\",\"FLOAT2\",\"0,0\",\"False\",\"4\",\"FLOAT2\",\"0,0\",\"False\",\"5\",\"FLOAT2\",\"0,0\",\"False\",\"6\",\"FLOAT2\",\"0,0\",\"False\",\"7\",\"FLOAT2\",\"0,0\",\"False\",\"8\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":813,\"pos\":[768,256],\"params\":[\"Inherit\",\"False\",\"807\",\"Input_PushDirWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":902,\"pos\":[896,1280],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":913,\"pos\":[384,1152],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":914,\"pos\":[-384,1216],\"params\":[\"Inherit\",\"False\",\"853\",\"Input_WindValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":944,\"pos\":[-128,1216],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":945,\"pos\":[-384,1280],\"params\":[\"Inherit\",\"False\",\"815\",\"Wind_Delay\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":941,\"pos\":[-128,1152],\"params\":[\"Inherit\",\"False\",\"FLOAT\",\"3\",\"1\",\"2\",\"3\",\"1\",\"0\",\"COLOR\",\"0,0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":940,\"pos\":[-384,1152],\"params\":[\"Inherit\",\"False\",\"685\",\"Noise_Params\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"COLOR\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor\",\"id\":927,\"pos\":[128,1152],\"params\":[\"Inherit\",\"False\",\"Math
+    Pow\",\"-1\",\"\",\"127442\",\"d5e7388c7ea73a24e845a390445f0e22\",\"1,23,2\",\"1\",\"6\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":935,\"pos\":[-384,1408],\"params\":[\"Inherit\",\"False\",\"807\",\"Input_PushDirWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LengthOpNode,
+    AmplifyShaderEditor\",\"id\":936,\"pos\":[-128,1408],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor\",\"id\":937,\"pos\":[128,1408],\"params\":[\"Inherit\",\"False\",\"Math
+    Pow\",\"-1\",\"\",\"127443\",\"d5e7388c7ea73a24e845a390445f0e22\",\"1,23,0\",\"1\",\"6\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.StaticSwitch,
+    AmplifyShaderEditor\",\"id\":903,\"pos\":[1152,1152],\"params\":[\"Inherit\",\"False\",\"Property\",\"TVE_MOTION_PUSH_ELEMENT2\",\"TVE_MOTION_PUSH_ELEMENT\",\"20\",\"0\",\"Create\",\"False\",\"0\",\"0\",\"0\",\"False\",\"0\",\"False\",\"\",\"0\",\"0\",\"0\",\"False\",\"TVE_MOTION_FLOW\",\"Toggle\",\"2\",\"Key0\",\"Key1\",\"Fetch\",\"True\",\"True\",\"Vertex\",\"9\",\"1\",\"FLOAT\",\"0\",\"False\",\"0\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"3\",\"FLOAT\",\"0\",\"False\",\"4\",\"FLOAT\",\"0\",\"False\",\"5\",\"FLOAT\",\"0\",\"False\",\"6\",\"FLOAT\",\"0\",\"False\",\"7\",\"FLOAT\",\"0\",\"False\",\"8\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":897,\"pos\":[-384,1472],\"params\":[\"Inherit\",\"False\",\"858\",\"Input_PushNoise\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":907,\"pos\":[384,1664],\"params\":[\"Inherit\",\"False\",\"883\",\"Push_Mask\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":976,\"pos\":[384,1728],\"params\":[\"Inherit\",\"False\",\"858\",\"Input_PushNoise\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":938,\"pos\":[384,1408],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":977,\"pos\":[640,1664],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":787,\"pos\":[-2304,512],\"params\":[\"Inherit\",\"False\",\"803\",\"Input_WindDirWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":721,\"pos\":[-384,192],\"params\":[\"Inherit\",\"False\",\"853\",\"Input_WindValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":978,\"pos\":[-1982.363,613.6779],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":979,\"pos\":[-2346.436,695.1624],\"params\":[\"Inherit\",\"False\",\"853\",\"Input_WindValue\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.LerpOp,
+    AmplifyShaderEditor\",\"id\":980,\"pos\":[-2077.436,775.1624],\"params\":[\"Inherit\",\"False\",\"3\",\"0\",\"FLOAT\",\"0.5\",\"False\",\"1\",\"FLOAT\",\"1\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":760,\"pos\":[1552,1152],\"params\":[\"Inherit\",\"False\",\"True\",\"-1\",\"Wave\",\"1\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":947,\"pos\":[2720,128],\"params\":[\"Inherit\",\"False\",\"False\",\"-1\",\"Noise\",\"2\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":952,\"pos\":[2720,256],\"params\":[\"Inherit\",\"False\",\"False\",\"-1\",\"React\",\"3\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":759,\"pos\":[2688,-128],\"params\":[\"Inherit\",\"False\",\"False\",\"-1\",\"Bending\",\"0\",\"False\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"wire\":[755,0,754,0]}\n{\"wire\":[755,1,754,0]}\n{\"wire\":[756,1,755,0]}\n{\"wire\":[756,2,757,0]}\n{\"wire\":[882,0,880,0]}\n{\"wire\":[882,1,894,0]}\n{\"wire\":[815,0,756,0]}\n{\"wire\":[895,0,882,0]}\n{\"wire\":[500,0,499,0]}\n{\"wire\":[501,0,500,0]}\n{\"wire\":[501,1,502,0]}\n{\"wire\":[501,2,507,0]}\n{\"wire\":[499,0,498,0]}\n{\"wire\":[515,0,501,0]}\n{\"wire\":[516,0,505,0]}\n{\"wire\":[883,0,895,0]}\n{\"wire\":[475,0,474,0]}\n{\"wire\":[419,0,420,0]}\n{\"wire\":[803,0,802,0]}\n{\"wire\":[853,0,630,0]}\n{\"wire\":[956,6,721,0]}\n{\"wire\":[701,1,702,0]}\n{\"wire\":[701,2,956,0]}\n{\"wire\":[811,0,875,0]}\n{\"wire\":[811,1,877,0]}\n{\"wire\":[811,2,812,0]}\n{\"wire\":[875,0,859,0]}\n{\"wire\":[875,1,810,0]}\n{\"wire\":[875,2,876,0]}\n{\"wire\":[875,3,896,0]}\n{\"wire\":[859,0,646,0]}\n{\"wire\":[949,0,950,0]}\n{\"wire\":[957,0,701,0]}\n{\"wire\":[957,1,958,0]}\n{\"wire\":[959,0,957,0]}\n{\"wire\":[646,0,789,0]}\n{\"wire\":[646,1,647,0]}\n{\"wire\":[646,2,701,0]}\n{\"wire\":[877,0,813,0]}\n{\"wire\":[877,1,890,0]}\n{\"wire\":[807,0,804,0]}\n{\"wire\":[753,0,752,0]}\n{\"wire\":[871,0,872,0]}\n{\"wire\":[955,0,954,0]}\n{\"wire\":[888,0,887,0]}\n{\"wire\":[806,0,805,0]}\n{\"wire\":[858,0,857,0]}\n{\"wire\":[570,0,320,0]}\n{\"wire\":[321,0,570,0]}\n{\"wire\":[62,0,221,0]}\n{\"wire\":[552,0,551,0]}\n{\"wire\":[968,0,969,0]}\n{\"wire\":[970,0,505,0]}\n{\"wire\":[970,1,975,0]}\n{\"wire\":[963,0,962,0]}\n{\"wire\":[973,0,972,0]}\n{\"wire\":[824,0,823,0]}\n{\"wire\":[823,0,635,0]}\n{\"wire\":[825,0,824,0]}\n{\"wire\":[685,0,635,0]}\n{\"wire\":[505,0,964,0]}\n{\"wire\":[505,1,506,0]}\n{\"wire\":[635,20,595,0]}\n{\"wire\":[635,3,596,0]}\n{\"wire\":[635,21,787,0]}\n{\"wire\":[635,15,597,0]}\n{\"wire\":[762,38,808,0]}\n{\"wire\":[808,1,875,0]}\n{\"wire\":[808,0,811,0]}\n{\"wire\":[902,0,913,0]}\n{\"wire\":[902,1,937,0]}\n{\"wire\":[902,2,977,0]}\n{\"wire\":[913,0,927,0]}\n{\"wire\":[913,1,944,0]}\n{\"wire\":[944,0,914,0]}\n{\"wire\":[944,1,945,0]}\n{\"wire\":[941,0,940,0]}\n{\"wire\":[927,6,941,0]}\n{\"wire\":[936,0,935,0]}\n{\"wire\":[937,6,936,0]}\n{\"wire\":[903,1,913,0]}\n{\"wire\":[903,0,902,0]}\n{\"wire\":[938,0,937,0]}\n{\"wire\":[938,1,897,0]}\n{\"wire\":[977,0,907,0]}\n{\"wire\":[977,1,976,0]}\n{\"wire\":[978,0,787,0]}\n{\"wire\":[978,1,980,0]}\n{\"wire\":[980,2,979,0]}\n{\"wire\":[760,0,903,0]}\n{\"wire\":[947,0,949,0]}\n{\"wire\":[952,0,951,0]}\n{\"wire\":[759,0,762,19]}\nASEEND*/\n//CHKSM=8B7FD8B24E1ABBC91E7CBB0C8B78F08CACD219C2"
+  m_functionName: 
+  m_description: 'Global Flutter Animation Function with custom inputs.
+
+
+'
+  m_additionalIncludes:
+    m_additionalIncludes: []
+    m_outsideIncludes: []
+  m_additionalPragmas:
+    m_additionalPragmas: []
+    m_outsidePragmas: []
+  m_additionalDirectives:
+    m_validData: 0
+    m_isDirty: 0
+    m_moduleName: ' Additional Directives'
+    m_independentModule: 1
+    m_customEdited: 0
+    m_additionalDirectives: []
+    m_shaderFunctionDirectives: []
+    m_nativeDirectives: []
+    m_nativeDirectivesIndex: -1
+    m_nativeDirectivesFoldout: 0
+    m_directivesSaveItems: []
+    m_versionMaxExclusive: 1
+  m_nodeCategory: 0
+  m_headerStyle: 2
+  m_headerColor: {r: 1, g: 0.62734854, b: 0, a: 1}
+  m_customNodeCategory: The Visual Engine
+  m_previewPosition: 0
+  m_hidden: 1
+  m_url: 

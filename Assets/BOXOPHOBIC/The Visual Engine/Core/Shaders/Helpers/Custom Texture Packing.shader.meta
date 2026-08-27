@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: d5b303fa5587e7945b0340366a25a99e
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Helpers/Custom Texture
+    Packing.shader
+  uploadId: 974988
