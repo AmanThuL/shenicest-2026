@@ -22,6 +22,10 @@ namespace RootsDance.Player
         [Tooltip("Helmet renderer disabled once removal finishes. Optional.")]
         [SerializeField] private Renderer m_helmetRenderer;
 
+        [Tooltip("Playback speed of the removal. 1 = authored speed, 0.5 = half speed.")]
+        [Range(0.1f, 2f)]
+        [SerializeField] private float m_playbackSpeed = 0.5f;
+
         private Animator m_animator;
         private int m_stateHash;
         private bool m_isPlaying;
@@ -51,10 +55,19 @@ namespace RootsDance.Player
 
         private async Awaitable PlayRemoveAsync()
         {
-            m_animator.Play(m_stateHash, 0, 0f);
-            m_animator.speed = 1f;
+            // Replays (debug trigger, retries) start with the helmet worn again, so undo the
+            // hide from the previous run before the first frame renders.
+            if (m_helmetRenderer != null)
+            {
+                m_helmetRenderer.enabled = true;
+            }
 
-            float duration = m_removeClip == null ? 1f : m_removeClip.length;
+            m_animator.Play(m_stateHash, 0, 0f);
+            m_animator.speed = m_playbackSpeed;
+
+            // The wait must cover the slowed clip, or the helmet hides mid-performance.
+            float duration = (m_removeClip == null ? 1f : m_removeClip.length)
+                / Mathf.Max(m_playbackSpeed, 0.01f);
 
             if (m_removeClip == null)
             {
