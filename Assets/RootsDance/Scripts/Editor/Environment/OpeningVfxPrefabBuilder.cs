@@ -9,23 +9,28 @@ namespace RootsDance.Editor.Environment
 {
     /// <summary>
     /// Builds the two placeholder particle prefabs of the opening (contamination motes, anomalous spores) and
-    /// their HDRP/Unlit emissive materials. Placeholders: HDRP/Unlit ignores particle vertex colour, so the
-    /// fade is size-over-lifetime; the VFX pass replaces these with proper Shader Graph particles. Materials and
-    /// prefabs are create-once (see <see cref="EnsurePrefab"/>): changing a recipe here does nothing to an
-    /// already-built asset — delete the generated material/prefab by hand, or use an explicit overwrite entry
-    /// (not implemented here) to pick up the new values.
+    /// their HDRP/Unlit emissive materials, textured with the CC0 Kenney soft-particle sprites under
+    /// <c>Assets/ThirdParty/VFX/KenneyParticlePack/</c>. Placeholders: HDRP/Unlit ignores particle vertex
+    /// colour, so the fade is size-over-lifetime; the VFX pass replaces these with proper Shader Graph particles.
+    /// Materials and prefabs are generated assets: every build re-applies the recipe below to them (the same
+    /// path keeps their GUIDs, so scene instances survive) — tune the recipe, not the .mat/.prefab.
     /// </summary>
     public static class OpeningVfxPrefabBuilder
     {
         private const string k_LogPrefix = "OpeningVfxPrefabBuilder";
         private const string k_PrefabFolder = "Assets/RootsDance/Prefabs/VFX";
         private const string k_MaterialFolder = "Assets/RootsDance/VFX";
+        private const string k_TextureFolder = "Assets/ThirdParty/VFX/KenneyParticlePack";
         private const string k_UnlitShader = "HDRP/Unlit";
         private static readonly int k_UnlitColorId = Shader.PropertyToID("_UnlitColor");
+        private static readonly int k_UnlitColorMapId = Shader.PropertyToID("_UnlitColorMap");
+        private static readonly int k_EmissiveColorMapId = Shader.PropertyToID("_EmissiveColorMap");
 
         private sealed class Recipe
         {
             public string Name;
+            /// <summary>Sprite file name inside <see cref="k_TextureFolder"/>; its alpha shapes the particle.</summary>
+            public string TextureFile;
             public Color BaseColor;
             public float EmissiveNits;
             public float LifetimeMin;
@@ -44,15 +49,17 @@ namespace RootsDance.Editor.Environment
                 case OpeningVfxKind.AnomalousSpores:
                     return new Recipe
                     {
-                        Name = "AnomalousSpores", BaseColor = new Color(0.75f, 0.95f, 0.80f, 0.9f),
-                        EmissiveNits = 3000f, LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.06f, SizeMax = 0.10f,
+                        Name = "AnomalousSpores", TextureFile = "light_01.png",
+                        BaseColor = new Color(0.75f, 0.95f, 0.80f, 0.9f), EmissiveNits = 3000f,
+                        LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.10f, SizeMax = 0.18f,
                         Speed = 0.10f, NoiseStrength = 0.25f, MaxParticles = 40,
                     };
                 default:
                     return new Recipe
                     {
-                        Name = "ContaminationMotes", BaseColor = new Color(0.90f, 0.85f, 0.55f, 0.85f),
-                        EmissiveNits = 2000f, LifetimeMin = 6f, LifetimeMax = 10f, SizeMin = 0.04f, SizeMax = 0.08f,
+                        Name = "ContaminationMotes", TextureFile = "circle_05.png",
+                        BaseColor = new Color(0.90f, 0.85f, 0.55f, 0.85f), EmissiveNits = 2000f,
+                        LifetimeMin = 6f, LifetimeMax = 10f, SizeMin = 0.06f, SizeMax = 0.12f,
                         Speed = 0.05f, NoiseStrength = 0.15f, MaxParticles = 80,
                     };
             }
@@ -68,17 +75,17 @@ namespace RootsDance.Editor.Environment
             return $"{k_MaterialFolder}/VFX_{RecipeFor(kind).Name}.mat";
         }
 
-        /// <summary>Returns the existing prefab asset, or builds material + prefab and returns the new asset.</summary>
+        public static string TexturePath(OpeningVfxKind kind)
+        {
+            return $"{k_TextureFolder}/{RecipeFor(kind).TextureFile}";
+        }
+
+        /// <summary>
+        /// Returns the prefab asset for <paramref name="kind"/>, creating material and prefab when missing and
+        /// re-applying the recipe to both when they exist. Returns null after logging on failure.
+        /// </summary>
         public static GameObject EnsurePrefab(OpeningVfxKind kind)
         {
-            string path = PrefabPath(kind);
-            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-
-            if (existing != null)
-            {
-                return existing;
-            }
-
             Material material = EnsureMaterial(kind);
 
             if (material == null)
@@ -87,6 +94,14 @@ namespace RootsDance.Editor.Environment
             }
 
             Recipe recipe = RecipeFor(kind);
+            string path = PrefabPath(kind);
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (existing != null)
+            {
+                return ReapplyPrefab(existing, path, recipe, material);
+            }
+
             TerrainSceneUtility.EnsureFolder(k_PrefabFolder);
             Scene preview = EditorSceneManager.NewPreviewScene();
 
@@ -114,34 +129,89 @@ namespace RootsDance.Editor.Environment
             }
         }
 
+        private static GameObject ReapplyPrefab(GameObject existing, string path, Recipe recipe, Material material)
+        {
+            GameObject contents = PrefabUtility.LoadPrefabContents(path);
+
+            try
+            {
+                ParticleSystem system = contents.GetComponent<ParticleSystem>();
+
+                if (system == null)
+                {
+                    system = contents.AddComponent<ParticleSystem>();
+                }
+
+                ConfigureParticles(system, recipe, material);
+                bool saved;
+                GameObject prefab = PrefabUtility.SaveAsPrefabAsset(contents, path, out saved);
+
+                if (!saved)
+                {
+                    Debug.LogError($"{k_LogPrefix}: SaveAsPrefabAsset failed while re-applying '{path}'.");
+                    return existing;
+                }
+
+                Debug.Log($"{k_LogPrefix}: re-applied the recipe to {path}.");
+                return prefab;
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
         private static Material EnsureMaterial(OpeningVfxKind kind)
         {
-            string path = MaterialPath(kind);
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Recipe recipe = RecipeFor(kind);
+            string texturePath = TexturePath(kind);
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
 
-            if (material != null)
+            if (texture == null)
             {
-                return material;
-            }
-
-            Shader shader = Shader.Find(k_UnlitShader);
-
-            if (shader == null)
-            {
-                Debug.LogError($"{k_LogPrefix}: shader '{k_UnlitShader}' not found.");
+                Debug.LogError($"{k_LogPrefix}: particle sprite '{texturePath}' not found "
+                    + "(see the folder's SOURCE.md).");
                 return null;
             }
 
-            Recipe recipe = RecipeFor(kind);
-            TerrainSceneUtility.EnsureFolder(k_MaterialFolder);
-            material = new Material(shader);
+            string path = MaterialPath(kind);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool created = false;
+
+            if (material == null)
+            {
+                Shader shader = Shader.Find(k_UnlitShader);
+
+                if (shader == null)
+                {
+                    Debug.LogError($"{k_LogPrefix}: shader '{k_UnlitShader}' not found.");
+                    return null;
+                }
+
+                TerrainSceneUtility.EnsureFolder(k_MaterialFolder);
+                material = new Material(shader);
+                created = true;
+            }
+
             HDMaterial.SetSurfaceType(material, true);
             material.SetColor(k_UnlitColorId, recipe.BaseColor);
+            material.SetTexture(k_UnlitColorMapId, texture);
+            material.SetTexture(k_EmissiveColorMapId, texture);
             HDMaterial.SetUseEmissiveIntensity(material, true);
             HDMaterial.SetEmissiveColor(material, recipe.BaseColor);
             HDMaterial.SetEmissiveIntensity(material, recipe.EmissiveNits, EmissiveIntensityUnit.Nits);
             HDMaterial.ValidateMaterial(material);
-            AssetDatabase.CreateAsset(material, path);
+
+            if (created)
+            {
+                AssetDatabase.CreateAsset(material, path);
+                Debug.Log($"{k_LogPrefix}: created {path}.");
+            }
+            else
+            {
+                EditorUtility.SetDirty(material);
+            }
+
             return material;
         }
 
