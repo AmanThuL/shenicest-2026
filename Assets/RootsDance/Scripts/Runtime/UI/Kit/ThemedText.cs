@@ -4,13 +4,13 @@ using UnityEngine;
 namespace RootsDance.UI.Kit
 {
     /// <summary>
-    /// Owns one label completely: its ramp slot, its size role and its string (spec §2C).
+    /// Owns one label completely: its ramp slot, its size role, its case and its string (spec §2C).
     /// <para>
-    /// It owns the string because monospacing has no public API on <see cref="TMP_Text"/> — the
-    /// protected field is only reachable through the <c>mspace</c> rich-text tag, which has to be
-    /// re-prefixed every time the content changes. Routing all kit text through here keeps that in one
-    /// place, and means the kit gets a fixed advance out of whatever face is assigned instead of
-    /// shipping a mono font binary. Assigning a real mono font to the theme is still one field.
+    /// Case is a family rule, not a per-label choice: Archive screens are all caps, Terminal screens
+    /// keep the authored string. The label defers to the theme by default and only overrides for the
+    /// rare string that must not follow its family. The face is always the theme's — VT323, a real
+    /// pixel mono font. There is no monospacing fakery here any more: imposing a fixed advance on a
+    /// proportional face was the old spec's approach, and it is exactly the giveaway §2C now bans.
     /// </para>
     /// </summary>
     [ExecuteAlways]
@@ -24,8 +24,12 @@ namespace RootsDance.UI.Kit
         [TextArea(1, 3)]
         [SerializeField] private string m_text = string.Empty;
 
-        [Tooltip("Upper case is a rule of the style, not a preference. Spec §2C.")]
-        [SerializeField] private bool m_forceUpperCase = true;
+        [Tooltip("Family defers to the theme: Archive upper-cases, Terminal keeps the string. Spec §2C.")]
+        [SerializeField] private KitCase m_case = KitCase.Family;
+
+        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — VT323 has one weight " +
+            "and no italic cut, and the spec allows faking the slant but never the weight.")]
+        [SerializeField] private bool m_italic;
 
         private ElectronicUITheme m_theme;
 
@@ -40,7 +44,7 @@ namespace RootsDance.UI.Kit
             }
         }
 
-        /// <summary>The label's content, without the monospacing prefix.</summary>
+        /// <summary>The label's content, exactly as authored; case is applied at render time.</summary>
         public string Text
         {
             get { return m_text; }
@@ -75,10 +79,7 @@ namespace RootsDance.UI.Kit
                 return;
             }
 
-            label.richText = true;
-            label.text = m_theme != null && m_theme.MonoSpacing > 0f
-                ? "<mspace=" + m_theme.MonoSpacing.ToString("0.###") + "em>" + m_text
-                : m_text;
+            label.text = m_text;
 
             if (m_theme == null)
             {
@@ -87,8 +88,23 @@ namespace RootsDance.UI.Kit
 
             label.color = m_theme.Ink(m_ink);
             label.fontSize = m_theme.Size(m_role);
-            label.characterSpacing = m_theme.Tracking * 100f;
-            label.fontStyle = m_forceUpperCase ? FontStyles.UpperCase : FontStyles.Normal;
+
+            bool upper = m_case == KitCase.Upper
+                || m_case == KitCase.Family && m_theme.Family == KitFamily.Archive;
+
+            FontStyles style = upper ? FontStyles.UpperCase : FontStyles.Normal;
+
+            if (m_italic)
+            {
+                style |= FontStyles.Italic;
+            }
+
+            if (m_theme.BoldText)
+            {
+                style |= FontStyles.Bold;
+            }
+
+            label.fontStyle = style;
 
             if (m_theme.Font != null)
             {

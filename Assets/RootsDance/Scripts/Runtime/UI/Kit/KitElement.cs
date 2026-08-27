@@ -9,7 +9,11 @@ namespace RootsDance.UI.Kit
     /// pixel at any component size (spec §2B): a nine-sliced sprite border scales with the rect, and
     /// scaling the rule is the single fastest way to make this style read as a rounded card instead.
     /// </summary>
+    // RequireComponent is declared explicitly even though Graphic's own declaration should cover it:
+    // AddComponent on these subclasses was observed NOT to auto-add the CanvasRenderer, and a Graphic
+    // without one silently renders nothing — which cost a full day of invisible rules.
     [ExecuteAlways]
+    [RequireComponent(typeof(CanvasRenderer))]
     public abstract class KitElement : MaskableGraphic
     {
         [SerializeField] private KitInk m_ink = KitInk.Ink4;
@@ -35,10 +39,13 @@ namespace RootsDance.UI.Kit
 
         public override Texture mainTexture
         {
-            get { return s_WhiteTexture; }
+            // Texture2D.whiteTexture directly, not Graphic's lazily-assigned s_WhiteTexture: in
+            // batch-mode capture the static may still be null, and a null main texture renders the
+            // whole element invisible under HDRP.
+            get { return Texture2D.whiteTexture; }
         }
 
-        public void Apply(ElectronicUITheme theme)
+        public virtual void Apply(ElectronicUITheme theme)
         {
             m_theme = theme;
 

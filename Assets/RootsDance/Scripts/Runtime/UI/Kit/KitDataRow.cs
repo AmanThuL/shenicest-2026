@@ -24,6 +24,12 @@ namespace RootsDance.UI.Kit
         [Tooltip("Moves the row to the accent. Alarm only — spec §5C caps a screen at two.")]
         [SerializeField] private bool m_alarm;
 
+        [Tooltip("Label ink when not alarmed. The police reference runs labels a step dim, the " +
+            "dossier reference runs them nearly as bright as the values.")]
+        [SerializeField] private KitInk m_labelInk = KitInk.Ink3;
+
+        [SerializeField] private KitInk m_valueInk = KitInk.Ink5;
+
         public bool Alarm
         {
             get { return m_alarm; }
@@ -59,13 +65,13 @@ namespace RootsDance.UI.Kit
         {
             if (m_label != null)
             {
-                m_label.Ink = m_alarm ? KitInk.Accent : KitInk.Ink3;
+                m_label.Ink = m_alarm ? KitInk.Accent : m_labelInk;
                 m_label.Text = m_labelText;
             }
 
             if (m_value != null)
             {
-                m_value.Ink = m_alarm ? KitInk.Accent : KitInk.Ink5;
+                m_value.Ink = m_alarm ? KitInk.Accent : m_valueInk;
                 m_value.Text = m_valueText;
             }
         }

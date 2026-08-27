@@ -26,6 +26,10 @@ namespace RootsDance.UI.Kit
         [Min(4)]
         [SerializeField] private int m_resolution = 96;
 
+        [Tooltip("Seeded traces drawn when no samples are set. The dossier reference plots two.")]
+        [Range(1, 3)]
+        [SerializeField] private int m_traces = 2;
+
         [SerializeField] private int m_seed = 5;
 
         private float[] m_samples;
@@ -37,7 +41,7 @@ namespace RootsDance.UI.Kit
             SetVerticesDirty();
         }
 
-        private float Sample(int i, int count)
+        private float Sample(int i, int count, int trace)
         {
             if (m_samples != null && m_samples.Length > 1)
             {
@@ -48,9 +52,10 @@ namespace RootsDance.UI.Kit
                 return Mathf.Lerp(m_samples[a], m_samples[b], t - a);
             }
 
+            int seed = m_seed + trace * 17;
             float x = i / (float)(count - 1);
-            float wave = Mathf.Sin(x * Mathf.PI * 6f + Hash01(m_seed, 0, 1) * 6.28f) * 0.32f
-                + Mathf.Sin(x * Mathf.PI * 13f + Hash01(m_seed, 1, 2) * 6.28f) * 0.14f;
+            float wave = Mathf.Sin(x * Mathf.PI * (5f + trace * 2f) + Hash01(seed, 0, 1) * 6.28f) * 0.32f
+                + Mathf.Sin(x * Mathf.PI * 13f + Hash01(seed, 1, 2) * 6.28f) * 0.14f;
 
             return 0.5f + wave;
         }
@@ -77,18 +82,30 @@ namespace RootsDance.UI.Kit
 
             int count = Mathf.Max(4, m_resolution);
             float step = rect.width / (count - 1);
+            int traces = m_samples != null && m_samples.Length > 1 ? 1 : Mathf.Max(1, m_traces);
 
-            // The trace is drawn as one short bar per segment rather than a stroked path: at these
+            // Each trace is drawn as one short bar per segment rather than a stroked path: at these
             // thicknesses the difference is invisible and it keeps the whole element to one draw call.
-            for (int i = 0; i < count - 1; i++)
+            for (int trace = 0; trace < traces; trace++)
             {
-                float y0 = rect.yMin + Mathf.Clamp01(Sample(i, count)) * rect.height;
-                float y1 = rect.yMin + Mathf.Clamp01(Sample(i + 1, count)) * rect.height;
-                float low = Mathf.Min(y0, y1);
-                float height = Mathf.Max(Mathf.Abs(y1 - y0), m_traceWidth);
+                Color32 ink = color;
 
-                AddRect(helper, rect.xMin + i * step, Mathf.Clamp(low, rect.yMin, rect.yMax - height),
-                    Mathf.Max(step, m_traceWidth), height, color);
+                if (trace > 0 && ActiveTheme != null)
+                {
+                    ink = ActiveTheme.Ink(KitInk.Ink3);
+                }
+
+                for (int i = 0; i < count - 1; i++)
+                {
+                    float y0 = rect.yMin + Mathf.Clamp01(Sample(i, count, trace)) * rect.height;
+                    float y1 = rect.yMin + Mathf.Clamp01(Sample(i + 1, count, trace)) * rect.height;
+                    float low = Mathf.Min(y0, y1);
+                    float height = Mathf.Max(Mathf.Abs(y1 - y0), m_traceWidth);
+
+                    AddRect(helper, rect.xMin + i * step,
+                        Mathf.Clamp(low, rect.yMin, rect.yMax - height),
+                        Mathf.Max(step, m_traceWidth), height, ink);
+                }
             }
         }
     }

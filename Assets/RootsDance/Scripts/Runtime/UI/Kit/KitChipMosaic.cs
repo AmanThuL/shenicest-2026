@@ -56,10 +56,24 @@ namespace RootsDance.UI.Kit
 
                     if (ActiveTheme != null)
                     {
+                        // Measured off the police reference's chip block: mostly mid-greys, a run of
+                        // teal (the second accent), and one or two cells blown to full white.
                         float pick = Hash01(c, r, m_seed + 11);
-                        KitInk ink = pick < m_highlightChance
-                            ? KitInk.Ink5
-                            : (KitInk)Mathf.Clamp(1 + (int)(pick * 4f), 1, 4);
+                        KitInk ink;
+
+                        if (pick < m_highlightChance)
+                        {
+                            ink = KitInk.Ink5;
+                        }
+                        else if (pick < m_highlightChance + 0.25f)
+                        {
+                            ink = KitInk.AccentAlt;
+                        }
+                        else
+                        {
+                            ink = pick < 0.66f ? KitInk.Ink3 : KitInk.Ink2;
+                        }
+
                         fill = ActiveTheme.Ink(ink);
                     }
 

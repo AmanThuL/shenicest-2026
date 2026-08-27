@@ -126,15 +126,35 @@ namespace RootsDance.UI.Kit
                 return null;
             }
 
+            if (m_material != null)
+            {
+                return m_material;
+            }
+
             // Each plate needs its own instance: the mode and cell size are per-plate, and sharing the
-            // asset would make the last one edited win across the whole screen.
-            if (m_material == null && image.material != null
-                && image.material.shader != null
+            // asset would make the last one edited win across the whole screen. Built from the shader
+            // directly when no dither material was assigned, so a plate can never silently fall back
+            // to the default UI material and render its source smooth — the one look the kit bans.
+            if (image.material != null && image.material.shader != null
                 && image.material.shader.name.Contains("Dither"))
             {
                 m_material = new Material(image.material);
-                image.material = m_material;
             }
+            else
+            {
+                Shader shader = Shader.Find("RootsDance/UI/Dither");
+
+                if (shader == null)
+                {
+                    Debug.LogWarning("RootsDance/UI/Dither shader missing; plate renders undithered.",
+                        this);
+                    return null;
+                }
+
+                m_material = new Material(shader);
+            }
+
+            image.material = m_material;
 
             return m_material;
         }
