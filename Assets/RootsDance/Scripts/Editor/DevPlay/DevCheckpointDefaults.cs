@@ -105,13 +105,13 @@ namespace RootsDance.Editor.DevPlay
                 Make("00-07_GrassPlatform", "00-07 Grass platform", "Anchor_00-07_GrassPlatform",
                     new Vector3(-12f, 6.5f, 39f), afterInvestigation, true),
                 Make("00-09_MainGate", "00-09 Main gate", "Anchor_00-09_MainGate",
-                    new Vector3(0f, 7.5f, 80f), afterInvestigation, true),
+                    new Vector3(24f, 7.5f, 106f), afterInvestigation, true),
                 Make("00-10_Sign", "00-10 Sign", "Anchor_00-10_Sign",
-                    new Vector3(-12f, 7.5f, 83f), afterInvestigation, true),
+                    new Vector3(17f, 7.5f, 102f), afterInvestigation, true),
                 Make("00-11_Poster", "00-11 Poster", "Anchor_00-11_Poster",
-                    new Vector3(-40f, 7.5f, 96f), afterInvestigation, true),
+                    new Vector3(-27f, 7.5f, 117f), afterInvestigation, true),
                 Make("00-16_ServiceEntrance", "00-16 Service entrance", "Anchor_00-16_ServiceEntrance",
-                    new Vector3(41f, 4.5f, 105f), afterInvestigation, true),
+                    new Vector3(52f, 4.5f, 108f), afterInvestigation, true),
             };
         }
 

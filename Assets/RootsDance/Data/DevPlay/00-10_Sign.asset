@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 00-10 Sign
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-10_Sign
-  m_position: {x: -12, y: 7.5, z: 83}
+  m_position: {x: 17, y: 7.5, z: 102}
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1

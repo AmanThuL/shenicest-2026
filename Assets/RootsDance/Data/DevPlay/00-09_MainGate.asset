@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 00-09 Main gate
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-09_MainGate
-  m_position: {x: 0, y: 7.5, z: 80}
+  m_position: {x: 24, y: 7.5, z: 106}
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1
