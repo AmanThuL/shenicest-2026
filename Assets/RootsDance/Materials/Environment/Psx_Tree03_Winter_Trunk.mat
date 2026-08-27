@@ -82,7 +82,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetaAlbedoTex:
-        m_Texture: {fileID: 2800000, guid: cc2f0613045ef495f90fd3463b021bc8, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MotionMaskTex:
@@ -90,11 +90,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MotionNoiseTex:
-        m_Texture: {fileID: 2800000, guid: 9881e099480439147ba51cc2d31303b6, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NoiseTex3D:
-        m_Texture: {fileID: 11700000, guid: 038de154ac2857945b4e07ea7b2c8629, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OverlayAlbedoTex:
@@ -102,7 +102,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OverlayNormalTex:
-        m_Texture: {fileID: 2800000, guid: 918024ada31e4e043bd2d6e6a4242b4c, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SecondAlbedoTex:
