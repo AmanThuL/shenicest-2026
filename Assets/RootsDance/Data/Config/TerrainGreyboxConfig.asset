@@ -55,10 +55,10 @@ MonoBehaviour:
     NorthRiseHeight: 12
     NorthRiseStartZ: 150
     NorthRiseEndZ: 250
-    TerraceCenter: {x: 0, y: 112}
-    TerraceHalfExtents: {x: 38.21682, y: 32.516663}
-    TerraceYawDegrees: 0
-    TerraceCornerRadius: 8
+    TerraceCenter: {x: 0, y: 126}
+    TerraceHalfExtents: {x: 39.042633, y: 41.70502}
+    TerraceYawDegrees: -45
+    TerraceCornerRadius: 12
     TerraceHeight: 7
     TerraceBlend: 8
     FlatSpots:
@@ -70,7 +70,7 @@ MonoBehaviour:
       Radius: 4
       Blend: 6
       Height: 6
-    - Center: {x: 44, y: 105}
+    - Center: {x: 52, y: 108}
       Radius: 5
       Blend: 6
       Height: 4
@@ -90,20 +90,24 @@ MonoBehaviour:
         Height: 5
       - Position: {x: 0, y: 66}
         Height: 6.4
-      - Position: {x: 0, y: 80}
+      - Position: {x: 2, y: 75}
+        Height: 7
+      - Position: {x: 9, y: 87}
+        Height: 7
+      - Position: {x: 24, y: 106}
         Height: 7
       HalfWidth: 2.5
       Blend: 4
     - Nodes:
-      - Position: {x: 4, y: 79}
+      - Position: {x: 9, y: 87}
         Height: 7
-      - Position: {x: 24, y: 81}
+      - Position: {x: 20, y: 96}
         Height: 7
-      - Position: {x: 38, y: 82}
+      - Position: {x: 36, y: 105}
         Height: 7
-      - Position: {x: 44, y: 95}
-        Height: 5.2
-      - Position: {x: 44, y: 105}
+      - Position: {x: 44, y: 106}
+        Height: 5.5
+      - Position: {x: 52, y: 108}
         Height: 4
       HalfWidth: 2
       Blend: 3
@@ -120,52 +124,32 @@ MonoBehaviour:
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_terrainDataPath: Assets/RootsDance/Scenes/Levels/Main/Main_TerrainData.asset
   m_labBlockout: {fileID: 919132149155446097, guid: 0f04effc217a84eee9c6b6dfa4ed8cd9, type: 3}
-  m_labPosition: {x: -48.859238, y: 6.819171, z: 418.49118}
-  m_labYawDegrees: -90
+  m_labPosition: {x: 5.603478, y: 4.4219494, z: 107.610535}
+  m_labYawDegrees: -45
+  m_labFloorOffset: 0.76
   m_deriveTerraceFromLab: 1
-  m_labIncludedChildren:
-  - Fence1
-  - Fence2
-  - Fence3
-  - Group81
-  - Group87
-  - Group106
-  - Group107
-  - Group108
-  - Group109
-  - Group110
-  - Group128
-  - Group147
-  - Group165
-  - Group166
-  - Group184
-  - Group185
-  - Group186
-  - Group187
+  m_labIncludedChildren: []
   m_anchors:
   - m_name: Anchor_Center
-    m_specPosition: {x: 0, y: 7, z: 112}
-    m_useSpecHeight: 0
-  - m_name: Anchor_00-01_Wake
-    m_specPosition: {x: 0, y: 3, z: -10}
+    m_specPosition: {x: 0, y: 7, z: 126}
     m_useSpecHeight: 0
   - m_name: Anchor_00-07_GrassPlatform
     m_specPosition: {x: -12, y: 6, z: 39}
     m_useSpecHeight: 0
   - m_name: Anchor_00-09_MainGate
-    m_specPosition: {x: 0, y: 7, z: 80}
+    m_specPosition: {x: 24, y: 7, z: 106}
     m_useSpecHeight: 0
   - m_name: Anchor_00-10_Sign
-    m_specPosition: {x: -12, y: 7, z: 83}
+    m_specPosition: {x: 17, y: 7, z: 102}
     m_useSpecHeight: 0
   - m_name: Anchor_00-11_Poster
-    m_specPosition: {x: -40, y: 7, z: 96}
+    m_specPosition: {x: -27, y: 7, z: 117}
     m_useSpecHeight: 0
   - m_name: Anchor_00-14_ExhaustFan
-    m_specPosition: {x: 36, y: 11, z: 103}
+    m_specPosition: {x: 29.5, y: 10, z: 116}
     m_useSpecHeight: 1
   - m_name: Anchor_00-16_ServiceEntrance
-    m_specPosition: {x: 41, y: 4, z: 105}
+    m_specPosition: {x: 52, y: 4, z: 108}
     m_useSpecHeight: 0
   m_layers:
   - m_name: AshDry
