@@ -1,4 +1,5 @@
 using System.IO;
+using RootsDance.Environment;
 using TheVisualEngine;
 using UnityEditor;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace RootsDance.Editor.Environment
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(k_PrefabPath) != null)
             {
-                Debug.Log($"TveManagerPrefabBuilder: '{k_PrefabPath}' already exists; nothing to do.");
+                EnsureBinder();
                 return;
             }
 
@@ -41,6 +42,7 @@ namespace RootsDance.Editor.Environment
             try
             {
                 root.AddComponent<TVEManager>();
+                root.AddComponent<TveCameraBinder>();
                 bool saved;
                 PrefabUtility.SaveAsPrefabAsset(root, k_PrefabPath, out saved);
 
@@ -56,6 +58,40 @@ namespace RootsDance.Editor.Environment
             finally
             {
                 Object.DestroyImmediate(root);
+            }
+        }
+
+        /// <summary>
+        /// Adds <see cref="TveCameraBinder"/> to an already-created prefab (the GUID scenes reference
+        /// is preserved — the asset is edited in place). Idempotent.
+        /// </summary>
+        [MenuItem("RootsDance/Environment/Ensure TVE Camera Binder")]
+        public static void EnsureBinder()
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(k_PrefabPath);
+
+            if (root == null)
+            {
+                Debug.LogError($"TveManagerPrefabBuilder: '{k_PrefabPath}' missing; run Create first.");
+                return;
+            }
+
+            try
+            {
+                if (root.GetComponent<TveCameraBinder>() != null)
+                {
+                    Debug.Log("TveManagerPrefabBuilder: binder already present; nothing to do.");
+                    return;
+                }
+
+                root.AddComponent<TveCameraBinder>();
+                PrefabUtility.SaveAsPrefabAsset(root, k_PrefabPath);
+                AssetDatabase.SaveAssets();
+                Debug.Log($"TveManagerPrefabBuilder: added TveCameraBinder to '{k_PrefabPath}'.");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
             }
         }
     }

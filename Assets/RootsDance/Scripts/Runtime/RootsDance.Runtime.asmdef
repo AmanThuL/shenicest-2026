@@ -7,7 +7,9 @@
         "IngameDebugConsole.Runtime",
         "DOTween.Modules",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Boxophobic.TheVisualEngine.Runtime",
+        "Boxophobic.Utils.Scripts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
