@@ -947,6 +947,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 12115248}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 12115253}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 12115254}
   m_SourcePrefab: {fileID: 100100000, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
 --- !u!4 &12115244 stripped
 Transform:
@@ -1053,6 +1059,39 @@ MonoBehaviour:
   m_removeClip: {fileID: -623603649343465320, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
   m_helmetRenderer: {fileID: 12115245}
   m_playbackSpeed: 0.5
+--- !u!114 &12115253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 12115247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a765f91af632c4697a7f2bbd16b071a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.CrawlDebugTrigger
+  m_key: 17
+  m_crawlState: Crawl
+  m_idleState: HelmetOff
+--- !u!114 &12115254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 12115247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986492aab8452414eb3a28d6ce6fe633, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.ArmsClipDebugTrigger
+  m_bindings:
+  - m_key: 33
+    m_stateName: StandUp
+  - m_key: 30
+    m_stateName: KeypadPoke
+  m_idleState: HelmetOff
 --- !u!1001 &532922589
 PrefabInstance:
   m_ObjectHideFlags: 0
