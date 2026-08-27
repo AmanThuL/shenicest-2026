@@ -5,6 +5,7 @@
         "RootsDance.Runtime",
         "Boxophobic.TheVisualEngine.Runtime",
         "Boxophobic.Utils.Scripts",
+        "CurvedUIUtility",
         "Unity.Cinemachine",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
