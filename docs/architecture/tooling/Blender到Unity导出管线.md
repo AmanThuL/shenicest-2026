@@ -86,7 +86,7 @@ Unity 侧无需任何手工步骤。
 - 不带：相对路径按 `.blend` 所在目录解析，`--output Assets/...` 会写到 `.blend` 旁边。
 - 绝对路径任何时候原样接受。
 
-**整个集合一次导出**：`--collection Architectures` 代替 `--objects`，导出该集合（含子集合）下所有带面的 MESH 物体；无面的线框重复体跳过，艺术家在大纲里取消勾选（从视图层排除）的子集合视为“不属于模型”而跳过并记入 manifest 的 `m_excludedObjects`，用眼睛图标隐藏的物体仍报错。首个使用者：实验室白模 `LabBlockout.fbx`（`GAIA1_v2.blend`，2026-08-27）。
+**整个集合一次导出**：`--collection Architectures` 代替 `--objects`，导出该集合（含子集合）下所有带面的 MESH 物体；无面的线框重复体跳过，艺术家在大纲里取消勾选（从视图层排除）的子集合视为“不属于模型”而跳过并记入 manifest 的 `m_excludedObjects`，用眼睛图标隐藏的物体仍报错。首个使用者：实验室白模 `LabBlockout.fbx`（`GAIA1_v2.blend`，2026-08-27；2026-08-28 起改自 `GAIA1_v3.blend`，同一条命令重跑即可）。
 
 **一次导多个 action**：`--actions knife_idle,jab.L` 产出 `Arms_knife_idle.fbx` / `Arms_jab.L.fbx`，各带一份 manifest，帧范围各取自对应 Action。
 
