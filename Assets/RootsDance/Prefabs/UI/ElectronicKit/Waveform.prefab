@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8265188464665642198}
+  - component: {fileID: 9146432758259800751}
   - component: {fileID: 2247249689470961516}
   m_Layer: 5
   m_Name: Waveform
@@ -36,6 +37,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 400, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &9146432758259800751
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7559923327333038567}
+  m_CullTransparentMesh: 1
 --- !u!114 &2247249689470961516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,4 +71,5 @@ MonoBehaviour:
   m_gridInk: 2
   m_traceWidth: 2
   m_resolution: 96
+  m_traces: 2
   m_seed: 5

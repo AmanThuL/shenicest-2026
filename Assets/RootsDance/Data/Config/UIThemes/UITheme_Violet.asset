@@ -13,13 +13,15 @@ MonoBehaviour:
   m_Name: UITheme_Violet
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.Kit.ElectronicUITheme
   m_ramp:
-  - {r: 0.101960786, g: 0.09411765, b: 0.1254902, a: 1}
-  - {r: 0.17254902, g: 0.16470589, b: 0.2901961, a: 1}
-  - {r: 0.30980393, g: 0.3137255, b: 0.5019608, a: 1}
-  - {r: 0.5254902, g: 0.5372549, b: 0.7372549, a: 1}
-  - {r: 0.78039217, g: 0.8117647, b: 0.9490196, a: 1}
-  - {r: 0.95686275, g: 0.96862745, b: 1, a: 1}
-  m_accent: {r: 0.78039217, g: 0.8117647, b: 0.9490196, a: 1}
+  - {r: 0.07450981, g: 0.06666667, b: 0.09019608, a: 1}
+  - {r: 0.1254902, g: 0.11764706, b: 0.14901961, a: 1}
+  - {r: 0.22745098, g: 0.21960784, b: 0.38431373, a: 1}
+  - {r: 0.45490196, g: 0.47058824, b: 0.6745098, a: 1}
+  - {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  - {r: 0.9098039, g: 0.9254902, b: 1, a: 1}
+  m_accent: {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  m_accentAlt: {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  m_family: 0
   m_unit: 4
   m_rule: 1
   m_ruleStrong: 2
@@ -28,9 +30,9 @@ MonoBehaviour:
   m_rowUnits: 10
   m_insetUnits: 16
   m_cornerUnits: 4
-  m_font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_monoSpacing: 0.62
-  m_microSize: 12
-  m_bodySize: 15
-  m_displaySize: 24
-  m_tracking: 0.06
+  m_interactiveRadiusUnits: 1.5
+  m_font: {fileID: 11400000, guid: bc9d9c5b86b3a4916ab52280c923783e, type: 2}
+  m_boldText: 1
+  m_microSize: 18
+  m_bodySize: 36
+  m_displaySize: 46

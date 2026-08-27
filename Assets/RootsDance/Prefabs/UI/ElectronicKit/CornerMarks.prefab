@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6331202190062330083}
+  - component: {fileID: 2187275951984656393}
   - component: {fileID: 6199285479403996589}
   m_Layer: 5
   m_Name: CornerMarks
@@ -36,6 +37,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &2187275951984656393
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697989447523652025}
+  m_CullTransparentMesh: 1
 --- !u!114 &6199285479403996589
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -153,7 +153,8 @@ MonoBehaviour:
   m_ink: 5
   m_role: 2
   m_text: 0447
-  m_forceUpperCase: 1
+  m_case: 0
+  m_italic: 0
 --- !u!1 &7341835163312245515
 GameObject:
   m_ObjectHideFlags: 0
@@ -307,7 +308,8 @@ MonoBehaviour:
   m_ink: 3
   m_role: 0
   m_text: ID
-  m_forceUpperCase: 1
+  m_case: 0
+  m_italic: 0
 --- !u!1 &8496422654597593768
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,6 +319,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3160490004883216915}
+  - component: {fileID: 7299998234366019853}
   m_Layer: 5
   m_Name: Readout
   m_TagString: Untagged
@@ -345,3 +348,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &7299998234366019853
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8496422654597593768}
+  m_CullTransparentMesh: 1

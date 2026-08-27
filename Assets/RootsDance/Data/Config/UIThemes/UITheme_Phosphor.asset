@@ -20,6 +20,8 @@ MonoBehaviour:
   - {r: 0.7254902, g: 0.83137256, b: 0.627451, a: 1}
   - {r: 0.84313726, g: 0.9372549, b: 0.627451, a: 1}
   m_accent: {r: 0.92941177, g: 0.98039216, b: 0.30980393, a: 1}
+  m_accentAlt: {r: 0.34901962, g: 0.5568628, b: 0.2784314, a: 1}
+  m_family: 1
   m_unit: 4
   m_rule: 1
   m_ruleStrong: 2
@@ -28,9 +30,9 @@ MonoBehaviour:
   m_rowUnits: 10
   m_insetUnits: 16
   m_cornerUnits: 4
-  m_font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_monoSpacing: 0.62
-  m_microSize: 12
-  m_bodySize: 15
-  m_displaySize: 24
-  m_tracking: 0.06
+  m_interactiveRadiusUnits: 1.5
+  m_font: {fileID: 11400000, guid: bc9d9c5b86b3a4916ab52280c923783e, type: 2}
+  m_boldText: 0
+  m_microSize: 16
+  m_bodySize: 24
+  m_displaySize: 40

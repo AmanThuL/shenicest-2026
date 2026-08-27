@@ -102,6 +102,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5918583965003043822}
+  - component: {fileID: 444722152432708376}
   m_Layer: 5
   m_Name: ImagePlate
   m_TagString: Untagged
@@ -132,6 +133,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 280, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &444722152432708376
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5356347665407184489}
+  m_CullTransparentMesh: 1
 --- !u!1 &6904189314640326895
 GameObject:
   m_ObjectHideFlags: 0
@@ -141,6 +150,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8409805124719895343}
+  - component: {fileID: 2236266023769033933}
   - component: {fileID: 7703164001336680227}
   m_Layer: 5
   m_Name: Border
@@ -168,6 +178,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &2236266023769033933
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6904189314640326895}
+  m_CullTransparentMesh: 1
 --- !u!114 &7703164001336680227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -204,6 +222,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 29076836241979782}
+  - component: {fileID: 7733204449712349832}
   - component: {fileID: 2601743069089105025}
   m_Layer: 5
   m_Name: Reticle
@@ -231,6 +250,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &7733204449712349832
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7280020759898145178}
+  m_CullTransparentMesh: 1
 --- !u!114 &2601743069089105025
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,9 +278,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_ink: 2
-  m_columns: 4
-  m_rows: 4
+  m_ink: 3
+  m_columns: 7
+  m_rows: 7
   m_includeEdges: 0
 --- !u!1 &8208245552864437829
 GameObject:

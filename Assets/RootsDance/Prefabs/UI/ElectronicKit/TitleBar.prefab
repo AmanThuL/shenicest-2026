@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 992845227723809214}
+  - component: {fileID: 8545730997076242485}
   - component: {fileID: 7429270745682900665}
   m_Layer: 5
   m_Name: Border
@@ -36,6 +37,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8545730997076242485
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585621547572827159}
+  m_CullTransparentMesh: 1
 --- !u!114 &7429270745682900665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306,7 +315,8 @@ MonoBehaviour:
   m_ink: 5
   m_role: 1
   m_text: SECTION
-  m_forceUpperCase: 1
+  m_case: 0
+  m_italic: 0
 --- !u!1 &4032057958575058639
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,7 +470,8 @@ MonoBehaviour:
   m_ink: 3
   m_role: 0
   m_text: STATUS
-  m_forceUpperCase: 1
+  m_case: 0
+  m_italic: 0
 --- !u!1 &6745445132849629394
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,6 +481,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5376063481179390184}
+  - component: {fileID: 8272844893367890730}
   m_Layer: 5
   m_Name: TitleBar
   m_TagString: Untagged
@@ -500,3 +512,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 640, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8272844893367890730
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6745445132849629394}
+  m_CullTransparentMesh: 1

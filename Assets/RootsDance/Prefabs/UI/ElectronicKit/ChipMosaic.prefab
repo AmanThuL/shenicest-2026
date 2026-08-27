@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7464074439135489758}
+  - component: {fileID: 4297975485816683367}
   - component: {fileID: 3558816204382041203}
   m_Layer: 5
   m_Name: ChipMosaic
@@ -36,6 +37,14 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 220, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &4297975485816683367
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5337119098775443435}
+  m_CullTransparentMesh: 1
 --- !u!114 &3558816204382041203
 MonoBehaviour:
   m_ObjectHideFlags: 0
