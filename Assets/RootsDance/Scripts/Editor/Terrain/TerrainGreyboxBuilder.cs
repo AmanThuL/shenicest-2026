@@ -13,7 +13,9 @@ namespace RootsDance.Editor.Terrain
     /// <c>Main_Environment.unity</c>: a Unity Terrain driven by the pure generators, one terrain layer
     /// per splat band (textured from the CC0 ground sets, or flat greybox colour while a definition has
     /// no albedo), the lab blockout on its terrace and the Chapter-00 anchor markers. Idempotent —
-    /// running it twice yields the same hierarchy. This is the one sanctioned tool that saves a scene.
+    /// running it twice yields the same hierarchy (the lab instance is destroyed and re-instantiated on
+    /// every run; it carries no hand edits by contract). This is the one sanctioned tool that saves a
+    /// scene.
     /// Menu: RootsDance &gt; Terrain &gt; Build Greybox Terrain.
     /// </summary>
     /// <remarks>
@@ -264,13 +266,17 @@ namespace RootsDance.Editor.Terrain
         }
 
         /// <summary>
-        /// Find-or-create <c>_Geometry/LabBlockout</c> as an instance of the configured model prefab.
-        /// The FBX is a presentation board: only the top-level children named in
-        /// <see cref="TerrainGreyboxConfigSO.LabIncludedChildren"/> are the actual building, the rest
-        /// (display plates, the disc, the second scale model) are switched off on the instance.
-        /// The surviving cluster is then measured, yawed and dropped onto the terrace, and its rotated
-        /// world footprint becomes <c>Params.TerraceHalfExtents</c>. The lab is required: the terrace is
-        /// derived from it, so a missing prefab aborts the build instead of producing a wrong terrace.
+        /// Recreates <c>_Geometry/LabBlockout</c> as a fresh instance of the configured model prefab:
+        /// any existing instance is destroyed first, so stale per-child active-state overrides from a
+        /// previous model cannot survive a model swap. When
+        /// <see cref="TerrainGreyboxConfigSO.LabIncludedChildren"/> names any top-level children, only
+        /// those stay active and the rest are switched off on the instance (the V2 export contains only
+        /// the building, so the list is empty). The surviving cluster is then measured in its own local
+        /// space, yawed and dropped onto the terrace; its local footprint plus margin becomes
+        /// <c>Params.TerraceHalfExtents</c> and its yaw becomes <c>Params.TerraceYawDegrees</c>, so the
+        /// terrace follows the building instead of its world AABB. The lab is required: the terrace is
+        /// derived from it, so a missing prefab or an unmeasurable instance aborts the build instead of
+        /// producing a wrong terrace.
         /// </summary>
         /// <param name="config">The config asset being built from.</param>
         /// <param name="scene">The scene the lab instance lives in.</param>
@@ -290,26 +296,15 @@ namespace RootsDance.Editor.Terrain
             Transform geometry = TerrainSceneUtility.EnsureRoot(scene, k_GeometryRootName);
             Transform existing = geometry.Find(k_LabObjectName);
 
-            if (existing != null
-                && PrefabUtility.GetCorrespondingObjectFromSource(existing.gameObject) != prefab)
+            if (existing != null)
             {
                 Undo.DestroyObjectImmediate(existing.gameObject);
-                existing = null;
             }
 
-            GameObject instance;
-
-            if (existing == null)
-            {
-                instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
-                instance.name = k_LabObjectName;
-                instance.transform.SetParent(geometry, true);
-                Undo.RegisterCreatedObjectUndo(instance, "Create LabBlockout");
-            }
-            else
-            {
-                instance = existing.gameObject;
-            }
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+            instance.name = k_LabObjectName;
+            instance.transform.SetParent(geometry, true);
+            Undo.RegisterCreatedObjectUndo(instance, "Create LabBlockout");
 
             ApplyLabChildFilter(config, instance);
 
@@ -330,11 +325,12 @@ namespace RootsDance.Editor.Terrain
 
             if (!TryMeasureActiveBounds(instance, out local))
             {
-                Debug.LogWarning("TerrainGreyboxBuilder: the lab instance has no active meshes after the "
-                    + "child filter; keeping the authored terrace extents and lab position.");
-                instance.transform.position = config.LabPosition;
-                instance.transform.rotation = Quaternion.Euler(0f, config.LabYawDegrees, 0f);
-                return true;
+                // A wrong terrace saved into the scene is worse than an aborted build, so this is fatal
+                // rather than a silent fallback to the stale authored position.
+                Debug.LogError("TerrainGreyboxBuilder: the lab instance has no active meshes after the child "
+                    + "filter, so the terrace cannot be derived. Check Lab Included Children against the "
+                    + "model's top-level children, then run the builder again.");
+                return false;
             }
 
             TerrainGreyboxParams parameters = config.Params;
@@ -342,22 +338,23 @@ namespace RootsDance.Editor.Terrain
             Vector3 target = new Vector3(
                 parameters.TerraceCenter.x, parameters.TerraceHeight, parameters.TerraceCenter.y);
 
-            // Put the cluster's footprint centre on the terrace centre and its lowest point on the floor.
-            Vector3 pivotOffset = new Vector3(local.center.x, local.min.y, local.center.z);
+            // Put the cluster's footprint centre on the terrace centre and its main floor slab (the lowest
+            // point raised by the configured floor offset) on the terrace height.
+            Vector3 pivotOffset = LabTerraceDerivation.LabPivot(local, config.LabFloorOffset);
             Vector3 position = target - rotation * pivotOffset;
 
             instance.transform.rotation = rotation;
             instance.transform.position = position;
 
-            Bounds world = TransformBounds(local, Matrix4x4.TRS(position, rotation, Vector3.one));
+            // The terrace is the lab's own oriented footprint, yawed with it, so a diagonal lab gets a
+            // diagonal terrace instead of a square world AABB with empty corners.
+            Vector2 halfExtents;
+            float terraceYawDegrees;
+            LabTerraceDerivation.DeriveTerrace(
+                local, config.LabYawDegrees, k_LabTerraceMargin, out halfExtents, out terraceYawDegrees);
 
-            parameters.TerraceHalfExtents = new Vector2(
-                world.size.x * 0.5f + k_LabTerraceMargin,
-                world.size.z * 0.5f + k_LabTerraceMargin);
-
-            // The world AABB of the yawed cluster already covers the building, so the terrace itself
-            // stays axis-aligned — a yawed terrace would only add a second, redundant rotation.
-            parameters.TerraceYawDegrees = 0f;
+            parameters.TerraceHalfExtents = halfExtents;
+            parameters.TerraceYawDegrees = terraceYawDegrees;
 
             SerializedObject serialized = new SerializedObject(config);
             serialized.FindProperty("m_labPosition").vector3Value = position;
@@ -367,11 +364,13 @@ namespace RootsDance.Editor.Terrain
 
             Debug.Log($"TerrainGreyboxBuilder: lab cluster local bounds min={local.min:F2} max={local.max:F2} "
                 + $"size={local.size:F2} center={local.center:F2}.");
-            Debug.Log($"TerrainGreyboxBuilder: lab placed at position={position:F2} yaw={config.LabYawDegrees:F1}deg; "
-                + $"world AABB min={world.min:F2} max={world.max:F2} size={world.size:F2}.");
+            Debug.Log($"TerrainGreyboxBuilder: lab placed at position={position:F2} yaw={config.LabYawDegrees:F1}deg, "
+                + $"floor offset {config.LabFloorOffset:F2} m (lowest point at world y={position.y + local.min.y:F2}, "
+                + $"terrace at y={parameters.TerraceHeight:F2}).");
             Debug.Log($"TerrainGreyboxBuilder: derived TerraceHalfExtents={parameters.TerraceHalfExtents:F2} "
-                + $"(margin {k_LabTerraceMargin:F0} m), TerraceYaw={parameters.TerraceYawDegrees:F1}deg, "
-                + $"TerraceCenter={parameters.TerraceCenter:F2}, TerraceHeight={parameters.TerraceHeight:F2}.");
+                + $"from local size ({local.size.x:F2} x {local.size.z:F2}) + margin {k_LabTerraceMargin:F0} m, "
+                + $"TerraceYaw={parameters.TerraceYawDegrees:F1}deg, TerraceCenter={parameters.TerraceCenter:F2}, "
+                + $"TerraceHeight={parameters.TerraceHeight:F2}.");
 
             return true;
         }
@@ -409,7 +408,7 @@ namespace RootsDance.Editor.Terrain
             }
 
             Debug.Log($"TerrainGreyboxBuilder: lab child filter kept {instance.transform.childCount - disabled} "
-                + $"of {instance.transform.childCount} top-level children (the presentation board is hidden).");
+                + $"of {instance.transform.childCount} top-level children (the rest are hidden).");
         }
 
         /// <summary>

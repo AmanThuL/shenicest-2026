@@ -108,16 +108,24 @@ namespace RootsDance.Editor.Terrain
         public float NorthRiseEndZ = 250f;
 
         /// <summary>Centre of the lab terrace in world XZ (x = world X, y = world Z).</summary>
-        public Vector2 TerraceCenter = new Vector2(0f, 112f);
+        public Vector2 TerraceCenter = new Vector2(0f, 126f);
 
-        /// <summary>Half extents of the lab terrace rectangle before rounding, in metres.</summary>
-        public Vector2 TerraceHalfExtents = new Vector2(38.22f, 32.52f);
+        /// <summary>
+        /// Half extents of the lab terrace rectangle before rounding, in metres: the V2 lab blockout's
+        /// local half size (33.05, 35.70) at import scale 0.4 plus a 6 m margin. The greybox builder
+        /// overwrites it with the value it derives from the lab's own bounds.
+        /// </summary>
+        public Vector2 TerraceHalfExtents = new Vector2(39.05f, 41.71f);
 
-        /// <summary>Yaw of the lab terrace around world Y, in degrees.</summary>
-        public float TerraceYawDegrees;
+        /// <summary>
+        /// Yaw of the lab terrace around world Y, in degrees, with the <c>Quaternion.Euler(0, yaw, 0)</c>
+        /// convention (the terrace's local +X is that rotation applied to world +X). The greybox builder
+        /// overwrites it with the lab's yaw when it derives the terrace from the lab blockout.
+        /// </summary>
+        public float TerraceYawDegrees = -45f;
 
         /// <summary>Corner radius of the rounded terrace rectangle, in metres.</summary>
-        public float TerraceCornerRadius = 8f;
+        public float TerraceCornerRadius = 12f;
 
         /// <summary>Flat world height of the lab terrace, in metres.</summary>
         public float TerraceHeight = 7f;
@@ -195,9 +203,14 @@ namespace RootsDance.Editor.Terrain
             {
                 new FlatSpot { Center = new Vector2(0f, -10f),  Radius = 6f, Blend = 8f, Height = 3f },
                 new FlatSpot { Center = new Vector2(-12f, 39f), Radius = 4f, Blend = 6f, Height = 6f },
-                new FlatSpot { Center = new Vector2(44f, 105f), Radius = 5f, Blend = 6f, Height = 4f },
+                // Service pit east of the lab, outside the terrace outline (its edge is ~7.8 m away).
+                new FlatSpot { Center = new Vector2(52f, 108f), Radius = 5f, Blend = 6f, Height = 4f },
             };
 
+            // Nodes up to (0, 66) are the opening route and must stay bit-identical; from there the
+            // corridor climbs onto the terrace and runs to the gate at the south end of the portal corridor.
+            // The climb must reach terrace height before the corridor enters the lab's footprint: the
+            // lab's south corner sits at about (1.9, 77.4), so the first node at 7 m is placed south of it.
             HeightPath mainRoute = new HeightPath
             {
                 HalfWidth = 2.5f,
@@ -211,23 +224,27 @@ namespace RootsDance.Editor.Terrain
                     new PathNode { Position = new Vector2(-12f, 39f), Height = 6f },
                     new PathNode { Position = new Vector2(-6f, 52f),  Height = 5f },
                     new PathNode { Position = new Vector2(0f, 66f),   Height = 6.4f },
-                    new PathNode { Position = new Vector2(0f, 80f),   Height = 7f },
+                    new PathNode { Position = new Vector2(2f, 75f),   Height = 7f },
+                    new PathNode { Position = new Vector2(9f, 87f),   Height = 7f },
+                    new PathNode { Position = new Vector2(24f, 106f), Height = 7f },
                 }
             };
 
+            // Branches off the main route along the lab's south-east side, held at terrace height until it
+            // is clear of the building footprint, then drops into the service pit. The descent starts on
+            // the terrace lip, 6 m outside the lab's local bounds, so the corridor's 5 m influence
+            // (HalfWidth 2 + Blend 3) never reaches under the building.
             HeightPath serviceRing = new HeightPath
             {
                 HalfWidth = 2f,
                 Blend = 3f,
                 Nodes = new[]
                 {
-                    new PathNode { Position = new Vector2(4f, 79f),   Height = 7f },
-                    new PathNode { Position = new Vector2(24f, 81f),  Height = 7f },
-                    // Held at terrace height and pushed south of the lab's SE corner: the corridor's
-                    // 5 m influence (HalfWidth 2 + Blend 3) must not reach inside the building footprint.
-                    new PathNode { Position = new Vector2(38f, 82f),  Height = 7f },
-                    new PathNode { Position = new Vector2(44f, 95f),  Height = 5.2f },
-                    new PathNode { Position = new Vector2(44f, 105f), Height = 4f },
+                    new PathNode { Position = new Vector2(9f, 87f),   Height = 7f },
+                    new PathNode { Position = new Vector2(20f, 96f),  Height = 7f },
+                    new PathNode { Position = new Vector2(36f, 105f), Height = 7f },
+                    new PathNode { Position = new Vector2(44f, 106f), Height = 5.5f },
+                    new PathNode { Position = new Vector2(52f, 108f), Height = 4f },
                 }
             };
 

@@ -10,9 +10,9 @@ namespace RootsDance.Tests.EditMode.Terrain
 
         [TestCase(0f, -10f, 3f, TestName = "wake lowland")]
         [TestCase(-12f, 39f, 6f, TestName = "grass platform")]
-        [TestCase(0f, 80f, 7f, TestName = "main gate terrace")]
-        [TestCase(44f, 105f, 4f, TestName = "service entrance pocket")]
-        [TestCase(0f, 112f, 7f, TestName = "lab centre")]
+        [TestCase(24f, 106f, 7f, TestName = "main gate terrace")]
+        [TestCase(52f, 108f, 4f, TestName = "service entrance pocket")]
+        [TestCase(0f, 126f, 7f, TestName = "lab centre")]
         public void SampleWorldHeight_SpecAnchor_MatchesSpecHeight(float x, float z, float expected)
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
@@ -34,26 +34,57 @@ namespace RootsDance.Tests.EditMode.Terrain
         public void SampleWorldHeight_InsideTerrace_IsExactlyTerraceHeight()
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
-            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, 10f, 120f), 1e-3f);
-            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, -20f, 100f), 1e-3f);
+            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, 10f, 126f), 1e-3f);
+            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, -15f, 118f), 1e-3f);
         }
 
         /// <summary>
         /// Regression test for the sunken service bay that used to punch a 3 m pit through the terrace
-        /// under the lab: nothing may disturb the terrace inside the building's world footprint.
+        /// under the lab: nothing (pit, service ring falloff) may disturb the terrace inside the
+        /// building's footprint. The lab is a local box yawed by the terrace yaw, and the terrace is that
+        /// box plus a fixed margin, so the footprint's half extents are derived from the params (terrace
+        /// half extents minus the margin) and follow a rescaled import. The grid walks the lab's local OBB
+        /// and maps every sample into world XZ the way the builder places the model:
+        /// <c>TerraceCenter + Euler(0, yaw, 0) * local</c>. Both height paths end or pass close to the
+        /// footprint, so this also pins their ramps to terrace height inside it.
         /// </summary>
         [Test]
         public void SampleWorldHeight_InsideLabFootprint_IsTerraceHeight()
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
-            for (float x = -32f; x <= 32f; x += 5f)
+            Quaternion rotation = Quaternion.Euler(0f, p.TerraceYawDegrees, 0f);
+            const float margin = 6f;
+            const float spacing = 5f;
+            float halfX = p.TerraceHalfExtents.x - margin;
+            float halfZ = p.TerraceHalfExtents.y - margin;
+            int countX = Mathf.CeilToInt(2f * halfX / spacing) + 1;
+            int countZ = Mathf.CeilToInt(2f * halfZ / spacing) + 1;
+            for (int ix = 0; ix < countX; ix++)
             {
-                for (float z = 86f; z <= 138f; z += 5f)
+                float lx = Mathf.Lerp(-halfX, halfX, ix / (float)(countX - 1));
+                for (int iz = 0; iz < countZ; iz++)
                 {
+                    float lz = Mathf.Lerp(-halfZ, halfZ, iz / (float)(countZ - 1));
+                    Vector3 offset = rotation * new Vector3(lx, 0f, lz);
+                    float x = p.TerraceCenter.x + offset.x;
+                    float z = p.TerraceCenter.y + offset.z;
                     Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, x, z),
-                        1e-3f, $"lab footprint sample ({x}, {z})");
+                        1e-3f, $"lab footprint sample local ({lx:F1}, {lz:F1}) = world ({x:F1}, {z:F1})");
                 }
             }
+        }
+
+        /// <summary>
+        /// The service pit must stay clear of the terrace: its flattened core (radius + blend) may not
+        /// overlap the terrace outline, otherwise it punches a hole into the lab's floor.
+        /// </summary>
+        [Test]
+        public void ServicePit_Core_LiesOutsideTheTerrace()
+        {
+            TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
+            FlatSpot pit = p.FlatSpots[2];
+            float distance = TerrainHeightmapGenerator.TerraceSignedDistance(p, pit.Center.x, pit.Center.y);
+            Assert.Greater(distance, pit.Radius, "the pit core reaches under the terrace");
         }
 
         [Test]
@@ -83,7 +114,7 @@ namespace RootsDance.Tests.EditMode.Terrain
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             float[,] heights = TerrainHeightmapGenerator.Generate(p);
             int ix = Mathf.RoundToInt((0f - p.TerrainPosition.x) / p.TerrainSize.x * (p.HeightmapResolution - 1));
-            int iz = Mathf.RoundToInt((112f - p.TerrainPosition.z) / p.TerrainSize.z * (p.HeightmapResolution - 1));
+            int iz = Mathf.RoundToInt((126f - p.TerrainPosition.z) / p.TerrainSize.z * (p.HeightmapResolution - 1));
             float expected = (p.TerraceHeight - p.TerrainPosition.y) / p.TerrainSize.y;
             Assert.AreEqual(expected, heights[iz, ix], 0.002f);
         }
@@ -157,13 +188,15 @@ namespace RootsDance.Tests.EditMode.Terrain
             Assert.AreEqual(expected, actual, 1e-3f);
         }
 
+        /// <summary>Measured along the terrace's own +X axis, so it holds for any default yaw.</summary>
         [Test]
-        public void TerraceSignedDistance_FarOutsideAlongX_IsTheDistanceToTheEdge()
+        public void TerraceSignedDistance_FarOutsideAlongLocalX_IsTheDistanceToTheEdge()
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             const float offset = 100f;
+            Vector3 localRight = Quaternion.Euler(0f, p.TerraceYawDegrees, 0f) * Vector3.right;
             float actual = TerrainHeightmapGenerator.TerraceSignedDistance(
-                p, p.TerraceCenter.x + offset, p.TerraceCenter.y);
+                p, p.TerraceCenter.x + offset * localRight.x, p.TerraceCenter.y + offset * localRight.z);
             Assert.AreEqual(offset - p.TerraceHalfExtents.x, actual, 1e-3f);
         }
 

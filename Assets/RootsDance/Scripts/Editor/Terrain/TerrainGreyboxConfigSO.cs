@@ -75,7 +75,13 @@ namespace RootsDance.Editor.Terrain
         private Vector3 m_labPosition = new Vector3(0f, 7f, 112f);
 
         [SerializeField, TitleGroup("Lab Blockout")]
-        private float m_labYawDegrees = -90f;
+        private float m_labYawDegrees = -45f;
+
+        [SerializeField, TitleGroup("Lab Blockout"), Min(0f)]
+        [Tooltip("Distance from the model's lowest point up to its main floor slab, in metres (on the "
+            + "imported, scaled model). The builder sinks the model by this much so the slab, not the "
+            + "lowest stray element, meets the terrace.")]
+        private float m_labFloorOffset;
 
         [SerializeField, TitleGroup("Lab Blockout")]
         private bool m_deriveTerraceFromLab = true;
@@ -105,13 +111,22 @@ namespace RootsDance.Editor.Terrain
         /// <summary>World position used for the lab when <see cref="DeriveTerraceFromLab"/> is off.</summary>
         public Vector3 LabPosition => m_labPosition;
 
-        /// <summary>Yaw of the lab, in degrees. -90 puts the gabled porch on the -Z approach.</summary>
+        /// <summary>
+        /// Yaw of the lab, in degrees. -45 turns the V2 model's Blender -X-Y diagonal (the portal
+        /// corridor) towards the -Z approach.
+        /// </summary>
         public float LabYawDegrees => m_labYawDegrees;
 
         /// <summary>
-        /// Names of the top-level children of the FBX that make up the actual building. Everything
-        /// else on the presentation board (display plates, the 12 m disc, the second scale model) is
-        /// switched off on the scene instance.
+        /// Distance from the model's lowest point up to its main floor slab, in metres. The builder sinks
+        /// the lab by this much so the slab, not the lowest stray element, meets the terrace.
+        /// </summary>
+        public float LabFloorOffset => m_labFloorOffset;
+
+        /// <summary>
+        /// Optional whitelist of the top-level FBX children that make up the building; every other
+        /// child is switched off on the scene instance. Empty keeps everything — the V2 export contains
+        /// only the building, so the default is empty.
         /// </summary>
         public string[] LabIncludedChildren => m_labIncludedChildren;
 
@@ -163,40 +178,34 @@ namespace RootsDance.Editor.Terrain
         }
 
         /// <summary>
-        /// The spec anchors from the Chapter-00 blockout. The exhaust fan sits on the building wall,
-        /// so it is the only one that keeps its authored Y instead of being dropped onto the terrain.
+        /// The spec anchors from the Chapter-00 blockout, measured against the V2 lab (terrace centre
+        /// (0, 150), yaw -45°). The wake spawn is not an anchor. The exhaust fan sits on the building
+        /// wall, so it is the only one that keeps its authored Y instead of being dropped onto the terrain.
         /// </summary>
-        /// <returns>A new array of the eight Chapter-00 anchors.</returns>
+        /// <returns>A new array of the seven Chapter-00 anchors.</returns>
         public static AnchorDefinition[] CreateDefaultAnchors()
         {
             return new[]
             {
-                new AnchorDefinition("Anchor_Center", new Vector3(0f, 7f, 112f)),
-                new AnchorDefinition("Anchor_00-01_Wake", new Vector3(0f, 3f, -10f)),
+                new AnchorDefinition("Anchor_Center", new Vector3(0f, 7f, 126f)),
                 new AnchorDefinition("Anchor_00-07_GrassPlatform", new Vector3(-12f, 6f, 39f)),
-                new AnchorDefinition("Anchor_00-09_MainGate", new Vector3(0f, 7f, 80f)),
-                new AnchorDefinition("Anchor_00-10_Sign", new Vector3(-12f, 7f, 83f)),
-                new AnchorDefinition("Anchor_00-11_Poster", new Vector3(-40f, 7f, 96f)),
-                new AnchorDefinition("Anchor_00-14_ExhaustFan", new Vector3(36f, 11f, 103f), true),
-                new AnchorDefinition("Anchor_00-16_ServiceEntrance", new Vector3(41f, 4f, 105f)),
+                new AnchorDefinition("Anchor_00-09_MainGate", new Vector3(24f, 7f, 106f)),
+                new AnchorDefinition("Anchor_00-10_Sign", new Vector3(17f, 7f, 102f)),
+                new AnchorDefinition("Anchor_00-11_Poster", new Vector3(-27f, 7f, 117f)),
+                new AnchorDefinition("Anchor_00-14_ExhaustFan", new Vector3(29f, 10f, 116f), true),
+                new AnchorDefinition("Anchor_00-16_ServiceEntrance", new Vector3(52f, 4f, 108f)),
             };
         }
 
         /// <summary>
-        /// The building cluster sitting on the board's 12 m disc. <c>LabBlockout.fbx</c> is a
-        /// presentation board — three flat plates plus a disc, each carrying a small scale model —
-        /// and only this cluster is the lab; the rest is hidden on the instance.
+        /// Top-level FBX children to keep on the lab instance. The V2 <c>LabBlockout.fbx</c> exports
+        /// only the building, so nothing needs hiding and the default whitelist is empty (empty = keep
+        /// every child). Fill it in again if a future export carries display props next to the building.
         /// </summary>
-        /// <returns>A new array of the top-level FBX child names that make up the lab.</returns>
+        /// <returns>A new, empty array.</returns>
         public static string[] CreateDefaultLabChildren()
         {
-            return new[]
-            {
-                "Fence1", "Fence2", "Fence3",
-                "Group81", "Group87", "Group106", "Group107", "Group108", "Group109", "Group110",
-                "Group128", "Group147", "Group165", "Group166", "Group184", "Group185", "Group186",
-                "Group187",
-            };
+            return new string[0];
         }
 
         [Button("Build Greybox Terrain"), TitleGroup("Terrain")]
