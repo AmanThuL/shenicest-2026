@@ -147,6 +147,23 @@ namespace RootsDance.Editor.Environment
         /// <summary>Probability that a module's panel is missing, leaving the posts standing.</summary>
         public float GapChance = 0.2f;
 
+        /// <summary>
+        /// Prefab keys placed in fence gaps, one per gap at its centre. Null or empty keeps gaps empty
+        /// (the original behaviour).
+        /// </summary>
+        public string[] GapFillers;
+
+        /// <summary>
+        /// Longest gap in modules when a gap is drawn; 1 keeps single-module gaps. Posts strictly inside a
+        /// longer gap are dropped, so the filler stands in a clear span.
+        /// </summary>
+        public int GapMaxModules = 1;
+
+        /// <summary>Uniform scale range for fillers.</summary>
+        public float FillerScaleMin = 0.9f;
+
+        public float FillerScaleMax = 1.25f;
+
         /// <summary>Maximum random lean of a panel away from vertical, in degrees.</summary>
         public float PanelLean = 9f;
 
@@ -265,6 +282,12 @@ namespace RootsDance.Editor.Environment
             "pine_roots", "root_cluster_01", "root_cluster_02", "single_root"
         };
 
+        /// <summary>Roots that stay ankle-high: §S1's exit corridor must not get a 4 m root wall.</summary>
+        private static readonly string[] k_LowRoots =
+        {
+            "pine_roots", "root_cluster_02", "single_root"
+        };
+
         private static readonly string[] k_DryGrowth =
         {
             "bush07", "bush08", "M3D_grass_patch_6", "M3D_grass_patch_7", "M3D_grass_patch_8"
@@ -313,24 +336,29 @@ namespace RootsDance.Editor.Environment
         {
             return new[]
             {
-                new FenceRun
-                {
-                    Name = "S0_Isolation_West",
-                    Nodes = new[] { new Vector2(-6.2f, -11.6f), new Vector2(-5.4f, -7.6f), new Vector2(-4.4f, -4.0f) },
-                    GapChance = 0.18f, PanelLean = 11f, PostLean = 8f, Seed = 1101,
-                },
-                new FenceRun
-                {
-                    Name = "S0_Isolation_East",
-                    Nodes = new[] { new Vector2(4.8f, -11.2f), new Vector2(4.0f, -7.4f), new Vector2(2.4f, -4.4f) },
-                    GapChance = 0.24f, PanelLean = 13f, PostLean = 9f, Seed = 1102,
-                },
+                // §S0: a broken isolation ring around the wake pad (bearings clockwise from +Z, ~11-13 m
+                // out). Every run is short, jittered and gap-filled by boulders, roots, trunks or barriers;
+                // the breaks between runs are plugged by the hero anchors below. Only the wedge at
+                // -45..-8° (towards the (-7, 4) bend) stays open, framed by two short non-parallel stubs.
+                Ring("S0_Ring_Front", 1111, 0.32f,
+                    new Vector2(-0.8f, 2.4f), new Vector2(2.2f, 0.3f), new Vector2(4.6f, 1.6f),
+                    new Vector2(7.7f, -0.6f)),
+                Ring("S0_Ring_East", 1112, 0.38f,
+                    new Vector2(9.5f, -2.6f), new Vector2(11.4f, -6.3f), new Vector2(12.0f, -11.0f)),
+                Ring("S0_Ring_SouthEast", 1113, 0.4f,
+                    new Vector2(10.7f, -14.3f), new Vector2(8.8f, -17.4f), new Vector2(5.8f, -20.0f)),
+                Ring("S0_Ring_South", 1114, 0.36f,
+                    new Vector2(2.3f, -20.8f), new Vector2(-1.9f, -20.8f), new Vector2(-6.3f, -19.0f)),
+                Ring("S0_Ring_West", 1115, 0.34f,
+                    new Vector2(-11.3f, -14.1f), new Vector2(-12.1f, -10.4f), new Vector2(-11.8f, -7.9f)),
+                Ring("S0_Frame_Left", 1116, 0.2f,
+                    new Vector2(-10.4f, -6.4f), new Vector2(-8.6f, -3.6f)),
                 new FenceRun
                 {
                     // §S1: the most complete remnant only crosses the start of the bend, then a fallen trunk
                     // bends it down — the anchors below drop that trunk across this line.
                     Name = "S1_Bend_Remnant",
-                    Nodes = new[] { new Vector2(-8.8f, -2.2f), new Vector2(-6.6f, 0.4f), new Vector2(-5.4f, 2.8f) },
+                    Nodes = new[] { new Vector2(-12.5f, -3.5f), new Vector2(-10.2f, -0.6f), new Vector2(-8.6f, 1.6f) },
                     GapChance = 0.3f, PanelLean = 17f, PostLean = 13f, Seed = 1103,
                 },
                 new FenceRun
@@ -361,6 +389,23 @@ namespace RootsDance.Editor.Environment
             };
         }
 
+        /// <summary>Everything a big obstacle can plug a fence gap with; barriers stay in BrokenBoundary.</summary>
+        private static readonly string[] k_GapFillers =
+        {
+            "rock_moss_01", "rock_moss_02", "rock_moss_03", "rock_moss_04", "rock_moss_05", "rock_moss_06",
+            "concrete_road_barrier", "root_cluster_01", "dead_tree_trunk_02",
+        };
+
+        /// <summary>A short §S0 enclosure run: random 1-3 module gaps, each plugged by a big obstacle.</summary>
+        private static FenceRun Ring(string name, int seed, float gapChance, params Vector2[] nodes)
+        {
+            return new FenceRun
+            {
+                Name = name, Nodes = nodes, GapChance = gapChance, GapMaxModules = 3,
+                GapFillers = k_GapFillers, PanelLean = 14f, PostLean = 10f, Seed = seed,
+            };
+        }
+
         // -------------------------------------------------------------------------------------------------
         // Hero anchors — the silhouettes each view is built around.
         // -------------------------------------------------------------------------------------------------
@@ -375,16 +420,30 @@ namespace RootsDance.Editor.Environment
             a.Add(Hero("dead_tree_trunk", new Vector2(-1.7f, -9.5f), 14f, 0.9f, 0.05f, 0.7f));
             a.Add(Hero("root_cluster_01", new Vector2(-4.6f, -9.8f), 120f, 1f, 0.2f, 0.8f));
 
-            a.Add(Barrier(new Vector2(-2.9f, -4.2f), 58f, 0.06f, 0.35f));
-            a.Add(Barrier(new Vector2(-1.2f, -1.9f), 78f, 0.1f, 0.3f));
+            a.Add(Barrier(new Vector2(1.6f, -3.6f), 58f, 0.06f, 0.35f));
+            a.Add(Barrier(new Vector2(-0.3f, -2.3f), 78f, 0.1f, 0.3f));
             a.Add(Barrier(new Vector2(-5.6f, -6.2f), 34f, 0.24f, 0.5f));
 
+            // --- §S0 ring breaks: the gaps between the fence runs are plugged by boulders, roots and
+            // trunks, so the enclosure reads as scavenged and collapsed rather than built. --------------
+            a.Add(Hero("rock_moss_04", new Vector2(8.6f, -1.0f), 35f, 1.1f, 0.35f, 0.9f));
+            a.Add(Hero("dead_tree_trunk_02", new Vector2(9.9f, -2.2f), 150f, 1f, 0.15f, 0.6f));
+            a.Add(Hero("root_cluster_01", new Vector2(11.7f, -12.7f), 10f, 1f, 0.25f, 0.85f));
+            a.Add(Hero("rock_moss_05", new Vector2(4.0f, -20.5f), 200f, 1.05f, 0.4f, 0.9f));
+            a.Add(Hero("dead_tree_trunk_02", new Vector2(5.2f, -19.4f), 60f, 1f, 0.15f, 0.6f));
+            a.Add(Hero("rock_moss_03", new Vector2(-8.1f, -18.1f), 110f, 1.15f, 0.4f, 0.9f));
+            a.Add(Hero("root_cluster_01", new Vector2(-9.8f, -16.1f), 300f, 1f, 0.25f, 0.85f));
+            a.Add(Hero("rock_moss_01", new Vector2(-10.7f, -14.3f), 250f, 1f, 0.45f, 0.9f));
+            a.Add(Hero("dead_tree_trunk_02", new Vector2(-11.2f, -7.2f), 30f, 1f, 0.15f, 0.6f));
+            a.Add(Barrier(new Vector2(-3.9f, -20.2f), 84f, 0.3f, 0.5f));
+            a.Add(Barrier(new Vector2(12.4f, -8.6f), 12f, 0.2f, 0.45f));
+
             // --- §S1: the trunk that bends the last fence panel down, plus half-buried barriers. ----------
-            a.Add(Hero("dead_tree_trunk_02", new Vector2(-6.9f, 0.2f), 118f, 1f, 0.15f, 0.6f));
-            a.Add(Barrier(new Vector2(-7.8f, -1.4f), 40f, 0.3f, 0.5f));
-            a.Add(Barrier(new Vector2(-5.0f, 1.4f), 12f, 0.38f, 0.6f));
-            a.Add(Post("chainlink_post", new Vector2(-9.6f, -0.6f), 24f, 19f));
-            a.Add(Post("chainlink_post_end", new Vector2(-4.2f, 3.6f), 200f, 26f));
+            a.Add(Hero("dead_tree_trunk_02", new Vector2(-9.6f, 1.0f), 118f, 1f, 0.15f, 0.6f));
+            a.Add(Barrier(new Vector2(-9.4f, -2.6f), 40f, 0.3f, 0.5f));
+            a.Add(Barrier(new Vector2(-1.2f, 3.2f), 12f, 0.38f, 0.6f));
+            a.Add(Post("chainlink_post", new Vector2(-12.8f, -1.2f), 24f, 19f));
+            a.Add(Post("chainlink_post_end", new Vector2(-3.4f, 3.8f), 200f, 26f));
 
             // --- §S2: large trunks cutting the sightline on the ridge, with a walkable side left open. ----
             a.Add(Hero("dead_tree_trunk_02", new Vector2(-9.2f, 5.4f), 75f, 1.1f, 0.12f, 0.55f));
@@ -544,10 +603,13 @@ namespace RootsDance.Editor.Environment
             {
                 // --- dead forest: dense and impassable behind the player, thin along the route ------------
                 Patch("S0_DeadForest_Behind", PropPool.DeadTreeSparse, k_DeadTrees,
-                    new Vector2(0f, -16f), 8f, 24f, 74, 2.7f, 3.5f, 2001,
-                    zRange: new Vector2(-30f, 6f)),
+                    new Vector2(0f, -14f), 12f, 27f, 96, 2.5f, 3.5f, 2001,
+                    zRange: new Vector2(-31f, 2f)),
                 Patch("S0_RightShoulder", PropPool.DeadTreeSparse, k_DeadTrees,
-                    new Vector2(9f, -4f), 0f, 9.5f, 22, 2.5f, 4f, 2002),
+                    new Vector2(16f, -5f), 0f, 8f, 22, 2.5f, 4f, 2002),
+                Patch("S0_EastWall", PropPool.DeadTreeSparse, k_DeadTrees,
+                    new Vector2(3f, -9f), 13f, 22f, 34, 2.4f, 4f, 2038,
+                    arcMin: 10f, arcMax: 120f),
                 Patch("S1_Corridor_Sides", PropPool.DeadTreeSparse, k_DeadTrees,
                     new Vector2(-4f, -2f), 5f, 13f, 20, 2.9f, 4.5f, 2003),
                 Patch("S2_OuterSlope", PropPool.DeadTreeSparse, k_DeadTrees,
@@ -592,7 +654,8 @@ namespace RootsDance.Editor.Environment
                     tilt: 12f, align: 1f, scaleMin: 0.28f, scaleMax: 0.6f, sinkMin: 0.05f, sinkMax: 0.25f),
                 Patch("S2_Boulders", PropPool.RootRockClutter, k_BigRocks,
                     new Vector2(-10f, 6f), 0f, 11f, 12, 3.5f, 3f, 2019,
-                    tilt: 10f, align: 1f, scaleMin: 0.5f, scaleMax: 0.95f, sinkMin: 0.2f, sinkMax: 0.6f),
+                    tilt: 10f, align: 1f, scaleMin: 0.5f, scaleMax: 0.95f, sinkMin: 0.2f, sinkMax: 0.6f,
+                    zRange: new Vector2(3.5f, 1000f)),
                 Patch("S4_Stones", PropPool.RootRockClutter, k_SmallRocks,
                     new Vector2(-15f, 19f), 0f, 12f, 20, 1.7f, 1f, 2020,
                     tilt: 12f, align: 1f, scaleMin: 0.25f, scaleMax: 0.55f, sinkMin: 0.05f, sinkMax: 0.25f),
@@ -602,7 +665,7 @@ namespace RootsDance.Editor.Environment
                 Patch("S6_Stones", PropPool.RootRockClutter, k_SmallRocks,
                     new Vector2(-13f, 39f), 0f, 14f, 34, 1.6f, 0.9f, 2022,
                     tilt: 12f, align: 1f, scaleMin: 0.22f, scaleMax: 0.5f, sinkMin: 0.05f, sinkMax: 0.3f),
-                Patch("S1_Roots", PropPool.RootRockClutter, k_Roots,
+                Patch("S1_Roots", PropPool.RootRockClutter, k_LowRoots,
                     new Vector2(-8f, 2f), 0f, 12f, 26, 1.9f, 1.2f, 2023, tilt: 7f, align: 1f,
                     sinkMin: 0.02f, sinkMax: 0.12f),
                 Patch("S4_Roots", PropPool.RootRockClutter, k_Roots,

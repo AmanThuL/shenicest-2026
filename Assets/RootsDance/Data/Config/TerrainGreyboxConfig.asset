@@ -62,9 +62,9 @@ MonoBehaviour:
     TerraceHeight: 7
     TerraceBlend: 8
     FlatSpots:
-    - Center: {x: 0, y: -10}
-      Radius: 6
-      Blend: 8
+    - Center: {x: 1.5, y: -11}
+      Radius: 9.5
+      Blend: 5.5
       Height: 3
     - Center: {x: -12, y: 39}
       Radius: 4
