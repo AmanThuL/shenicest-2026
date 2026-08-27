@@ -10,11 +10,12 @@ namespace CurvedUIUtility
          */
         protected override void DrawUnderlineMesh(Vector3 start, Vector3 end, ref int index, float startScale, float endScale, float maxScale, float sdfScale, Color32 underlineColor)
         {
-#if TMP_MANUALLY_GET_UNDERLINE
+            // Local edit (2026-08-27, recorded in docs/third-party.md): the vendor's versionDefines
+            // never fire against Unity 6's uGUI-bundled TMP, so the TMP_MANUALLY_GET_UNDERLINE path
+            // (which matches this TMP's internals) runs unconditionally.
             GetUnderlineSpecialCharacter(m_fontAsset);
 
             var m_cached_Underline_Character = m_Underline.character;
-#endif
 
             if (m_cached_Underline_Character == null)
             {
@@ -46,17 +47,20 @@ namespace CurvedUIUtility
             // Alpha is the lower of the vertex color or tag color alpha used.
             underlineColor.a = m_fontColor32.a < underlineColor.a ? (byte)(m_fontColor32.a) : (byte)(underlineColor.a);
 
+            var xScale = Mathf.Abs(sdfScale);
+
+            // Local edit (2026-08-27): this TMP types uvs0 as Vector4[] and reads the SDF scale
+            // from uvs0.w, so the quad UVs carry (u, v, 0, xScale) like TMP's own DrawUnderlineMesh.
             Vector3[] vertices = m_textInfo.meshInfo[0].vertices;
-            Vector2[] uvs0 = m_textInfo.meshInfo[0].uvs0;
+            Vector4[] uvs0 = m_textInfo.meshInfo[0].uvs0;
             Vector2[] uvs2 = m_textInfo.meshInfo[0].uvs2;
             Color32[] colors32 = m_textInfo.meshInfo[0].colors32;
 
-            Vector2 uvBL = new Vector2((m_cached_Underline_Character.glyph.glyphRect.x - startPadding) / m_fontAsset.atlasWidth, (m_cached_Underline_Character.glyph.glyphRect.y - m_padding) / m_fontAsset.atlasHeight);  // bottom left
-            Vector2 uvTL = new Vector2(uvBL.x, (m_cached_Underline_Character.glyph.glyphRect.y + m_cached_Underline_Character.glyph.glyphRect.height + m_padding) / m_fontAsset.atlasHeight);  // top left
-            Vector2 uvBR = new Vector2((m_cached_Underline_Character.glyph.glyphRect.x + endPadding + m_cached_Underline_Character.glyph.glyphRect.width) / m_fontAsset.atlasWidth, uvTL.y); // End Part - Bottom Right
-            Vector2 uvTR = new Vector2(uvBR.x, uvBL.y); // End Part - Top Right
+            Vector4 uvBL = new Vector4((m_cached_Underline_Character.glyph.glyphRect.x - startPadding) / m_fontAsset.atlasWidth, (m_cached_Underline_Character.glyph.glyphRect.y - m_padding) / m_fontAsset.atlasHeight, 0, xScale);  // bottom left
+            Vector4 uvTL = new Vector4(uvBL.x, (m_cached_Underline_Character.glyph.glyphRect.y + m_cached_Underline_Character.glyph.glyphRect.height + m_padding) / m_fontAsset.atlasHeight, 0, xScale);  // top left
+            Vector4 uvBR = new Vector4((m_cached_Underline_Character.glyph.glyphRect.x + endPadding + m_cached_Underline_Character.glyph.glyphRect.width) / m_fontAsset.atlasWidth, uvTL.y, 0, xScale); // End Part - Bottom Right
+            Vector4 uvTR = new Vector4(uvBR.x, uvBL.y, 0, xScale); // End Part - Top Right
 
-            var xScale = Mathf.Abs(sdfScale);
             var width = end.x - start.x;
 
             for (int i = 0; i < horizontalElements; i++)
@@ -80,8 +84,8 @@ namespace CurvedUIUtility
 
                     uvs0[bl] = uvBL;
                     uvs0[tl] = uvTL;
-                    uvs0[tr] = Vector2.Lerp(uvTL, uvTR, nextFaceWidth / width);
-                    uvs0[br] = Vector2.Lerp(uvBL, uvBR, nextFaceWidth / width);
+                    uvs0[tr] = Vector4.Lerp(uvTL, uvTR, nextFaceWidth / width);
+                    uvs0[br] = Vector4.Lerp(uvBL, uvBR, nextFaceWidth / width);
                 }
                 else if (i == horizontalElements - 1)
                 {
@@ -90,8 +94,8 @@ namespace CurvedUIUtility
                     vertices[tr] = end + new Vector3(0, m_padding * maxScale, 0);
                     vertices[br] = end + new Vector3(0, -(underlineThickness + m_padding) * maxScale, 0);
 
-                    uvs0[bl] = Vector2.Lerp(uvBL, uvBR, faceWidth / width);
-                    uvs0[tl] = Vector2.Lerp(uvTL, uvTR, faceWidth / width);
+                    uvs0[bl] = Vector4.Lerp(uvBL, uvBR, faceWidth / width);
+                    uvs0[tl] = Vector4.Lerp(uvTL, uvTR, faceWidth / width);
                     uvs0[tr] = uvTR;
                     uvs0[br] = uvBR;
                 }
@@ -102,10 +106,10 @@ namespace CurvedUIUtility
                     vertices[tr] = vertices[tl] + new Vector3(nextFaceWidth - faceWidth, 0, 0);
                     vertices[br] = vertices[bl] + new Vector3(nextFaceWidth - faceWidth, 0, 0);
 
-                    uvs0[bl] = Vector2.Lerp(uvBL, uvBR, faceWidth / width);
-                    uvs0[tl] = Vector2.Lerp(uvTL, uvTR, faceWidth / width);
-                    uvs0[tr] = Vector2.Lerp(uvTL, uvTR, nextFaceWidth / width);
-                    uvs0[br] = Vector2.Lerp(uvBL, uvBR, nextFaceWidth / width);
+                    uvs0[bl] = Vector4.Lerp(uvBL, uvBR, faceWidth / width);
+                    uvs0[tl] = Vector4.Lerp(uvTL, uvTR, faceWidth / width);
+                    uvs0[tr] = Vector4.Lerp(uvTL, uvTR, nextFaceWidth / width);
+                    uvs0[br] = Vector4.Lerp(uvBL, uvBR, nextFaceWidth / width);
                 }
 
                 uvs2[bl] = PackUV(faceWidth / width, 0, xScale);

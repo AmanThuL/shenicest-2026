@@ -49,8 +49,13 @@
   `CurvedTextMeshPro`/`CurvedImage` graphics that bend their vertices in canvas space (crisp SDF text, no render
   texture, no extra camera). Assemblies `CurvedUIUtility` + `CurvedUIUtility.Editor` ride along; `RootsDance.Editor`
   references the runtime assembly.
-- **Local edits:** `Editor/Internal/UIHelper.cs` — `FindObjectOfType<EventSystem>` → `FindFirstObjectByType`
-  (obsolete in Unity 6; re-apply after a vendor update).
+- **Local edits** (re-apply after a vendor update):
+  - `Editor/Internal/UIHelper.cs` — `FindObjectOfType<EventSystem>` → `FindFirstObjectByType` (obsolete in Unity 6).
+  - `Runtime/Internal/CurvedTextMeshProUnderline.cs` — did not compile against Unity 6's bundled TMP:
+    the `TMP_MANUALLY_GET_UNDERLINE` block (`GetUnderlineSpecialCharacter` + `m_Underline.character`) now runs
+    unconditionally (the define's version check can never match the uGUI-bundled TMP), `uvs0` is typed `Vector4[]`
+    carrying the SDF scale in `w` (quad UVs built as `(u, v, 0, xScale)`, `Vector4.Lerp` for the interpolated
+    corners), matching this TMP's own `DrawUnderlineMesh`.
 - **Known quirks:** the vendor's own *GameObject > UI > Curved …* creation menu still adds a legacy
   `StandaloneInputModule` EventSystem — don't use that menu; build HUDs through `RootsDance > Build Helmet HUD (Test)`
   or by hand. Its `versionDefines` target the standalone TMP package, so `TMP_MANUALLY_GET_UNDERLINE` stays off with
