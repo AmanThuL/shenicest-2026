@@ -113,6 +113,11 @@ InitTestScene*.unity*
 # Merge-tool backups (UnityYAMLMerge / git mergetool)
 *.orig
 
+# glTF exports under SourceArt stay local: Unity does not import .glb, and the .blend + .fbx
+# sources are already committed (LFS) — re-export from the .blend if one is needed.
+/SourceArt/**/*.glb
+/SourceArt/**/*.gltf
+
 # Odin Inspector per-user editor preferences (which types you've shown/hidden in its pickers),
 # auto-created the first time the Editor opens with Odin installed. Not part of the vendor
 # package, not shared project config — same category as UserSettings/ above.
