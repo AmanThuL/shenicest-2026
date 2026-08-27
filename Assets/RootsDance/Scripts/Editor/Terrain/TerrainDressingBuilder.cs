@@ -5,7 +5,6 @@ using RootsDance.Editor.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Editor.Terrain
@@ -13,10 +12,11 @@ namespace RootsDance.Editor.Terrain
     /// <summary>
     /// Dresses the greybox terrain in <c>Main_Environment.unity</c>: scattered vegetation and rocks
     /// under <c>_Vegetation</c>, the Terrain detail layers that make the grass band read, the
-    /// hand-authored Chapter-00 props under <c>_Props</c>, the lab blockout's palette materials and
-    /// the HDRI skybox. Idempotent — both generated roots are destroyed and rebuilt from scratch, the
-    /// detail layers are re-baked and the lab materials and skybox are re-applied. Like
-    /// <see cref="TerrainGreyboxBuilder"/> this is a sanctioned tool that saves the scene.
+    /// hand-authored Chapter-00 props under <c>_Props</c> and the lab blockout's palette materials.
+    /// The sky is not its business: under HDRP it belongs to the level's Global Volume. Idempotent —
+    /// both generated roots are destroyed and rebuilt from scratch, the detail layers are re-baked and
+    /// the lab materials are re-applied. Like <see cref="TerrainGreyboxBuilder"/> this is a sanctioned
+    /// tool that saves the scene.
     /// Menu: RootsDance &gt; Terrain &gt; Build Terrain Dressing.
     /// </summary>
     /// <remarks>
@@ -36,10 +36,6 @@ namespace RootsDance.Editor.Terrain
         private const string k_LogPrefix = "TerrainDressingBuilder";
         private const string k_ConfigPath = "Assets/RootsDance/Data/Config/TerrainDressingConfig.asset";
         private const string k_GreyboxConfigPath = "Assets/RootsDance/Data/Config/TerrainGreyboxConfig.asset";
-        private const string k_SkyboxMaterialPath =
-            "Assets/RootsDance/Materials/Environment/Sky_Overcast.mat";
-        private const string k_ProceduralSkyShader = "Skybox/Procedural";
-        private const string k_CubemapSkyShader = "Skybox/Cubemap";
 
         private const string k_GeometryRootName = "_Geometry";
         private const string k_VegetationRootName = "_Vegetation";
@@ -54,18 +50,6 @@ namespace RootsDance.Editor.Terrain
         private const float k_DetailNoiseSpread = 0.2f;
         private const float k_DetailAlignToGround = 0.3f;
         private const float k_DetailPositionJitter = 0.6f;
-
-        /// <summary>Cubemap slot of <c>Skybox/Cubemap</c>; the procedural shader does not have it.</summary>
-        private const string k_SkyboxTexName = "_Tex";
-
-        private static readonly int k_SkyboxTexId = Shader.PropertyToID(k_SkyboxTexName);
-        private static readonly int k_SkyboxExposureId = Shader.PropertyToID("_Exposure");
-        private static readonly int k_SkyboxRotationId = Shader.PropertyToID("_Rotation");
-        private static readonly int k_SkySunSizeId = Shader.PropertyToID("_SunSize");
-        private static readonly int k_SkySunConvergenceId = Shader.PropertyToID("_SunSizeConvergence");
-        private static readonly int k_SkyAtmosphereId = Shader.PropertyToID("_AtmosphereThickness");
-        private static readonly int k_SkyTintId = Shader.PropertyToID("_SkyTint");
-        private static readonly int k_SkyGroundColorId = Shader.PropertyToID("_GroundColor");
 
         /// <summary>Menu entry: loads (or creates) the default config asset and builds with it.</summary>
         [MenuItem("RootsDance/Terrain/Build Terrain Dressing")]
@@ -120,7 +104,8 @@ namespace RootsDance.Editor.Terrain
             int props = PlaceProps(config, terrain, scene, prefabs);
 
             ApplyLabMaterials(config, scene);
-            Material skybox = ApplySkybox(config);
+            Debug.Log($"{k_LogPrefix}: sky/fog are authored in the level's Global Volume "
+                + "(see guideline 07 §5.9).");
 
             EditorSceneManager.MarkSceneDirty(scene);
 
@@ -135,8 +120,8 @@ namespace RootsDance.Editor.Terrain
             AssetDatabase.SaveAssets();
 
             Debug.Log($"{k_LogPrefix}: summary — {scattered} scattered instances, {details} detail instances "
-                + $"over {terrain.terrainData.detailPrototypes.Length} layers, {props} props, skybox "
-                + $"'{(skybox == null ? "<none>" : skybox.name)}' in '{greybox.ScenePath}'.");
+                + $"over {terrain.terrainData.detailPrototypes.Length} layers, {props} props "
+                + $"in '{greybox.ScenePath}'.");
         }
 
         /// <summary>
@@ -161,7 +146,7 @@ namespace RootsDance.Editor.Terrain
 
         /// <summary>
         /// Loads the config asset, creating it with the authored defaults when it is missing, and
-        /// fills in the greybox config and the skybox cubemap while they are still empty.
+        /// fills in the greybox config reference while it is still empty.
         /// </summary>
         private static TerrainDressingConfigSO EnsureConfigAsset()
         {
@@ -669,113 +654,6 @@ namespace RootsDance.Editor.Terrain
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Ensures the cubemap skybox material exists and makes it the active scene's sky, ambient
-        /// source and default reflection.
-        /// </summary>
-        /// <returns>The skybox material, or null when it could not be created.</returns>
-        private static Material ApplySkybox(TerrainDressingConfigSO config)
-        {
-            Material skybox = EnsureSkyboxMaterial(config);
-
-            if (skybox == null)
-            {
-                return null;
-            }
-
-            RenderSettings.skybox = skybox;
-            RenderSettings.ambientMode = AmbientMode.Skybox;
-            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
-            DynamicGI.UpdateEnvironment();
-            return skybox;
-        }
-
-        /// <summary>
-        /// Find-or-create the sky material and push the config's values into it. With no cubemap — the
-        /// chapter's shipping state — the sky is Unity's procedural dome: a ground-level forest HDRI puts
-        /// blurred metre-wide trunks around the terrain and makes the level read as a diorama.
-        /// </summary>
-        private static Material EnsureSkyboxMaterial(TerrainDressingConfigSO config)
-        {
-            bool cubemap = config.SkyboxCubemap != null;
-            string shaderName = cubemap ? k_CubemapSkyShader : k_ProceduralSkyShader;
-            Shader shader = Shader.Find(shaderName);
-
-            if (shader == null)
-            {
-                Debug.LogError($"{k_LogPrefix}: shader '{shaderName}' not found; "
-                    + "the scene keeps its current skybox.");
-                return null;
-            }
-
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_SkyboxMaterialPath);
-
-            if (material == null)
-            {
-                TerrainSceneUtility.EnsureFolder(TerrainSceneUtility.ParentFolderOf(k_SkyboxMaterialPath));
-                material = new Material(shader);
-                material.name = Path.GetFileNameWithoutExtension(k_SkyboxMaterialPath);
-                AssetDatabase.CreateAsset(material, k_SkyboxMaterialPath);
-            }
-            else if (material.shader != shader)
-            {
-                material.shader = shader;
-            }
-
-            if (cubemap)
-            {
-                material.SetTexture(k_SkyboxTexId, config.SkyboxCubemap);
-                material.SetFloat(k_SkyboxRotationId, config.SkyboxRotation);
-            }
-            else
-            {
-                // Drop the cubemap slot as well. Swapping the shader does not remove the saved property,
-                // so a material that once carried the deleted forest HDRI keeps that GUID in its YAML
-                // and re-imports as a missing reference on a fresh clone.
-                ClearSavedTextureProperty(material, k_SkyboxTexName);
-                material.SetFloat(k_SkySunSizeId, config.SkySunSize);
-                material.SetFloat(k_SkySunConvergenceId, config.SkySunSizeConvergence);
-                material.SetFloat(k_SkyAtmosphereId, config.SkyAtmosphereThickness);
-                material.SetColor(k_SkyTintId, config.SkyTint);
-                material.SetColor(k_SkyGroundColorId, config.SkyGroundColor);
-            }
-
-            material.SetFloat(k_SkyboxExposureId, config.SkyboxExposure);
-            EditorUtility.SetDirty(material);
-            return material;
-        }
-
-        /// <summary>
-        /// Removes one texture entry from a material's saved properties. Unity keeps the entry — and
-        /// the texture GUID with it — after a shader swap that no longer declares the property, so a
-        /// plain <c>SetTexture(name, null)</c> cannot reach it.
-        /// </summary>
-        /// <param name="material">Material to edit.</param>
-        /// <param name="propertyName">Shader property name, for example <c>_Tex</c>.</param>
-        private static void ClearSavedTextureProperty(Material material, string propertyName)
-        {
-            SerializedObject serialized = new SerializedObject(material);
-            SerializedProperty textures = serialized.FindProperty("m_SavedProperties.m_TexEnvs");
-
-            if (textures == null)
-            {
-                return;
-            }
-
-            for (int i = textures.arraySize - 1; i >= 0; i--)
-            {
-                SerializedProperty entry = textures.GetArrayElementAtIndex(i);
-                SerializedProperty name = entry.FindPropertyRelative("first");
-
-                if (name != null && name.stringValue == propertyName)
-                {
-                    textures.DeleteArrayElementAtIndex(i);
-                }
-            }
-
-            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>Destroys the named scene root when it exists and creates an empty one in its place.</summary>

@@ -7,8 +7,8 @@
 // labels are dot-matrix glyphs bleeding into each other — the gap between two letters only falls to
 // about 45% of the stroke peak, so the text is more glow than glyph.
 //
-// It stays a plain uGUI material: no renderer feature, no Render Graph, unaffected by the pipeline
-// version.
+// It stays a plain uGUI shader: no pipeline include, no renderer feature, no custom pass. It is
+// written against UnityCG/UnityUI only, so it compiles under HDRP and under any other SRP.
 Shader "RootsDance/UI/TerminalComposite"
 {
     Properties
@@ -44,7 +44,6 @@ Shader "RootsDance/UI/TerminalComposite"
             "RenderType" = "Transparent"
             "PreviewType" = "Plane"
             "CanUseSpriteAtlas" = "True"
-            "RenderPipeline" = "UniversalPipeline"
         }
 
         Stencil
@@ -67,12 +66,13 @@ Shader "RootsDance/UI/TerminalComposite"
         {
             Name "TerminalComposite"
 
-            HLSLPROGRAM
+            CGPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 3.0
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "UnityCG.cginc"
+            #include "UnityUI.cginc"
 
             struct Attributes
             {
@@ -88,8 +88,7 @@ Shader "RootsDance/UI/TerminalComposite"
                 float2 uv : TEXCOORD0;
             };
 
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
+            sampler2D _MainTex;
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
@@ -132,7 +131,7 @@ Shader "RootsDance/UI/TerminalComposite"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionCS = UnityObjectToClipPos(input.positionOS);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 output.color = input.color * _Color;
                 return output;
@@ -141,7 +140,7 @@ Shader "RootsDance/UI/TerminalComposite"
             half4 Frag(Varyings input) : SV_Target
             {
                 float2 texel = _MainTex_TexelSize.xy;
-                float3 base = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb;
+                float3 base = tex2D(_MainTex, input.uv).rgb;
 
                 // Phosphor spread: a 5x5 gaussian on the bright part of the buffer. This is what turns
                 // a one-pixel line into the measured 94 -> 159 -> 76 ramp and what makes neighbouring
@@ -158,7 +157,7 @@ Shader "RootsDance/UI/TerminalComposite"
                         float2 offset = float2(x, y);
                         float weight = exp(-dot(offset, offset) / (2.0 * _GlowRadius * _GlowRadius));
                         float2 uv = input.uv + offset * texel * _GlowRadius;
-                        glow += BrightPass(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb) * weight;
+                        glow += BrightPass(tex2D(_MainTex, uv).rgb) * weight;
                         weightSum += weight;
                     }
                 }
@@ -193,7 +192,7 @@ Shader "RootsDance/UI/TerminalComposite"
 
                 return half4(signalOut * input.color.rgb, input.color.a);
             }
-            ENDHLSL
+            ENDCG
         }
     }
 

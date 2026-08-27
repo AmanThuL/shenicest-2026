@@ -5,6 +5,8 @@
         "RootsDance.Runtime",
         "Unity.Cinemachine",
         "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

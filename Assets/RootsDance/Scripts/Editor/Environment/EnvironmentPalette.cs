@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Creates and maintains the small desaturated URP Lit palette that every outdoor-dressing prefab is
+    /// Creates and maintains the small desaturated HDRP Lit palette that every outdoor-dressing prefab is
     /// painted with. Vendor sub-materials are never used directly: <see cref="EnvironmentPrefabBuilder"/>
     /// maps each vendor material name onto one of the keys below so the whole chapter shares one look.
     /// Idempotent — existing <c>.mat</c> assets are updated in place, never duplicated.
@@ -16,7 +17,7 @@ namespace RootsDance.Editor.Environment
         /// <summary>Folder that holds every palette material.</summary>
         public const string k_MaterialFolder = "Assets/RootsDance/Materials/Environment";
 
-        private const string k_UrpLitShader = "Universal Render Pipeline/Lit";
+        private const string k_LitShader = "HDRP/Lit";
         private const string k_ThirdPartyRoot = "Assets/ThirdParty/Environment";
         private const string k_PolyHavenRoot = k_ThirdPartyRoot + "/PolyHaven/Models";
 
@@ -28,23 +29,13 @@ namespace RootsDance.Editor.Environment
         // warm base colour is what actually carries the "light concrete" read; the map only adds grain.
         private const float k_ConcreteLabSmoothness = 0.15f;
 
-        // URP Lit surface-type plumbing: transparent needs the blend state written by hand from script.
-        private const float k_SurfaceTransparent = 1f;
-        private const float k_BlendAlpha = 0f;
-        private const float k_SrcBlendSrcAlpha = 5f;
-        private const float k_DstBlendOneMinusSrcAlpha = 10f;
-        private const int k_TransparentQueue = 3000;
-
         private static readonly int k_BaseColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly int k_BaseMapId = Shader.PropertyToID("_BaseMap");
-        private static readonly int k_BumpMapId = Shader.PropertyToID("_BumpMap");
+        private static readonly int k_BaseColorMapId = Shader.PropertyToID("_BaseColorMap");
+        private static readonly int k_NormalMapId = Shader.PropertyToID("_NormalMap");
         private static readonly int k_SmoothnessId = Shader.PropertyToID("_Smoothness");
         private static readonly int k_MetallicId = Shader.PropertyToID("_Metallic");
-        private static readonly int k_SurfaceId = Shader.PropertyToID("_Surface");
-        private static readonly int k_BlendId = Shader.PropertyToID("_Blend");
-        private static readonly int k_SrcBlendId = Shader.PropertyToID("_SrcBlend");
-        private static readonly int k_DstBlendId = Shader.PropertyToID("_DstBlend");
-        private static readonly int k_ZWriteId = Shader.PropertyToID("_ZWrite");
+        private static readonly int k_BlendModeId = Shader.PropertyToID("_BlendMode");
+        private static readonly int k_TransparentZWriteId = Shader.PropertyToID("_TransparentZWrite");
 
         /// <summary>The flat-colour half of the palette: key plus its sRGB greybox colour.</summary>
         private static readonly FlatSpec[] k_FlatSpecs =
@@ -138,11 +129,11 @@ namespace RootsDance.Editor.Environment
         public static Dictionary<string, Material> EnsureAll()
         {
             Dictionary<string, Material> palette = new Dictionary<string, Material>(32);
-            Shader lit = Shader.Find(k_UrpLitShader);
+            Shader lit = Shader.Find(k_LitShader);
 
             if (lit == null)
             {
-                Debug.LogError($"EnvironmentPalette: shader '{k_UrpLitShader}' not found; palette not built.");
+                Debug.LogError($"EnvironmentPalette: shader '{k_LitShader}' not found; palette not built.");
                 return palette;
             }
 
@@ -207,7 +198,7 @@ namespace RootsDance.Editor.Environment
             }
 
             material.SetColor(k_BaseColorId, spec.Color);
-            material.SetTexture(k_BaseMapId, baseMap);
+            material.SetTexture(k_BaseColorMapId, baseMap);
             material.SetFloat(k_SmoothnessId, spec.Smoothness);
             material.SetFloat(k_MetallicId, 0f);
 
@@ -221,15 +212,18 @@ namespace RootsDance.Editor.Environment
                 }
                 else
                 {
-                    material.SetTexture(k_BumpMapId, normalMap);
-                    material.EnableKeyword("_NORMALMAP");
+                    material.SetTexture(k_NormalMapId, normalMap);
                 }
             }
 
-            Vector2 tiling = new Vector2(spec.Tiling, spec.Tiling);
-            material.SetTextureScale(k_BaseMapId, tiling);
-            material.SetTextureScale(k_BumpMapId, tiling);
+            // One tiling for the whole base UV set: HDRP Lit reads _BaseColorMap_ST for the base colour,
+            // the normal map and the mask map alike, and ignores a per-map _ST.
+            material.SetTextureScale(k_BaseColorMapId, new Vector2(spec.Tiling, spec.Tiling));
             material.enableInstancing = true;
+
+            // Keywords (_NORMALMAP, _MASKMAP, ...) and the pass set are derived from the assigned maps,
+            // so validation has to run after the textures are in place, never before.
+            HDMaterial.ValidateMaterial(material);
             EditorUtility.SetDirty(material);
             return material;
         }
@@ -241,15 +235,15 @@ namespace RootsDance.Editor.Environment
             material.SetColor(k_BaseColorId, k_GlassColor);
             material.SetFloat(k_SmoothnessId, k_GlassSmoothness);
             material.SetFloat(k_MetallicId, 0f);
-            material.SetFloat(k_SurfaceId, k_SurfaceTransparent);
-            material.SetFloat(k_BlendId, k_BlendAlpha);
-            material.SetFloat(k_SrcBlendId, k_SrcBlendSrcAlpha);
-            material.SetFloat(k_DstBlendId, k_DstBlendOneMinusSrcAlpha);
-            material.SetFloat(k_ZWriteId, 0f);
-            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            material.DisableKeyword("_ALPHATEST_ON");
-            material.renderQueue = k_TransparentQueue;
+
+            // HDRP owns the transparent blend state: SetSurfaceType writes _SurfaceType and the render
+            // queue, and ValidateMaterial derives the blend factors, the keywords and the pass set from
+            // _BlendMode (0 = Alpha) and _TransparentZWrite. Nothing here is set by hand.
+            HDMaterial.SetSurfaceType(material, true);
+            material.SetFloat(k_BlendModeId, 0f);
+            material.SetFloat(k_TransparentZWriteId, 0f);
             material.enableInstancing = true;
+            HDMaterial.ValidateMaterial(material);
             EditorUtility.SetDirty(material);
             return material;
         }
@@ -263,13 +257,18 @@ namespace RootsDance.Editor.Environment
             {
                 material = new Material(lit);
                 material.name = key;
+                HDMaterial.ValidateMaterial(material);
                 AssetDatabase.CreateAsset(material, path);
                 return material;
             }
 
+            // A palette asset authored against another pipeline keeps its GUID and is re-shadered here;
+            // validation then rebuilds the keywords and passes the new shader expects.
             if (material.shader != lit)
             {
                 material.shader = lit;
+                HDMaterial.ValidateMaterial(material);
+                EditorUtility.SetDirty(material);
             }
 
             return material;

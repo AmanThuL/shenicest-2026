@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -161,8 +162,17 @@ namespace RootsDance.Editor.Tools
             camera.allowHDR = false;
             camera.allowMSAA = false;
 
-            // URP attaches its own UniversalAdditionalCameraData the first time it renders this
-            // camera, so the editor assembly needs no reference to the pipeline package.
+            // HDRP needs its per-camera data on every Camera, so the prefab ships with it rather than
+            // letting HDRP attach a default one at first render. Added last: HDRP reads the Camera's
+            // clear flags when the component initialises, and SolidColor has to be in place by then.
+            //
+            // No anti-aliasing and no dithering, for the same reason allowHDR/allowMSAA are off above:
+            // this camera renders the 640x360 signal buffer, and its hard raster is the effect. Every
+            // filter the screen gets belongs to TerminalComposite, which reads this buffer. SMAA High
+            // plus dithering are the Bootstrap Main Camera's settings, not this one's.
+            HDAdditionalCameraData cameraData = go.AddComponent<HDAdditionalCameraData>();
+            cameraData.antialiasing = HDAdditionalCameraData.AntialiasingMode.None;
+            cameraData.dithering = false;
             return camera;
         }
 

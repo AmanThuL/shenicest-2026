@@ -2,6 +2,7 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using RootsDance.App;
 using RootsDance.Events;
@@ -60,10 +61,10 @@ namespace RootsDance.Editor.Tools
         }
 
         /// <summary>
-        /// The bootstrap scene holds no content: no geometry, no lights, no APV, no Volume. The
-        /// Directional Light here is a leftover from the Universal 3D template — the level's own
-        /// _Environment part owns the sun, and with several scenes open Unity takes lighting from
-        /// the *active* scene, so a second sun here silently competes with it.
+        /// The bootstrap scene holds no content: no geometry, no lights, no APV, no Volume. Under
+        /// HDRP the level's own _Environment part owns both the sun and the Global Volume that carries
+        /// sky, fog and exposure; with several scenes open Unity takes lighting from the *active*
+        /// scene, so a Directional Light left over here from the project template competes with it.
         /// </summary>
         private static void RemoveForbiddenContent(Scene scene)
         {
@@ -117,6 +118,20 @@ namespace RootsDance.Editor.Tools
             {
                 camera.gameObject.AddComponent<AudioListener>();
             }
+
+            // HDRP's per-camera data: the project's only Camera carries it explicitly instead of
+            // relying on HDRP to attach a default one the first time the camera renders.
+            HDAdditionalCameraData cameraData = camera.GetComponent<HDAdditionalCameraData>();
+
+            if (cameraData == null)
+            {
+                cameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+            }
+
+            cameraData.antialiasing = HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            cameraData.SMAAQuality = HDAdditionalCameraData.SMAAQualityLevel.High;
+            cameraData.dithering = true;
+            cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
         }
 
         private static GameBootstrap EnsureBootstrapRoot(Scene scene)
