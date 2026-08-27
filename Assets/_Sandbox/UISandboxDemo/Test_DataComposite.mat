@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Test_TerminalComposite
+  m_Name: Test_DataComposite
   m_Shader: {fileID: 4800000, guid: cef517db58f2448918288f95c5aea4c7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -30,22 +30,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _ColorMask: 15
-    - _GlowRadius: 1.6
-    - _GlowStrength: 1.35
-    - _GlowThreshold: 0.26
-    - _GrainGate: 0
-    - _GrainPerceptual: 0
+    - _GlowRadius: 1.4
+    - _GlowStrength: 1.5
+    - _GlowThreshold: 0.15
+    - _GrainGate: 1
+    - _GrainPerceptual: 1
     - _GrainRate: 24
-    - _GrainStrength: 0.0255
-    - _LumaCeiling: 0.9
+    - _GrainStrength: 0.041
+    - _LumaCeiling: 0.8
     - _ScanlinePeriod: 4.2
-    - _ScanlineStrength: 0.0021
+    - _ScanlineStrength: 0
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
-    - _VignetteStrength: 0.42
+    - _VignetteStrength: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

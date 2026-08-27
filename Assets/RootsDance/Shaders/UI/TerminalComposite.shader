@@ -24,6 +24,8 @@ Shader "RootsDance/UI/TerminalComposite"
         _ScanlineStrength ("Scanline Strength", Range(0, 0.2)) = 0.0021
         _GrainStrength ("Grain Strength", Range(0, 0.2)) = 0.0255
         _GrainRate ("Grain Steps Per Second", Float) = 24
+        _GrainGate ("Grain Gated To Signal", Range(0, 1)) = 0
+        _GrainPerceptual ("Grain In Display Space", Range(0, 1)) = 0
         _VignetteStrength ("Vignette Strength", Range(0, 1)) = 0.42
         _LumaCeiling ("Luma Ceiling", Range(0, 1)) = 0.9
 
@@ -101,6 +103,8 @@ Shader "RootsDance/UI/TerminalComposite"
                 float _ScanlineStrength;
                 float _GrainStrength;
                 float _GrainRate;
+                float _GrainGate;
+                float _GrainPerceptual;
                 float _VignetteStrength;
                 float _LumaCeiling;
             CBUFFER_END
@@ -175,10 +179,33 @@ Shader "RootsDance/UI/TerminalComposite"
                 // too — the reference's background pixels wander over a range of ~9 levels. It is
                 // sampled per OUTPUT pixel, not per buffer texel: this is film grain sitting in front
                 // of the tube, so it does not inherit the raster's coarseness.
+                // _GrainGate switches this between the two reference families (spec 10). At 0 the
+                // grain covers everything, including the empty field, as the warm title card does. At
+                // 1 it is gated on the buffer carrying signal at all: the cold data screen measures
+                // exactly #000000 outside its panels - zero spatial and zero temporal variance - so
+                // grain must not lift those pixels off black, and neither must the glow.
+                // Gated on the buffer, deliberately NOT on the glow: the glow kernel reaches outside
+                // a panel's rect, and letting those pixels through is what turns three separate tubes
+                // into one soft translucent card. Measured, the reference's panel edge goes from full
+                // ground to exact zero within two pixels and nothing crosses it.
+                float gate = lerp(1.0, step(1e-4, Luma(base)), _GrainGate);
+
                 float grainStep = floor(_Time.y * max(_GrainRate, 1));
                 float2 grainCell = floor(input.uv * _ScreenParams.xy);
                 float grain = Hash21(grainCell + float2(grainStep * 37.0, grainStep * 17.0)) - 0.5;
-                signalOut += grain * _GrainStrength * 2.0;
+                float3 offset = grain * _GrainStrength * 2.0 * gate;
+
+                // _GrainPerceptual puts the grain in front of the tube rather than inside the
+                // renderer's linear working space, which is where film grain actually sits. It matters
+                // on a dark ground: in linear, a swing wide enough to read against the cold screen's
+                // #091C16 clips against zero on the red channel, and clipping raises the mean - that
+                // ground came out at luma 21 instead of the measured 14 before this. sqrt/square
+                // stands in for the sRGB curve and holds to a couple of levels over this range.
+                float3 perceptual = sqrt(max(signalOut, 0.0)) + offset;
+                perceptual = max(perceptual, 0.0) * max(perceptual, 0.0);
+
+                signalOut = lerp(signalOut + offset, perceptual, step(0.5, _GrainPerceptual));
+                signalOut *= gate;
 
                 // Vignette: flat across x, falling off toward the bottom.
                 float drop = saturate(1.0 - input.uv.y);

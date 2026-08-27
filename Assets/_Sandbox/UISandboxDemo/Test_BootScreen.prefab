@@ -721,6 +721,9 @@ MonoBehaviour:
     m_rasterHoldSteps: 6
     m_reconstructSteps: 12
     m_reconstructStartCoverage: 0.4
+    m_scatterSeed: 20260827
+    m_populateSteps: 10
+    m_floodHoldSteps: 1
 --- !u!1 &5781126303668237769
 GameObject:
   m_ObjectHideFlags: 0

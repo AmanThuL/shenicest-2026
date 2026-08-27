@@ -35,7 +35,20 @@ namespace RootsDance.UI
 
         private Texture2D m_texture;
 
+        /// <summary>
+        /// Set by <c>OnValidate</c> and consumed by <c>Update</c>. Rebuilding resizes the rect, and
+        /// Unity forbids that from inside OnValidate - doing it there logs "SendMessage cannot be
+        /// called during Awake, CheckConsistency, or OnValidate" once per line per inspector edit.
+        /// </summary>
+        private bool m_rebuildQueued;
+
         private int m_visibleCharacters = int.MaxValue;
+
+        /// <summary>
+        /// Per-character visibility, when a caller lights the line out of order rather than
+        /// left to right. Null means <see cref="VisibleCharacters"/> decides instead.
+        /// </summary>
+        private bool[] m_visibleMask;
 
         /// <summary>The whole line, including characters currently hidden by a write.</summary>
         public string Text
@@ -44,6 +57,7 @@ namespace RootsDance.UI
             set
             {
                 m_text = value == null ? string.Empty : value;
+                m_visibleMask = null;
                 Rebuild();
             }
         }
@@ -55,6 +69,7 @@ namespace RootsDance.UI
             set
             {
                 m_visibleCharacters = value;
+                m_visibleMask = null;
                 Rebuild();
             }
         }
@@ -62,6 +77,57 @@ namespace RootsDance.UI
         public int CharacterCount
         {
             get { return m_text.Length; }
+        }
+
+        /// <summary>
+        /// Lights or clears one character in place, leaving the rest of the line alone. This is how
+        /// the data screen writes: the reference brings its labels up glyph by glyph in random order,
+        /// each one already sitting at its final position holding its final character, so the line
+        /// never shows a wrong letter and never slides (spec section 13).
+        /// </summary>
+        public void SetCharacterVisible(int index, bool visible)
+        {
+            if (index < 0 || index >= m_text.Length)
+            {
+                return;
+            }
+
+            EnsureMask(visible);
+            m_visibleMask[index] = visible;
+            Rebuild();
+        }
+
+        /// <summary>Lights or clears the whole line at once, and switches it to out-of-order mode.</summary>
+        public void SetAllCharactersVisible(bool visible)
+        {
+            EnsureMask(visible);
+
+            for (int i = 0; i < m_visibleMask.Length; i++)
+            {
+                m_visibleMask[i] = visible;
+            }
+
+            Rebuild();
+        }
+
+        private void EnsureMask(bool fill)
+        {
+            if (m_visibleMask != null && m_visibleMask.Length == m_text.Length)
+            {
+                return;
+            }
+
+            m_visibleMask = new bool[m_text.Length];
+
+            if (!fill)
+            {
+                return;
+            }
+
+            for (int i = 0; i < m_visibleMask.Length; i++)
+            {
+                m_visibleMask[i] = true;
+            }
         }
 
         /// <summary>The line's rect, sized to the generated texture on every rebuild.</summary>
@@ -77,7 +143,11 @@ namespace RootsDance.UI
 
         private void OnEnable()
         {
-            Rebuild();
+            // Queued rather than built here for the same reason OnValidate queues: Rebuild sizes the
+            // rect, and on a GameObject that is still being constructed Unity refuses the resulting
+            // OnRectTransformDimensionsChange. Callers that need the texture immediately - the sandbox
+            // builders, which have to save a prefab with the right size - call Rebuild themselves.
+            m_rebuildQueued = true;
         }
 
         private void OnDestroy()
@@ -87,6 +157,17 @@ namespace RootsDance.UI
 
         private void OnValidate()
         {
+            m_rebuildQueued = true;
+        }
+
+        private void Update()
+        {
+            if (!m_rebuildQueued)
+            {
+                return;
+            }
+
+            m_rebuildQueued = false;
             Rebuild();
         }
 
@@ -106,9 +187,18 @@ namespace RootsDance.UI
                 return;
             }
 
-            int visible = Mathf.Clamp(m_visibleCharacters, 0, m_text.Length);
+            if (m_visibleMask != null && m_visibleMask.Length != m_text.Length)
+            {
+                m_visibleMask = null;
+            }
+
+            int count = m_text.Length;
+            int prefix = Mathf.Clamp(m_visibleCharacters, 0, count);
             int advance = (DotMatrixGlyphs.Width + m_tracking) * m_dotScale;
-            int width = visible > 0 ? visible * advance - m_tracking * m_dotScale : 1;
+
+            // The texture always spans the whole line, lit or not, so a centred label keeps its
+            // position while it writes instead of growing out from one edge.
+            int width = count > 0 ? count * advance - m_tracking * m_dotScale : 1;
             int height = DotMatrixGlyphs.Height * m_dotScale;
 
             ReleaseTexture();
@@ -117,11 +207,22 @@ namespace RootsDance.UI
             m_texture.filterMode = FilterMode.Point;
             m_texture.wrapMode = TextureWrapMode.Clamp;
 
+            // Never serialized: the line regenerates on enable, so letting Unity save
+            // the texture would embed derived pixels in every scene holding one, and churn it in the diff on every rebuild.
+            m_texture.hideFlags = HideFlags.HideAndDontSave;
+
             Color32[] pixels = new Color32[width * height];
             Color32 lit = m_color;
 
-            for (int i = 0; i < visible; i++)
+            for (int i = 0; i < count; i++)
             {
+                bool visible = m_visibleMask != null ? m_visibleMask[i] : i < prefix;
+
+                if (!visible)
+                {
+                    continue;
+                }
+
                 string[] glyph = DotMatrixGlyphs.Rows[DotMatrixGlyphs.IndexOf(m_text[i])];
                 int originX = i * advance;
 
