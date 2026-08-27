@@ -312,7 +312,9 @@ MonoBehaviour:
           m_CustomPostProcessTypesAsString: []
         m_AfterPostProcessCustomPostProcesses:
           m_InjectionPoint: 2
-          m_CustomPostProcessTypesAsString: []
+          m_CustomPostProcessTypesAsString:
+          - RootsDance.Rendering.PsxPostProcess, RootsDance.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
     - rid: 413966739081527307
       type: {class: RenderingPathFrameSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
