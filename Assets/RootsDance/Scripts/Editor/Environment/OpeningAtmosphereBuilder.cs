@@ -28,6 +28,7 @@ namespace RootsDance.Editor.Environment
         private const string k_PropsRootName = "_Props";
         private const string k_SunName = "Sun";
         private const float k_UntouchedSunIntensityLux = 20000f;
+        private const string k_MainProfilePath = "Assets/RootsDance/Settings/VolumeProfiles/MainProfile.asset";
 
         [MenuItem("RootsDance/Environment/Build Opening Atmosphere")]
         public static void BuildKeepingProfiles()
@@ -112,6 +113,11 @@ namespace RootsDance.Editor.Environment
                 }
             }
 
+            if (overwriteTuned)
+            {
+                ApplyBeyondFog(p.BeyondFog);
+            }
+
             AssetDatabase.SaveAssets();
 
             Transform lighting = TerrainSceneUtility.EnsureRoot(scene, k_LightingRootName);
@@ -169,6 +175,37 @@ namespace RootsDance.Editor.Environment
             }
 
             return profile;
+        }
+
+        /// <summary>
+        /// Writes only the Fog override of MainProfile so the haze continues north of the opening. Overwrite-only:
+        /// MainProfile is the level artist's asset and a plain re-run must not touch it.
+        /// </summary>
+        private static void ApplyBeyondFog(OpeningBeyondFog beyond)
+        {
+            VolumeProfile main = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_MainProfilePath);
+
+            if (main == null || beyond == null)
+            {
+                Debug.LogWarning($"{k_LogPrefix}: '{k_MainProfilePath}' not found; beyond-threshold fog not applied.");
+                return;
+            }
+
+            Fog fog = GetOrAdd<Fog>(main);
+            Set(fog.enabled, true);
+            Set(fog.colorMode, FogColorMode.SkyColor);
+            Set(fog.tint, Color.white);
+            Set(fog.meanFreePath, beyond.AttenuationDistance);
+            Set(fog.baseHeight, beyond.BaseHeight);
+            Set(fog.maximumHeight, beyond.MaximumHeight);
+            Set(fog.enableVolumetricFog, true);
+            Set(fog.albedo, beyond.Albedo);
+            Set(fog.anisotropy, beyond.Anisotropy);
+            Set(fog.globalLightProbeDimmer, beyond.AmbientDimmer);
+            Set(fog.depthExtent, beyond.VolumetricDistance);
+            Set(fog.multipleScatteringIntensity, beyond.MultipleScattering);
+            EditorUtility.SetDirty(main);
+            Debug.Log($"{k_LogPrefix}: applied the beyond-threshold fog to {k_MainProfilePath}.");
         }
 
         private static T GetOrAdd<T>(VolumeProfile profile) where T : VolumeComponent

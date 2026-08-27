@@ -46,7 +46,8 @@ namespace RootsDance.Editor.Environment
 
         /// <summary>
         /// Batch tuning loop in one Editor session: rebuild with profile overwrite, then capture.
-        /// <c>-executeMethod RootsDance.Editor.Environment.OpeningAtmosphereCapture.RebuildAndCaptureFromCommandLine</c>.
+        /// <c>-executeMethod
+        /// RootsDance.Editor.Environment.OpeningAtmosphereCapture.RebuildAndCaptureFromCommandLine</c>.
         /// </summary>
         public static void RebuildAndCaptureFromCommandLine()
         {

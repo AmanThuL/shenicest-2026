@@ -50,17 +50,17 @@ namespace RootsDance.Editor.Environment
                     return new Recipe
                     {
                         Name = "AnomalousSpores", TextureFile = "light_01.png",
-                        BaseColor = new Color(0.75f, 0.95f, 0.80f, 0.9f), EmissiveNits = 3000f,
-                        LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.10f, SizeMax = 0.18f,
-                        Speed = 0.10f, NoiseStrength = 0.25f, MaxParticles = 40,
+                        BaseColor = new Color(0.75f, 0.95f, 0.80f, 0.9f), EmissiveNits = 4500f,
+                        LifetimeMin = 10f, LifetimeMax = 18f, SizeMin = 0.14f, SizeMax = 0.24f,
+                        Speed = 0.10f, NoiseStrength = 0.25f, MaxParticles = 200,
                     };
                 default:
                     return new Recipe
                     {
                         Name = "ContaminationMotes", TextureFile = "circle_05.png",
-                        BaseColor = new Color(0.90f, 0.85f, 0.55f, 0.85f), EmissiveNits = 2000f,
-                        LifetimeMin = 6f, LifetimeMax = 10f, SizeMin = 0.06f, SizeMax = 0.12f,
-                        Speed = 0.05f, NoiseStrength = 0.15f, MaxParticles = 80,
+                        BaseColor = new Color(0.90f, 0.85f, 0.55f, 0.85f), EmissiveNits = 3000f,
+                        LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.08f, SizeMax = 0.16f,
+                        Speed = 0.05f, NoiseStrength = 0.15f, MaxParticles = 400,
                     };
             }
         }

@@ -120,6 +120,11 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.GreaterOrEqual(current.Saturation, previous.Saturation, "colour returns");
                 Assert.GreaterOrEqual(current.PsxColorLevels, previous.PsxColorLevels, "quantisation relaxes");
             }
+
+            OpeningLook last = p.Segments[p.Segments.Length - 1].Look;
+            Assert.Greater(p.BeyondFog.AttenuationDistance, last.FogAttenuationDistance,
+                "the level fog north of the opening stays milder than the threshold");
+            Assert.Less(p.BeyondFog.AttenuationDistance, 100f, "but still hazy all the way to the lab");
         }
 
         [Test]
