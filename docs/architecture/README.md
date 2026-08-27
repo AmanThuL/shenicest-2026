@@ -56,6 +56,7 @@ docs/architecture/
 | [Unity CLI 与 Pipeline：从 shell 驱动 Editor](tooling/unity-cli-agent-workflow.md) | 人和 AI agent 用官方 Unity CLI 跑测试/构建、对打开的 Editor 进 Play mode、读 Console、截图、eval C#、打断点的已验证流程（英文）；含 `com.unity.pipeline` 的取舍（待团队决定）和 agent 安全规则。 |
 | [Blender → Unity 导出管线](tooling/Blender到Unity导出管线.md) | 模型/绑定/动画管线：通用导出器 + JSON profile + 每资产参数、不走 `.blend` 原生导入的理由、约束不需预先 bake、手持道具的 socket 挂接，以及 D14/D15/D16 的 Unity 侧实测结果（**D15 不达标，待技术美术定**）。 |
 | [贴图管线](tooling/贴图管线.md) | Blender → Substance Painter → Unity 的贴图管线：目录与命名约定、九段流程与机器校验、预设、Painter 远程脚本协议与 API 探针、Unity 导入设置自动化、版本控制策略（**材质创作与贴花尚未实现**）。 |
+| [Dev Play：从检查点开始玩](tooling/dev-play-checkpoints.md) | Editor 专用：一键打开 Main 场景、进 Play、把玩家传送到站点并通过命令队列补齐世界状态（flag / 报告条目）；Play 中可跳到其他检查点；检查点是 `Data/DevPlay/` 下的 `DevCheckpointSO`（英文）。 |
 
 ## 历史资料
 
