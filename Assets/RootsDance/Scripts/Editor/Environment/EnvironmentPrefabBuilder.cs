@@ -173,6 +173,11 @@ namespace RootsDance.Editor.Environment
                 instance.transform.localRotation = Quaternion.identity;
                 instance.transform.localScale = Vector3.one * entry.Scale;
 
+                if (!string.IsNullOrEmpty(entry.SubObject) && !CutOutSubObject(entry, instance, modelInstance))
+                {
+                    return false;
+                }
+
                 MeshRenderer[] renderers = instance.GetComponentsInChildren<MeshRenderer>(true);
                 bool castShadows = !k_NoShadowMaterials.Contains(entry.DefaultMaterial);
                 string mapping = ApplyMaterials(entry, palette, renderers, castShadows);
@@ -201,6 +206,62 @@ namespace RootsDance.Editor.Environment
             {
                 UnityEngine.Object.DestroyImmediate(instance);
             }
+        }
+
+        /// <summary>
+        /// Replaces the whole vendor model under <paramref name="instance"/> with a single plain child holding
+        /// the one renderer named by <see cref="PrefabEntry.SubObject"/>, keeping the vendor transform (the
+        /// axis/unit conversion lives there) and shifting the piece so the wrapper's origin sits at the centre
+        /// of the piece's footprint, on its lowest point. Kit FBXs lay every piece out side by side, so without
+        /// this a piece would carry the whole kit and a pivot metres away from itself.
+        /// </summary>
+        /// <remarks>
+        /// The nested model-prefab instance is dropped for these entries: the piece keeps a direct reference to
+        /// the FBX's mesh sub-asset, so a re-export that only changes geometry still flows through, while one
+        /// that renames or re-parents the piece needs a rebuild — the same caveat the colliders already carry.
+        /// </remarks>
+        private static bool CutOutSubObject(PrefabEntry entry, GameObject instance, GameObject modelInstance)
+        {
+            MeshRenderer source = null;
+
+            foreach (MeshRenderer candidate in modelInstance.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (candidate.gameObject.name == entry.SubObject)
+                {
+                    source = candidate;
+                    break;
+                }
+            }
+
+            if (source == null)
+            {
+                Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: '{entry.SubObject}' is not a renderer "
+                    + $"inside '{entry.ModelPath}'.");
+                return false;
+            }
+
+            MeshFilter sourceFilter = source.GetComponent<MeshFilter>();
+
+            if (sourceFilter == null || sourceFilter.sharedMesh == null)
+            {
+                Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: '{entry.SubObject}' has no mesh.");
+                return false;
+            }
+
+            GameObject piece = new GameObject(entry.SubObject);
+            piece.transform.SetParent(instance.transform, false);
+            piece.transform.localPosition = instance.transform.InverseTransformPoint(source.transform.position);
+            piece.transform.localRotation = Quaternion.Inverse(instance.transform.rotation) * source.transform.rotation;
+            piece.transform.localScale = source.transform.lossyScale / Mathf.Max(entry.Scale, 0.0001f);
+
+            piece.AddComponent<MeshFilter>().sharedMesh = sourceFilter.sharedMesh;
+            piece.AddComponent<MeshRenderer>().sharedMaterials = source.sharedMaterials;
+
+            UnityEngine.Object.DestroyImmediate(modelInstance);
+
+            Bounds local = LocalBounds(instance.transform, instance.GetComponentsInChildren<MeshRenderer>(true));
+            piece.transform.localPosition -= new Vector3(local.center.x, local.min.y, local.center.z);
+            return true;
         }
 
         private static StaticEditorFlags StaticFlagsFor(string category)
