@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f91e91f69b64c4ba218737aa09deba, type: 3}
+  m_Name: UITheme_Violet
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.Kit.ElectronicUITheme
+  m_ramp:
+  - {r: 0.07450981, g: 0.06666667, b: 0.09019608, a: 1}
+  - {r: 0.1254902, g: 0.11764706, b: 0.14901961, a: 1}
+  - {r: 0.22745098, g: 0.21960784, b: 0.38431373, a: 1}
+  - {r: 0.45490196, g: 0.47058824, b: 0.6745098, a: 1}
+  - {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  - {r: 0.9098039, g: 0.9254902, b: 1, a: 1}
+  m_accent: {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  m_accentAlt: {r: 0.60784316, g: 0.627451, b: 0.84705883, a: 1}
+  m_family: 0
+  m_unit: 4
+  m_rule: 1
+  m_ruleStrong: 2
+  m_padUnits: 3
+  m_gutterUnits: 4
+  m_rowUnits: 10
+  m_insetUnits: 16
+  m_cornerUnits: 4
+  m_interactiveRadiusUnits: 1.5
+  m_font: {fileID: 11400000, guid: bc9d9c5b86b3a4916ab52280c923783e, type: 2}
+  m_boldText: 1
+  m_microSize: 18
+  m_bodySize: 36
+  m_displaySize: 46
