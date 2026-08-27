@@ -65,8 +65,15 @@ namespace RootsDance.Editor.Environment
         /// <summary>Uniform scale applied to the prefab root so the model reads at real-world size.</summary>
         public float Scale;
 
+        /// <summary>
+        /// Name of the single renderer inside the vendor model this prefab is cut from, or null to keep the
+        /// whole model. Vendor "kits" (the modular chain-link fence, the two moss-rock sets) ship every piece
+        /// in one FBX laid out side by side; a kit is only usable once each piece is its own prefab.
+        /// </summary>
+        public string SubObject;
+
         public PrefabEntry(string key, string modelPath, string category, ColliderKind collider,
-            MaterialRule[] materials, string defaultMaterial, float scale)
+            MaterialRule[] materials, string defaultMaterial, float scale, string subObject = null)
         {
             Key = key;
             ModelPath = modelPath;
@@ -75,6 +82,7 @@ namespace RootsDance.Editor.Environment
             Materials = materials;
             DefaultMaterial = defaultMaterial;
             Scale = scale;
+            SubObject = subObject;
         }
     }
 
@@ -193,9 +201,37 @@ namespace RootsDance.Editor.Environment
             Scan("rock_moss_set_01", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet01"),
             Scan("rock_moss_set_02", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet02"),
 
+            // Both moss-rock FBXs are a row of separate boulders. Placing the set drops six or seven rocks in
+            // a straight line, so each boulder becomes its own prefab: set 01 is the 2-3 m slope boulders,
+            // set 02 the 1-2 m ground stones.
+            RockPiece("rock_moss_01", "rock_moss_set_01", "rock_moss_set_01_rock01", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_02", "rock_moss_set_01", "rock_moss_set_01_rock02", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_03", "rock_moss_set_01", "rock_moss_set_01_rock03", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_04", "rock_moss_set_01", "rock_moss_set_01_rock04", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_05", "rock_moss_set_01", "rock_moss_set_01_rock05", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_06", "rock_moss_set_01", "rock_moss_set_01_rock06", "Scan_RockMossSet01"),
+            RockPiece("rock_moss_07", "rock_moss_set_02", "rock_moss_set_02_rock07", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_08", "rock_moss_set_02", "rock_moss_set_02_rock08", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_09", "rock_moss_set_02", "rock_moss_set_02_rock09", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_10", "rock_moss_set_02", "rock_moss_set_02_rock10", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_11", "rock_moss_set_02", "rock_moss_set_02_rock11", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_12", "rock_moss_set_02", "rock_moss_set_02_rock12", "Scan_RockMossSet02"),
+            RockPiece("rock_moss_13", "rock_moss_set_02", "rock_moss_set_02_rock13", "Scan_RockMossSet02"),
+
             // --- BrokenBoundary ----------------------------------------------------------------------
             Scan("modular_chainlink_fence", k_Facility, ColliderKind.Box, k_FenceRules, "Scan_ChainlinkFence_Posts"),
             Scan("concrete_road_barrier", k_Facility, ColliderKind.Box, k_NoRules, "Scan_ConcreteRoadBarrier"),
+
+            // The fence kit cut into placeable pieces. A run is posts on a 1 m (or 2 m) pitch with a wire
+            // panel spanning each gap, so panel and post have to be separate prefabs; the gate and the corner
+            // post give the run somewhere believable to start and stop.
+            FencePiece("chainlink_panel", "modular_chainlink_fence"),
+            FencePiece("chainlink_panel_double", "modular_chainlink_fence_double"),
+            FencePiece("chainlink_post", "modular_chainlink_fence_post"),
+            FencePiece("chainlink_post_end", "modular_chainlink_fence_end_01"),
+            FencePiece("chainlink_post_corner", "modular_chainlink_fence_start_01_corner_01"),
+            FencePiece("chainlink_gate_frame", "modular_chainlink_fence_door_frame"),
+            FencePiece("chainlink_gate", "modular_chainlink_fence_door_gate"),
 
             // --- CampEvidence ------------------------------------------------------------------------
             Scan("clipboard", k_Props, ColliderKind.Box, k_NoRules, "Scan_Clipboard"),
@@ -244,6 +280,20 @@ namespace RootsDance.Editor.Environment
             string material)
         {
             return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", category, collider, rules, material, 1f);
+        }
+
+        /// <summary>One piece of the modular chain-link kit, cut out of <c>modular_chainlink_fence_1k.fbx</c>.</summary>
+        private static PrefabEntry FencePiece(string key, string subObject)
+        {
+            return new PrefabEntry(key, $"{k_PolyHaven}modular_chainlink_fence/modular_chainlink_fence_1k.fbx",
+                k_Facility, ColliderKind.Box, k_FenceRules, "Scan_ChainlinkFence_Posts", 1f, subObject);
+        }
+
+        /// <summary>One boulder cut out of a moss-rock set FBX.</summary>
+        private static PrefabEntry RockPiece(string key, string setName, string subObject, string material)
+        {
+            return new PrefabEntry(key, $"{k_PolyHaven}{setName}/{setName}_1k.fbx", k_Rocks,
+                ColliderKind.MeshConvex, k_NoRules, material, 1f, subObject);
         }
 
         private static PrefabEntry Lab(string key)
