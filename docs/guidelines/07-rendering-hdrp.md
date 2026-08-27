@@ -492,6 +492,9 @@ Work through the list top to bottom; stop at the first hit.
 5. An effect scaled or offset between Game and Scene view → missing `_RTHandleScale.xy` in the pass's shader, or `CommandBuffer.SetRenderTarget` instead of `CoreUtils.SetRenderTarget` (§4). *Source:* [custom-pass-troubleshooting](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-custom-pass-troubleshooting.md).
 6. Objects on a layer excluded by the camera's **Culling Mask**, or reflections missing because of **Probe Layer Mask**. *Source:* [hdrp-camera-component-reference](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-hdrp-camera-component-reference.md).
 
+**Console errors with nothing wrong on screen:**
+1. A burst of `NullReferenceException` at `RenderPipelineResourcesEditorUtils.TryReloadContainedNullFields` (called from `RenderPipelineGraphicsSettingsManager.PopulateRenderPipelineGraphicsSettings` / `HDRenderPipelineGlobalSettings.Ensure`) → HDRP's global settings tried to reload their resource fields while the package's shaders were still importing (the same log shows `Hidden/HDRP/TerrainLit_Basemap not found`). Seen once on this project, 2026-08-27, when the open Editor picked up the HDRP migration (≈40 identical entries). Clear the Console and restart the Editor; if the errors come back on a clean start, open the **HDRP Wizard** and report it to the rendering owner instead of clicking Fix All. *Source:* observed in `~/Library/Logs/Unity/Editor.log` on 2026-08-27; not covered by the Unity docs.
+
 ## Anti-patterns
 
 - ❌ A `ScriptableRendererFeature` or a `RecordRenderGraph` pass ported from a URP tutorial → ✅ a `CustomPass` on a `CustomPassVolume`, or a `CustomPostProcessVolumeComponent` registered in Graphics > HDRP (§4).
