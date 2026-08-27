@@ -23,7 +23,7 @@ namespace RootsDance.Editor.Tools
             "Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Gameplay.unity";
         private const string k_ArmsFbx = "Assets/RootsDance/Meshes/Characters/Arms.fbx";
         private const string k_Controller = "Assets/RootsDance/Animations/Controllers/PlayerArms.controller";
-        private const string k_HelmetMaterial = "Assets/RootsDance/Materials/HelmetPlaceholder.mat";
+        private const string k_HelmetMaterial = "Assets/RootsDance/Materials/HelmetShell.mat";
         private const string k_ArmsObjectName = "Arms";
         private const string k_StateName = "HelmetOff";
 

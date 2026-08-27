@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms.fbx",
   "m_blend": "../psx-first-person-arms-free-game-assets/arms_rig_helmat.blend",
-  "m_blendModifiedUtc": "2026-08-26T10:12:01+00:00",
+  "m_blendModifiedUtc": "2026-08-27T07:45:23+00:00",
   "m_action": "helmet_off",
   "m_armature": "ArmsRig",
   "m_frameStart": 1,
@@ -14,5 +14,5 @@
   ],
   "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/fps_arms.json",
-  "m_exportedUtc": "2026-08-26T12:19:12+00:00"
+  "m_exportedUtc": "2026-08-27T07:54:12+00:00"
 }
