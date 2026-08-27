@@ -258,7 +258,8 @@ namespace RootsDance.Editor.DevPlay
                 }
             }
 
-            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(checkpoint.Flags, entries);
+            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
+                checkpoint.Flags, entries, checkpoint.TimeOfDay);
 
             for (int i = 0; i < commands.Count; i++)
             {

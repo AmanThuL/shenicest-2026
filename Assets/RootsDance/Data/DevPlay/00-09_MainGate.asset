@@ -19,6 +19,7 @@ MonoBehaviour:
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1
+  m_timeOfDay: 2
   m_flags:
   - flow.left_start_area
   - flow.radio_briefing_started
