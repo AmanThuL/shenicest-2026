@@ -6,7 +6,7 @@ namespace RootsDance.Editor.Terrain
 {
     /// <summary>
     /// Packs the AmbientCG AO / Roughness / Displacement JPGs (kept un-imported under <c>Source~/</c>) into the
-    /// URP Terrain Lit mask layout — R metallic (0), G occlusion, B height, A smoothness (1 − roughness) — at
+    /// HDRP TerrainLit mask layout — R metallic (0), G occlusion, B height, A smoothness (1 − roughness) — at
     /// <c>Assets/RootsDance/Textures/Environment/Terrain&lt;Name&gt;_Mask.png</c>.
     /// Menu: RootsDance &gt; Terrain &gt; Pack Terrain Layer Masks.
     /// </summary>

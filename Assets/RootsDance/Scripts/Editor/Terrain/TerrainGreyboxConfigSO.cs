@@ -135,7 +135,7 @@ namespace RootsDance.Editor.Terrain
         {
             TerrainLayerDefinition[] layers = new TerrainLayerDefinition[TerrainSplatGenerator.k_LayerCount];
 
-            // URP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is a
+            // HDRP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is a
             // multiplicative colour cast chosen against each CC0 set's own colour — cool casts pull the warm
             // soils towards the greybox palette — and a lifted floor (tintMin) compresses a set's contrast,
             // which is what turns a saturated green into a cold grey-green without a second texture.

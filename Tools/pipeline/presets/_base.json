@@ -4,7 +4,7 @@
     "resolution": 1024,
     "format": "png",
     "bit_depth": 8,
-    "maps": ["BaseMap", "Normal", "Metallic", "Occlusion"]
+    "maps": ["BaseMap", "Normal", "Mask"]
   },
   "uv": {
     "padding_px": 8,
@@ -33,13 +33,13 @@
     "max_rear_distance": 0.01
   },
   "export": {
-    "painter_preset": "RootsDance URP Metallic",
+    "painter_preset": "Unity HD Render Pipeline (Metallic Standard)",
     "normal_format": "OpenGL",
-    "metallic_alpha_is_smoothness": true
+    "mask_alpha_is_smoothness": true
   },
   "unity": {
-    "render_pipeline": "URP",
-    "shader": "Universal Render Pipeline/Lit",
+    "render_pipeline": "HDRP",
+    "shader": "HDRP/Lit",
     "max_size": 1024,
     "compression": "Automatic",
     "compression_quality": "Normal",

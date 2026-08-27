@@ -1,15 +1,18 @@
 """Texture / mesh naming rules for RootsDance.
 
-The convention is NOT invented here -- it is the one already written down in
-docs/guidelines/02-project-structure.md section "Naming" (table row "Texture"):
+The convention is NOT invented here -- the file-name *shape* is the one written
+down in docs/guidelines/02-project-structure.md section "Naming" (table row
+"Texture"), and the *map set* is the HDRP Lit slot set from
+docs/guidelines/07-rendering-hdrp.md sections 9 and 10:
 
-    <Asset>_<Map>   with Map in BaseMap|Normal|Metallic|Specular|
-                                 Occlusion|Emission|Height
-    e.g. Crate_BaseMap.png, Crate_Normal.png
+    <Asset>_<Map>   with Map in BaseMap|Normal|Mask|Emission|Height
+    e.g. Crate_BaseMap.png, Crate_Normal.png, Crate_Mask.png
 
 PascalCase, no type prefixes (no T_ / M_ / SM_), underscore reserved for the
-map suffix.  The map names are the URP Lit shader's own slot names, which is
-what makes the mapping to Unity deterministic.
+map suffix.  The map names are the HDRP Lit shader's own slot names, which is
+what makes the mapping to Unity deterministic.  HDRP channel-packs metallic,
+ambient occlusion and smoothness into a single mask map, so there is no
+separate Metallic / Specular / Occlusion map any more.
 
 Multi-material assets: guideline 02 gives no rule for a per-material-slot
 texture set, so this module defines one (flagged as a project decision in
@@ -23,27 +26,29 @@ stays unambiguous.
 
 import re
 
-# URP Lit slot names, in the order a material should be built.
+# HDRP Lit slot names, in the order a material should be built.
+# Mask is channel-packed: R metallic, G ambient occlusion, B detail mask
+# (B height for a terrain layer), A smoothness -- see
+# docs/guidelines/07-rendering-hdrp.md section 9.
 MAPS = (
     "BaseMap",
     "Normal",
-    "Metallic",
-    "Specular",
-    "Occlusion",
+    "Mask",
     "Emission",
     "Height",
 )
 
 # Maps that carry colour and therefore must be imported as sRGB in Unity and
 # read as sRGB in Blender.  Everything else is linear data.
-# Source: docs/guidelines/07-rendering-urp.md section 10 table.
+# Source: docs/guidelines/07-rendering-hdrp.md section 10 table.
 SRGB_MAPS = frozenset({"BaseMap", "Emission"})
 
-# Maps that must never be produced without an alpha channel, because URP Lit
-# reads smoothness out of the metallic map's alpha by default
-# (Smoothness "Source" = "Metallic Alpha" -- docs/reference/rendering-urp/
-# manual-lit-shader.md).
-ALPHA_REQUIRED_MAPS = frozenset({"Metallic"})
+# Maps that must never be produced without an alpha channel, because HDRP Lit
+# has no separate smoothness slot at all: it always reads smoothness out of the
+# mask map's alpha (docs/guidelines/07-rendering-hdrp.md section 9;
+# docs/reference/rendering-hdrp/
+# render-pipelines-high-definition-17-3-mask-map-and-detail-map.md).
+ALPHA_REQUIRED_MAPS = frozenset({"Mask"})
 
 _STEM_RE = re.compile(r"^(?P<set>[A-Z][A-Za-z0-9]*)_(?P<map>[A-Za-z]+)$")
 _SET_RE = re.compile(r"^[A-Z][A-Za-z0-9]*$")

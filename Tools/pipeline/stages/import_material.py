@@ -8,11 +8,12 @@ colour spaces.  No GUI, no manual node dragging.
 The colour-space rules are the ones that actually break renders:
 
   * BaseMap and Emission are sRGB.
-  * Normal, Metallic, Occlusion, Height are Non-Color.  A data map left on
-    sRGB is gamma-decoded and shades wrong.
-  * The metallic map's ALPHA is smoothness (URP Lit convention), so Blender's
-    Roughness input gets 1 - alpha.  Wiring alpha straight to Roughness would
-    invert the material.
+  * Normal, Mask, Height are Non-Color.  A data map left on sRGB is
+    gamma-decoded and shades wrong.
+  * The mask map is channel-packed the HDRP way -- R metallic, G ambient
+    occlusion, B detail mask, A smoothness -- so Blender gets R -> Metallic
+    and 1 - A -> Roughness.  Wiring alpha straight to Roughness would invert
+    the material.
   * Normal maps go through a Normal Map node, never straight into the shader.
 
 Run:
@@ -39,8 +40,8 @@ from rdpipe import blendutil as bu
 # Node layout, so a human opening the file sees something readable.
 COL_TEX = -900
 COL_HELP = -450
-ROW = {"BaseMap": 400, "Metallic": 100, "Occlusion": -150,
-       "Normal": -400, "Emission": 650, "Height": -700, "Specular": -950}
+ROW = {"BaseMap": 400, "Mask": 100, "Normal": -400,
+       "Emission": 650, "Height": -700}
 
 
 def parse_args():
@@ -166,21 +167,27 @@ def wire(obj, tex_dir, preset, args, report):
                 nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
                 wired.append("Normal -> Normal Map node -> Normal (Non-Color)")
 
-            elif m == "Metallic":
-                nt.links.new(tex.outputs["Color"], bsdf.inputs["Metallic"])
-                # URP packs SMOOTHNESS in alpha; Blender wants ROUGHNESS.
+            elif m == "Mask":
+                # HDRP packs four grayscale maps into one texture, so Blender
+                # has to split it before anything can be wired.
+                sep = tag(nt.nodes.new("ShaderNodeSeparateColor"))
+                sep.label = "mask R/G/B"
+                sep.location = (COL_HELP, ROW["Mask"])
+                nt.links.new(tex.outputs["Color"], sep.inputs["Color"])
+                nt.links.new(sep.outputs["Red"], bsdf.inputs["Metallic"])
+
+                # HDRP packs SMOOTHNESS in alpha; Blender wants ROUGHNESS.
                 inv = tag(nt.nodes.new("ShaderNodeInvert"))
                 inv.label = "smoothness -> roughness"
-                inv.location = (COL_HELP, ROW["Metallic"])
+                inv.location = (COL_HELP, ROW["Mask"] - 200)
                 nt.links.new(tex.outputs["Alpha"], inv.inputs["Color"])
                 nt.links.new(inv.outputs["Color"], bsdf.inputs["Roughness"])
-                wired.append("Metallic -> Metallic, alpha(smoothness) "
+                wired.append("Mask.R -> Metallic, Mask.A (smoothness) "
                              "-> Invert -> Roughness")
 
-            elif m == "Occlusion":
-                # Principled has no AO input. Multiply it into Base Color when
-                # a BaseMap is present, otherwise leave it unconnected rather
-                # than pretending it does something.
+                # Principled has no AO input. Multiply the green channel into
+                # Base Color when a BaseMap is present, otherwise leave it
+                # unconnected rather than pretending it does something.
                 base = bsdf.inputs["Base Color"]
                 if base.is_linked:
                     src = base.links[0].from_socket
@@ -188,19 +195,19 @@ def wire(obj, tex_dir, preset, args, report):
                     mix.data_type = "RGBA"
                     mix.blend_type = "MULTIPLY"
                     mix.label = "AO x BaseMap"
-                    mix.location = (COL_HELP, ROW["Occlusion"])
+                    mix.location = (COL_HELP, ROW["Mask"] - 400)
                     mix.inputs["Factor"].default_value = 1.0
                     nt.links.new(src, mix.inputs[6])
-                    nt.links.new(tex.outputs["Color"], mix.inputs[7])
+                    nt.links.new(sep.outputs["Green"], mix.inputs[7])
                     nt.links.new(mix.outputs[2], base)
-                    wired.append("Occlusion -> multiplied into Base Color "
-                                 "(Blender preview only; Unity uses the "
-                                 "Occlusion slot directly)")
+                    wired.append("Mask.G (AO) -> multiplied into Base Color "
+                                 "(Blender preview only; HDRP Lit reads AO "
+                                 "out of the mask map itself)")
                 else:
                     report.warn("material.ao_unconnected", mat.name,
-                                "Occlusion map loaded but Base Color is not "
-                                "linked, so there is nothing to multiply it "
-                                "into; node left unconnected")
+                                "Mask.G is ambient occlusion but Base Color is "
+                                "not linked, so there is nothing to multiply it "
+                                "into; that channel is left unconnected")
 
             elif m == "Emission":
                 nt.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
@@ -216,11 +223,6 @@ def wire(obj, tex_dir, preset, args, report):
                         nt.links.new(disp.outputs["Displacement"],
                                      n.inputs["Displacement"])
                 wired.append("Height -> Displacement (Non-Color)")
-
-            elif m == "Specular":
-                nt.links.new(tex.outputs["Color"],
-                             bsdf.inputs["Specular IOR Level"])
-                wired.append("Specular -> Specular IOR Level")
 
         if wired:
             report.info("material.wired", mat.name,
@@ -241,10 +243,12 @@ def verify(obj, preset, report):
             report.error("material.no_bsdf", mat.name,
                          "no Principled BSDF after wiring")
             continue
+        # Map name -> the BSDF input it must end up driving. Mask feeds
+        # Metallic through its red channel, so that is what proves it is wired.
         checks = {
             "BaseMap": "Base Color",
             "Normal": "Normal",
-            "Metallic": "Metallic",
+            "Mask": "Metallic",
             "Emission": "Emission Color",
         }
         for m, socket in checks.items():

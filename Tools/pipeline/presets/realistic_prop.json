@@ -3,7 +3,7 @@
   "description": "Full PBR prop. The ceiling is guidelines/05 section 7.1: 1024 for props, 2048 only for environment/hero, never 4096 without a profile.",
   "texture": {
     "resolution": 1024,
-    "maps": ["BaseMap", "Normal", "Metallic", "Occlusion"]
+    "maps": ["BaseMap", "Normal", "Mask"]
   },
   "uv": {
     "padding_px": 8,

@@ -49,20 +49,28 @@ BAKERS = {
 }
 
 # What a Painter export preset calls a map -> what guideline 02 calls it.
-# Keys are matched against the tail of the exported file stem.
+# Keys are matched against the tail of the exported file stem.  The HDRP preset
+# below exports the channel-packed MaskMap instead of the separate
+# MetallicSmoothness / AmbientOcclusion pair the old URP preset produced, so
+# those two names are gone: there is no map kind left for them to become.
+# The BaseColor / AlbedoTransparency spellings are kept because Painter's
+# presets disagree with each other about which one they use.
 MAP_ALIASES = [
     ("AlbedoTransparency", "BaseMap"),
     ("BaseColor", "BaseMap"),
-    ("MetallicSmoothness", "Metallic"),
+    ("BaseMap", "BaseMap"),
+    ("MaskMap", "Mask"),
+    ("Mask", "Mask"),
     ("Normal", "Normal"),
-    ("AmbientOcclusion", "Occlusion"),
-    ("Occlusion", "Occlusion"),
     ("Emissive", "Emission"),
     ("Emission", "Emission"),
     ("Height", "Height"),
 ]
 
-DEFAULT_EXPORT_PRESET = "Unity Universal Render Pipeline (Metallic Standard)"
+# Painter's built-in HDRP metallic preset. Re-run painter/painter_probe.py
+# after a Painter upgrade: the export-preset names are not part of any stable
+# API, and the stage fails loudly ("export preset not found") if this drifts.
+DEFAULT_EXPORT_PRESET = "Unity HD Render Pipeline (Metallic Standard)"
 
 # Painter refuses to export without an explicit padding algorithm, so the
 # pipeline has to state its padding policy rather than inherit a default.
