@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4268138e18011e1498f40e6f97c19c05
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Normal Planar2D
+    To TS.asset
+  uploadId: 974988

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a2a8053982d30ea47bb5b8d8fc3dc1dd
+timeCreated: 1571816218
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Compute Alpha
+    Clip.asset
+  uploadId: 974988

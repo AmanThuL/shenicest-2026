@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d86a3ebf6a178a3429efc6c73ab6f9a6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Sampler Clamp
+    Low.asset
+  uploadId: 974988

@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b2425a2284af743826c689403a4924, type: 3}
+  m_Name: Compute Mask Blend
+  m_EditorClassIdentifier: 
+  m_functionInfo: "// Made with Amplify Shader Editor v1.9.9.12\n// Available at
+    the Unity Asset Store - http://u3d.as/y3X \n/*ASEBEGIN\nVersion=19912\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":94,\"pos\":[-1536,-896],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":64,\"pos\":[-2048,-1152],\"params\":[\"Inherit\",\"False\",\"Mask\",\"1\",\"0\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RangedFloatNode,
+    AmplifyShaderEditor\",\"id\":97,\"pos\":[-1152,-448],\"params\":[\"Half\",\"False\",\"Property\",\"_render_masking\",\"_render_masking\",\"0\",\"1\",\"[HideInInspector]\",\"Create\",\"True\",\"0\",\"2\",\"Legacy
+    Multiply Feature Masks\",\"0\",\"Subtract Feature And Global Values\",\"1\",\"0\",\"False\",\"0\",\"False\",\"Object\",\"-1\",\"\",\"1\",\"0\",\"0\",\"0\",\"0\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":93,\"pos\":[-896,-896],\"params\":[\"Half\",\"False\",\"switch
+    (Option) {\\n\\tdefault:\\n                case 0:\\n\\t\\treturn Multiply;\\n\\tcase
+    1:\\n\\t\\treturn Subtract;\\n}\",\"1\",\"Create\",\"3\",\"True\",\"Multiply\",\"FLOAT\",\"0\",\"In\",\"\",\"Half\",\"False\",\"True\",\"Subtract\",\"FLOAT\",\"0\",\"In\",\"\",\"Half\",\"False\",\"True\",\"Option\",\"FLOAT\",\"0\",\"In\",\"\",\"Half\",\"False\",\"SwitchBlendMask\",\"False\",\"False\",\"0\",\"\",\"False\",\"3\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleSubtractOpNode,
+    AmplifyShaderEditor\",\"id\":96,\"pos\":[-1280,-704],\"params\":[\"Inherit\",\"False\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SaturateNode,
+    AmplifyShaderEditor\",\"id\":98,\"pos\":[-1136,-704],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.OneMinusNode,
+    AmplifyShaderEditor\",\"id\":95,\"pos\":[-1536,-640],\"params\":[\"Inherit\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":92,\"pos\":[-2048,-896],\"params\":[\"Inherit\",\"False\",\"Value\",\"1\",\"1\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":99,\"pos\":[-1152,-512],\"params\":[\"Inherit\",\"False\",\"Mode\",\"1\",\"2\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":74,\"pos\":[-640,-896],\"params\":[\"Inherit\",\"False\",\"True\",\"-1\",\"\",\"0\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"wire\":[94,0,64,0]}\n{\"wire\":[94,1,92,0]}\n{\"wire\":[93,0,94,0]}\n{\"wire\":[93,1,98,0]}\n{\"wire\":[93,2,99,0]}\n{\"wire\":[96,0,92,0]}\n{\"wire\":[96,1,95,0]}\n{\"wire\":[98,0,96,0]}\n{\"wire\":[95,0,64,0]}\n{\"wire\":[74,0,93,0]}\nASEEND*/\n//CHKSM=FD8E5ACCCD7151E534E1EF8C251EDC0AB5CF494F"
+  m_functionName: 
+  m_description: 
+  m_additionalIncludes:
+    m_additionalIncludes: []
+    m_outsideIncludes: []
+  m_additionalPragmas:
+    m_additionalPragmas: []
+    m_outsidePragmas: []
+  m_additionalDirectives:
+    m_validData: 0
+    m_isDirty: 0
+    m_moduleName: ' Additional Directives'
+    m_independentModule: 1
+    m_customEdited: 0
+    m_additionalDirectives: []
+    m_shaderFunctionDirectives: []
+    m_nativeDirectives: []
+    m_nativeDirectivesIndex: -1
+    m_nativeDirectivesFoldout: 0
+    m_directivesSaveItems: []
+    m_versionMaxExclusive: 1
+  m_nodeCategory: 0
+  m_headerStyle: 2
+  m_headerColor: {r: 1, g: 0.62734854, b: 0, a: 1}
+  m_customNodeCategory: The Visual Engine
+  m_previewPosition: 0
+  m_hidden: 0
+  m_url: 

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: a8db937c29dcb3547a9f5b130be8cfef
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Motion Wind
+    Control.shader
+  uploadId: 974988

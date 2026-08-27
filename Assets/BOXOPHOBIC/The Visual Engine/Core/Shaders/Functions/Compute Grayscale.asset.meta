@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 20375d8ab5c5bc04793f124ae8c1af26
+timeCreated: 1571816218
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Compute Grayscale.asset
+  uploadId: 974988

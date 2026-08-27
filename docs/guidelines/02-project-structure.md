@@ -8,7 +8,7 @@ Related guidelines: [01 C# style](./01-csharp-style.md) (file/class naming), [06
 
 ## TL;DR — rules at a glance
 
-1. **MUST** put all project-owned content under `Assets/RootsDance/`, split by asset type exactly as in the [Appendix](#appendix-folder-tree). Only five folders exist at the `Assets/` root: `RootsDance/`, `ThirdParty/`, `Plugins/`, `_Sandbox/`, `ScriptTemplates/` (plus the Unity-generated `TextMesh Pro/` and `UI Toolkit/` folders, untouched, and Unity-forced root folders such as `StreamingAssets/` only when actually needed).
+1. **MUST** put all project-owned content under `Assets/RootsDance/`, split by asset type exactly as in the [Appendix](#appendix-folder-tree). Only five folders exist at the `Assets/` root: `RootsDance/`, `ThirdParty/`, `Plugins/`, `_Sandbox/`, `ScriptTemplates/` (plus the Unity-generated `TextMesh Pro/` and `UI Toolkit/` folders, untouched, Unity-forced root folders such as `StreamingAssets/` only when actually needed, and the vendor-required root folders recorded in [`docs/third-party.md`](../third-party.md) — currently `BOXOPHOBIC/`, `BOXOPHOBIC+/`, `PluginMaster/`).
 2. **MUST** keep every C# file inside one of the four assembly scopes (`Scripts/Runtime`, `Scripts/Editor`, `Tests/EditMode`, `Tests/PlayMode`). Third-party code stays in `ThirdParty/`; throwaway code stays in `_Sandbox/<username>/`.
 3. **MUST** mirror namespaces with folders: `Scripts/Runtime/Player/` ⇢ `namespace RootsDance.Player`.
 4. **MUST** move, rename and delete assets inside the Unity Editor (Project window) so the `.meta` file travels with the asset; `.meta` files are always committed.
@@ -143,6 +143,8 @@ Hidden by the importer: folders/files starting with `.` (except under `Streaming
 - *Source:* [Organizing your project](../reference/project-structure/how-to-organizing-your-project.md). **[project decision]** for the record location.
 
 **Odin Inspector is the one vendor package that lives in `Assets/Plugins/Sirenix/` instead of `ThirdParty/`.** It is Odin's own install path (its config assets, path lookup and per-platform assembly folders are resolved relative to it), so it stays there; the exception is recorded in [`docs/third-party.md`](../third-party.md) and every usage rule is in [12 Odin Inspector](./12-odin-inspector.md). The same "never edit in place, one `chore(odin):` commit per import/upgrade" rules apply as for `ThirdParty/`. **[project decision, 2026-08-24]**
+
+**The Visual Engine (`Assets/BOXOPHOBIC/` + `Assets/BOXOPHOBIC+/`) and Prefab World Builder (`Assets/PluginMaster/`) are the other vendor packages that stay at the `Assets/` root.** Both hard-code their own path in code (`BoxoUtils.GetUserFolder()`, `PWBData.RELATIVE_TOOL_DIR`), which is exactly the exception above; the records, the demo/tutorial content that was deleted after import and the scripting defines they add are in [`docs/third-party.md`](../third-party.md). Same rules as `ThirdParty/`: never edit in place, one `chore(packages):` commit per import/upgrade, delete vendor demo/sample/tutorial folders and `.unitypackage` archives right after importing. **[project decision, 2026-08-27]**
 
 **MUST** give third-party code an assembly definition (the vendor's own, or a minimal `.asmdef` added at its root folder) before `RootsDance.Runtime` may reference it.
 - *Why:* Scripts without an asmdef compile into the predefined `Assembly-CSharp`, and custom assemblies cannot reference predefined assemblies. Adding an `.asmdef` is the one tolerated edit inside `ThirdParty/`.

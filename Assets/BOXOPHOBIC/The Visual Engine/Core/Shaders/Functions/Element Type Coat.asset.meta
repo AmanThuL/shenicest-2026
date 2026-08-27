@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4e3b30f5ed0011b43b960e98331fd8e6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Element Type
+    Coat.asset
+  uploadId: 974988

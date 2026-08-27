@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: ea8be3b3326e183449f0e6eaf1f2c663
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Build Interp
+    Data.asset
+  uploadId: 974988

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8f9c8d63d1682c64cbd5fee0e1494742
+timeCreated: 1574174400
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Space Always
+    Linear.asset
+  uploadId: 974988

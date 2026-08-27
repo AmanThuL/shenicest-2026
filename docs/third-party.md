@@ -21,6 +21,23 @@
   - **Unverified:** this repo currently has no Unity Editor access to confirm in-Editor that DOTween runs cleanly (zero console errors/warnings) with no settings asset present. A teammate should open the project once and confirm before relying on this pattern further.
 - **Usage:** `using DG.Tweening;` in any `RootsDance.Runtime` file that needs it.
 
+## The Visual Engine (BOXOPHOBIC) — `Assets/BOXOPHOBIC/` + `Assets/BOXOPHOBIC+/`
+
+- **Version:** 22.0.0 (`Version.asset` data `2200`), HDRP support package "High Definition 6000.0+". Imported 2026-08-27.
+- **Vendor-required paths.** The editor tooling hard-codes the user folder `Assets/BOXOPHOBIC+` (`BoxoUtils.GetUserFolder()`, `TVEShaderManager`, `TVEMaterialManager`, `TVEAssetManager`, `TVEMaterialUpgrader`, `TVESceneDebugger`), and the installer/upgrader locates the core folder next to it — so both trees stay at the `Assets/` root instead of `Assets/ThirdParty/`.
+- **Removed after import** (re-import the Asset Store package if any of it is ever needed): `The Visual Engine/Demo/` (412 MB — nine demo scenes, demo vegetation prefabs, terrain and textures), `The Visual Engine/Learn/` (tutorial scene) and `The Visual Engine/Core/Pipelines/` (the three per-pipeline `.unitypackage` archives; the HDRP one was already applied by the installer, and [02](guidelines/02-project-structure.md) §5 forbids `.unitypackage` files under `Assets/`). Two `Core/Resources/Internal *TexRT.mat` materials keep stale Amplify property slots pointing at a deleted demo texture; their shader (`CustomRT Drops`) only samples `_DropsTex`, so this is harmless.
+- **No local edits.** `Assets/BOXOPHOBIC+/User/The Visual Engine/{Version,Pipeline}.asset` are written by the vendor installer and are committed so the installer does not re-run on other machines.
+- The installer writes `THE_VISUAL_ENGINE_V22;THE_VISUAL_ENGINE_HD` into `ProjectSettings/ProjectSettings.asset` (Standalone group) and sets vertex compression / script execution order for its own scripts. Its `Core/Resources/` folder is vendor-internal (the `Resources/` ban in [02](guidelines/02-project-structure.md) §4 is about project-owned content).
+- **Usage:** vegetation/wind/interaction shaders and the `TVE Manager` scene component; rendering rules in [07](guidelines/07-rendering-hdrp.md). Manual: `Assets/BOXOPHOBIC/The Visual Engine/The Visual Engine.pdf`.
+
+## Prefab World Builder (PluginMaster) — `Assets/PluginMaster/`
+
+- **Version:** 4.12.2. Imported 2026-08-27. Editor-only (everything is under `DesignTools/Editor/`), no runtime code, no samples shipped.
+- **Vendor-required path.** `PWBData.RELATIVE_TOOL_DIR = "PluginMaster/DesignTools/Editor/PrefabWorldBuilder"` and `Resources/Data/PWBData.txt` (`_rootDirectory`) pin the tool to `Assets/PluginMaster/…`, so it stays at the `Assets/` root instead of `Assets/ThirdParty/`.
+- **No local edits.**
+- PWB stores its palettes under `Resources/Data/` inside its own tree and its shortcut profiles + data-dir pointer in `ProjectSettings/PWBSettings.txt` (both committed — palettes are shared team content). It adds `PWB_HDRP` to the Standalone scripting defines.
+- **Usage:** prefab painting / placement for level dressing ([11](guidelines/11-scenes-prefabs-workflow.md)). Manual: `Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Documentation/Prefab World Builder Documentation.pdf`.
+
 ## IngameDebugConsole (yasirkula) — UPM package
 
 Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the OpenUPM scoped registry added to `Packages/manifest.json`), not vendored under `Assets/`. No exception needed — this is the preferred path per [09-packages-systems.md](guidelines/09-packages-systems.md); no entry required here.

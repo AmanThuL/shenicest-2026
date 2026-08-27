@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b2425a2284af743826c689403a4924, type: 3}
+  m_Name: Block Pivots Add
+  m_EditorClassIdentifier: 
+  m_functionInfo: "// Made with Amplify Shader Editor v1.9.9.9\n// Available at the
+    Unity Asset Store - http://u3d.as/y3X \n/*ASEBEGIN\nVersion=19909\nNode;AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;217;-2688,-2176;Inherit;False;Break
+    Model Vert;-1;;76693;857ca65fcb9040b469951916ec700215;0;1;6;OBJECT;0;False;16;OBJECT;40;FLOAT;14;FLOAT3;0;FLOAT3;16;FLOAT3;17;FLOAT3;24;FLOAT3;18;FLOAT3;19;FLOAT3;20;FLOAT3;21;FLOAT4;25;FLOAT3;35;FLOAT4;38;FLOAT4;29;FLOAT4;30;FLOAT4;27\nNode;AmplifyShaderEditor.SimpleAddOpNode,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;216;-2304,-2304;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0\nNode;AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;223;-2688,-2688;Inherit;False;Break
+    Vertex Data;-1;;130904;a5c067fa4ff90aa4db6f78782153fb5f;0;1;6;OBJECT;0;False;8;OBJECT;40;FLOAT;14;FLOAT3;0;FLOAT3;20;FLOAT4;25;FLOAT4;31;FLOAT4;33;FLOAT4;37\nNode;AmplifyShaderEditor.FunctionNode,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;224;-1536,-2688;Inherit;False;Build
+    Vertex Data;-1;;130905;1d558656df87748478fabc89fa25e2a5;0;8;39;OBJECT;0;False;14;FLOAT;0;False;4;FLOAT3;0,0,0;False;21;FLOAT3;0,0,0;False;6;FLOAT4;0,1,0,1;False;30;FLOAT4;0,0,0,0;False;32;FLOAT4;0,0,0,0;False;36;FLOAT4;0,0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;225;-2944,-2176;Inherit;False;Model
+    Data;15;1;False;1;0;OBJECT;0,0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;146;-2944,-2688;Inherit;False;Vertex
+    Data;15;0;False;1;0;OBJECT;0,0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;227;-2944,-1664;Inherit;False;Global
+    Data;15;2;False;1;0;OBJECT;0,0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;128;-1184,-2688;Inherit;False;True;-1;Vertex
+    Data;0;False;1;0;OBJECT;0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;228;-2688,-1664;Inherit;False;False;-1;Global
+    Data;2;False;1;0;OBJECT;0,0,0;False;1;OBJECT;0\nNode;AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null;226;-2304,-2176;Inherit;False;False;-1;Model
+    Data;1;False;1;0;OBJECT;0,0,0;False;1;OBJECT;0\nWireConnection;217;6;225;0\nWireConnection;216;0;223;0\nWireConnection;216;1;217;24\nWireConnection;223;6;146;0\nWireConnection;224;39;223;40\nWireConnection;224;4;216;0\nWireConnection;224;21;223;20\nWireConnection;224;6;223;25\nWireConnection;224;30;223;31\nWireConnection;224;32;223;33\nWireConnection;224;36;223;37\nWireConnection;128;0;224;0\nWireConnection;228;0;227;0\nWireConnection;226;0;217;40\nASEEND*/\n//CHKSM=2930E12B9FCB9084A48055BD33962AA5F7B23DF9"
+  m_functionName: 
+  m_description: 
+  m_additionalIncludes:
+    m_additionalIncludes: []
+    m_outsideIncludes: []
+  m_additionalPragmas:
+    m_additionalPragmas: []
+    m_outsidePragmas: []
+  m_additionalDirectives:
+    m_validData: 0
+    m_isDirty: 0
+    m_moduleName: ' Additional Directives'
+    m_independentModule: 1
+    m_customEdited: 0
+    m_additionalDirectives: []
+    m_shaderFunctionDirectives: []
+    m_nativeDirectives: []
+    m_nativeDirectivesIndex: -1
+    m_nativeDirectivesFoldout: 0
+    m_directivesSaveItems: []
+  m_nodeCategory: 0
+  m_headerStyle: 2
+  m_headerColor: {r: 1, g: 0.23137254, b: 0.71175003, a: 1}
+  m_customNodeCategory: The Visual Engine Block
+  m_previewPosition: 0
+  m_hidden: 0
+  m_url: 
