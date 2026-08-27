@@ -54,7 +54,7 @@ shenicest-2026/
 │   └── reference/               # 1,550 official Unity docs + third-party/odin-inspector/ (generated from the Odin XML docs)
 ├── Assets/
 │   ├── RootsDance/               # all project-owned assets — tree in guideline 02
-│   │   ├── Scripts/Runtime/     # RootsDance.Runtime.asmdef — App, Core, Data, Events, Player, Cameras, UI
+│   │   ├── Scripts/Runtime/     # RootsDance.Runtime.asmdef — App, Core, Data, Events, Player, Cameras, UI, Rendering
 │   │   ├── Scripts/Editor/      # RootsDance.Editor.asmdef
 │   │   ├── Tests/{EditMode,PlayMode}/
 │   │   ├── Scenes/              # Bootstrap, MainMenu, PrefabStage, Levels/<Level>/

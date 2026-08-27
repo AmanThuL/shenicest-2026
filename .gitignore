@@ -129,6 +129,8 @@ Thumbs.db
 # Shared agent instructions are AGENTS.md / CLAUDE.md, which are committed (guideline 06).
 CLAUDE.local.md
 .claude/settings.local.json
+# Claude Code native worktrees (each one is a full checkout with its own Library/).
+.claude/worktrees/
 
 # Python bytecode from Tools/ pipeline scripts
 __pycache__/
