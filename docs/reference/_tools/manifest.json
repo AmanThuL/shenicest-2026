@@ -14056,5 +14056,1445 @@
   "official": true,
   "priority": "should",
   "why": "UnityCsReference 6000.3 deprecated-API shim: documents the exact [Obsolete] status of the pre-Unity-6 physics member names."
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/index.html",
+  "title": "HDRP package manual (index)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Entry page of the HDRP 17.3 manual: what HDRP is, supported platforms, links into every section.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/whats-new-17.html",
+  "title": "What's new in HDRP 17",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Changes shipped with HDRP 17 (Unity 6): renamed/removed features the migration must account for.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/HDRP-Features.html",
+  "title": "HDRP features list",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Complete list of HDRP rendering, lighting, material and post-processing features with short descriptions.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/System-Requirements.html",
+  "title": "HDRP system requirements",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Minimum platforms, graphics APIs (DX12/Vulkan/Metal), compute-shader requirement; states that HDRP does not support mobile or WebGL.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/install-hdrp.html",
+  "title": "Install HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How to add the HDRP package to an existing project and which Unity version it needs.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Render-Pipeline-Wizard.html",
+  "title": "HDRP Wizard reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Reference for the HDRP Wizard window (Window > Rendering > HDRP Wizard): project-configuration checks, one-click fixes, DXR checks, material converters.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Upgrading-from-2023.2-to-unity-6-preview.html",
+  "title": "Upgrade from HDRP 16.x to 17.x",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Behaviour and API changes between HDRP 16 (2023.2) and HDRP 17 (Unity 6), including Global Settings changes.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/configure-a-project-using-the-hdrp-wizard.html",
+  "title": "Configure a project using the HDRP Wizard",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Step-by-step use of the Wizard to fix project settings (colour space, shadow mask mode, lightmap encoding, graphics APIs).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/configure-build-settings-for-different-platforms.html",
+  "title": "Configure build settings for different platforms",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Per-platform build settings HDRP needs (graphics APIs, Windows/macOS/console requirements).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/quality-settings.html",
+  "title": "Quality settings in HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How Unity Quality levels map to HDRP Assets and how per-quality-level overrides in the HDRP Asset work.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Frame-Settings.html",
+  "title": "Frame Settings",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Per-camera, per-reflection-probe and default Frame Settings: which features cameras render and how defaults are overridden.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-an-hdrp-asset.html",
+  "title": "Create an HDRP Asset",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Creating the HDRP Asset, assigning it in Graphics/Quality settings, and how Quality levels reference multiple assets.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/HDRP-Asset.html",
+  "title": "HDRP Asset reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Complete property reference of the HDRP Asset: rendering, lighting, shadows, lit shader mode, post-processing, quality tiers and memory-affecting toggles.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/frame-settings-reference.html",
+  "title": "Frame Settings reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for every Frame Settings entry (rendering, lighting, async compute, light loop debug).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Default-Settings-Window.html",
+  "title": "HDRP graphics settings window reference (Project Settings > Graphics > HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Reference for the HDRP tab in Project Settings > Graphics (the former HDRP Global Settings): default volume profile, default frame settings, custom post-process orders, layer names, resources.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Frame-Settings-API.html",
+  "title": "Modify frame settings at runtime",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "C# API for reading and overriding Frame Settings on a camera at runtime.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-volumes.html",
+  "title": "Understand Volumes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Volume framework concepts: global vs local volumes, blending, priority, weight, blend distance.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/set-up-a-volume.html",
+  "title": "Set up a Volume",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Creating global and local Volume GameObjects and assigning profiles.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-volume-profile.html",
+  "title": "Create a Volume Profile",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Volume Profile assets: creation, sharing between volumes, editing in the Inspector.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/configure-volume-overrides.html",
+  "title": "Configure Volume Overrides",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Adding Volume Overrides to a profile and using the per-property override checkboxes.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/volumes-troubleshooting.html",
+  "title": "Troubleshooting volumes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Why a volume override appears to have no effect: layers, priority, camera volume mask, default profiles.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/volume-component.html",
+  "title": "Volume component reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Volume component (mode, blend distance, weight, priority, profile).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Volumes-API.html",
+  "title": "Modify volume effects at runtime",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "C# API for reading and writing Volume Override parameters at runtime (VolumeManager, profile instancing).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/convert-project-from-built-in-render-pipeline.html",
+  "title": "Convert a project from the Built-in Render Pipeline to HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Overview of the Built-in to HDRP conversion: what converts automatically, what needs manual work.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/convert-from-built-in-convert-project-with-hdrp-wizard.html",
+  "title": "Convert project with the HDRP Wizard",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Using the Wizard to fix project settings and run the converters during a pipeline conversion.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/convert-from-built-in-convert-materials-and-shaders.html",
+  "title": "Convert materials and shaders to HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Material converter (Standard/Legacy to HDRP Lit), which shaders cannot be converted, mask-map repacking of metallic/smoothness/AO.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/convert-from-built-in-convert-lighting-and-shadows.html",
+  "title": "Convert lighting and shadows to HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Physical light units, intensity conversion, exposure, sky/ambient differences and shadow setting changes after a conversion.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/convert-from-built-in-convert-post-processing-scripts.html",
+  "title": "Convert post-processing scripts to HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Replacing the Post Processing Stack v2 with HDRP volume overrides and porting scripts that touch post-processing.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Physical-Light-Units.html",
+  "title": "Understand physical light units",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Candela, lumen, lux, nits, EV100 and the physically based intensity ranges HDRP expects for each light type.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Light-Component.html",
+  "title": "Create and configure light sources",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDRP Light component workflow: light types, shapes, intensity units, cookies, shadows, light layers, celestial body.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reference-light-component.html",
+  "title": "Light component reference (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for every section of the HDRP Light Inspector (general, shape, celestial body, emission, volumetrics, shadows).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/creating-and-editing-lights-at-runtime.html",
+  "title": "Create and edit lights at runtime",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDAdditionalLightData API for creating and changing HDRP lights from C#.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/IES-Profile.html",
+  "title": "Understand IES light profiles",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "IES photometric profiles as light cookies in HDRP and their limitations.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Rendering-Layers.html",
+  "title": "Use light rendering layers",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Rendering (light) layers: making lights affect only selected renderers, decal layers, layer names in the HDRP settings.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/ambient-lighting-configure.html",
+  "title": "Configure environment lighting",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Setting the sky used for lighting vs the sky used for baking (Static Lighting Sky) and ambient mode.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/ambient-occlusion-introduction.html",
+  "title": "Ambient occlusion (introduction)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "The three AO sources in HDRP (material AO texture, SSAO, ray-traced AO) and how they combine.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Ambient-Occlusion.html",
+  "title": "Screen Space Ambient Occlusion (SSAO)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "SSAO volume override: enabling it, quality tiers, temporal accumulation, per-quality settings in the HDRP Asset.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Exposure.html",
+  "title": "Control exposure",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Exposure volume override modes: Fixed, Automatic, Automatic Histogram, Curve Mapping, Use Physical Camera; metering and adaptation.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reference-override-exposure.html",
+  "title": "Exposure volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for every exposure mode (fixed EV, compensation, limits, histogram, adaptation speed).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/test-debug-exposure.html",
+  "title": "Debug exposure",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Rendering Debugger exposure views (EV100 false colour, metering weight, histogram) to validate light intensities.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Shadows.html",
+  "title": "Use the Shadows volume component override",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Shadows override: max shadow distance, cascade count/splits, directional transmission, cascade border.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Shadows-in-HDRP.html",
+  "title": "Control shadow resolution and quality",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Shadow atlases, per-light resolution tiers, shadow filtering quality and the HDRP Asset shadow settings.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/shadow-update-mode.html",
+  "title": "Set a shadow update mode",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Every Frame vs On Enable vs On Demand shadow map updates to save GPU time on static lights.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Lighting-Mode-Shadowmask.html",
+  "title": "Use shadowmasks",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Shadowmask and Distance Shadowmask mixed-lighting modes in HDRP and the per-light Shadowmask Mode.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Contact-Shadows.html",
+  "title": "Use contact shadows",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Screen-space contact shadows override: what it adds, per-light enabling, quality tiers.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reference-shadows-volume-override.html",
+  "title": "Shadows volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Shadows override (distance, cascades, PCSS filtering, transmission).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/probevolumes-concept.html",
+  "title": "Understanding Adaptive Probe Volumes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How APV bricks, cells and streaming work and how they differ from Light Probe Groups.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/probevolumes-use.html",
+  "title": "Use Adaptive Probe Volumes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Enabling APV in the HDRP Asset, adding volumes, baking with the Lighting window.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Volumetric-Lighting.html",
+  "title": "Enable and configure volumetric lights",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Volumetric fog lighting: enabling in the HDRP Asset and Frame Settings, per-light volumetric settings, quality tiers.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Screen-Space-GI.html",
+  "title": "Screen space global illumination (SSGI)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "SSGI volume override: enabling it, quality tiers, fallback to APV/lightmaps and its cost.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reflection-understand.html",
+  "title": "Understand reflection in HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "The reflection hierarchy: SSR, planar and cube reflection probes, sky fallback and how they blend.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Reflection-Probe.html",
+  "title": "Reflection Probe reference (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the HDRP Reflection Probe component (type, realtime mode, influence volume, capture settings).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Planar-Reflection-Probe.html",
+  "title": "Planar Reflection Probe reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Planar Reflection Probe component.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Override-Screen-Space-Reflection.html",
+  "title": "Use screen space reflection",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "SSR volume override: enabling it in the HDRP Asset and Frame Settings, transparent SSR, quality tiers.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-refraction.html",
+  "title": "Understand refraction",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How HDRP renders refraction on transparent materials via the colour pyramid and proxy volumes.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Ray-Tracing-Getting-Started.html",
+  "title": "Set up ray tracing",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "DXR ray tracing prerequisites and setup; explains why the project keeps ray tracing disabled.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/raytracing-requirements.html",
+  "title": "Ray tracing hardware requirements",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Hardware/API requirements for DXR features in HDRP.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-sky.html",
+  "title": "Understand sky",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Sky rendering in HDRP: Visual Environment override, sky types and the ambient/static lighting sky distinction.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/set-the-type-of-sky.html",
+  "title": "Set the type of sky (Visual Environment)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Using the Visual Environment override to pick the sky type and background/ambient mode.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-gradient-sky.html",
+  "title": "Create a gradient sky",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Gradient Sky override workflow (top/middle/bottom colours, diffusion, exposure, multiplier).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-an-hdri-sky.html",
+  "title": "Create an HDRI sky",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDRI Sky override workflow: cubemap import, exposure/intensity modes, backplate.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-physically-based-sky.html",
+  "title": "Create a physically based sky",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Physically Based Sky override and its atmosphere/planet model; heavier than gradient/HDRI.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/gradient-sky-volume-override-reference.html",
+  "title": "Gradient Sky volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Gradient Sky override.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/hdri-sky-volume-override-reference.html",
+  "title": "HDRI Sky volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the HDRI Sky override (intensity mode, rotation, update mode, backplate).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/visual-environment-volume-override-reference.html",
+  "title": "Visual Environment volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Visual Environment override (sky type, background clouds, ambient mode, wind).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Understand-Fog.html",
+  "title": "Understand fog",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Fog model in HDRP: exponential height fog, volumetric fog, Local Volumetric Fog and how they combine.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-global-fog-effect.html",
+  "title": "Create a global fog effect",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Fog volume override workflow: enabling fog, colour modes, height, volumetric fog quality.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-local-fog-effect.html",
+  "title": "Create a local fog effect (Local Volumetric Fog)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Local Volumetric Fog component workflow: density masks, blend distances, falloff, limits per camera.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/troubleshoot-fog.html",
+  "title": "Troubleshoot fog",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Common fog problems: fog not visible, banding, volumetric fog disabled in Frame Settings/HDRP Asset.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/fog-volume-override-reference.html",
+  "title": "Fog volume override reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Fog override (attenuation distance, base height, max height, volumetric fog settings).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/local-volumetric-fog-volume-reference.html",
+  "title": "Local Volumetric Fog component reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Local Volumetric Fog component (size, blend, density mask, falloff).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-clouds.html",
+  "title": "Understand clouds",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Cloud Layer vs Volumetric Clouds and their cost.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-realistic-clouds-volumetric-clouds.html",
+  "title": "Create realistic clouds (Volumetric Clouds)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Volumetric Clouds override workflow and performance notes.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/water-use-the-water-system-in-your-project.html",
+  "title": "Use the water system in your project",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Enabling the HDRP water system and adding a water surface.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/hdrp-camera-component-reference.html",
+  "title": "HDRP Camera component reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Camera in HDRP: projection, physical camera (ISO, shutter, aperture), rendering (anti-aliasing, custom frame settings, culling mask, volume layer mask).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Camera-Relative-Rendering.html",
+  "title": "Camera-relative rendering",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Why HDRP renders relative to the camera position and what that means for custom shaders and large worlds.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-the-graphics-compositor.html",
+  "title": "Understand the Graphics Compositor",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Compositing multiple cameras/layers in HDRP; the closest thing to URP camera stacking.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/best-practices-for-ui-in-hdrp.html",
+  "title": "Best practices for UI in HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How to render uGUI overlay/world-space UI in HDRP, the Canvas material and post-processing interaction.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/render-graph-introduction.html",
+  "title": "Render graph system (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How HDRP is built on the SRP Render Graph and how custom passes plug into it.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/rendering-execution-order.html",
+  "title": "Execution order reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Order in which HDRP renders passes each frame; needed to pick custom pass injection points.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Main.html",
+  "title": "Understand post-processing (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Post-processing in HDRP: built into the pipeline, driven by Volume Overrides, effect order and camera settings.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Anti-Aliasing.html",
+  "title": "Anti-aliasing (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "TAA, SMAA, FXAA and MSAA (forward only) in HDRP, per-camera settings and sharpening.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Dynamic-Resolution.html",
+  "title": "Dynamic resolution (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Enabling dynamic resolution in the HDRP Asset, upscale filters (Catmull-Rom, FSR, TAAU, STP, DLSS) and scripting the scale.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Forward-And-Deferred-Rendering.html",
+  "title": "Forward and deferred rendering for lighting (Lit Shader Mode)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Lit Shader Mode (Forward, Deferred, Both), what each supports (MSAA, material types), and per-camera overrides.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Channel-Mixer.html",
+  "title": "Channel Mixer",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Channel Mixer post-processing override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Color-Adjustments.html",
+  "title": "Color Adjustments",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Color Adjustments override: post-exposure, contrast, colour filter, hue shift, saturation.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Tonemapping.html",
+  "title": "Tonemapping",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Tonemapping override: Neutral, ACES, Custom curve and External LUT modes.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-White-Balance.html",
+  "title": "White Balance",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "White Balance override (temperature, tint).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Bloom.html",
+  "title": "Bloom",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Bloom override: threshold, intensity, scatter, lens dirt, quality tiers.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Chromatic-Aberration.html",
+  "title": "Chromatic Aberration",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Chromatic Aberration override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Depth-of-Field.html",
+  "title": "Depth of Field",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Depth of Field override: manual ranges vs physical camera mode, quality tiers.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Film-Grain.html",
+  "title": "Film Grain",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Film Grain override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Lens-Distortion.html",
+  "title": "Lens Distortion",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Lens Distortion override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Panini-Projection.html",
+  "title": "Panini Projection",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Panini Projection override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Vignette.html",
+  "title": "Vignette",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Vignette override reference.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Post-Processing-Motion-Blur.html",
+  "title": "Motion Blur",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Motion Blur override: camera and object motion blur, sample count, clamping.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Motion-Vectors.html",
+  "title": "Motion vectors",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Motion vector support in HDRP: Frame Settings, per-material and per-renderer settings for TAA and motion blur.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-post-processing-understand.html",
+  "title": "Understand custom post-processing",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "The CustomPostProcessVolumeComponent workflow and injection points for custom post-processing effects.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-post-processing-create-apply.html",
+  "title": "Create and apply a custom post-processing effect",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Step-by-step: C# volume component + shader, registering the effect in the HDRP graphics settings order lists.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-post-processing-scripts.html",
+  "title": "Custom post-processing example scripts",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Complete example scripts for a custom post-process effect (greyscale) with shader.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-passes-understand.html",
+  "title": "Understand custom passes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Custom passes: what they are, DrawRenderers vs FullScreen passes, where they run in the frame.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Custom-Pass-Volume-Workflow.html",
+  "title": "Understand custom pass volumes",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Custom Pass Volume component: global vs local, injection point, priority, fade radius.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-pass-create-gameobject.html",
+  "title": "Create a custom pass GameObject",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Adding a Custom Pass Volume, choosing Full Screen or Draw Renderers pass and configuring it.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Custom-Pass-Scripting.html",
+  "title": "Create a custom pass in a C# script",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "CustomPass C# API: Setup/Execute/Cleanup, CustomPassContext, render-graph-era helpers and RTHandle allocation.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Global-Custom-Pass-API.html",
+  "title": "Manage a custom pass without a GameObject",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Registering custom passes from C# (CustomPassVolume.RegisterGlobalCustomPass) without scene objects.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Custom-Pass-Injection-Points.html",
+  "title": "Custom pass injection points",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Each injection point, which buffers are available and what state the frame is in.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/custom-pass-reference.html",
+  "title": "Custom Pass reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Custom Pass Volume, Full Screen pass and Draw Renderers pass.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Custom-Pass-Troubleshooting.html",
+  "title": "Troubleshoot a custom pass",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Common custom pass failures (nothing rendered, wrong depth, MSAA, camera types).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-fullscreen-material.html",
+  "title": "Create a Fullscreen material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Creating a Fullscreen shader graph and using it in a custom pass or custom post-process.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Known-Issues.html",
+  "title": "HDRP known issues",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Documented known issues and workarounds in HDRP 17.3.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/lit-material.html",
+  "title": "Lit material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Using the HDRP Lit shader: creating a material, mask map, detail map, material types, surface options.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/lit-material-inspector-reference.html",
+  "title": "Lit Material Inspector reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Complete property reference of the Lit shader Inspector: surface options, surface inputs, detail inputs, transparency, emission, advanced options.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/layered-lit-material.html",
+  "title": "Layered Lit material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Layered Lit shader: blending up to four Lit layers with layer masks and vertex colours.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/lit-tessellation-material.html",
+  "title": "Lit Tessellation material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Lit Tessellation shader and displacement tessellation options.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/terrain-lit-material.html",
+  "title": "Terrain Lit material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDRP TerrainLit shader: terrain layer setup, mask map channel layout (R metallic, G AO, B height, A smoothness), 8-layer support, height blending.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/terrain-lit-material-inspector-reference.html",
+  "title": "Terrain Lit Material Inspector reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Terrain Lit material (height-based blend, specular occlusion, emission, advanced).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/unlit-material.html",
+  "title": "Unlit material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDRP Unlit shader workflow and when to use it.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Mask-Map-and-Detail-Map.html",
+  "title": "Mask Map and Detail Map reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Channel layout of the HDRP mask map (R metallic, G AO, B detail mask, A smoothness) and detail map (R desaturated albedo, G normal Y, B smoothness, A normal X).",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Material-Type.html",
+  "title": "Material Type reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Lit shader Material Types: Standard, Subsurface Scattering, Anisotropy, Iridescence, Specular Color, Translucent and their per-type inputs.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Surface-Type.html",
+  "title": "Surface Type reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Opaque vs Transparent surface type, rendering pass (Before/Default/After refraction, Low Resolution), blend modes, sorting priority, depth write/test.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Alpha-Clipping.html",
+  "title": "Alpha Clipping reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Alpha clipping threshold options including shadow and prepass thresholds.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/Renderer-And-Material-Priority.html",
+  "title": "Understand renderer and material priority",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "How HDRP sorts transparent objects: material sorting priority, renderer priority and distance.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/skin-and-diffusive-surfaces-subsurface-scattering.html",
+  "title": "Skin and diffusive surfaces (subsurface scattering)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Subsurface scattering workflow: enabling SSS in the HDRP Asset, Diffusion Profiles, transmission.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/diffusion-profile-reference.html",
+  "title": "Diffusion Profile reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for Diffusion Profile assets.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-decals.html",
+  "title": "Understand decals",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Decal Projector vs decal meshes, decal layers, what decals can affect (albedo, normal, mask, emission).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/create-a-decal-material.html",
+  "title": "Create a decal material",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Creating HDRP/Decal materials and Decal shader graphs.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/use-decals.html",
+  "title": "Use decals",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Placing Decal Projectors, decal layers, receiving decals on materials, limits in the HDRP Asset.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/decal-projector-reference.html",
+  "title": "Decal Projector reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Property reference for the Decal Projector component.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/understand-shader-graph-in-hdrp.html",
+  "title": "Understand Shader Graph in HDRP",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "HDRP Shader Graph targets, master stacks and HDRP-specific graph settings.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/use-shader-graph-to-create-hdrp-shaders.html",
+  "title": "Use Shader Graph to create HDRP shaders",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Creating HDRP shader graphs (Lit, Unlit, Decal, Fullscreen), graph settings and material types.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/lit-master-stack-reference.html",
+  "title": "Lit Master Stack reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Graph settings and block reference for the HDRP Lit master stack.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/unlit-master-stack-reference.html",
+  "title": "Unlit Master Stack reference",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Graph settings and block reference for the HDRP Unlit master stack.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/reduce-shader-variants.html",
+  "title": "Reduce shader variants (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Shader stripping in HDRP: HDRP Asset feature toggles, graphics settings stripping options, build-time variant counts.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/modify-materials-at-runtime.html",
+  "title": "Modify materials at runtime (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Keywords and HDMaterial API needed when changing HDRP material properties from C#.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/SRPBatcher.html",
+  "title": "Introduction to the SRP Batcher (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "SRP Batcher behaviour and material compatibility in HDRP.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/gpu-resident-drawer.html",
+  "title": "Use the GPU Resident Drawer (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Enabling the GPU Resident Drawer in HDRP and its prerequisites.",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/use-the-rendering-debugger.html",
+  "title": "Use the Rendering Debugger (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Rendering Debugger window and runtime UI: lighting/material/volume/camera debug panels.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.3/manual/rendering-debugger-window-reference.html",
+  "title": "Rendering Debugger window reference (HDRP)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Reference for every Rendering Debugger panel in HDRP (decals, display stats, material, lighting, volume, rendering, camera).",
+  "official": true,
+  "priority": "should",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/6000.3/Documentation/Manual/high-definition-render-pipeline.html",
+  "title": "High Definition Render Pipeline (Unity Manual landing page)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "The 6000.3 Manual's HDRP entry page: what HDRP targets, the HDRP package manual link and the 3D (HDRP) template.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
+ },
+ {
+  "url": "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-hd/Assets/HDRPDefaultResources/DefaultHDRPAsset.asset",
+  "title": "HDRP template 6000.3: DefaultHDRPAsset.asset",
+  "kind": "github-raw",
+  "topic": "rendering-hdrp",
+  "why": "The default HDRP Asset shipped with the 3D (HDRP) template; the baseline values for our own HDRP quality assets.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-hd/Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset",
+  "title": "HDRP template 6000.3: HDRenderPipelineGlobalSettings.asset",
+  "kind": "github-raw",
+  "topic": "rendering-hdrp",
+  "why": "The template's HDRP Global Settings asset (Project Settings > Graphics > HDRP tab): default volume profile, frame settings, custom post-process orders.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-hd/Assets/HDRPDefaultResources/DefaultSettingsVolumeProfile.asset",
+  "title": "HDRP template 6000.3: DefaultSettingsVolumeProfile.asset",
+  "kind": "github-raw",
+  "topic": "rendering-hdrp",
+  "why": "The template's default Volume Profile (exposure, fog, sky, shadows, AO defaults) referenced by the HDRP Global Settings.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://raw.githubusercontent.com/Unity-Technologies/Graphics/6000.3/staging/Templates/com.unity.template-hd/ProjectSettings/QualitySettings.asset",
+  "title": "HDRP template 6000.3: QualitySettings.asset",
+  "kind": "github-raw",
+  "topic": "rendering-hdrp",
+  "why": "Quality levels of the 3D (HDRP) template and which HDRP Asset each references.",
+  "official": true,
+  "priority": "nice",
+  "http_status": 200
+ },
+ {
+  "url": "https://docs.unity3d.com/6000.3/Documentation/Manual/class-TerrainLayer.html",
+  "title": "Terrain Layers (Unity Manual)",
+  "kind": "html",
+  "topic": "rendering-hdrp",
+  "why": "Terrain Layer asset reference: the HDRP/URP TerrainLit mask map channel layout (R Metallic, G Ambient Occlusion, B Height, A Smoothness; diffuse alpha becomes density), channel remapping and opacity-as-density.",
+  "official": true,
+  "priority": "must",
+  "http_status": 200
  }
 ]

@@ -1,6 +1,6 @@
 # 架构文档索引（docs/architecture）
 
-《Where the Roots Dance》（Unity 6000.3.22f1 / URP 17.3 / C# 9）的架构文档入口。
+《Where the Roots Dance》（Unity 6000.3.22f1 / HDRP 17.3 / C# 9）的架构文档入口。
 
 当前运行时事实优先阅读 [运行时架构说明书](运行时架构说明书.md)；
 工程规则以 [`docs/guidelines/`](../guidelines/README.md) 为准；策划、叙事和关卡需求见

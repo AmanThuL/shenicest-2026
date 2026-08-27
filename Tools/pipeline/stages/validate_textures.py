@@ -11,7 +11,7 @@ What it checks, all from the filesystem and the file bytes -- never a screenshot
   * dimensions match the preset, are square and power-of-two
   * bit depth and colour type are what Unity expects
   * maps that must carry alpha actually have an alpha channel
-    (URP Lit reads smoothness out of the metallic map's alpha)
+    (HDRP Lit reads smoothness out of the mask map's alpha)
   * no stray files in the texture folder that look like a failed export
   * the mesh the textures belong to exists
 
@@ -170,9 +170,9 @@ def main():
                     "PNG is interlaced; Unity does not want interlaced textures")
         if m in naming.ALPHA_REQUIRED_MAPS and not hdr["has_alpha"]:
             r.error("texture.alpha_missing", fname,
-                    "%s has no alpha channel (colour type %d, %s), but URP Lit "
-                    "reads smoothness from the metallic map's alpha "
-                    "(Smoothness Source = Metallic Alpha)"
+                    "%s has no alpha channel (colour type %d, %s), but HDRP Lit "
+                    "reads smoothness from the mask map's alpha "
+                    "(Mask = R metallic, G AO, B detail, A smoothness)"
                     % (m, hdr["color_type"], hdr["color_type_name"]))
         if hdr["color_type"] == 3:
             r.error("texture.indexed", fname,

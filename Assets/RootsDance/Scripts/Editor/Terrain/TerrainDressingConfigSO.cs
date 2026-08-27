@@ -7,9 +7,9 @@ namespace RootsDance.Editor.Terrain
     /// <summary>
     /// Every tunable <see cref="TerrainDressingBuilder"/> reads: the scatter rules that fill the ring
     /// bands with trees, deadwood and rocks, the Terrain detail layers that make the grass band read,
-    /// the hand-authored Chapter-00 props, the lab material keys and the skybox. The terrain shape
-    /// itself comes from the referenced <see cref="TerrainGreyboxConfigSO"/> — this asset never edits
-    /// heights or splats. Editor-only data; the asset lives at
+    /// the hand-authored Chapter-00 props and the lab material keys. The terrain shape itself comes
+    /// from the referenced <see cref="TerrainGreyboxConfigSO"/> — this asset never edits heights or
+    /// splats. Editor-only data; the asset lives at
     /// <c>Assets/RootsDance/Data/Config/TerrainDressingConfig.asset</c> and never ships in a build.
     /// </summary>
     [CreateAssetMenu(fileName = "TerrainDressingConfig", menuName = "RootsDance/Editor/Terrain Dressing Config")]
@@ -48,38 +48,12 @@ namespace RootsDance.Editor.Terrain
         [SerializeField, TitleGroup("Details")]
         private float m_detailDensity = 1f;
 
+        // No sky fields on this asset: under HDRP the sky, the fog and the ambient source are Volume
+        // overrides on the level's Global Volume, not a material this builder writes
+        // (guideline 07 §5.9).
+
         [SerializeField, TitleGroup("Props")]
         private PropPlacement[] m_props = CreateDefaultProps();
-
-        // Deliberately not [Required]: empty is the shipping state — it selects Unity's procedural sky.
-        [SerializeField, TitleGroup("Skybox")]
-        private Cubemap m_skyboxCubemap;
-
-        [SerializeField, TitleGroup("Skybox")]
-        private float m_skyboxExposure = 1.15f;
-
-        [SerializeField, TitleGroup("Skybox")]
-        private float m_skyboxRotation;
-
-        [SerializeField, TitleGroup("Skybox"), Range(0f, 1f)]
-        private float m_skySunSize = 0.02f;
-
-        [SerializeField, TitleGroup("Skybox"), Range(1f, 10f)]
-        private float m_skySunSizeConvergence = 5f;
-
-        // 0.7, not the 1.4 an overcast preset would use: Unity's procedural sky draws its haze around
-        // the sun, so a thick atmosphere with this scene's 50-degree sun turns the whole dome into a
-        // sunset gradient. Low thickness with a near-neutral tint and an exposure just above 1 is the
-        // pale low-contrast sky the chapter wants; a genuinely grey overcast dome needs a gradient sky
-        // shader or an overcast HDRI.
-        [SerializeField, TitleGroup("Skybox"), Range(0f, 5f)]
-        private float m_skyAtmosphereThickness = 0.7f;
-
-        [SerializeField, TitleGroup("Skybox")]
-        private Color m_skyTint = new Color(0.55f, 0.57f, 0.60f);
-
-        [SerializeField, TitleGroup("Skybox")]
-        private Color m_skyGroundColor = new Color(0.42f, 0.42f, 0.40f);
 
         [SerializeField, TitleGroup("Lab")]
         private string m_labMaterialKey = "Concrete_Lab";
@@ -116,33 +90,6 @@ namespace RootsDance.Editor.Terrain
 
         /// <summary>Hand-authored props, grouped under <c>_Props/&lt;Group&gt;</c>.</summary>
         public PropPlacement[] Props => m_props;
-
-        /// <summary>
-        /// Cubemap the sky material samples. Empty — the shipping state — selects Unity's procedural sky
-        /// instead, driven by the five fields below.
-        /// </summary>
-        public Cubemap SkyboxCubemap => m_skyboxCubemap;
-
-        /// <summary>Skybox exposure; applies to both the cubemap and the procedural sky.</summary>
-        public float SkyboxExposure => m_skyboxExposure;
-
-        /// <summary>Cubemap rotation around +Y, in degrees; ignored by the procedural sky.</summary>
-        public float SkyboxRotation => m_skyboxRotation;
-
-        /// <summary>Procedural sky: angular size of the sun disc. Small values read as an overcast day.</summary>
-        public float SkySunSize => m_skySunSize;
-
-        /// <summary>Procedural sky: how sharply the sun disc falls off.</summary>
-        public float SkySunSizeConvergence => m_skySunSizeConvergence;
-
-        /// <summary>Procedural sky: atmosphere density; above 1 washes the horizon out.</summary>
-        public float SkyAtmosphereThickness => m_skyAtmosphereThickness;
-
-        /// <summary>Procedural sky: colour cast of the dome.</summary>
-        public Color SkyTint => m_skyTint;
-
-        /// <summary>Procedural sky: colour below the horizon, which also feeds the ambient bounce.</summary>
-        public Color SkyGroundColor => m_skyGroundColor;
 
         /// <summary>Palette key painted onto every opaque lab-blockout renderer.</summary>
         public string LabMaterialKey => m_labMaterialKey;

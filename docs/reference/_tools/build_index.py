@@ -26,8 +26,13 @@ TOPICS = [
      "Execution order, serialization, assembly definitions, compilation, Awaitable/async, coroutines, key Script Reference pages."),
     ("performance", "Performance and profiling",
      "Unity 6 optimization and profiling e-books, manual pages on managed memory, GC, profiler, rendering and physics performance."),
+    ("rendering-hdrp", "Rendering with HDRP",
+     "HDRP 17.3 package manual for 6000.3: HDRP Asset and graphics settings, Frame Settings, volumes, physical lighting and exposure, "
+     "sky/fog, materials (Lit, TerrainLit, decals, Shader Graph), custom passes and post-processing, Built-in conversion guides, "
+     "plus the 3D (HDRP) template settings assets."),
     ("rendering-urp", "Rendering with URP",
-     "URP manual section for 6000.3, URP e-books, lighting, Render Graph, GPU Resident Drawer, shaders."),
+     "URP manual section for 6000.3, URP e-books, lighting, Render Graph, GPU Resident Drawer, shaders. "
+     "Retained for reference after the HDRP migration; the shared 6000.3 Manual pages on render pipelines and lightmapping still live here."),
     ("testing-tooling", "Testing, CI and tooling",
      "Unity Test Framework, command-line arguments, build profiles, IDE integration, analyzers."),
     ("packages", "Core packages",

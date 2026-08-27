@@ -4,8 +4,8 @@ Entry point for every AI coding agent (Claude Code, Codex, Cursor, Copilot…) a
 
 ## What this project is
 
-- **《Where the Roots Dance》 — SheNicest 2026 hackathon / game jam entry (team G001)** — a **3D game** built with **Unity 6000.3.22f1 (Unity 6.3 LTS)**, **Universal Render Pipeline (URP 17.3)**, **C# 9.0**.
-- Created from the Unity Hub **Universal 3D** template. Primary target: desktop standalone (Windows/macOS); a Web build is a possible secondary target.
+- **《Where the Roots Dance》 — SheNicest 2026 hackathon / game jam entry (team G001)** — a **3D game** built with **Unity 6000.3.22f1 (Unity 6.3 LTS)**, **High Definition Render Pipeline (HDRP 17.3)**, **C# 9.0**.
+- Created from the Unity Hub **Universal 3D** template and migrated to HDRP on 2026-08-27 (single desktop quality tier). Primary target: desktop standalone (Windows/macOS); no Web/mobile target (HDRP does not support them).
 - Small team, short timeframe. Every rule here optimises for *fast iteration without merge conflicts* — not for enterprise ceremony.
 - Engineering docs are in English. The repo README is in Chinese; the game is *Where the Roots Dance*; `RootsDance` is its folder name, root namespace and assembly prefix. `SheNicest` is the organising team, not the game, and appears only in the repo name and README.
 
@@ -19,7 +19,7 @@ Unity/C# facts that are easy to get wrong because training data predates Unity 6
 4. **Physics API was renamed:** `Rigidbody.linearVelocity` / `linearDamping` / `angularDamping`, type `PhysicsMaterial`.
 5. **Input comes from the Input System package** via the project-wide action asset (`InputSystem.actions`). `UnityEngine.Input` is never used.
 6. **Async is `UnityEngine.Awaitable`** with a `CancellationToken` (`destroyCancellationToken`); coroutines only for trivial timed sequences. Multiple DOTween tweens compose via DOTween `Sequence`, not `Awaitable`/UniTask. UniTask is only for `WhenAll`/`WhenAny` across a tween **and** a non-tween async op (scene load, `InstantiateAsync`) — see [04](docs/guidelines/04-unity-scripting-rules.md#async-awaitable-dotween-sequence-and-unitask).
-7. **Custom render passes use the Render Graph API.** URP Compatibility Mode no longer exists in 6.3.
+7. **Custom rendering uses HDRP Custom Passes / Custom Post Process.** No `ScriptableRendererFeature`, no `Graphics.Blit`, no URP APIs.
 8. **Never `?.`, `??` or `is null` on a `UnityEngine.Object`** — use `== null` or the implicit bool; Unity's "fake null" bypasses those operators.
 
 Project conventions — details in the guidelines linked in each line:
@@ -33,7 +33,7 @@ Project conventions — details in the guidelines linked in each line:
 15. **Zero allocations in per-frame code:** cache components and ids (`Animator.StringToHash`, `Shader.PropertyToID`), no LINQ/string building/closures in `Update`, `Physics.*NonAlloc`, pool with `UnityEngine.Pool.ObjectPool<T>`. → [05](docs/guidelines/05-performance.md)
 16. **Never hand-edit or hand-merge `.unity`, `.prefab`, `.asset` YAML.** Move/rename/delete assets inside the Editor so `.meta` files follow; always commit the `.meta` with its asset. → [06](docs/guidelines/06-version-control.md)
 17. **Scenes:** `Bootstrap.unity` is the only persistent scene; levels are additive `<Level>_Environment` + `<Level>_Gameplay` scenes; avoid concurrent edits by splitting scenes — each person works in their own part scene, and gives the team channel a heads-up before editing a shared scene/prefab or merging content into one; everything placed twice is a prefab. → [11](docs/guidelines/11-scenes-prefabs-workflow.md)
-18. **UI is uGUI** — one screen = one prefab under `Assets/RootsDance/Prefabs/UI/`, one Screen Space – Overlay `Canvas` root and one `EventSystem` in the bootstrap scene, `TextMeshProUGUI` for all text, presenter MonoBehaviours holding `[SerializeField]` widget references (UI Toolkit is for Editor UI only); camera is **Cinemachine 3.1** with exactly one Unity `Camera` in the bootstrap scene. → [09](docs/guidelines/09-packages-systems.md), [07](docs/guidelines/07-rendering-urp.md)
+18. **UI is uGUI** — one screen = one prefab under `Assets/RootsDance/Prefabs/UI/`, one Screen Space – Overlay `Canvas` root and one `EventSystem` in the bootstrap scene, `TextMeshProUGUI` for all text, presenter MonoBehaviours holding `[SerializeField]` widget references (UI Toolkit is for Editor UI only); camera is **Cinemachine 3.1** with exactly one Unity `Camera` (+ `HDAdditionalCameraData`) in the bootstrap scene. → [09](docs/guidelines/09-packages-systems.md), [07](docs/guidelines/07-rendering-hdrp.md)
 19. **Packages:** only the versions listed in [09](docs/guidelines/09-packages-systems.md); adding/removing a package is a team decision and its own `chore(packages):` commit; no `Resources/` folder, no Addressables by default.
 20. **Tests:** pure C# logic gets EditMode tests (`Method_Scenario_ExpectedResult`); run the EditMode suite before a PR; `main` must open in the Editor with zero errors and zero warnings from `RootsDance.*`. → [08](docs/guidelines/08-testing-tooling.md)
 21. **Odin Inspector 4.0 is installed (`Assets/Plugins/Sirenix/`) as an Editor-UX layer only:** `Sirenix.OdinInspector` attributes on `[SerializeField] private` fields — content ScriptableObjects use the five standard `[TitleGroup]` sections (`Basic Info`, `Interaction`, `Conditions`, `Result`, `Scene Change`), `[Required]` on every reference, `[ValidateInput]` on IDs. **Never** `SerializedMonoBehaviour`/`SerializedScriptableObject`/`[OdinSerialize]` (Unity serialization stays the source of truth), never `Sirenix.OdinInspector.Editor` from runtime code, no `#if ODIN_INSPECTOR`, never edit `Assets/Plugins/Sirenix/`. Check an attribute in `docs/reference/third-party/odin-inspector/attributes.md` before using it. → [12](docs/guidelines/12-odin-inspector.md)
@@ -51,7 +51,7 @@ shenicest-2026/
 │   ├── third-party.md           # record of vendor-package exceptions (Odin's install path, local edits)
 │   ├── architecture/            # as-built runtime docs, contracts, decisions; tooling/ holds the Unity CLI agent workflow
 │   ├── guidelines/              # the 12 coding guidelines (index: guidelines/README.md)
-│   └── reference/               # 1,406 official Unity docs + third-party/odin-inspector/ (generated from the Odin XML docs)
+│   └── reference/               # 1,550 official Unity docs + third-party/odin-inspector/ (generated from the Odin XML docs)
 ├── Assets/
 │   ├── RootsDance/               # all project-owned assets — tree in guideline 02
 │   │   ├── Scripts/Runtime/     # RootsDance.Runtime.asmdef — App, Core, Data, Events, Player, Cameras, UI
@@ -59,7 +59,7 @@ shenicest-2026/
 │   │   ├── Tests/{EditMode,PlayMode}/
 │   │   ├── Scenes/              # Bootstrap, MainMenu, PrefabStage, Levels/<Level>/
 │   │   ├── Data/                # ScriptableObject instances (Events/, Levels/, Config/…)
-│   │   ├── Settings/            # URP assets, renderers, volume profiles, presets, build profiles
+│   │   ├── Settings/            # HDRP asset + global settings (HDRP/), volume profiles, presets, build profiles
 │   │   └── Animations/ Audio/ Fonts/ Input/ Materials/ Meshes/ Prefabs/ Shaders/ Textures/ UI/ VFX/
 │   ├── ScriptTemplates/         # Unity script templates (must sit directly under Assets/)
 │   ├── ThirdParty/              # Asset Store / vendor packages, never edited in place
@@ -83,7 +83,7 @@ Each guideline starts with a ≤ 15-line **TL;DR** that is enough for most tasks
 | 04 | touch lifecycle, serialization, async, physics, input, logging | [Unity scripting rules](docs/guidelines/04-unity-scripting-rules.md) |
 | 05 | write per-frame code, spawn objects, import assets, profile | [Performance guidelines](docs/guidelines/05-performance.md) |
 | 06 | commit, branch, merge, resolve a conflict | [Version control with Git](docs/guidelines/06-version-control.md) |
-| 07 | touch URP settings, lighting, materials, shaders, cameras | [Rendering and URP conventions](docs/guidelines/07-rendering-urp.md) |
+| 07 | touch HDRP settings, lighting, volumes, materials, shaders, cameras | [Rendering and HDRP conventions](docs/guidelines/07-rendering-hdrp.md) |
 | 08 | write tests, run the CLI, build, set up an IDE | [Testing, tooling and IDE setup](docs/guidelines/08-testing-tooling.md) |
 | 09 | use Input System, Cinemachine, uGUI, physics, NavMesh, animation, audio, packages | [Packages and game systems](docs/guidelines/09-packages-systems.md) |
 | 10 | are unsure whether an API still exists in Unity 6.3 | [Unity 6.3 facts, API changes and deprecations](docs/guidelines/10-unity6-facts.md) |
@@ -135,12 +135,12 @@ The official **Unity CLI** (`unity`, beta) wraps these — `unity test --mode ed
 
 ## Machine setup (every human, once per machine)
 
-The project itself is fully set up (Universal 3D template imported, cleaned and committed 2026-08-24) — **do not create or merge a template project again.** What each teammate does once on their own machine, before their first scene or prefab edit:
+The project itself is fully set up (Universal 3D template imported, cleaned and committed 2026-08-24) — **do not create or merge a template project again.** URP → HDRP migration landed 2026-08-27; the HDRP Wizard (Window > Rendering > HDRP Wizard) must show no fixes after opening the project. What each teammate does once on their own machine, before their first scene or prefab edit:
 
-1. Install Unity **6000.3.22f1** via Unity Hub or direct download (modules: Windows/Mac Build Support as needed, WebGL optional). Note the install path — the CLI commands above and the UnityYAMLMerge config in [06](docs/guidelines/06-version-control.md) need it.
+1. Install Unity **6000.3.22f1** via Unity Hub or direct download (modules: Windows/Mac Build Support as needed; no WebGL — HDRP does not support the Web platform). Note the install path — the CLI commands above and the UnityYAMLMerge config in [06](docs/guidelines/06-version-control.md) need it.
 2. Run `git lfs install` (ideally before the first clone; afterwards, run it inside the repo and `git lfs pull` if any binary shows up as a small text pointer file).
 3. Configure the UnityYAMLMerge mergetool + merge driver in `~/.gitconfig` per [06](docs/guidelines/06-version-control.md) — verify the binary path first (Hub installs: `Unity.app/Contents/Tools/`; direct downloads: `Unity.app/Contents/Helpers/`) — and run the merge-driver smoke test described there.
-4. Open the project once from Unity Hub ("Add project from disk") and confirm the Console shows zero errors/warnings. Don't commit files Unity re-serializes on open unless they belong to your task ([06](docs/guidelines/06-version-control.md)).
-5. Odin Inspector is committed in the repo (`Assets/Plugins/Sirenix/`, per-seat licence — every teammate holds their own); nothing to install. If you switch the active build target (e.g. to Web), Odin adds its define symbols to `ProjectSettings/ProjectSettings.asset` — commit that together with the platform switch ([12](docs/guidelines/12-odin-inspector.md)).
+4. Open the project once from Unity Hub ("Add project from disk") and confirm the Console shows zero errors/warnings. If the HDRP Wizard lists fixes, do not click Fix All — tell the rendering owner. Don't commit files Unity re-serializes on open unless they belong to your task ([06](docs/guidelines/06-version-control.md)).
+5. Odin Inspector is committed in the repo (`Assets/Plugins/Sirenix/`, per-seat licence — every teammate holds their own); nothing to install. If you switch the active build target (e.g. from macOS to Windows), Odin adds its define symbols to `ProjectSettings/ProjectSettings.asset` — commit that together with the platform switch ([12](docs/guidelines/12-odin-inspector.md)).
 
 An AI agent asked to work in this repo should check steps 2–3 (`git config --get merge.unityyamlmerge.driver`, `git lfs version`) before its first commit that touches a scene, prefab or binary asset, and tell its human what is missing instead of working around it.

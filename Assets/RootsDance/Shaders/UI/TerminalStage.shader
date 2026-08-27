@@ -7,6 +7,9 @@
 //
 // TerminalMotion.RasterHold drives _RasterStrength / _RasterPhase (P1) and TerminalMotion.Reconstruct
 // drives _Coverage (P2-P4).
+//
+// It stays a plain uGUI shader: no pipeline include, no renderer feature, no custom pass. It is
+// written against UnityCG/UnityUI only, so it compiles under HDRP and under any other SRP.
 Shader "RootsDance/UI/TerminalStage"
 {
     Properties
@@ -48,7 +51,6 @@ Shader "RootsDance/UI/TerminalStage"
             "RenderType" = "Transparent"
             "PreviewType" = "Plane"
             "CanUseSpriteAtlas" = "True"
-            "RenderPipeline" = "UniversalPipeline"
         }
 
         Stencil
@@ -71,12 +73,13 @@ Shader "RootsDance/UI/TerminalStage"
         {
             Name "TerminalStage"
 
-            HLSLPROGRAM
+            CGPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 3.0
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "UnityCG.cginc"
+            #include "UnityUI.cginc"
 
             struct Attributes
             {
@@ -93,8 +96,7 @@ Shader "RootsDance/UI/TerminalStage"
                 float2 positionCanvas : TEXCOORD1;
             };
 
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
+            sampler2D _MainTex;
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
@@ -133,7 +135,7 @@ Shader "RootsDance/UI/TerminalStage"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionCS = UnityObjectToClipPos(input.positionOS);
                 output.positionCanvas = input.positionOS.xy;
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 output.color = input.color * _Color;
@@ -148,7 +150,7 @@ Shader "RootsDance/UI/TerminalStage"
                 float2 pixel = input.uv * texel;
 
                 float3 interior = _InteriorColor.rgb;
-                float3 rgb = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).rgb;
+                float3 rgb = tex2D(_MainTex, input.uv).rgb;
 
                 // Ordered dither. At the buffer's native resolution the raster grid IS the dither
                 // unit, so the cell is small and this mostly quantizes levels; the visible 4x3 texture
@@ -188,7 +190,7 @@ Shader "RootsDance/UI/TerminalStage"
 
                 return half4(stage * input.color.rgb, alpha);
             }
-            ENDHLSL
+            ENDCG
         }
     }
 

@@ -550,8 +550,8 @@ Rules:
 
 ## Common pitfalls
 
-- **`Renderer.material` silently clones the material** (and breaks SRP batching); read with `sharedMaterial`, never write per-instance values through `material` or `MaterialPropertyBlock` in URP — use a Material Variant asset or vertex colour as [05 Performance](./05-performance.md) and [07 Rendering](./07-rendering-urp.md) specify; cache any property ID you do need with `Shader.PropertyToID` in a `private static readonly int k_…`.
-  - *Source:* [Renderer.material](../reference/scripting/scriptref-renderer-material.md), [Shader.PropertyToID](../reference/scripting/scriptref-shader-propertytoid.md); the URP batching rule is **[project decision]** owned by 05/07.
+- **`Renderer.material` silently clones the material** (and breaks SRP batching); read with `sharedMaterial`, never write per-instance values through `material` or `MaterialPropertyBlock` in HDRP — use a Material Variant asset or vertex colour as [05 Performance](./05-performance.md) and [07 Rendering](./07-rendering-hdrp.md) specify; cache any property ID you do need with `Shader.PropertyToID` in a `private static readonly int k_…`.
+  - *Source:* [Renderer.material](../reference/scripting/scriptref-renderer-material.md), [Shader.PropertyToID](../reference/scripting/scriptref-shader-propertytoid.md); the HDRP batching rule is **[project decision]** owned by 05/07.
 - **Animator parameters:** hash once with `Animator.StringToHash` (stable across sessions) instead of passing strings every call.
   - *Source:* [Animator.StringToHash](../reference/scripting/scriptref-animator-stringtohash.md).
 - **`enabled = false` does not stop coroutines or async methods; `SetActive(false)` stops coroutines but not `Awaitable` methods** — cancellation tokens do. `SetActive` changes only `activeSelf`; check `activeInHierarchy` for the effective state.

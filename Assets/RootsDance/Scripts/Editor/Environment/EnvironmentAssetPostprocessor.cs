@@ -56,7 +56,8 @@ namespace RootsDance.Editor.Environment
             {
                 importer.textureType = TextureImporterType.NormalMap;
                 // Poly Haven ships some scans with DirectX-convention normals (green channel inverted).
-                // URP samples OpenGL convention, so those maps have to be flipped on import.
+                // Unity samples OpenGL-convention normal maps in HDRP too, so those maps have to be
+                // flipped on import.
                 importer.flipGreenChannel = name.Contains("_nor_dx");
                 importer.sRGBTexture = false;
                 return;

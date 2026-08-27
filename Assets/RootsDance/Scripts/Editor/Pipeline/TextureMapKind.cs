@@ -8,25 +8,29 @@ namespace RootsDance.Editor.Pipeline
     /// </summary>
     /// <remarks>
     /// Pure logic with no UnityEditor dependency so it can be covered by EditMode tests.
-    /// The map names are the URP Lit shader's own slot names, which is what makes the
-    /// mapping from file name to import settings deterministic.
+    /// The map names are the HDRP Lit shader's own slot names, which is what makes the
+    /// mapping from file name to import settings deterministic. HDRP channel-packs
+    /// metallic, occlusion and smoothness into one mask map, so there is deliberately no
+    /// separate <c>Metallic</c>, <c>Occlusion</c> or <c>Specular</c> map kind
+    /// (guideline 07 section 9).
     /// </remarks>
     public enum TextureMapKind
     {
         Unknown = 0,
         BaseMap,
         Normal,
-        Metallic,
-        Specular,
-        Occlusion,
-        Emission,
-        Height,
 
         /// <summary>
-        /// URP Terrain Lit / Lit mask map — R metallic, G occlusion, B height, A smoothness.
+        /// HDRP channel-packed mask map. On <c>HDRP/Lit</c>: R metallic, G ambient
+        /// occlusion, B detail mask, A smoothness. On a terrain layer
+        /// (<c>HDRP/TerrainLit</c>): R metallic, G ambient occlusion, B height, A
+        /// smoothness — the blue channel is what height-based blending reads.
         /// Packed data, so it is imported linear and its alpha is never treated as opacity.
         /// </summary>
         Mask,
+
+        Emission,
+        Height,
     }
 
     /// <summary>Parses and classifies RootsDance texture file names.</summary>
@@ -103,9 +107,9 @@ namespace RootsDance.Editor.Pipeline
 
         /// <summary>
         /// True when the alpha channel is opacity rather than packed data.
-        /// The metallic map's alpha is smoothness (URP Lit "Smoothness Source = Metallic
-        /// Alpha"), so treating it as transparency would let Unity's alpha dilation
-        /// rewrite the smoothness values around transparent texels.
+        /// The mask map's alpha is smoothness (HDRP Lit always reads smoothness from the
+        /// mask map's alpha), so treating it as transparency would let Unity's alpha
+        /// dilation rewrite the smoothness values around transparent texels.
         /// </summary>
         public static bool AlphaIsTransparency(TextureMapKind kind)
         {

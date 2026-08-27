@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Editor.Terrain
@@ -28,7 +28,9 @@ namespace RootsDance.Editor.Terrain
         private const string k_TerrainLayerFolder = k_MaterialFolder + "/Terrain";
         private const string k_LayerTextureFolder = "Assets/RootsDance/Textures/Environment";
         private const string k_AnchorMaterialPath = k_MaterialFolder + "/Greybox_Anchor.mat";
-        private const string k_UrpLitShader = "Universal Render Pipeline/Lit";
+        private const string k_TerrainMaterialPath = k_TerrainLayerFolder + "/Terrain_Main.mat";
+        private const string k_LitShader = "HDRP/Lit";
+        private const string k_TerrainLitShader = "HDRP/TerrainLit";
 
         private const string k_GeometryRootName = "_Geometry";
         private const string k_AnchorRootName = "_Anchors";
@@ -60,6 +62,10 @@ namespace RootsDance.Editor.Terrain
 
         private static readonly Color k_AnchorColor = new Color32(0xFF, 0x7A, 0x2F, 0xFF);
         private static readonly int k_BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int k_HeightBlendId = Shader.PropertyToID("_EnableHeightBlend");
+
+        private static readonly int k_InstancedPerPixelNormalId =
+            Shader.PropertyToID("_EnableInstancedPerPixelNormal");
 
         private static readonly StaticEditorFlags k_TerrainStaticFlags =
             StaticEditorFlags.BatchingStatic
@@ -582,7 +588,7 @@ namespace RootsDance.Editor.Terrain
             layer.normalScale = definition.NormalScale;
             layer.tileSize = Vector2.one * definition.TileSize;
 
-            // URP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is the
+            // HDRP TerrainLit remaps the albedo into [diffuseRemapMin, diffuseRemapMax], so the tint is the
             // layer's colour cast and the floor is how much of the source's contrast survives; the ceiling's
             // alpha must stay 1 (the shader reads .w as "use opacity as density").
             layer.diffuseRemapMin = definition.TintMin;
@@ -890,17 +896,16 @@ namespace RootsDance.Editor.Terrain
                 terrainObject.layer = groundLayer;
             }
 
-            RenderPipelineAsset pipeline = GraphicsSettings.currentRenderPipeline;
+            Material terrainMaterial = EnsureTerrainMaterial();
 
-            if (pipeline != null && pipeline.defaultTerrainMaterial != null)
+            if (terrainMaterial != null)
             {
-                terrain.materialTemplate = pipeline.defaultTerrainMaterial;
+                terrain.materialTemplate = terrainMaterial;
             }
-            else
-            {
-                Debug.LogWarning("TerrainGreyboxBuilder: no render-pipeline terrain material found; "
-                    + "the terrain keeps its default material.");
-            }
+
+            // TerrainLit's per-pixel normals are an instanced-terrain feature: without this the material
+            // silently falls back to interpolated vertex normals and the greybox slopes read as facets.
+            terrain.drawInstanced = true;
 
             GameObjectUtility.SetStaticEditorFlags(terrainObject, k_TerrainStaticFlags);
             return terrain;
@@ -978,25 +983,81 @@ namespace RootsDance.Editor.Terrain
             }
         }
 
-        private static Material EnsureAnchorMaterial()
+        /// <summary>
+        /// Find-or-create the terrain's own <c>HDRP/TerrainLit</c> material template. HDRP's built-in
+        /// default terrain material is Editor-only and lives inside the package, so the project owns
+        /// this one; the eight layers, their mask maps and their keywords are still set by the native
+        /// terrain renderer from the <c>TerrainLayer[]</c>.
+        /// </summary>
+        /// <returns>The terrain material, or null when the shader is missing.</returns>
+        private static Material EnsureTerrainMaterial()
         {
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_AnchorMaterialPath);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_TerrainMaterialPath);
+            Shader shader = Shader.Find(k_TerrainLitShader);
+
+            if (shader == null)
+            {
+                Debug.LogError($"TerrainGreyboxBuilder: shader '{k_TerrainLitShader}' not found; "
+                    + "the terrain keeps its current material.");
+                return material;
+            }
 
             if (material == null)
             {
-                Shader shader = Shader.Find(k_UrpLitShader);
+                TerrainSceneUtility.EnsureFolder(k_TerrainLayerFolder);
+                material = new Material(shader);
+                material.name = Path.GetFileNameWithoutExtension(k_TerrainMaterialPath);
+                AssetDatabase.CreateAsset(material, k_TerrainMaterialPath);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
 
-                if (shader == null)
-                {
-                    Debug.LogError($"TerrainGreyboxBuilder: shader '{k_UrpLitShader}' not found; "
-                        + "the anchor markers keep the default material.");
-                    return null;
-                }
+            if (material.HasProperty(k_InstancedPerPixelNormalId))
+            {
+                material.SetFloat(k_InstancedPerPixelNormalId, 1f);
+            }
 
+            // Height blend stays off: the layers keep blending by splat weight alone, exactly as they
+            // did before, instead of letting the mask maps' height channel take over the seams.
+            if (material.HasProperty(k_HeightBlendId))
+            {
+                material.SetFloat(k_HeightBlendId, 0f);
+            }
+
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material EnsureAnchorMaterial()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_AnchorMaterialPath);
+            Shader shader = Shader.Find(k_LitShader);
+
+            if (shader == null)
+            {
+                Debug.LogError($"TerrainGreyboxBuilder: shader '{k_LitShader}' not found; "
+                    + "the anchor markers keep their current material.");
+                return material;
+            }
+
+            if (material == null)
+            {
                 TerrainSceneUtility.EnsureFolder(k_MaterialFolder);
                 material = new Material(shader);
                 material.name = Path.GetFileNameWithoutExtension(k_AnchorMaterialPath);
+                HDMaterial.ValidateMaterial(material);
                 AssetDatabase.CreateAsset(material, k_AnchorMaterialPath);
+            }
+            else if (material.shader != shader)
+            {
+                // An anchor material authored against another pipeline keeps its GUID and is
+                // re-shadered here; validation rebuilds the keywords and passes HDRP expects.
+                material.shader = shader;
+                HDMaterial.ValidateMaterial(material);
+                EditorUtility.SetDirty(material);
             }
 
             if (material.HasProperty(k_BaseColorId) && material.GetColor(k_BaseColorId) != k_AnchorColor)

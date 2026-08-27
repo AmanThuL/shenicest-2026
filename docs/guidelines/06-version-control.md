@@ -18,7 +18,7 @@ Folder layout inside `Assets/` is owned by [02 — Project structure](./02-proje
 8. **MUST** stage files explicitly and review `git status` before every commit. **NEVER** use `git commit -a` or blanket `git add -A` / `git add .`; revert scene, prefab and settings files you did not mean to change.
 9. **MUST** `git pull --ff-only` on `develop` at the start of every session and merge `develop` into your branch (`git merge develop`, not rebase) before opening a pull request and at least daily.
 10. **SHOULD** commit small and often with Conventional-Commit-style messages (`feat:`, `fix:`, `chore:`, …) and push at least at the end of every work session.
-11. **MUST** put `Packages/` and `ProjectSettings/` changes in their own `chore:` commit and announce them to the team (see [07](./07-rendering-urp.md), [09](./09-packages-systems.md)).
+11. **MUST** put `Packages/` and `ProjectSettings/` changes in their own `chore:` commit and announce them to the team (see [07](./07-rendering-hdrp.md), [09](./09-packages-systems.md)).
 12. **NEVER** hand-edit conflict markers inside `.unity`, `.prefab` or `.asset` files. Resolve with `git mergetool` (UnityYAMLMerge) or take one side whole, then repair in the Editor.
 13. **NEVER** delete or regenerate a `.meta` file to "fix" a conflict — the GUID inside it is what every reference points to.
 14. **NEVER** keep the repository inside a cloud-synced folder (iCloud Drive, Dropbox, OneDrive, Google Drive).

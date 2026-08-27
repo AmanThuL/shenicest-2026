@@ -36,7 +36,7 @@ Serialization semantics are owned by [04 Unity scripting rules](./04-unity-scrip
 | Referencing | The DLLs are *auto-referenced* precompiled assemblies: all four `RootsDance.*` asmdefs see `Sirenix.OdinInspector` without an asmdef edit |
 | Define symbols | `ODIN_INSPECTOR;ODIN_INSPECTOR_3;ODIN_INSPECTOR_3_1;ODIN_INSPECTOR_3_2;ODIN_INSPECTOR_3_3`, written by Odin into `ProjectSettings/ProjectSettings.asset` for the **active build target group** (Standalone today). Odin adds them for Web the first time someone switches platform — expected churn, commit it with the platform switch, never hand-edit |
 | Odin config assets | `Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/{InspectorConfig,GeneralDrawerConfig,OdinModuleConfig,OdinVisualDesignerConfig}.asset` — committed, single-owner |
-| Modules | `Modules/Unity.Mathematics` is active (URP depends on `com.unity.mathematics`); Addressables/Entities/Localization modules are dormant `.data` files |
+| Modules | `Modules/Unity.Mathematics` is active (HDRP depends on `com.unity.mathematics`); Addressables/Entities/Localization modules are dormant `.data` files |
 | Not installed | **Odin Validator** (separate product) — attributes that depend on it (`[Optional]`, "reference required by default") do nothing; **Odin Serializer usage** (forbidden, rule 2); the Odin `Demos/` folder is empty on purpose |
 | Licence | Per-seat (Sirenix EULA). Every teammate holds their own Odin licence; committing the vendor folder is fine on that basis **[project decision, confirmed 2026-08-24]** |
 
