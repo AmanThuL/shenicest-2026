@@ -201,7 +201,9 @@ namespace RootsDance.Editor.Terrain
 
             parameters.FlatSpots = new[]
             {
-                new FlatSpot { Center = new Vector2(0f, -10f),  Radius = 6f, Blend = 8f, Height = 3f },
+                // Wake pad: wide enough to read as a deserted clearing (§7 P1); its influence ends 15 m out,
+                // short of the (-7, 4) ridge node, so the first climb and its slope test are untouched.
+                new FlatSpot { Center = new Vector2(1.5f, -11f), Radius = 9.5f, Blend = 5.5f, Height = 3f },
                 new FlatSpot { Center = new Vector2(-12f, 39f), Radius = 4f, Blend = 6f, Height = 6f },
                 // Service pit east of the lab, outside the terrace outline (its edge is ~7.8 m away).
                 new FlatSpot { Center = new Vector2(52f, 108f), Radius = 5f, Blend = 6f, Height = 4f },

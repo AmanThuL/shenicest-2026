@@ -1,5 +1,7 @@
 using CurvedUIUtility;
 using RootsDance.EditorTools;
+using RootsDance.Player;
+using RootsDance.UI;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -35,7 +37,7 @@ namespace RootsDance.Editor.Tools
         private static readonly Color k_TextColor = new Color(0.78f, 0.86f, 0.80f, 0.92f);
 
         [MenuItem("RootsDance/Build Helmet HUD (Test)")]
-        private static void Build()
+        public static void Build()
         {
             Scene gameplay = OpenLevel();
 
@@ -70,8 +72,19 @@ namespace RootsDance.Editor.Tools
             controller.FindProperty("startingCurveObject").objectReferenceValue = curve;
             controller.ApplyModifiedPropertiesWithoutUndo();
 
-            BuildVisorFrame(canvasGo.transform, visorMaterial);
-            BuildSampleReadouts(canvasGo.transform);
+            // Everything that lifts away with the helmet lives under one root, so the removal
+            // animation moves a single RectTransform.
+            GameObject visorRootGo = new GameObject("VisorRoot", typeof(RectTransform));
+            visorRootGo.transform.SetParent(canvasGo.transform, false);
+            RectTransform visorRoot = (RectTransform)visorRootGo.transform;
+            visorRoot.anchorMin = Vector2.zero;
+            visorRoot.anchorMax = Vector2.one;
+            visorRoot.offsetMin = Vector2.zero;
+            visorRoot.offsetMax = Vector2.zero;
+
+            BuildVisorFrame(visorRoot, visorMaterial);
+            BuildSampleReadouts(visorRoot);
+            WireHudView(canvasGo, visorRoot);
 
             EditorSceneManager.MarkSceneDirty(gameplay);
             EditorSceneManager.SaveScene(gameplay);
@@ -145,7 +158,97 @@ namespace RootsDance.Editor.Tools
             }
 
             material.shader = shader;
+
+            // The ambientCG dressing maps (CC0, recorded in docs/third-party.md). Only empty slots
+            // are filled, so a hand-swapped texture survives a rebuild like the rest of the material.
+            AssignIfEmpty(material, "_ShellTex",
+                "Assets/ThirdParty/Environment/AmbientCG/Rubber004/Rubber004_1K-JPG_Color.jpg");
+            AssignIfEmpty(material, "_RimTex",
+                "Assets/ThirdParty/Environment/AmbientCG/Metal032/Metal032_1K-JPG_Color.jpg");
+            AssignIfEmpty(material, "_SmudgeTex",
+                "Assets/ThirdParty/Environment/AmbientCG/Fingerprints002/Fingerprints002_1K-JPG_Color.jpg");
+
+            // The traced opening silhouette (SDF, linear data — the importer must not sRGB it).
+            const string shapePath = "Assets/RootsDance/Textures/UI/T_HelmetVisorShape.png";
+            EnsureLinearImporter(shapePath);
+            AssignIfEmpty(material, "_ShapeTex", shapePath);
+
+            if (material.HasProperty("_ShapeBlend") && material.GetTexture("_ShapeTex") != null)
+            {
+                material.SetFloat("_ShapeBlend", 1f);
+            }
+
+            EditorUtility.SetDirty(material);
+
             return material;
+        }
+
+        /// <summary>Distance-field data must import raw: no sRGB, no mips, no compression, clamped.</summary>
+        private static void EnsureLinearImporter(string path)
+        {
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            if (importer == null)
+            {
+                return;
+            }
+
+            bool dirty = importer.sRGBTexture || importer.mipmapEnabled
+                || importer.wrapMode != TextureWrapMode.Clamp
+                || importer.textureCompression != TextureImporterCompression.Uncompressed;
+
+            if (!dirty)
+            {
+                return;
+            }
+
+            importer.sRGBTexture = false;
+            importer.mipmapEnabled = false;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+        }
+
+        private static void AssignIfEmpty(Material material, string property, string texturePath)
+        {
+            if (!material.HasProperty(property) || material.GetTexture(property) != null)
+            {
+                return;
+            }
+
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+
+            if (texture == null)
+            {
+                Debug.LogWarning($"HelmetHudBuilder: {texturePath} missing; {property} left empty "
+                    + "(the shader falls back to its flat look).");
+                return;
+            }
+
+            material.SetTexture(property, texture);
+        }
+
+        /// <summary>
+        /// Binds the HUD to the arms rig's helmet view, so pressing H lifts the visor chrome in
+        /// sync with the removal clip. Wiring is best-effort: without a rig in the scene the HUD
+        /// still builds, it just stays put.
+        /// </summary>
+        private static void WireHudView(GameObject canvasGo, RectTransform visorRoot)
+        {
+            HelmetAnimatorView helmetView =
+                Object.FindFirstObjectByType<HelmetAnimatorView>(FindObjectsInactive.Include);
+
+            if (helmetView == null)
+            {
+                Debug.LogWarning("HelmetHudBuilder: no HelmetAnimatorView in the open scenes; "
+                    + "the visor will not react to the removal. Rebuild after adding the rig.");
+            }
+
+            HelmetHudView hudView = canvasGo.AddComponent<HelmetHudView>();
+            SerializedObject serialized = new SerializedObject(hudView);
+            serialized.FindProperty("m_helmetViewBehaviour").objectReferenceValue = helmetView;
+            serialized.FindProperty("m_visorRoot").objectReferenceValue = visorRoot;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>

@@ -56,16 +56,36 @@ namespace RootsDance.Tests.EditMode.Environment
 
             foreach (PropInstance instance in OpeningPropsLayout.Build(Params()))
             {
-                if (!checked_.Add(instance.Prefab))
+                if (checked_.Add(instance.Prefab))
+                {
+                    AssertPrefabExists(instance.Prefab);
+                }
+            }
+
+            // Gap fillers are only placed when a gap is drawn, so check the authored keys directly too.
+            foreach (FenceRun run in Params().Fences)
+            {
+                if (run.GapFillers == null)
                 {
                     continue;
                 }
 
-                string path = EnvironmentPrefabBuilder.PrefabPath(instance.Prefab);
-                Assert.IsNotNull(path, instance.Prefab + " is not in EnvironmentPrefabTable");
-                Assert.IsTrue(AssetDatabase.LoadAssetAtPath<GameObject>(path) != null,
-                    path + " is missing — run RootsDance/Environment/Build Environment Prefabs");
+                foreach (string key in run.GapFillers)
+                {
+                    if (checked_.Add(key))
+                    {
+                        AssertPrefabExists(key);
+                    }
+                }
             }
+        }
+
+        private static void AssertPrefabExists(string key)
+        {
+            string path = EnvironmentPrefabBuilder.PrefabPath(key);
+            Assert.IsNotNull(path, key + " is not in EnvironmentPrefabTable");
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<GameObject>(path) != null,
+                path + " is missing — run RootsDance/Environment/Build Environment Prefabs");
         }
 
         [Test]
@@ -170,6 +190,172 @@ namespace RootsDance.Tests.EditMode.Environment
             {
                 Assert.AreEqual(-90f, instance.Yaw, 0.01f);
             }
+        }
+
+        [Test]
+        public void BuildFence_WithFillers_PlacesExactlyOneFillerPerGap()
+        {
+            FenceRun run = StraightRun(30f, 0.5f, 3, new[] { "rock_moss_03", "concrete_road_barrier" }, 21);
+
+            List<PropInstance> placed = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(run, placed);
+
+            List<Vector2> gaps = GapSpans(placed);
+            List<PropInstance> fillers = placed.FindAll(i => i.Group.EndsWith("_Filler"));
+
+            Assert.Greater(gaps.Count, 0, "the run drew no gap");
+            Assert.AreEqual(gaps.Count, fillers.Count, "one filler per gap");
+            Assert.AreEqual(fillers.Count, placed.FindAll(i => i.Group == "Test_Filler").Count,
+                "every filler is grouped as <run>_Filler");
+        }
+
+        [Test]
+        public void BuildFence_WithFillers_FillerSitsInsideItsGap()
+        {
+            FenceRun run = StraightRun(30f, 0.5f, 3, new[] { "rock_moss_03", "concrete_road_barrier" }, 21);
+
+            List<PropInstance> placed = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(run, placed);
+
+            List<Vector2> gaps = GapSpans(placed);
+            List<PropInstance> panels = placed.FindAll(i => i.Group.EndsWith("_Panel"));
+            List<PropInstance> fillers = placed.FindAll(i => i.Group.EndsWith("_Filler"));
+
+            Assert.Greater(fillers.Count, 0, "the run placed no filler");
+
+            foreach (PropInstance filler in fillers)
+            {
+                float nearestPanel = float.MaxValue;
+
+                foreach (PropInstance panel in panels)
+                {
+                    nearestPanel = Mathf.Min(nearestPanel, Vector2.Distance(panel.Position, filler.Position));
+                }
+
+                Assert.Greater(nearestPanel, 0.5f, "a filler stands on a panel");
+                Assert.IsTrue(gaps.Exists(g => filler.Position.x > g.x && filler.Position.x < g.y),
+                    $"filler at x={filler.Position.x:0.00} is not between its gap's boundary posts");
+            }
+        }
+
+        [Test]
+        public void BuildFence_MultiModuleGap_DropsInteriorPosts()
+        {
+            FenceRun run = StraightRun(30f, 1f, 3, new[] { "rock_moss_03" }, 21);
+
+            List<PropInstance> placed = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(run, placed);
+
+            List<PropInstance> posts = placed.FindAll(i => i.Group.EndsWith("_Post"));
+            List<PropInstance> fillers = placed.FindAll(i => i.Group.EndsWith("_Filler"));
+
+            // Every module is gapped, so every surviving post is a gap boundary: 31 posts would mean a
+            // multi-module gap kept its interior posts.
+            Assert.Less(posts.Count, 31, "no multi-module gap dropped a post");
+
+            foreach (Vector2 gap in GapSpans(placed))
+            {
+                int inside = fillers.FindAll(f => f.Position.x > gap.x && f.Position.x < gap.y).Count;
+                Assert.AreEqual(1, inside, $"span {gap.x:0.0}..{gap.y:0.0} between two posts is not one gap");
+            }
+        }
+
+        [Test]
+        public void BuildFence_NoFillersSingleModuleGaps_MatchesLegacyOutput()
+        {
+            FenceRun run = StraightRun(10f, 0.3f, 1, null, 5);
+
+            List<PropInstance> placed = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(run, placed);
+
+            int posts = placed.FindAll(i => i.Group.EndsWith("_Post")).Count;
+
+            Assert.AreEqual(11, posts, "the legacy path keeps every post, gapped or not");
+            Assert.AreEqual(0, placed.FindAll(i => i.Group.EndsWith("_Filler")).Count, "no filler");
+
+            for (int i = 0; i < placed.Count; i++)
+            {
+                Assert.IsTrue(placed[i].Group.EndsWith(i < posts ? "_Post" : "_Panel"),
+                    $"instance {i} breaks the posts-then-panels order");
+            }
+        }
+
+        [Test]
+        public void BuildFence_WithFillers_ConcreteBarrierGoesToBrokenBoundaryPool()
+        {
+            List<PropInstance> barriers = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(StraightRun(30f, 1f, 3, new[] { "concrete_road_barrier" }, 21),
+                barriers);
+
+            List<PropInstance> rocks = new List<PropInstance>();
+            OpeningPropsLayout.BuildFence(StraightRun(30f, 1f, 3, new[] { "rock_moss_01" }, 21), rocks);
+
+            List<PropInstance> barrierFillers = barriers.FindAll(i => i.Group.EndsWith("_Filler"));
+            List<PropInstance> rockFillers = rocks.FindAll(i => i.Group.EndsWith("_Filler"));
+
+            Assert.Greater(barrierFillers.Count, 0, "no filler placed");
+
+            foreach (PropInstance filler in barrierFillers)
+            {
+                Assert.AreEqual(PropPool.BrokenBoundary, filler.Pool, "a barrier filler left the boundary pool");
+            }
+
+            foreach (PropInstance filler in rockFillers)
+            {
+                Assert.AreEqual(PropPool.RootRockClutter, filler.Pool, "a rock filler left the clutter pool");
+            }
+        }
+
+        /// <summary>A 1 m-pitch run along +X from the origin, so an instance's X is its distance along it.</summary>
+        private static FenceRun StraightRun(float length, float gapChance, int gapMaxModules, string[] fillers,
+            int seed)
+        {
+            return new FenceRun
+            {
+                Name = "Test",
+                Nodes = new[] { new Vector2(0f, 0f), new Vector2(length, 0f) },
+                ModuleLength = 1f, GapChance = gapChance, PanelLean = 0f, PostLean = 0f, Seed = seed,
+                GapFillers = fillers, GapMaxModules = gapMaxModules,
+            };
+        }
+
+        /// <summary>
+        /// The gaps of a <see cref="StraightRun"/>: every span between two consecutive posts that holds no
+        /// panel, as (start x, end x). Two gaps drawn back to back keep their shared boundary post, so they
+        /// count as two spans.
+        /// </summary>
+        private static List<Vector2> GapSpans(List<PropInstance> placed)
+        {
+            List<float> postX = new List<float>();
+            List<float> panelX = new List<float>();
+
+            foreach (PropInstance instance in placed)
+            {
+                if (instance.Group.EndsWith("_Post"))
+                {
+                    postX.Add(instance.Position.x);
+                }
+                else if (instance.Group.EndsWith("_Panel"))
+                {
+                    panelX.Add(instance.Position.x);
+                }
+            }
+
+            postX.Sort();
+            List<Vector2> spans = new List<Vector2>();
+
+            for (int i = 0; i + 1 < postX.Count; i++)
+            {
+                float start = postX[i];
+                float end = postX[i + 1];
+
+                if (!panelX.Exists(x => x > start && x < end))
+                {
+                    spans.Add(new Vector2(start, end));
+                }
+            }
+
+            return spans;
         }
 
         [Test]

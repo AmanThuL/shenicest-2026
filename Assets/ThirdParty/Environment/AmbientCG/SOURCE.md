@@ -14,3 +14,7 @@
 Copied verbatim from the team candidate library; no local edits. AO/Roughness/Displacement live in `Source~/`
 (ignored by the Unity importer) and are packed into `Assets/RootsDance/Textures/Environment/Terrain<LayerName>_Mask.png` by
 RootsDance/Terrain/Pack Terrain Layer Masks.
+
+- **Helmet HUD dressing** (added 2026-08-27, downloaded from ambientcg.com, `<Id>` ∈ {Rubber004, Metal032, Fingerprints002}):
+  - `<Id>/<Id>_1K-JPG_Color.jpg` — colour map only; consumed by `RootsDance/UI/HelmetVisor`
+    (shell rubber, rim metal, glass smudges), wired by `HelmetHudBuilder.EnsureVisorMaterial`.

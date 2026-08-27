@@ -76,11 +76,28 @@ namespace RootsDance.Editor.Environment
         // Fence runs
         // -------------------------------------------------------------------------------------------------
 
+        /// <summary>Metres a gap filler sinks into the ground, so a rock or barrier reads as settled.</summary>
+        private const float k_FillerSink = 0.15f;
+
+        /// <summary>How far a gap filler follows the ground normal.</summary>
+        private const float k_FillerNormalAlign = 0.6f;
+
+        /// <summary>Maximum random tilt of a gap filler, in degrees.</summary>
+        private const float k_FillerTiltJitter = 8f;
+
+        /// <summary>The one filler key that belongs to the boundary palette rather than the rock clutter.</summary>
+        private const string k_BarrierPrefab = "concrete_road_barrier";
+
         /// <summary>
         /// Walks the polyline on <see cref="FenceRun.ModuleLength"/> steps, dropping a post at every step and
         /// a panel across every gap between two posts. Panels are placed at the gap's midpoint and yawed along
         /// it, so a run follows a bend without leaving a wedge open.
         /// </summary>
+        /// <remarks>
+        /// A run with <see cref="FenceRun.GapFillers"/> or a <see cref="FenceRun.GapMaxModules"/> above 1 takes
+        /// the gap-filling path: gaps may span several modules, lose their interior posts and get one big
+        /// obstacle at their centre. Runs without either keep the original output, draw for draw.
+        /// </remarks>
         public static void BuildFence(FenceRun run, List<PropInstance> into)
         {
             if (run.Nodes == null || run.Nodes.Length < 2 || run.ModuleLength <= 0f)
@@ -90,7 +107,22 @@ namespace RootsDance.Editor.Environment
 
             List<Vector2> posts = SamplePolyline(run.Nodes, run.ModuleLength);
             Rng rng = new Rng(run.Seed);
+            bool hasFillers = run.GapFillers != null && run.GapFillers.Length > 0;
 
+            if (!hasFillers && run.GapMaxModules <= 1)
+            {
+                BuildPlainFence(run, posts, ref rng, into);
+            }
+            else
+            {
+                BuildGappedFence(run, posts, ref rng, into, hasFillers);
+            }
+        }
+
+        /// <summary>The original fence: every post stands, single-module gaps stay empty.</summary>
+        private static void BuildPlainFence(FenceRun run, List<Vector2> posts, ref Rng rng,
+            List<PropInstance> into)
+        {
             for (int i = 0; i < posts.Count; i++)
             {
                 bool isEnd = i == 0 || i == posts.Count - 1;
@@ -131,6 +163,125 @@ namespace RootsDance.Editor.Environment
                     Sink = run.Sink,
                     NormalAlign = 0f,
                     Tilt = rng.Range(0f, run.PanelLean),
+                    TiltDirection = rng.Range(0f, 360f),
+                });
+            }
+        }
+
+        /// <summary>
+        /// The gap-filling fence. Modules are first assigned to gaps (each gap spans
+        /// 1..<see cref="FenceRun.GapMaxModules"/> modules, clamped to the run), then the posts that survive,
+        /// the panels of the ungapped modules and one filler per gap are emitted, in that order.
+        /// </summary>
+        private static void BuildGappedFence(FenceRun run, List<Vector2> posts, ref Rng rng,
+            List<PropInstance> into, bool hasFillers)
+        {
+            int modules = posts.Count - 1;
+            int maxGapModules = Mathf.Max(1, run.GapMaxModules);
+
+            // gapId[m] is the index of the gap module m belongs to, or -1 when its panel stands.
+            int[] gapId = new int[modules];
+            List<int> gapStart = new List<int>();
+            List<int> gapLength = new List<int>();
+
+            for (int m = 0; m < modules; m++)
+            {
+                gapId[m] = -1;
+            }
+
+            for (int m = 0; m < modules; m++)
+            {
+                if (gapId[m] >= 0 || rng.Value() >= run.GapChance)
+                {
+                    continue;
+                }
+
+                int length = Mathf.Min(rng.RangeInt(1, maxGapModules), modules - m);
+
+                for (int j = 0; j < length; j++)
+                {
+                    gapId[m + j] = gapStart.Count;
+                }
+
+                gapStart.Add(m);
+                gapLength.Add(length);
+            }
+
+            for (int i = 0; i < posts.Count; i++)
+            {
+                // A post is interior to a gap when the modules on both sides belong to the same gap. The two
+                // end posts and every gap boundary — including one shared by two adjacent gaps — stay.
+                bool interior = i > 0 && i < modules && gapId[i - 1] >= 0 && gapId[i - 1] == gapId[i];
+
+                if (interior)
+                {
+                    continue;
+                }
+
+                bool isEnd = i == 0 || i == posts.Count - 1;
+
+                into.Add(new PropInstance
+                {
+                    Prefab = isEnd ? run.EndPostPrefab : run.PostPrefab,
+                    Pool = PropPool.BrokenBoundary,
+                    Group = run.Name + "_Post",
+                    Position = posts[i],
+                    Yaw = rng.Range(0f, 360f),
+                    Scale = 1f,
+                    Sink = run.Sink,
+                    NormalAlign = 0f,
+                    Tilt = rng.Range(0f, run.PostLean),
+                    TiltDirection = rng.Range(0f, 360f),
+                });
+            }
+
+            for (int m = 0; m < modules; m++)
+            {
+                if (gapId[m] >= 0)
+                {
+                    continue;
+                }
+
+                Vector2 a = posts[m];
+                Vector2 b = posts[m + 1];
+
+                into.Add(new PropInstance
+                {
+                    Prefab = run.PanelPrefab,
+                    Pool = PropPool.BrokenBoundary,
+                    Group = run.Name + "_Panel",
+                    Position = (a + b) * 0.5f,
+                    Yaw = YawAlongX(b - a),
+                    Scale = 1f,
+                    Sink = run.Sink,
+                    NormalAlign = 0f,
+                    Tilt = rng.Range(0f, run.PanelLean),
+                    TiltDirection = rng.Range(0f, 360f),
+                });
+            }
+
+            if (!hasFillers)
+            {
+                return;
+            }
+
+            for (int g = 0; g < gapStart.Count; g++)
+            {
+                Vector2 first = posts[gapStart[g]];
+                Vector2 last = posts[gapStart[g] + gapLength[g]];
+                string prefab = run.GapFillers[rng.RangeInt(0, run.GapFillers.Length - 1)];
+
+                into.Add(new PropInstance
+                {
+                    Prefab = prefab,
+                    Pool = prefab == k_BarrierPrefab ? PropPool.BrokenBoundary : PropPool.RootRockClutter,
+                    Group = run.Name + "_Filler",
+                    Position = (first + last) * 0.5f,
+                    Yaw = rng.Range(0f, 360f),
+                    Scale = rng.Range(run.FillerScaleMin, run.FillerScaleMax),
+                    Sink = k_FillerSink,
+                    NormalAlign = k_FillerNormalAlign,
+                    Tilt = rng.Range(0f, k_FillerTiltJitter),
                     TiltDirection = rng.Range(0f, 360f),
                 });
             }
@@ -385,6 +536,20 @@ namespace RootsDance.Editor.Environment
             public float Range(float min, float max)
             {
                 return min + (max - min) * Value();
+            }
+
+            /// <summary>
+            /// Uniform integer in [<paramref name="minInclusive"/>, <paramref name="maxInclusive"/>].
+            /// </summary>
+            public int RangeInt(int minInclusive, int maxInclusive)
+            {
+                if (maxInclusive <= minInclusive)
+                {
+                    return minInclusive;
+                }
+
+                int span = maxInclusive - minInclusive + 1;
+                return Mathf.Min(minInclusive + (int)(Value() * span), maxInclusive);
             }
         }
     }
