@@ -31,7 +31,7 @@ namespace RootsDance.Editor.Tools
         private const float k_RigYaw = 180f;
 
         [MenuItem("RootsDance/Build Helmet Test Rig")]
-        private static void Build()
+        public static void Build()
         {
             GameObject fbx = AssetDatabase.LoadAssetAtPath<GameObject>(k_ArmsFbx);
 

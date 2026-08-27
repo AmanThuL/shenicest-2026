@@ -26,7 +26,7 @@ namespace RootsDance.Editor.Tools
         private const string k_StateName = "Crawl";
 
         [MenuItem("RootsDance/Build Crawl Test Rig")]
-        private static void Build()
+        public static void Build()
         {
             AnimationClip clip = LoadCrawlClip();
 

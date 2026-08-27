@@ -29,7 +29,7 @@ namespace RootsDance.Editor.Tools
         private const Key k_Key = Key.P;
 
         [MenuItem("RootsDance/Build Keypad Poke Test Rig")]
-        private static void Build()
+        public static void Build()
         {
             AnimationClip clip = LoadClip();
 

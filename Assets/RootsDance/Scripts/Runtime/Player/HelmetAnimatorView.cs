@@ -29,6 +29,9 @@ namespace RootsDance.Player
         private Animator m_animator;
         private int m_stateHash;
         private bool m_isPlaying;
+        private bool m_hasRemoved;
+
+        public event Action<float> RemoveStarted;
 
         public event Action RemoveFinished;
 
@@ -44,24 +47,20 @@ namespace RootsDance.Player
 
         public void PlayRemove()
         {
-            if (m_isPlaying)
+            // Taking the helmet off happens once: after the performance the helmet is off and
+            // further requests (the debug key included) are no-ops.
+            if (m_isPlaying || m_hasRemoved)
             {
                 return;
             }
 
             m_isPlaying = true;
+            m_hasRemoved = true;
             PlayRemoveAsync();
         }
 
         private async Awaitable PlayRemoveAsync()
         {
-            // Replays (debug trigger, retries) start with the helmet worn again, so undo the
-            // hide from the previous run before the first frame renders.
-            if (m_helmetRenderer != null)
-            {
-                m_helmetRenderer.enabled = true;
-            }
-
             m_animator.Play(m_stateHash, 0, 0f);
             m_animator.speed = m_playbackSpeed;
 
@@ -73,6 +72,8 @@ namespace RootsDance.Player
             {
                 Log.Warning("HelmetAnimatorView has no remove clip assigned; using a 1s fallback.", this);
             }
+
+            RemoveStarted?.Invoke(duration);
 
             try
             {

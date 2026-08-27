@@ -6,10 +6,11 @@
 // onto the glass - that bleed is what makes the rim readable "a little on the edge of sight" instead
 // of a hard cookie-cutter mask. Everything inside the opening past the shadow is fully transparent.
 //
-// The opening is a superellipse |x/rx|^n + |y/ry|^n = 1 with separate top and bottom Y radii, so the
-// brow can sit high while the chin bar cuts in flatter, like the reference frame. All distances are
-// in unit-rect UV, so the same material tracks any resolution; widths are kept perceptually even by
-// dividing the field by its screen-space gradient (fwidth) rather than trusting pow() spacing.
+// The opening is an SDF composition after the mech-cockpit reference: a wide rounded-box window,
+// minus a rounded notch hanging from the top edge (the brow console), minus a rounded block rising
+// from the bottom edge (the chin console). Distances are authored in screen-height units with x
+// aspect-corrected, so the silhouette keeps its true proportions at any resolution; band widths are
+// measured against the field's screen-space gradient (fwidth), so they stay even along the outline.
 //
 // Plain uGUI shader against UnityCG/UnityUI only - no pipeline include - same reasoning as
 // Dither.shader next to it: overlay UI is composited after HDRP, so pipeline includes buy nothing.
@@ -20,11 +21,26 @@ Shader "RootsDance/UI/HelmetVisor"
         [PerRendererData] _MainTex ("Sprite", 2D) = "white" {}
         _Color ("Tint", Color) = (1, 1, 1, 1)
 
-        _OpeningCenter ("Opening Center (UV)", Vector) = (0.5, 0.54, 0, 0)
-        _RadiusX ("Radius X", Range(0.05, 1.0)) = 0.46
-        _RadiusTop ("Radius Y Top", Range(0.05, 1.0)) = 0.42
-        _RadiusBottom ("Radius Y Bottom", Range(0.05, 1.0)) = 0.34
-        _CornerPower ("Corner Power", Range(1.5, 12)) = 3.5
+        // Opening geometry (screen-height units, x aspect-corrected): a wide rounded-box window,
+        // minus a rounded notch in the top edge, minus a rounded console block rising from the
+        // bottom edge - the mech-cockpit reference silhouette.
+        _OpeningCenter ("Opening Center (UV)", Vector) = (0.5, 0.52, 0, 0)
+        _HalfWidth ("Opening Half Width", Range(0.1, 1.5)) = 0.78
+        _HalfHeight ("Opening Half Height", Range(0.1, 1.0)) = 0.37
+        _CornerRadius ("Opening Corner Radius", Range(0.01, 0.5)) = 0.18
+        _TopNotchWidth ("Top Notch Half Width", Range(0, 1.0)) = 0.34
+        _TopNotchDepth ("Top Notch Depth", Range(0, 0.5)) = 0.13
+        _TopNotchRadius ("Top Notch Corner Radius", Range(0.005, 0.2)) = 0.06
+        _BottomNotchWidth ("Bottom Console Half Width", Range(0, 1.0)) = 0.44
+        _BottomNotchDepth ("Bottom Console Height", Range(0, 0.5)) = 0.16
+        _BottomNotchRadius ("Bottom Console Corner Radius", Range(0.005, 0.3)) = 0.1
+
+        // Traced silhouette: a signed-distance texture (linear R, 0.5 = the outline) extracted from
+        // the cockpit reference image — outline only, the artwork itself is not shipped. At blend 1
+        // it replaces the parametric window entirely; the parametric SDF stays as the fallback.
+        _ShapeTex ("Opening SDF (linear R)", 2D) = "gray" {}
+        _ShapeBlend ("Opening SDF Blend", Range(0, 1)) = 0
+        _ShapeRange ("Opening SDF Range", Range(0.1, 2)) = 0.6
 
         _FrameColor ("Frame Colour", Color) = (0.022, 0.024, 0.027, 1)
         _RimColor ("Rim Colour", Color) = (0.16, 0.175, 0.19, 1)
@@ -35,6 +51,22 @@ Shader "RootsDance/UI/HelmetVisor"
         _GlassShadowWidth ("Glass Shadow Width (UV)", Range(0, 0.3)) = 0.075
         _GlassShadowStrength ("Glass Shadow Strength", Range(0, 1)) = 0.6
         _FrameNoise ("Frame Wear Noise", Range(0, 1)) = 0.25
+
+        // Material dressing (ambientCG CC0 maps, see docs/third-party.md). Grey defaults keep the
+        // old flat look when no texture is assigned, so the material degrades instead of breaking.
+        _ShellTex ("Shell Texture (rubber)", 2D) = "gray" {}
+        _ShellTiling ("Shell Tiling", Range(0.2, 8)) = 2.5
+        _ShellTexStrength ("Shell Texture Strength", Range(0, 1)) = 0.85
+        _ShellMean ("Shell Map Mean (linear)", Range(0.005, 1)) = 0.026
+        _ShellContrast ("Shell Grain Contrast", Range(0.2, 4)) = 1.4
+        _RimTex ("Rim Texture (metal)", 2D) = "gray" {}
+        _RimTiling ("Rim Tiling (around the ring)", Range(0.2, 12)) = 4
+        _RimMean ("Rim Map Mean (linear)", Range(0.005, 1)) = 0.24
+        _RimContrast ("Rim Streak Contrast", Range(0.2, 8)) = 3
+        _SmudgeTex ("Glass Smudge Texture", 2D) = "black" {}
+        _SmudgeTiling ("Smudge Tiling", Range(0.2, 4)) = 1.2
+        _SmudgeStrength ("Glass Smudge Strength", Range(0, 1)) = 0.35
+        _SmudgeMean ("Smudge Map Scale (linear)", Range(0.005, 1)) = 0.08
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -107,10 +139,18 @@ Shader "RootsDance/UI/HelmetVisor"
             float4 _ClipRect;
 
             float4 _OpeningCenter;
-            float _RadiusX;
-            float _RadiusTop;
-            float _RadiusBottom;
-            float _CornerPower;
+            float _HalfWidth;
+            float _HalfHeight;
+            float _CornerRadius;
+            float _TopNotchWidth;
+            float _TopNotchDepth;
+            float _TopNotchRadius;
+            float _BottomNotchWidth;
+            float _BottomNotchDepth;
+            float _BottomNotchRadius;
+            sampler2D _ShapeTex;
+            float _ShapeBlend;
+            float _ShapeRange;
 
             float4 _FrameColor;
             float4 _RimColor;
@@ -121,6 +161,20 @@ Shader "RootsDance/UI/HelmetVisor"
             float _GlassShadowWidth;
             float _GlassShadowStrength;
             float _FrameNoise;
+
+            sampler2D _ShellTex;
+            float _ShellTiling;
+            float _ShellTexStrength;
+            float _ShellMean;
+            float _ShellContrast;
+            sampler2D _RimTex;
+            float _RimTiling;
+            float _RimMean;
+            float _RimContrast;
+            sampler2D _SmudgeTex;
+            float _SmudgeTiling;
+            float _SmudgeStrength;
+            float _SmudgeMean;
 
             Varyings Vert(Attributes input)
             {
@@ -151,18 +205,42 @@ Shader "RootsDance/UI/HelmetVisor"
                 return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
             }
 
+            // Signed distance to a rounded box, negative inside. The standard construction.
+            float RoundedBox(float2 p, float2 half_, float radius)
+            {
+                float2 q = abs(p) - half_ + radius;
+                return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
+            }
+
             fixed4 Frag(Varyings input) : SV_Target
             {
+                // Aspect-corrected visor space (x scaled by the live screen aspect, units of screen
+                // height) so the shape is authored in true on-screen proportions. The opening is an
+                // SDF composition after the mech-cockpit reference: a wide rounded window, minus a
+                // rounded notch hanging from the top edge, minus a console block rising from the
+                // bottom edge. d < 0 is glass; every band below is measured off d's own screen
+                // gradient, so widths stay perceptually even along any part of the outline.
                 float2 delta = input.uv - _OpeningCenter.xy;
-                float radiusY = delta.y >= 0.0 ? _RadiusTop : _RadiusBottom;
-                float2 normalised = float2(abs(delta.x) / _RadiusX, abs(delta.y) / radiusY);
+                delta.x *= _ScreenParams.x / _ScreenParams.y;
 
-                // Superellipse field: < 1 inside the opening, 1 on the glass/frame boundary. The
-                // 1/n root would compress band widths at the corners, so widths below are measured
-                // against the field's own screen gradient instead.
-                float field = pow(normalised.x, _CornerPower) + pow(normalised.y, _CornerPower);
-                float gradient = max(fwidth(field), 1e-4);
-                float pixels = (field - 1.0) / gradient;
+                float d = RoundedBox(delta, float2(_HalfWidth, _HalfHeight), _CornerRadius);
+
+                float dTop = RoundedBox(delta - float2(0.0, _HalfHeight),
+                    float2(_TopNotchWidth, _TopNotchDepth), _TopNotchRadius);
+                d = max(d, -dTop);
+
+                float dBottom = RoundedBox(delta + float2(0.0, _HalfHeight),
+                    float2(_BottomNotchWidth, _BottomNotchDepth), _BottomNotchRadius);
+                d = max(d, -dBottom);
+
+                // The traced reference silhouette, when assigned, takes over from the parametric
+                // window. Sampled straight in screen UV: the source is 3:2, so the outline widens
+                // a touch on a 16:9 screen; band widths stay even regardless via the gradient.
+                float shapeSample = tex2D(_ShapeTex, input.uv).r;
+                d = lerp(d, (shapeSample - 0.5) * _ShapeRange, _ShapeBlend);
+
+                float gradient = max(fwidth(d), 1e-4);
+                float pixels = d / gradient;
 
                 float shadowPixels = max(_GlassShadowWidth / gradient, 1.0);
                 float rimPixels = max(_RimWidth / gradient, 1.0);
@@ -177,14 +255,49 @@ Shader "RootsDance/UI/HelmetVisor"
                 // Rim band sits just outside the boundary; lit from above, so the chin catches more.
                 float rimMask = frameMask * saturate(1.0 - (pixels - rimPixels) / max(rimPixels, 1.0));
                 float rimLight = lerp(_RimBottomBrightness, _RimTopBrightness,
-                    saturate(delta.y / max(radiusY, 1e-4) * 0.5 + 0.5));
+                    saturate(delta.y / max(_HalfHeight, 1e-4) * 0.5 + 0.5));
 
                 float wear = 1.0 - _FrameNoise * ValueNoise(input.uv * 60.0) * frameMask;
 
-                float3 colour = _FrameColor.rgb * wear;
-                colour = lerp(colour, _RimColor.rgb * rimLight, rimMask);
+                // Shell: the rubber map modulates the frame colour. Samples are divided by the
+                // map's own measured mean (in linear space, where the sampler hands them over) so
+                // the modulation is centred on 1 whatever the map's exposure — the first pass
+                // multiplied a near-black base by a near-black map and vanished. Contrast is then
+                // expanded around that centre, and the shell falls off darker away from the
+                // opening: the inside of a helmet is lit by the glass, not by itself. The 16:9
+                // stretch on canvas UV is corrected so the grain stays square.
+                float3 shellSample = tex2D(_ShellTex, input.uv * _ShellTiling * float2(1.778, 1.0)).rgb;
+                float shellDetail = pow(max(dot(shellSample, float3(0.299, 0.587, 0.114)), 1e-4)
+                    / max(_ShellMean, 1e-3), _ShellContrast);
+                float shellShade = lerp(1.0, clamp(shellDetail, 0.35, 2.2), _ShellTexStrength);
+                float shellFalloff = saturate(1.1 - d);
+
+                // Rim: brushed metal sampled in band space — angle around the ring by depth across
+                // it — so the grain follows the clamp band instead of tiling across the screen. The
+                // map's streak variance is tiny, so the same mean-normalise + contrast expansion
+                // turns it into visible brushing.
+                float angle = atan2(delta.y, delta.x);
+                float2 rimUV = float2(angle * 0.7958, saturate((pixels + rimPixels) /
+                    max(rimPixels * 2.0, 1.0))) * float2(_RimTiling, 1.0);
+                float rimDetail = pow(max(dot(tex2D(_RimTex, rimUV).rgb,
+                    float3(0.299, 0.587, 0.114)), 1e-4) / max(_RimMean, 1e-3), _RimContrast);
+
+                float3 colour = _FrameColor.rgb * wear * shellShade * shellFalloff;
+                colour = lerp(colour, _RimColor.rgb * rimLight * clamp(rimDetail, 0.4, 1.9), rimMask);
 
                 float alpha = lerp(glassShadow, 1.0, frameMask);
+
+                // Glass smudges: fingerprints ghosting in near the frame, strongest just inside the
+                // shadow band, gone by mid-glass — grime lives where the glass meets the seal. The
+                // map is sparse bright wisps on black; dividing by its bright-end scale keeps the
+                // wisps and drops the noise floor.
+                float smudge = saturate(dot(tex2D(_SmudgeTex, input.uv * _SmudgeTiling).rgb,
+                    float3(0.299, 0.587, 0.114)) / max(_SmudgeMean, 1e-3));
+                float smudgeMask = saturate(1.0 + pixels / max(shadowPixels * 2.2, 1.0))
+                    * (1.0 - frameMask);
+                float smudgeAmount = smudge * _SmudgeStrength * smudgeMask * smudgeMask;
+                colour = lerp(colour, float3(0.62, 0.67, 0.70), saturate(smudgeAmount * 2.0));
+                alpha = saturate(alpha + smudgeAmount);
 
                 fixed4 result = fixed4(colour, alpha);
                 result *= tex2D(_MainTex, input.uv);
