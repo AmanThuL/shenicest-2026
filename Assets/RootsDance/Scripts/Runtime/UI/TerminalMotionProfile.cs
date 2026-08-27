@@ -37,6 +37,15 @@ namespace RootsDance.UI
         [Range(0f, 1f)]
         [SerializeField] private float m_reconstructStartCoverage = 0.4f;
 
+        [Tooltip("Seed for the scatter order glyphs light up in (B-roll). Same seed, same order.")]
+        [SerializeField] private int m_scatterSeed = 20260827;
+
+        [Tooltip("Terminal steps Populate takes to fill a field, whatever its cell count (D2).")]
+        [SerializeField] private int m_populateSteps = 10;
+
+        [Tooltip("Steps a panel stays at full flood before the ladder walks back down (D5).")]
+        [SerializeField] private int m_floodHoldSteps = 1;
+
         public float StepSeconds => Mathf.Max(k_MinStepSeconds, m_stepSeconds);
 
         public int FlashSteps => Mathf.Max(0, m_flashSteps);
@@ -50,5 +59,11 @@ namespace RootsDance.UI
         public int ReconstructSteps => Mathf.Max(1, m_reconstructSteps);
 
         public float ReconstructStartCoverage => Mathf.Clamp01(m_reconstructStartCoverage);
+
+        public int ScatterSeed => m_scatterSeed;
+
+        public int PopulateSteps => Mathf.Max(1, m_populateSteps);
+
+        public int FloodHoldSteps => Mathf.Max(0, m_floodHoldSteps);
     }
 }

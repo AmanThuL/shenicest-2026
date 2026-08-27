@@ -9,8 +9,9 @@ namespace RootsDance.UI
     /// <summary>
     /// The thin semantic orchestration layer called for in the UI motion research: presenters ask for
     /// a motion *verb* (Snap / Flash / FlickerLock / TerminalWrite / ReadoutJitter / RasterHold /
-    /// Reconstruct / HardCut) instead of hand-writing tweens, so every screen derives from one recipe
-    /// and stays consistent.
+    /// Reconstruct / HardCut for the warm title card; ScatterWrite / ScatterClear / Populate /
+    /// Depopulate / Flood for the cold data screen) instead of hand-writing tweens, so every screen
+    /// derives from one recipe and stays consistent.
     /// <para>
     /// DOTween supplies timing only. Every visible step here is a discrete state change on a terminal
     /// refresh grid — no eases, no interpolated fades, no directional movement.
@@ -27,6 +28,15 @@ namespace RootsDance.UI
 
         /// <summary>Upper bound for the meaningless digits a readout shows before it settles.</summary>
         private const int k_JitterMaxValue = 100;
+
+        /// <summary>
+        /// The ladder a panel walks on its way to full flood, as fractions of the flood colour, one
+        /// film frame per rung. Measured off the reference at 13 -> 24 -> 69 -> 110 going up and
+        /// 110 -> 58 -> 15 coming back: roughly a doubling per rung, and every rung a hard cut.
+        /// </summary>
+        private static readonly float[] k_FloodUpLadder = { 0.22f, 0.63f, 1f };
+
+        private static readonly float[] k_FloodDownLadder = { 0.53f };
 
         /// <summary>
         /// Stage-material properties the two image-side verbs drive, declared by
@@ -216,6 +226,204 @@ namespace RootsDance.UI
             });
 
             return sequence;
+        }
+
+        /// <summary>
+        /// The data screen's write: characters light up one at a time in a shuffled order, each
+        /// already at its final position holding its final character. Not a typewriter and not a
+        /// scramble - the reference never shows a wrong letter, only a line that is not all there yet.
+        /// </summary>
+        public static Sequence ScatterWrite(DotMatrixText label, string text, TerminalMotionProfile profile)
+        {
+            return Scatter(label, text, profile, true);
+        }
+
+        /// <summary>
+        /// The same motion run backwards, dropping the line character by character. Overlapping a
+        /// ScatterClear on the old line with a ScatterWrite of the new one is how the reference
+        /// changes what a panel calls itself: at the crossover a single character is on screen, and
+        /// it already belongs to the new name.
+        /// </summary>
+        public static Sequence ScatterClear(DotMatrixText label, TerminalMotionProfile profile)
+        {
+            return label == null ? null : Scatter(label, label.Text, profile, false);
+        }
+
+        private static Sequence Scatter(DotMatrixText label, string text, TerminalMotionProfile profile,
+            bool lighting)
+        {
+            if (label == null || profile == null)
+            {
+                return null;
+            }
+
+            Kill(label);
+
+            if (lighting)
+            {
+                label.Text = text;
+            }
+
+            label.SetAllCharactersVisible(!lighting);
+
+            int[] order = ShuffledIndices(label.CharacterCount, profile.ScatterSeed);
+
+            if (order.Length == 0)
+            {
+                return null;
+            }
+
+            Sequence sequence = DOTween.Sequence().SetTarget(label);
+
+            for (int i = 0; i < order.Length; i++)
+            {
+                int index = order[i];
+                sequence.AppendInterval(profile.StepSeconds);
+                sequence.AppendCallback(() => label.SetCharacterVisible(index, lighting));
+            }
+
+            sequence.OnKill(() =>
+            {
+                if (label != null)
+                {
+                    label.SetAllCharactersVisible(lighting);
+                }
+            });
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// Fills a data field: cells light up in batches, in a fixed shuffled order, and a cell that
+        /// is lit keeps its character and its brightness until the field is cleared. The population is
+        /// what animates, never the contents - no rolling digits and no rain.
+        /// <para>
+        /// The step count is fixed rather than the batch size, so panels of very different cell counts
+        /// still finish together, which is what the reference does.
+        /// </para>
+        /// </summary>
+        public static Sequence Populate(TerminalDataField field, TerminalMotionProfile profile)
+        {
+            return Repopulate(field, profile, 0f, 1f);
+        }
+
+        /// <summary>Empties a field the way it filled, in the same order. The reverse of Populate.</summary>
+        public static Sequence Depopulate(TerminalDataField field, TerminalMotionProfile profile)
+        {
+            return Repopulate(field, profile, 1f, 0f);
+        }
+
+        private static Sequence Repopulate(TerminalDataField field, TerminalMotionProfile profile,
+            float from, float to)
+        {
+            if (field == null || profile == null)
+            {
+                return null;
+            }
+
+            Kill(field);
+            field.Coverage = from;
+
+            int steps = profile.PopulateSteps;
+            Sequence sequence = DOTween.Sequence().SetTarget(field);
+
+            for (int step = 1; step <= steps; step++)
+            {
+                float coverage = Mathf.Lerp(from, to, step / (float)steps);
+                sequence.AppendInterval(profile.StepSeconds);
+                sequence.AppendCallback(() => field.Coverage = coverage);
+            }
+
+            sequence.OnKill(() =>
+            {
+                if (field != null)
+                {
+                    field.Coverage = to;
+                }
+            });
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// A panel washing out to full brightness and back down to its ground colour, one hard step
+        /// per film frame. The ladder is a doubling per rung rather than an even ramp, and there is no
+        /// easing anywhere in it - see <see cref="k_FloodUpLadder"/>.
+        /// </summary>
+        public static Sequence Flood(Graphic panel, Color floodColor, TerminalMotionProfile profile)
+        {
+            if (panel == null || profile == null)
+            {
+                return null;
+            }
+
+            Kill(panel);
+
+            Color ground = panel.color;
+            Sequence sequence = DOTween.Sequence().SetTarget(panel);
+
+            for (int i = 0; i < k_FloodUpLadder.Length; i++)
+            {
+                Color rung = Color.Lerp(ground, floodColor, k_FloodUpLadder[i]);
+                sequence.AppendInterval(profile.StepSeconds);
+                sequence.AppendCallback(() => panel.color = rung);
+            }
+
+            for (int hold = 0; hold < profile.FloodHoldSteps; hold++)
+            {
+                sequence.AppendInterval(profile.StepSeconds);
+            }
+
+            for (int i = 0; i < k_FloodDownLadder.Length; i++)
+            {
+                Color rung = Color.Lerp(ground, floodColor, k_FloodDownLadder[i]);
+                sequence.AppendInterval(profile.StepSeconds);
+                sequence.AppendCallback(() => panel.color = rung);
+            }
+
+            sequence.AppendInterval(profile.StepSeconds);
+            sequence.AppendCallback(() => panel.color = ground);
+            sequence.OnKill(() =>
+            {
+                if (panel != null)
+                {
+                    panel.color = ground;
+                }
+            });
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// 0..count-1 shuffled off <paramref name="seed"/>. Deliberately not UnityEngine.Random: the
+        /// same label has to scatter the same way every time it is written, whatever else ran first.
+        /// </summary>
+        private static int[] ShuffledIndices(int count, int seed)
+        {
+            int[] indices = new int[Mathf.Max(0, count)];
+
+            for (int i = 0; i < indices.Length; i++)
+            {
+                indices[i] = i;
+            }
+
+            for (int i = indices.Length - 1; i > 0; i--)
+            {
+                unchecked
+                {
+                    uint n = (uint)(i * 1597334677) ^ (uint)seed;
+                    n = (n ^ (n >> 15)) * 2246822519u;
+                    n = (n ^ (n >> 13)) * 3266489917u;
+                    n ^= n >> 16;
+
+                    int j = Mathf.Clamp((int)((n & 0x00FFFFFFu) / 16777216f * (i + 1)), 0, i);
+                    int swap = indices[i];
+                    indices[i] = indices[j];
+                    indices[j] = swap;
+                }
+            }
+
+            return indices;
         }
 
         /// <summary>
