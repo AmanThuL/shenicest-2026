@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a35c143b17c64e7088c41b0df51b978, type: 3}
+  m_Name: Night
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.TimeOfDayPresetSO
+  m_phase: 1
+  m_profile: {fileID: 11400000, guid: 00bc0523de3de4124ae60725f4762184, type: 2}
+  m_sunIntensityLux: 8
+  m_sunColor: {r: 0.62, g: 0.72, b: 1, a: 1}
+  m_sunVolumetricMultiplier: 0.5
