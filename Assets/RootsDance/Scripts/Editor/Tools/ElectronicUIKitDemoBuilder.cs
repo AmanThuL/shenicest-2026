@@ -1,10 +1,11 @@
+using System.IO;
 using RootsDance.UI.Kit;
-using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -12,21 +13,28 @@ using Object = UnityEngine.Object;
 namespace RootsDance.EditorTools
 {
     /// <summary>
-    /// Three screens assembled out of the kit, as the test of whether
-    /// docs/effects/电子类UI组件库规范.md is prescriptive enough to generate rather than to copy.
-    /// <para>
-    /// None of them reproduces a reference. They deliberately differ on every axis the spec says is
-    /// free — theme, aspect, block count, which of §5B's three cuts the body uses, and which dither
-    /// family the plates run — while obeying everything §5C says is fixed. If they read as one family
-    /// anyway, the spec carries the style; if they only read as one family when they copy a reference,
-    /// it does not.
-    /// </para>
+    /// Rebuilds the Test_ElectronicUI sandbox from the three §5B template prefabs, one per reference,
+    /// each under its own measured theme — the acceptance test of the 2026-08-27 spec revision. The
+    /// capture entry renders each template to a PNG at its native size so the cut, the seams and the
+    /// type can be laid next to the reference images directly.
     /// </summary>
     public static class ElectronicUIKitDemoBuilder
     {
         private const string k_Folder = "Assets/_Sandbox/UISandboxDemo";
-        private const string k_Kit = ElectronicUIKitBuilder.KitFolder;
-        private const string k_Themes = ElectronicUIKitBuilder.ThemeFolder;
+        private const string k_ShotFolder = "Logs/UIKitShots";
+
+        private static readonly string[] k_Templates =
+        {
+            "Template_Archive", "Template_Dossier", "Template_Browser"
+        };
+
+        /// <summary>Batch entry: kit, templates, sandbox scene, screenshots, in one run.</summary>
+        public static void BuildAll()
+        {
+            ElectronicUIKitBuilder.Build();
+            Build();
+            Capture();
+        }
 
         [MenuItem("RootsDance/Build Electronic UI Demos")]
         public static void Build()
@@ -38,17 +46,28 @@ namespace RootsDance.EditorTools
             Scene scene = NewScene();
             RectTransform canvas = BuildCanvas(scene);
 
-            GameObject[] screens = { BuildArchive(), BuildGerminationLog(), BuildFieldUnit() };
             float x = 40f;
 
-            for (int i = 0; i < screens.Length; i++)
+            for (int i = 0; i < k_Templates.Length; i++)
             {
-                RectTransform rect = screens[i].GetComponent<RectTransform>();
+                GameObject instance = Instantiate(k_Templates[i]);
+
+                if (instance == null)
+                {
+                    continue;
+                }
+
+                RectTransform rect = (RectTransform)instance.transform;
                 Vector2 size = rect.sizeDelta;
-                Place(screens[i], canvas, x, 40f, size.x, size.y);
+                rect.SetParent(canvas, false);
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(0f, 1f);
+                rect.pivot = new Vector2(0f, 1f);
+                rect.anchoredPosition = new Vector2(x, -40f);
+                rect.sizeDelta = size;
                 x += size.x + 40f;
 
-                ElectronicUIRoot root = screens[i].GetComponent<ElectronicUIRoot>();
+                ElectronicUIRoot root = instance.GetComponent<ElectronicUIRoot>();
 
                 if (root != null)
                 {
@@ -60,210 +79,126 @@ namespace RootsDance.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("Electronic UI demo screens built. Open Test_ElectronicUI.unity.");
-        }
-
-        // ------------------------------------------------------------------ screen A
-        // §5B "narrow + wide": a stack of small readings on the left against one large plate on the
-        // right, so the eye goes from fragments to the whole. Precinct, landscape, 9 blocks (§5D mid).
-        private static GameObject BuildArchive()
-        {
-            const float w = 1280f;
-            const float h = 720f;
-            GameObject root = NewScreen("Screen_SpecimenArchive", "Precinct", w, h);
-            RectTransform body = Body(root, w, h, "ROOTS/BOTANY — SPECIMEN ARCHIVE", "LINK OK");
-
-            float inset = 64f;
-            float top = 104f;
-            float gut = 16f;
-            float left = inset;
-            float colW = 300f;
-            float rightX = left + colW + gut;
-            float rightW = w - inset - rightX;
-
-            Place(Kit("ChipMosaic"), body, left, top, colW, 110f);
-            Place(Plate("T_PlateRoot", KitDitherPlate.DitherMode.Bayer8, 4, 2f, false),
-                body, left, top + 126f, colW, 180f);
-            Place(Table(new[] { "SAMPLE", "DEPTH", "MEDIUM" },
-                new[] { "RD-0447", "110 MM", "LOAM" }, -1), body, left, top + 322f, colW, 120f);
-            Place(Kit("SegmentBar"), body, left, top + 458f, colW, 16f);
-
-            Place(Plate("T_PlateIris", KitDitherPlate.DitherMode.Bayer4, 6, 3f, true),
-                body, rightX, top, rightW, 320f);
-            Place(Kit("BarcodeRows"), body, rightX, top + 336f, rightW, 100f);
-            Place(Readout("0447", "SPECIMEN ID"), body, rightX, top + 452f, rightW, 60f);
-
-            // §5C caps the accent at two places saying one thing: both of these are the same fault.
-            Place(Table(new[] { "PHYS STATE", "VIABILITY", "CONTAINMENT" },
-                new[] { "LEV B", "62%", "BREACHED" }, 2), body, left, 560f, w - inset * 2f, 120f);
-
-            return root;
-        }
-
-        // ------------------------------------------------------------------ screen B
-        // §5B "equal + full width": every row cut differently, ending on one full-width plot.
-        // Phosphor, portrait, 8 blocks. Halftone plates rather than Bayer — the same layout under a
-        // different screen family should still be recognisable as the kit.
-        private static GameObject BuildGerminationLog()
-        {
-            const float w = 720f;
-            const float h = 960f;
-            GameObject root = NewScreen("Screen_GerminationLog", "Phosphor", w, h);
-            RectTransform body = Body(root, w, h, "GERMINATION LOG", "CYCLE 12");
-
-            float inset = 48f;
-            float top = 104f;
-            float gut = 16f;
-            float half = (w - inset * 2f - gut) * 0.5f;
-
-            Place(Plate("T_PlateRoot", KitDitherPlate.DitherMode.HalftoneDiamond, 2, 3f, false),
-                body, inset, top, half, 200f);
-            Place(Plate("T_PlateIris", KitDitherPlate.DitherMode.HalftoneLine, 2, 4f, false),
-                body, inset + half + gut, top, half, 200f);
-
-            Place(Table(new[] { "STRAIN", "SOWN", "SPROUTED", "MEAN HEIGHT", "LOSS" },
-                new[] { "WR-09", "03/05", "88 / 96", "41 MM", "8" }, -1),
-                body, inset, top + 216f, w - inset * 2f, 200f);
-
-            Place(Kit("ChipMosaic"), body, inset, top + 432f, half, 110f);
-            Place(Plate("T_PlateCircuit", KitDitherPlate.DitherMode.HalftoneRound, 2, 3f, true),
-                body, inset + half + gut, top + 432f, half, 110f);
-
-            Place(Kit("Waveform"), body, inset, top + 558f, w - inset * 2f, 150f);
-
-            GameObject buttons = ElectronicUIKitBuilder.NewRect("Actions", new Vector2(w, 40f));
-            HorizontalLayoutGroup layout = buttons.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = gut;
-            layout.childControlWidth = true;
-            layout.childForceExpandWidth = true;
-            Nest(Kit("Button"), buttons.transform);
-            Nest(Kit("ButtonSolid"), buttons.transform);
-            Place(buttons, body, inset, top + 726f, w - inset * 2f, 40f);
-
-            return root;
-        }
-
-        // ------------------------------------------------------------------ screen C
-        // §5D's small tier: four blocks, nothing more. Violet, narrow portrait, blue-noise plate. The
-        // interesting case for the spec — the same rules at a size where there is no room to compose.
-        private static GameObject BuildFieldUnit()
-        {
-            const float w = 460f;
-            const float h = 820f;
-            GameObject root = NewScreen("Screen_FieldUnit", "Violet", w, h);
-            RectTransform body = Body(root, w, h, "FIELD UNIT", "A-34");
-
-            float inset = 32f;
-            float top = 96f;
-            float inner = w - inset * 2f;
-
-            Place(Plate("T_PlateIris", KitDitherPlate.DitherMode.BlueNoise, 2, 2f, false),
-                body, inset, top, inner, 300f);
-            Place(Table(new[] { "OPERATOR", "FUNCTION", "STATE" },
-                new[] { "TORRA", "SURVEY", "NOMINAL" }, -1), body, inset, top + 320f, inner, 120f);
-            Place(Kit("SegmentBar"), body, inset, top + 460f, inner, 20f);
-            Place(Readout("A-34", "UNIT"), body, inset, top + 500f, inner, 60f);
-
-            return root;
-        }
-
-        // ------------------------------------------------------------------ helpers
-
-        private static GameObject NewScreen(string name, string theme, float width, float height)
-        {
-            GameObject root = new GameObject(name, typeof(RectTransform));
-            root.layer = LayerMask.NameToLayer("UI");
-            RectTransform rect = root.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(width, height);
-
-            ElectronicUIRoot uiRoot = root.AddComponent<ElectronicUIRoot>();
-            SerializedObject serialized = new SerializedObject(uiRoot);
-            serialized.FindProperty("m_theme").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<ElectronicUITheme>($"{k_Themes}/UITheme_{theme}.asset");
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-
-            return root;
+            Debug.Log("Electronic UI sandbox rebuilt from the templates. Open Test_ElectronicUI.unity.");
         }
 
         /// <summary>
-        /// The §5A skeleton every screen shares: one ground, one strong outer frame with corner marks,
-        /// one title bar, and a body rect that everything else is placed into.
+        /// Renders each template prefab to Logs/UIKitShots/&lt;name&gt;.png at its native pixel size,
+        /// through a screen-space-camera canvas into a RenderTexture, so the output is comparable
+        /// one-to-one with the reference images.
         /// </summary>
-        private static RectTransform Body(GameObject root, float width, float height, string title,
-            string status)
+        [MenuItem("RootsDance/Capture Electronic UI Shots")]
+        public static void Capture()
         {
-            ElectronicUIKitBuilder.AddFill(root, KitInk.Ink0);
+            Directory.CreateDirectory(k_ShotFolder);
 
-            GameObject frame = ElectronicUIKitBuilder.NewRect("Frame", Vector2.zero);
-            frame.transform.SetParent(root.transform, false);
-            ElectronicUIKitBuilder.Stretch(frame.GetComponent<RectTransform>(), 32f);
-            ElectronicUIKitBuilder.AddBorder(frame, KitInk.Ink4, true);
+            Scene scene = NewScene();
 
-            GameObject marks = ElectronicUIKitBuilder.NewRect("CornerMarks", Vector2.zero);
-            marks.transform.SetParent(frame.transform, false);
-            ElectronicUIKitBuilder.Stretch(marks.GetComponent<RectTransform>(), -8f);
-            KitCornerMarks corner = marks.AddComponent<KitCornerMarks>();
-            corner.raycastTarget = false;
-            ElectronicUIKitBuilder.SetInk(corner, KitInk.Ink3);
+            GameObject cameraObject = new GameObject("CaptureCamera", typeof(Camera));
+            SceneManager.MoveGameObjectToScene(cameraObject, scene);
+            Camera camera = cameraObject.GetComponent<Camera>();
+            camera.transform.position = new Vector3(0f, 0f, -10f);
 
-            GameObject bar = ElectronicUIKitBuilder.MakeTitleBar("TitleBar", title, status);
-            Place(bar, (RectTransform)root.transform, 32f, 32f, width - 64f, 40f);
+            GameObject canvasObject = new GameObject("CaptureCanvas", typeof(RectTransform),
+                typeof(Canvas), typeof(CanvasScaler));
+            canvasObject.layer = LayerMask.NameToLayer("UI");
+            SceneManager.MoveGameObjectToScene(canvasObject, scene);
 
-            return (RectTransform)root.transform;
+            Canvas canvas = canvasObject.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+            canvas.planeDistance = 1f;
+
+            CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+            scaler.scaleFactor = 1f;
+
+            for (int i = 0; i < k_Templates.Length; i++)
+            {
+                GameObject instance = Instantiate(k_Templates[i]);
+
+                if (instance == null)
+                {
+                    continue;
+                }
+
+                RectTransform rect = (RectTransform)instance.transform;
+                Vector2 size = rect.sizeDelta;
+                rect.SetParent(canvas.transform, false);
+
+                ElectronicUIRoot root = instance.GetComponent<ElectronicUIRoot>();
+
+                if (root != null)
+                {
+                    root.ApplyTheme();
+                }
+
+                int width = Mathf.RoundToInt(size.x);
+                int height = Mathf.RoundToInt(size.y);
+                RenderTexture target = new RenderTexture(width, height, 24,
+                    RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                camera.targetTexture = target;
+
+                // With the target bound, the camera's pixel rect is the texture, so the canvas snaps
+                // to the template's native size; centre-anchored, the screen fills it edge to edge.
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.sizeDelta = size;
+
+                Canvas.ForceUpdateCanvases();
+
+                RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
+                request.destination = target;
+
+                // Warm-up submissions: HDRP's automatic exposure adapts over frames, and a single
+                // cold render comes out several stops dark (the first capture of a batch was nearly
+                // black while later ones were correct).
+                for (int pass = 0; pass < 8; pass++)
+                {
+                    camera.SubmitRenderRequest(request);
+                }
+
+                Texture2D readback = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = target;
+                readback.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
+                readback.Apply();
+                RenderTexture.active = previous;
+
+                string path = $"{k_ShotFolder}/{k_Templates[i]}.png";
+                File.WriteAllBytes(path, readback.EncodeToPNG());
+                Debug.Log($"Captured {path}");
+
+                camera.targetTexture = null;
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+                Object.DestroyImmediate(instance);
+            }
+
+            // Leave the capture rig out of anyone's way: reopen an empty untitled scene.
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
-        /// <summary>Places a child by top-left corner in screen coordinates, which is how a layout reads.</summary>
-        private static void Place(GameObject go, RectTransform parent, float x, float y, float w, float h)
+        private static GameObject Instantiate(string template)
         {
-            go.transform.SetParent(parent, false);
-            RectTransform rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.sizeDelta = new Vector2(w, h);
-            rect.anchoredPosition = new Vector2(x, -y);
-        }
-
-        private static GameObject Kit(string prefab)
-        {
-            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{k_Kit}/{prefab}.prefab");
+            string path = $"{ElectronicUIKitBuilder.TemplateFolder}/{template}.prefab";
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
 
             if (asset == null)
             {
-                Debug.LogError($"Kit prefab {prefab} missing — run RootsDance > Build Electronic UI Kit.");
-                return ElectronicUIKitBuilder.NewRect(prefab, new Vector2(100f, 40f));
+                Debug.LogError($"{path} missing — run RootsDance > Build Electronic UI Kit first.");
+                return null;
             }
 
             return (GameObject)PrefabUtility.InstantiatePrefab(asset);
         }
 
-        /// <summary>Parents an already-instantiated object. Named away from Object.Instantiate on
-        /// purpose: an identically-shaped overload of that name is a trap to read.</summary>
-        private static GameObject Nest(GameObject child, Transform parent)
-        {
-            child.transform.SetParent(parent, false);
-            return child;
-        }
-
-        private static GameObject Plate(string texture, KitDitherPlate.DitherMode mode, int levels,
-            float pixelSize, bool reticle)
-        {
-            return ElectronicUIKitBuilder.MakePlate("Plate", texture, mode, levels, pixelSize, reticle);
-        }
-
-        private static GameObject Table(string[] labels, string[] values, int alarmFrom)
-        {
-            return ElectronicUIKitBuilder.MakeDataTable("Table", labels, values, alarmFrom);
-        }
-
-        private static GameObject Readout(string value, string caption)
-        {
-            return ElectronicUIKitBuilder.MakeReadout("Readout", value, caption);
-        }
-
         private static Scene NewScene()
         {
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects,
+                NewSceneMode.Single);
 
             GameObject eventSystem = new GameObject("EventSystem", typeof(EventSystem),
                 typeof(InputSystemUIInputModule));
