@@ -38,6 +38,25 @@
 - PWB stores its palettes under `Resources/Data/` inside its own tree and its shortcut profiles + data-dir pointer in `ProjectSettings/PWBSettings.txt` (both committed — palettes are shared team content). It adds `PWB_HDRP` to the Standalone scripting defines.
 - **Usage:** prefab painting / placement for level dressing ([11](guidelines/11-scenes-prefabs-workflow.md)). Manual: `Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Documentation/Prefab World Builder Documentation.pdf`.
 
+## Curved UI Utility (Caeden117) — `Assets/ThirdParty/CurvedUIUtility/`
+
+- **Version:** 0.2.6 (`package.json`), vendored 2026-08-27 from the GitHub repo `Caeden117/Curved-UI-Utility`
+  (`Assets/com.caeden117.curved-ui-utility/` subtree, with the upstream `.meta` files so GUID references hold).
+- **Licence: MIT** — `CurvedUIUtility/LICENSE.md`. Attribution requested, not required.
+- **Why vendored, not UPM:** upstream publishes no registry package; vendoring under `Assets/ThirdParty/` follows
+  [02](guidelines/02-project-structure.md) and keeps `Packages/manifest.json` untouched.
+- **What it does:** Halo-style curved HUD for overlay canvases — a `CurvedUIController` on the canvas plus
+  `CurvedTextMeshPro`/`CurvedImage` graphics that bend their vertices in canvas space (crisp SDF text, no render
+  texture, no extra camera). Assemblies `CurvedUIUtility` + `CurvedUIUtility.Editor` ride along; `RootsDance.Editor`
+  references the runtime assembly.
+- **Local edits:** `Editor/Internal/UIHelper.cs` — `FindObjectOfType<EventSystem>` → `FindFirstObjectByType`
+  (obsolete in Unity 6; re-apply after a vendor update).
+- **Known quirks:** the vendor's own *GameObject > UI > Curved …* creation menu still adds a legacy
+  `StandaloneInputModule` EventSystem — don't use that menu; build HUDs through `RootsDance > Build Helmet HUD (Test)`
+  or by hand. Its `versionDefines` target the standalone TMP package, so `TMP_MANUALLY_GET_UNDERLINE` stays off with
+  Unity 6's uGUI-bundled TMP (the modern underline path is the one that runs). Pointer raycasts hit the un-curved
+  rects — fine for the non-interactive helmet HUD.
+
 ## IngameDebugConsole (yasirkula) — UPM package
 
 Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the OpenUPM scoped registry added to `Packages/manifest.json`), not vendored under `Assets/`. No exception needed — this is the preferred path per [09-packages-systems.md](guidelines/09-packages-systems.md); no entry required here.
