@@ -30,6 +30,12 @@ namespace RootsDance.Editor.Environment
         private const float k_UntouchedSunIntensityLux = 20000f;
         private const string k_MainProfilePath = "Assets/RootsDance/Settings/VolumeProfiles/MainProfile.asset";
 
+        // Volumetric fog grid quality shared by every fogged profile: the default Medium preset (12.5 % screen
+        // resolution, 64 slices) shows as blocky smears once the fog is this dense.
+        private const float k_FogScreenResolutionPercentage = 33f;
+        private const int k_FogSliceCount = 128;
+        private const float k_FogSliceUniformity = 0.5f;
+
         [MenuItem("RootsDance/Environment/Build Opening Atmosphere")]
         public static void BuildKeepingProfiles()
         {
@@ -204,8 +210,19 @@ namespace RootsDance.Editor.Environment
             Set(fog.globalLightProbeDimmer, beyond.AmbientDimmer);
             Set(fog.depthExtent, beyond.VolumetricDistance);
             Set(fog.multipleScatteringIntensity, beyond.MultipleScattering);
+            ApplyFogQuality(fog);
             EditorUtility.SetDirty(main);
             Debug.Log($"{k_LogPrefix}: applied the beyond-threshold fog to {k_MainProfilePath}.");
+        }
+
+        /// <summary>Custom quality level with a manual, denser volumetric grid (see the constants above).</summary>
+        private static void ApplyFogQuality(Fog fog)
+        {
+            Set(fog.quality, ScalableSettingLevelParameter.LevelCount); // LevelCount == the Custom level
+            fog.fogControlMode = FogControl.Manual;
+            Set(fog.screenResolutionPercentage, k_FogScreenResolutionPercentage);
+            Set(fog.volumeSliceCount, k_FogSliceCount);
+            Set(fog.sliceDistributionUniformity, k_FogSliceUniformity);
         }
 
         private static T GetOrAdd<T>(VolumeProfile profile) where T : VolumeComponent
@@ -257,6 +274,7 @@ namespace RootsDance.Editor.Environment
             Set(fog.depthExtent, look.FogVolumetricDistance);
             Set(fog.multipleScatteringIntensity, look.FogMultipleScattering);
             Set(fog.denoisingMode, FogDenoisingMode.Gaussian);
+            ApplyFogQuality(fog);
 
             Exposure exposure = GetOrAdd<Exposure>(profile);
             Set(exposure.mode, ExposureMode.Fixed);
