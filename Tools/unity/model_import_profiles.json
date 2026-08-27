@@ -68,8 +68,19 @@
           "m_asset": "Assets/RootsDance/Materials/Arms.mat"
         },
         {
-          "m_source": "HelmetPlaceholder",
-          "m_asset": "Assets/RootsDance/Materials/HelmetPlaceholder.mat"
+          "m_source": "HelmetShell",
+          "m_asset": "Assets/RootsDance/Materials/HelmetShell.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Props/Helmet.fbx",
+      "m_profile": "static_prop",
+      "m_manifest": "SourceArt/Export/Helmet.export.json",
+      "m_materials": [
+        {
+          "m_source": "HelmetShell",
+          "m_asset": "Assets/RootsDance/Materials/HelmetShell.mat"
         }
       ]
     },

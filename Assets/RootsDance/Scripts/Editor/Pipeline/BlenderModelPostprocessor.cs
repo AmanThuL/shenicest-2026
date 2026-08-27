@@ -66,7 +66,13 @@ namespace RootsDance.Editor.Pipeline
             importer.weldVertices = profile.WeldVertices;
 
             importer.animationType = profile.AnimationType;
-            importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+
+            // Unity enforces NoAvatar while AnimationType is None and logs an error on any
+            // assignment to avatarSetup, so only rigged profiles may touch it.
+            if (profile.AnimationType != ModelImporterAnimationType.None)
+            {
+                importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            }
             importer.optimizeGameObjects = profile.OptimizeGameObjects;
 
             // Only meaningful while optimizeGameObjects is on, but harmless to set either way:
