@@ -255,8 +255,10 @@ namespace RootsDance.Editor.Pipeline
         /// Reimports every registered model. The config lives outside Assets/, so Unity does not
         /// notice edits to it on its own.
         /// </summary>
+        // Public so the Unity CLI can drive it with -executeMethod; the agent workflow in
+        // docs/architecture/tooling/ reimports from batch mode after regenerating materials.
         [MenuItem("RootsDance/Pipeline/Reimport Pipeline Models")]
-        private static void ReimportAll()
+        public static void ReimportAll()
         {
             ModelImportProfiles profiles = Load();
 
