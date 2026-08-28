@@ -80,6 +80,42 @@ namespace RootsDance.UI
         }
 
         /// <summary>
+        /// Screen pixels per dot. Exposed so a line built from code — the loading screen, which has
+        /// no prefab to author — can pick its size; authored lines set it in the Inspector.
+        /// </summary>
+        public int DotScale
+        {
+            get { return m_dotScale; }
+            set
+            {
+                m_dotScale = Mathf.Max(1, value);
+                Rebuild();
+            }
+        }
+
+        /// <summary>Dots of tracking between glyphs. See <see cref="DotScale"/> for why it is public.</summary>
+        public int Tracking
+        {
+            get { return m_tracking; }
+            set
+            {
+                m_tracking = Mathf.Max(0, value);
+                Rebuild();
+            }
+        }
+
+        /// <summary>Lit-dot colour. See <see cref="DotScale"/> for why it is public.</summary>
+        public Color Color
+        {
+            get { return m_color; }
+            set
+            {
+                m_color = value;
+                Rebuild();
+            }
+        }
+
+        /// <summary>
         /// Lights or clears one character in place, leaving the rest of the line alone. This is how
         /// the data screen writes: the reference brings its labels up glyph by glyph in random order,
         /// each one already sitting at its final position holding its final character, so the line

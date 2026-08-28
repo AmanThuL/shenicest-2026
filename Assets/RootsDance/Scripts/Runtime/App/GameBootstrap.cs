@@ -88,6 +88,7 @@ namespace RootsDance.App
                 if (scene.isLoaded && scene.path != ScenePaths.k_Bootstrap)
                 {
                     // A level is already open in the Editor: adopt it, keep its active scene.
+                    DismissLoadingScreen();
                     return;
                 }
             }
@@ -96,16 +97,30 @@ namespace RootsDance.App
             {
                 Log.Warning("Bootstrap started alone and no startup level is assigned. "
                     + "Press Play from a level scene instead.", this);
+                DismissLoadingScreen();
                 return;
             }
 
             if (m_loadLevelRequested == null)
             {
                 Log.Error("No LoadLevelRequested channel assigned on GameBootstrap.", this);
+                DismissLoadingScreen();
                 return;
             }
 
             m_loadLevelRequested.RaiseEvent(m_startupLevel);
+        }
+
+        /// <summary>
+        /// Every path out of <see cref="Start"/> that does not load a level has to say so, or a cover
+        /// raised by an earlier request would be left up over a game that is already playable.
+        /// </summary>
+        private void DismissLoadingScreen()
+        {
+            if (m_sceneLoader != null)
+            {
+                m_sceneLoader.DismissLoadingScreen();
+            }
         }
 
         private void LateUpdate()
