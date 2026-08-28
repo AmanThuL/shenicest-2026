@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
-  m_Name: 00-10_Sign
+  m_Name: 00-08_ResearchFacilityView
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: 00-10 Sign
+  m_label: 00-08 Research facility view
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
-  m_anchorName: Anchor_00-10_Sign
-  m_position: {x: 17, y: 7.5, z: 102}
+  m_anchorName: Anchor_00-08_ResearchFacilityView
+  m_position: {x: 0.473, y: 7.289, z: 85.366}
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1

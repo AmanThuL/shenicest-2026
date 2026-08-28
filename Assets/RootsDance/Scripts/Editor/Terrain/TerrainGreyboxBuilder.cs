@@ -38,12 +38,14 @@ namespace RootsDance.Editor.Terrain
         private const string k_AnchorRootName = "_Anchors";
         private const string k_TerrainObjectName = "Terrain_Main";
         private const string k_LabObjectName = "LabBlockout";
+        private const string k_GaiaFacilityObjectName = "ResearchFacility_GaiaV7";
         private const string k_GroundLayerName = "Ground";
         private const string k_PlaceholderGroundName = "Ground";
         private const string k_PlaceholderLandmarkPrefix = "Landmark_";
 
         private const float k_LabTerraceMargin = 6f;
-        private const float k_AnchorHeightOffset = 0.5f;
+        private const float k_AnchorHeightOffset = 0.3f;
+        private const float k_AnchorScale = 0.6f;
         private const float k_SlopeSampleStep = 0.5f;
         private const float k_HeightmapPixelError = 5f;
         private const float k_BasemapDistance = 2000f;
@@ -283,6 +285,23 @@ namespace RootsDance.Editor.Terrain
         /// <returns>True when the lab is in place; false when the build must stop.</returns>
         private static bool EnsureLabBlockout(TerrainGreyboxConfigSO config, Scene scene)
         {
+            Transform geometry = TerrainSceneUtility.EnsureRoot(scene, k_GeometryRootName);
+            Transform gaiaFacility = geometry.Find(k_GaiaFacilityObjectName);
+
+            if (gaiaFacility != null)
+            {
+                Transform staleBlockout = geometry.Find(k_LabObjectName);
+
+                if (staleBlockout != null)
+                {
+                    Undo.DestroyObjectImmediate(staleBlockout.gameObject);
+                }
+
+                Debug.Log("TerrainGreyboxBuilder: preserving the placed Gaia v7 research facility; "
+                    + "the legacy LabBlockout will not be recreated.");
+                return true;
+            }
+
             GameObject prefab = config.LabBlockout;
 
             if (prefab == null)
@@ -293,7 +312,6 @@ namespace RootsDance.Editor.Terrain
                 return false;
             }
 
-            Transform geometry = TerrainSceneUtility.EnsureRoot(scene, k_GeometryRootName);
             Transform existing = geometry.Find(k_LabObjectName);
 
             if (existing != null)
@@ -927,7 +945,30 @@ namespace RootsDance.Editor.Terrain
 
             Material material = EnsureAnchorMaterial();
             Transform anchorRoot = TerrainSceneUtility.EnsureRoot(scene, k_AnchorRootName);
+            anchorRoot.gameObject.tag = "EditorOnly";
             float terrainBaseY = terrain.transform.position.y;
+
+            var expectedNames = new HashSet<string>();
+
+            for (int i = 0; i < anchors.Length; i++)
+            {
+                AnchorDefinition anchor = anchors[i];
+
+                if (anchor != null && !string.IsNullOrEmpty(anchor.Name))
+                {
+                    expectedNames.Add(anchor.Name);
+                }
+            }
+
+            for (int i = anchorRoot.childCount - 1; i >= 0; i--)
+            {
+                GameObject child = anchorRoot.GetChild(i).gameObject;
+
+                if (child.name.StartsWith("Anchor_") && !expectedNames.Contains(child.name))
+                {
+                    UnityEngine.Object.DestroyImmediate(child);
+                }
+            }
 
             for (int i = 0; i < anchors.Length; i++)
             {
@@ -945,13 +986,6 @@ namespace RootsDance.Editor.Terrain
                 {
                     marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     marker.name = anchor.Name;
-                    Collider collider = marker.GetComponent<Collider>();
-
-                    if (collider != null)
-                    {
-                        UnityEngine.Object.DestroyImmediate(collider);
-                    }
-
                     TerrainSceneUtility.MoveToScene(marker, scene);
                     marker.transform.SetParent(anchorRoot, true);
                     Undo.RegisterCreatedObjectUndo(marker, "Create anchor marker");
@@ -967,7 +1001,14 @@ namespace RootsDance.Editor.Terrain
 
                 marker.transform.position = new Vector3(spec.x, y, spec.z);
                 marker.transform.rotation = Quaternion.identity;
-                marker.transform.localScale = Vector3.one;
+                marker.transform.localScale = Vector3.one * k_AnchorScale;
+
+                Collider collider = marker.GetComponent<Collider>();
+
+                if (collider != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(collider);
+                }
 
                 MeshRenderer renderer = marker.GetComponent<MeshRenderer>();
 

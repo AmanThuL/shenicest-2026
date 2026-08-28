@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
-  m_Name: 00-11_Poster
+  m_Name: 00-15_ClearAshleafVine
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: 00-11 Poster
+  m_label: 00-15 Clear ashleaf vine
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
-  m_anchorName: Anchor_00-11_Poster
-  m_position: {x: -27, y: 7.5, z: 117}
+  m_anchorName: Anchor_00-15_ClearAshleafVine
+  m_position: {x: 23.538, y: 7.299, z: 139.749}
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1

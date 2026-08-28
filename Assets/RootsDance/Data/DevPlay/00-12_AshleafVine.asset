@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
-  m_Name: 00-16_ServiceEntrance
+  m_Name: 00-12_AshleafVine
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: 00-16 Service entrance
+  m_label: 00-12 Ashleaf vine
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
-  m_anchorName: Anchor_00-16_ServiceEntrance
-  m_position: {x: 52, y: 4.5, z: 108}
+  m_anchorName: Anchor_00-12_AshleafVine
+  m_position: {x: 12.334, y: 7.299, z: 123.184}
   m_yaw: 0
   m_snapToGround: 1
   m_groundClearance: 1

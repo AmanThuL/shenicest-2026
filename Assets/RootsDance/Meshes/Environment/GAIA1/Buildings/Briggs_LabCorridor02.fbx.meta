@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: 75ab68c3953b84bc0ba9ccd50895ac5f
+guid: 0c4162165d6504184a135003f806bc65
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LabCorridorRust
+    second: {fileID: 2100000, guid: 16bdd1da5a53d42ef8023e40c09b647d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 1
@@ -34,7 +39,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 0.255
+    globalScale: 0.5183
     meshCompression: 0
     addColliders: 1
     useSRGBMaterialColor: 1
@@ -92,7 +97,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.255
+    globalScale: 0.5183
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
@@ -107,6 +112,6 @@ ModelImporter:
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
   userData: current animation (1-250 @ 24fps) from GAIA1_v7.blend via Blender 5.2.1
-    LTS, profile Tools/blender/profiles/static_prop.json, exported 2026-08-28T17:09:20+00:00
+    LTS, profile Tools/blender/profiles/static_prop.json, exported 2026-08-28T17:09:04+00:00
   assetBundleName: 
   assetBundleVariant: 
