@@ -47,7 +47,16 @@ namespace RootsDance.EditorTools
                 });
 
             created += Fed("02_Environment", "02", "环境采样", ReportCategory.EnvironmentSample);
-            created += Fed("03_Biology", "03", "生物记录", ReportCategory.BiologicalRecord);
+            created += Fed("03_Biology", "03", "已确认物种", ReportCategory.BiologicalRecord);
+
+            // Chapter 02 splits what used to be one biological section into four, because the whole
+            // point of the greenhouse is that the database stops being able to answer: a species
+            // can be confirmed, unmatched, or matched-but-changed, and those are different findings.
+            created += Fed("04_Unconfirmed", "04", "待确认物种", ReportCategory.UnconfirmedSpecies);
+            created += Fed("05_Anomalous", "05", "异常物种", ReportCategory.AnomalousSpecies);
+            created += Fed("06_Anomalies", "06", "环境异常", ReportCategory.AnomalyRecord);
+            created += Fed("07_Facilities", "07", "设施记录", ReportCategory.FacilityRecord);
+            created += Fed("08_AreaStructure", "08", "区域结构", ReportCategory.AreaStructure);
 
             AssetDatabase.SaveAssets();
             Debug.Log($"ScannerReportContentBuilder: {created} section asset(s) created in {k_Folder}. "

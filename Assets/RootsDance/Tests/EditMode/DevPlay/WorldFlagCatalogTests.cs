@@ -30,6 +30,16 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_FineVeinedVineScanned,
                     WorldFlags.k_VineGrowthDirectionObserved,
                     WorldFlags.k_MaintenanceEntranceRevealed,
+
+                    // Chapter 02.
+                    WorldFlags.k_SawUndergroundNetwork,
+                    WorldFlags.k_MetFlowerSprite,
+                    WorldFlags.k_HeardAboutHer,
+                    WorldFlags.k_EnteredGreenhouse,
+                    WorldFlags.k_SawStaffPhotograph,
+                    WorldFlags.k_CirculationCore,
+                    WorldFlags.k_CirculationRing,
+                    WorldFlags.k_CirculationOuter,
                 },
                 all);
         }
