@@ -1,0 +1,27 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx",
+  "m_blend": "SourceArt/Blender/Garage/Assets/Garage_Shell.blend",
+  "m_blendModifiedUtc": "2026-08-27T12:41:00+00:00",
+  "m_action": "",
+  "m_armature": "",
+  "m_frameStart": 1,
+  "m_frameEnd": 250,
+  "m_fps": 24,
+  "m_exportedCollection": "",
+  "m_exportedObjects": [
+    "Garage_Walls",
+    "Windows_Broken",
+    "Ceiling_Beam_Broken",
+    "Ceiling_Beam",
+    "Wall_Trim_Lower",
+    "Wall_Trim_Fascia",
+    "Wall_Trim_Upper",
+    "Floor",
+    "Ceiling",
+    "Wooden_Door_Panel"
+  ],
+  "m_excludedObjects": [],
+  "m_blenderVersion": "5.2.1 LTS",
+  "m_profile": "Tools/blender/profiles/static_prop.json",
+  "m_exportedUtc": "2026-08-28T08:54:18+00:00"
+}

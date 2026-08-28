@@ -1,0 +1,28 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx",
+  "m_blend": "SourceArt/Blender/Garage/Assets/Ivy_Hanging.blend",
+  "m_blendModifiedUtc": "2026-08-27T12:41:00+00:00",
+  "m_action": "",
+  "m_armature": "",
+  "m_frameStart": 1,
+  "m_frameEnd": 250,
+  "m_fps": 24,
+  "m_exportedCollection": "",
+  "m_exportedObjects": [
+    "Ivy_Hanging_01",
+    "Ivy_Hanging_02",
+    "Ivy_Hanging_03",
+    "Ivy_Hanging_04",
+    "Ivy_Hanging_05",
+    "Ivy_Hanging_06",
+    "Ivy_Hanging_07",
+    "Ivy_Hanging_08",
+    "Ivy_Hanging_09",
+    "Ivy_Hanging_10",
+    "Ivy_Hanging_11"
+  ],
+  "m_excludedObjects": [],
+  "m_blenderVersion": "5.2.1 LTS",
+  "m_profile": "Tools/blender/profiles/static_prop.json",
+  "m_exportedUtc": "2026-08-28T08:54:18+00:00"
+}
