@@ -372,10 +372,11 @@ namespace RootsDance.Editor.Archive
             // tenths of a millimetre — about three pixels at this page size. Ten times that does
             // not read as a stronger fold, it reads as the text being torn in half: at 17 px the
             // displacement was wider than the strokes themselves and the writing came apart.
-            // The shear either side of a crease, in UV. About seven pixels at this page size,
-            // reached over the millimetre the sheet rolls through — so a glyph lying across a fold
-            // is visibly bent rather than merely moved.
-            material.SetFloat("_WarpStrength", 0.004f);
+            // The shear either side of a crease, in UV — about fifteen pixels at this page size,
+            // reached over the millimetre the sheet rolls through. Strong on purpose: this is a
+            // localised shear at the crease, not a shift of the whole panel, so a large value
+            // bends the letters lying across the fold instead of sliding the page about.
+            material.SetFloat("_WarpStrength", 0.012f);
             material.SetFloat("_CreaseDarken", 0.7f);
 
             // This now shades the sheet's panels, not a band around a line. A panel leaning three
@@ -424,9 +425,6 @@ namespace RootsDance.Editor.Archive
                 return null;
             }
 
-            material.SetTexture("_GrainTex", ArchivePaperTextureBaker.LoadPaperBase());
-            material.SetFloat("_GrainScale", 0.006f);
-            material.SetFloat("_GrainStrength", 0.4f);
             material.SetFloat("_Fade", 0.18f);
             material.SetFloat("_Bleed", 0.4f);
             material.SetColor("_PaperLight", Color.white);

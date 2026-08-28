@@ -11,6 +11,12 @@
 // "soaked into fibre": the grain, which eats into the ink where the paper is rough, and the bleed,
 // which softens the glyph edge the way ink wicks along a fibre.
 //
+// There is deliberately no grain term here any more. It used to multiply the ink by the paper
+// texture sampled at the sheet's own coordinates — but the page is 1000 x 1200 canvas units and
+// the scale was per-unit, so it tiled a 2048px non-tileable scan six by seven times across the
+// sheet and printed its seams as a grid over the whole document. The paper underneath is a real
+// scan with real fibre; the ink does not need to invent any.
+//
 // Plain uGUI shader against UnityCG/UnityUI only - no pipeline include - like the terminal
 // materials next to it, so it is unaffected by the render pipeline.
 Shader "RootsDance/UI/ArchiveInk"
@@ -19,10 +25,6 @@ Shader "RootsDance/UI/ArchiveInk"
     {
         [PerRendererData] _MainTex ("Source", 2D) = "white" {}
         _Color ("Tint", Color) = (1, 1, 1, 1)
-
-        _GrainTex ("Paper Grain", 2D) = "white" {}
-        _GrainScale ("Grain Scale (per canvas unit)", Range(0.0005, 0.05)) = 0.006
-        _GrainStrength ("Grain Strength", Range(0, 1)) = 0.45
 
         _PaperLight ("Paper Light", Color) = (1, 1, 1, 1)
         _Fade ("Ink Fade", Range(0, 1)) = 0.15
@@ -95,9 +97,6 @@ Shader "RootsDance/UI/ArchiveInk"
                 fixed4 color    : COLOR;
                 float2 texcoord : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
-                // Object-space position, so the grain is locked to the sheet and every block of
-                // writing on it lands on the same fibre rather than each carrying its own copy.
-                float2 sheetUv  : TEXCOORD2;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -107,9 +106,6 @@ Shader "RootsDance/UI/ArchiveInk"
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
 
-            sampler2D _GrainTex;
-            float _GrainScale;
-            float _GrainStrength;
             fixed4 _PaperLight;
             float _Fade;
             float _Bleed;
@@ -122,7 +118,6 @@ Shader "RootsDance/UI/ArchiveInk"
                 OUT.worldPosition = v.vertex;
                 OUT.vertex = UnityObjectToClipPos(OUT.worldPosition);
                 OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
-                OUT.sheetUv = v.vertex.xy * _GrainScale;
                 OUT.color = v.color * _Color;
                 return OUT;
             }
@@ -135,13 +130,6 @@ Shader "RootsDance/UI/ArchiveInk"
                 // the alpha through a smoothstep widens the transition without moving the middle.
                 half soft = smoothstep(0.0h, 1.0h, ink.a);
                 ink.a = lerp(ink.a, soft, _Bleed);
-
-                // Rough paper takes less ink. The grain both dims and thins it, because a dry patch
-                // shows through the writing rather than tinting it.
-                half grain = tex2D(_GrainTex, IN.sheetUv).r;
-                half bite = lerp(1.0h, 0.62h + grain * 0.62h, _GrainStrength);
-                ink.rgb *= bite;
-                ink.a *= lerp(1.0h, bite, 0.65h);
 
                 // Age, then the light the paper under it is actually receiving.
                 ink.a *= 1.0h - _Fade * 0.55h;
