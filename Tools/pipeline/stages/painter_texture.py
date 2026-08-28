@@ -603,14 +603,24 @@ CHANNELS = {
 
 
 def _mask(query):
-    for hit in R.search(query):
+    '''Find a smart mask by its shelf name.
+
+    The search has to be scoped to the smartmask usage: generic names such as
+    "Dirt" also match procedurals and textures, and handing one of those to
+    insert_smart_mask raises instead of failing the lookup.
+    '''
+    for shelf in ("starter_assets", "your_assets", "allegorithmic"):
         try:
-            rid = hit.identifier()
-            stem = rid.url().rsplit("/", 1)[-1].split("?")[0].rsplit(".", 1)[0]
+            hits = R.search("u:smartmask s:%s" % shelf)
         except Exception:
             continue
-        if stem.lower() == query.lower():
-            return rid
+        for hit in hits:
+            try:
+                rid = hit.identifier()
+            except Exception:
+                continue
+            if rid.name.lower() == query.lower():
+                return rid
     return None
 
 
