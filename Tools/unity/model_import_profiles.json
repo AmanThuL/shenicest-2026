@@ -469,7 +469,7 @@
     },
     {
       "m_path": "Assets/RootsDance/Meshes/Environment/GreenHouse.fbx",
-      "m_profile": "static_environment",
+      "m_profile": "static_greenhouse_v7",
       "m_manifest": "SourceArt/Export/GreenHouse.export.json",
       "m_materials": [
         {
