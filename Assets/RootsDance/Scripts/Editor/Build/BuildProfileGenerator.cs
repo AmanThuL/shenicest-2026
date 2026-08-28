@@ -52,8 +52,16 @@ namespace RootsDance.Editor.Build
             }
 
             // Inherit the single curated scene list in EditorBuildSettings rather than
-            // keeping a second copy per profile that can drift out of sync.
+            // keeping a second copy per profile that can drift out of sync. Applied on every
+            // run — not only on first creation — so a previously-committed, stale asset is
+            // repaired rather than left as-is.
             profile.overrideGlobalScenes = false;
+
+            if (buildTarget == BuildTarget.StandaloneOSX)
+            {
+                SetMacProfileArchitectureArm64(profile);
+            }
+
             EditorUtility.SetDirty(profile);
         }
 
@@ -79,8 +87,10 @@ namespace RootsDance.Editor.Build
                     "BuildProfileModuleUtil.GetPlatformId not found — the internal API moved in this Unity version.");
             }
 
-            return (GUID)method.Invoke(
-                null, new object[] { buildTarget, StandaloneBuildSubtarget.Player });
+            object result = InvokeMethod(
+                method, null, new object[] { buildTarget, StandaloneBuildSubtarget.Player },
+                "BuildProfileModuleUtil.GetPlatformId");
+            return (GUID)result;
         }
 
         private static void InvokeCreateInstance(GUID platformId, string assetPath)
@@ -94,10 +104,47 @@ namespace RootsDance.Editor.Build
             if (method == null)
             {
                 throw new InvalidOperationException(
-                    "BuildProfile.CreateInstance(GUID, string) not found — the internal API moved in this Unity version.");
+                    "BuildProfile.CreateInstance(GUID, string) not found — the internal API " +
+                    "moved in this Unity version.");
             }
 
-            method.Invoke(null, new object[] { platformId, assetPath });
+            InvokeMethod(method, null, new object[] { platformId, assetPath }, "BuildProfile.CreateInstance");
+        }
+
+        /// <summary>
+        /// Sets the macOS-only build architecture on the profile's own platform settings
+        /// object, not the deprecated, machine-local UserBuildSettings.architecture global —
+        /// BuildScript builds via BuildPlayerWithProfileOptions.buildProfile, so only the
+        /// value baked into the profile asset actually governs the build.
+        /// </summary>
+        private static void SetMacProfileArchitectureArm64(BuildProfile profile)
+        {
+            PropertyInfo platformProperty = typeof(BuildProfile).GetProperty(
+                "platformBuildProfile", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            if (platformProperty == null)
+            {
+                throw new InvalidOperationException(
+                    "BuildProfile.platformBuildProfile not found — the internal API moved in this Unity version.");
+            }
+
+            object platformProfile = InvokeGetter(platformProperty, profile, "BuildProfile.platformBuildProfile");
+            if (platformProfile == null)
+            {
+                throw new InvalidOperationException(
+                    "BuildProfile.platformBuildProfile returned null for " + profile.name);
+            }
+
+            PropertyInfo architectureProperty = platformProfile.GetType().GetProperty(
+                "architecture", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            if (architectureProperty == null)
+            {
+                throw new InvalidOperationException(
+                    "OSXStandaloneBuildProfile.architecture not found — the internal API " +
+                    "moved in this Unity version.");
+            }
+
+            object arm64 = Enum.Parse(architectureProperty.PropertyType, "ARM64");
+            InvokeSetter(architectureProperty, platformProfile, arm64, "OSXStandaloneBuildProfile.architecture");
         }
 
         /// <summary>
@@ -121,31 +168,49 @@ namespace RootsDance.Editor.Build
             PlayerSettings.SetGraphicsAPIs(
                 BuildTarget.StandaloneOSX,
                 new UnityEngine.Rendering.GraphicsDeviceType[] { UnityEngine.Rendering.GraphicsDeviceType.Metal });
-
-            SetMacArchitectureAppleSilicon();
         }
 
-        private static void SetMacArchitectureAppleSilicon()
+        /// <summary>
+        /// Unwraps a reflection TargetInvocationException so callers see the real failure
+        /// (with context) instead of a bare wrapper exception.
+        /// </summary>
+        private static object InvokeMethod(MethodInfo method, object target, object[] parameters, string context)
         {
-            Type userBuildSettings = Type.GetType(
-                "UnityEditor.OSXStandalone.UserBuildSettings, UnityEditor.OSXStandalone.Extensions");
-            if (userBuildSettings == null)
+            try
             {
-                Debug.LogWarning(
-                    "[BuildProfileGenerator] macOS build support not installed; skipping architecture setting.");
-                return;
+                return method.Invoke(target, parameters);
             }
-
-            PropertyInfo architecture = userBuildSettings.GetProperty(
-                "architecture", BindingFlags.Public | BindingFlags.Static);
-            if (architecture == null)
+            catch (TargetInvocationException exception)
             {
-                Debug.LogWarning("[BuildProfileGenerator] UserBuildSettings.architecture not found; skipping.");
-                return;
+                Exception inner = exception.InnerException != null ? exception.InnerException : exception;
+                throw new InvalidOperationException(context + " threw: " + inner.Message, inner);
             }
+        }
 
-            object arm64 = Enum.Parse(architecture.PropertyType, "ARM64");
-            architecture.SetValue(null, arm64);
+        private static object InvokeGetter(PropertyInfo property, object target, string context)
+        {
+            try
+            {
+                return property.GetValue(target);
+            }
+            catch (TargetInvocationException exception)
+            {
+                Exception inner = exception.InnerException != null ? exception.InnerException : exception;
+                throw new InvalidOperationException(context + " getter threw: " + inner.Message, inner);
+            }
+        }
+
+        private static void InvokeSetter(PropertyInfo property, object target, object value, string context)
+        {
+            try
+            {
+                property.SetValue(target, value);
+            }
+            catch (TargetInvocationException exception)
+            {
+                Exception inner = exception.InnerException != null ? exception.InnerException : exception;
+                throw new InvalidOperationException(context + " setter threw: " + inner.Message, inner);
+            }
         }
     }
 }
