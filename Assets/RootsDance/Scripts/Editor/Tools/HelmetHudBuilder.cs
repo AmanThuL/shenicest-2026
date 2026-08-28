@@ -26,6 +26,8 @@ namespace RootsDance.Editor.Tools
             "Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Environment.unity";
         private const string k_GameplayPath =
             "Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Gameplay.unity";
+        private const string k_MainGameplayPath =
+            "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
         private const string k_CurveAssetPath = "Assets/RootsDance/Data/Config/HelmetHudCurve.asset";
         private const string k_VisorMaterialPath = "Assets/RootsDance/Materials/HelmetVisor.mat";
         private const string k_VisorShader = "RootsDance/UI/HelmetVisor";
@@ -39,7 +41,25 @@ namespace RootsDance.Editor.Tools
         [MenuItem("RootsDance/Build Helmet HUD (Test)")]
         public static void Build()
         {
-            Scene gameplay = OpenLevel();
+            Build(k_EnvironmentPath, k_GameplayPath, withSampleReadouts: true);
+        }
+
+        /// <summary>
+        /// The same canvas in the Main level. No sample readouts: those exist to judge the text
+        /// curvature in the test rig, and placeholder strings have no business in the level the
+        /// game ships. Main_Environment is deliberately not opened — the canvas needs nothing from
+        /// it, and that scene is shared.
+        /// </summary>
+        [MenuItem("RootsDance/Build Helmet HUD (Main)")]
+        public static void BuildMain()
+        {
+            Build(string.Empty, k_MainGameplayPath, withSampleReadouts: false);
+        }
+
+        private static void Build(string environmentPath, string gameplayPath,
+            bool withSampleReadouts)
+        {
+            Scene gameplay = OpenLevel(environmentPath, gameplayPath);
 
             foreach (GameObject root in gameplay.GetRootGameObjects())
             {
@@ -87,30 +107,49 @@ namespace RootsDance.Editor.Tools
             // left selling "you are looking through a curved visor" is the curvature of the
             // readouts, which makes the curve load-bearing rather than decorative.
             BuildVisorGlass(visorRoot, visorMaterial);
-            BuildSampleReadouts(visorRoot);
+
+            BuildInteractPrompt(visorRoot, withSampleReadouts ? "[E]  INSPECT" : string.Empty);
+
+            if (withSampleReadouts)
+            {
+                BuildSampleReadouts(visorRoot);
+            }
+
             WireHudView(canvasGo, visorRoot);
 
             EditorSceneManager.MarkSceneDirty(gameplay);
             EditorSceneManager.SaveScene(gameplay);
 
-            Debug.Log($"HelmetHudBuilder: {k_CanvasName} built and {k_GameplayPath} saved. "
+            Debug.Log($"HelmetHudBuilder: {k_CanvasName} built and {gameplayPath} saved. "
                 + $"Tune the text curve on {k_CurveAssetPath} and the frame on {k_VisorMaterialPath}.");
         }
 
-        private static Scene OpenLevel()
+        /// <param name="environmentPath">
+        /// Opened first, so the canvas is judged against the level it belongs to. Empty opens the
+        /// gameplay scene on its own, for a level whose environment scene is shared and should not
+        /// be pulled into someone else's Editor session.
+        /// </param>
+        private static Scene OpenLevel(string environmentPath, string gameplayPath)
         {
-            Scene environment = EditorSceneManager.GetSceneByPath(k_EnvironmentPath);
+            OpenSceneMode gameplayMode = OpenSceneMode.Single;
 
-            if (!environment.isLoaded)
+            if (!string.IsNullOrEmpty(environmentPath))
             {
-                environment = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
+                Scene environment = EditorSceneManager.GetSceneByPath(environmentPath);
+
+                if (!environment.isLoaded)
+                {
+                    EditorSceneManager.OpenScene(environmentPath, OpenSceneMode.Single);
+                }
+
+                gameplayMode = OpenSceneMode.Additive;
             }
 
-            Scene gameplay = EditorSceneManager.GetSceneByPath(k_GameplayPath);
+            Scene gameplay = EditorSceneManager.GetSceneByPath(gameplayPath);
 
             if (!gameplay.isLoaded)
             {
-                gameplay = EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Additive);
+                gameplay = EditorSceneManager.OpenScene(gameplayPath, gameplayMode);
             }
 
             return gameplay;
@@ -296,14 +335,29 @@ namespace RootsDance.Editor.Tools
             image.raycastTarget = false;
         }
 
+        /// <summary>
+        /// The interaction hint. Not a sample, despite having lived among them: ScannerFlowBuilder
+        /// finds this label by name and hangs the prompt presenter on it, so a HUD without it
+        /// leaves the "hold to scan" hint firing into nowhere.
+        /// </summary>
+        /// <param name="placeholder">
+        /// What the label reads before anything drives it. The test rig shows a specimen line so
+        /// the layout can be judged; the level starts blank, because the presenter only writes when
+        /// the player is actually near something.
+        /// </param>
+        private static void BuildInteractPrompt(Transform parent, string placeholder)
+        {
+            CreateLabel(parent, "InteractPrompt", placeholder,
+                new Vector2(0.5f, 0f), new Vector2(0f, 170f), TextAlignmentOptions.Bottom);
+        }
+
+        /// <summary>Specimen readouts, for judging the curvature. Test rig only.</summary>
         private static void BuildSampleReadouts(Transform parent)
         {
             CreateLabel(parent, "ContamReadout", "CONTAM 072\nAIR / SOIL / BIO",
                 new Vector2(0f, 1f), new Vector2(90f, -70f), TextAlignmentOptions.TopLeft);
             CreateLabel(parent, "SystemReadout", "HELMET SYS  OK\nEXT. SIGNAL  WEAK",
                 new Vector2(1f, 1f), new Vector2(-90f, -70f), TextAlignmentOptions.TopRight);
-            CreateLabel(parent, "InteractPrompt", "[E]  INSPECT",
-                new Vector2(0.5f, 0f), new Vector2(0f, 170f), TextAlignmentOptions.Bottom);
         }
 
         private static void CreateLabel(Transform parent, string name, string text,
