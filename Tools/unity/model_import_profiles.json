@@ -174,7 +174,7 @@
       "m_profile": "fps_arms",
       "m_manifest": "SourceArt/Export/Arms_Crawl.export.json",
       "m_clipName": "Arms_Crawl",
-      "m_loopTime": true,
+      "m_loopTime": false,
       "m_materials": [
         {
           "m_source": "Arms",
@@ -390,6 +390,30 @@
       "m_profile": "static_garage",
       "m_manifest": "SourceArt/Export/Garage/BriggsInteriorWalls.export.json",
       "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/SHA2017Poster.obj",
+      "m_profile": "static_prop",
+      "m_materials": [
+        {
+          "m_source": "SHA2017poster",
+          "m_asset": "Assets/RootsDance/Materials/Environment/SHA2017Poster.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/BandPoster.fbx",
+      "m_profile": "static_prop",
+      "m_materials": [
+        {
+          "m_source": "poster_mat",
+          "m_asset": "Assets/RootsDance/Materials/Environment/BandPoster.mat"
+        },
+        {
+          "m_source": "pushpin_mat",
+          "m_asset": "Assets/RootsDance/Materials/Environment/BandPoster.mat"
+        }
+      ]
     },
     {
       "m_path": "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx",

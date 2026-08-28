@@ -39,6 +39,20 @@ namespace RootsDance.EditorTools
                 "Assets/RootsDance/Textures/Environment",
                 "CarRustyOpenDoor",
                 false),
+            // Both FBX slots (poster_mat, pushpin_mat) resolve here: the Sketchfab source ships
+            // one 2K texture set for the whole prop, so splitting it would only duplicate it.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/BandPoster.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "BandPoster",
+                false),
+            // A photogrammetry scan: the source ships an albedo and nothing else, so this one
+            // falls back to the constant smoothness rather than reading a mask.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/SHA2017Poster.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "SHA2017Poster",
+                false),
             new Spec(
                 "Assets/RootsDance/Materials/Flashlight.mat",
                 "Assets/RootsDance/Textures/Props",
