@@ -59,7 +59,17 @@ namespace RootsDance.Editor.Build
 
             if (buildTarget == BuildTarget.StandaloneOSX)
             {
-                SetMacProfileArchitectureArm64(profile);
+                if (BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX))
+                {
+                    SetMacProfileArchitectureArm64(profile);
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "[BuildProfileGenerator] macOS Build Support is not installed on this " +
+                        "machine — skipping ARM64 architecture on " + profileName + ". Install " +
+                        "the module and re-run this menu item to finish the macOS profile.");
+                }
             }
 
             EditorUtility.SetDirty(profile);

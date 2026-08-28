@@ -96,6 +96,24 @@ class ResolveUnityTests(unittest.TestCase):
             build_cli.resolve_unity("/nope/does/not/exist", "6000.3.22f1")
 
 
+class BuildSucceededTests(unittest.TestCase):
+    def test_marker_present_means_succeeded(self):
+        log = "some noise\n[BuildScript] macOS-Release: result=Succeeded size=1 bytes errors=0 time=0\nmore noise\n"
+        self.assertTrue(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_absent_means_not_succeeded(self):
+        log = "Unhandled exception. IL2CPP error.\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_for_a_different_profile_does_not_count(self):
+        log = "[BuildScript] Windows-Release: result=Succeeded size=1 bytes errors=0 time=0\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_with_a_failed_result_does_not_count(self):
+        log = "[BuildScript] macOS-Release: result=Failed size=0 bytes errors=1 time=0\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+
 class StageableEntriesTests(unittest.TestCase):
     def test_drops_unity_debug_sidecars_but_keeps_the_player(self):
         with tempfile.TemporaryDirectory() as tmp:

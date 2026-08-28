@@ -180,17 +180,15 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
     scenes = enabled_scenes(repo)
     if len(scenes) == 0:
         raise PreflightError(
-            "No scenes are enabled in ProjectSettings/EditorBuildSettings.asset — the build would be empty.")
+            "No scenes are enabled in ProjectSettings/EditorBuildSettings.asset — the build would "
+            "be empty. Enable at least one in File > Build Profiles > Scene List (Bootstrap first).")
 
     print("scenes ({0}):".format(len(scenes)))
     for scene in scenes:
         print("  " + scene)
 
 
-def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
-    log_path = os.path.join(repo, "Logs", "build-{0}.log".format(profile))
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
-
+def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path):
     command = [
         unity_binary, "-batchmode", "-quit", "-projectPath", repo,
         "-executeMethod", BUILD_METHOD,
@@ -199,6 +197,31 @@ def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
     ]
     if dev:
         command.append("-rdDev")
+    return command
+
+
+def build_log_path(repo, profile):
+    return os.path.join(repo, "Logs", "build-{0}.log".format(profile))
+
+
+def build_succeeded(profile, log_text):
+    """True when BuildScript's own success marker is present in the log.
+
+    Exit code alone is not trustworthy: Unity can report a non-zero exit after
+    "Timeout after 300 seconds while waiting async operations to finish" even
+    though BuildPipeline.BuildPlayer already succeeded. It can also report a
+    zero-ish exit while StrictMode or an IL2CPP/link failure happened after the
+    .app skeleton was already written to disk, which existence-of-output alone
+    would miss. Trust BuildScript.cs's own marker line instead of either signal.
+    """
+    return "[BuildScript] {0}: result=Succeeded".format(profile) in log_text
+
+
+def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
+    log_path = build_log_path(repo, profile)
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
+    command = unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
 
     print("Building {0}{1}".format(profile, " (development)" if dev else ""))
     print("  log: {0}".format(log_path))
@@ -213,12 +236,18 @@ def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
         print("  ... {0:.0f}s".format(time.time() - started), flush=True)
     elapsed = time.time() - started
 
-    # A zero exit is authoritative for success. A non-zero exit can still mean
-    # "succeeded, then timed out waiting on async operations", so trust the output.
-    if process.returncode != 0 and not os.path.exists(output_path):
+    if process.returncode != 0 and not build_succeeded(profile, read_log(log_path)):
         print(tail(log_path, 40), file=sys.stderr)
         raise SystemExit(EXIT_BUILD)
     print("Build finished in {0:.0f}s".format(elapsed))
+
+
+def read_log(path):
+    try:
+        with open(path, errors="replace") as handle:
+            return handle.read()
+    except OSError:
+        return ""
 
 
 def tail(path, lines):
@@ -234,11 +263,8 @@ def stageable_entries(names):
     return [name for name in names if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES)]
 
 
-def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, version, profile, dev, force):
+def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, version, profile, dev):
     zip_path = os.path.join(output_dir, stem + ".zip")
-    if os.path.exists(zip_path) and not force:
-        raise SystemExit(
-            "Refusing to overwrite {0}\nPass --force to replace it.".format(zip_path))
 
     staging_root = os.path.join(repo, "Builds", ".staging")
     staging = os.path.join(staging_root, stem)
@@ -329,7 +355,7 @@ def main(argv=None):
         version = parse_bundle_version(version_text)
         unity_binary = resolve_unity(args.unity, editor_version(repo))
         preflight(repo, args.profile, target_platform, unity_binary, args.package_only, dry_run=args.dry_run)
-    except (PreflightError, ValueError) as error:
+    except (PreflightError, ValueError, OSError) as error:
         print("error: {0}".format(error), file=sys.stderr)
         return EXIT_PREFLIGHT
 
@@ -340,15 +366,27 @@ def main(argv=None):
     extension = ".app" if target_platform == "macOS" else ".exe"
     output_path = os.path.join(build_dir, APP_NAME + extension)
     output_dir = args.output_dir or os.path.join(repo, "Builds")
+    zip_path = os.path.join(output_dir, stem + ".zip")
 
     if args.dry_run:
+        log_path = build_log_path(repo, args.profile)
+        command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
         print("profile:  {0}{1}".format(args.profile, " (dev)" if args.dev else ""))
         print("unity:    {0}".format(unity_binary))
         print("player:   {0}".format(output_path))
-        print("zip:      {0}".format(os.path.join(output_dir, stem + ".zip")))
+        print("command:  {0}".format(" ".join(command)))
+        print("zip:      {0}".format(zip_path))
         if dirty:
             print("note:     working tree is dirty, the zip is tagged -dirty")
         return EXIT_OK
+
+    # Checked before the (possibly 10-25 minute) build, not just before packaging — two
+    # builds from the same commit on the same day is the normal pattern, and failing only
+    # after Unity is done would burn a full build for nothing.
+    if os.path.exists(zip_path) and not args.force:
+        print("error: Refusing to overwrite {0}\nPass --force to replace it.".format(zip_path),
+              file=sys.stderr)
+        return EXIT_PREFLIGHT
 
     if not args.package_only:
         shutil.rmtree(build_dir, ignore_errors=True)
@@ -362,7 +400,7 @@ def main(argv=None):
 
     try:
         zip_path = package(repo, build_dir, stem, output_dir, target_platform,
-                           sha, dirty, version, args.profile, args.dev, args.force)
+                           sha, dirty, version, args.profile, args.dev)
     except (subprocess.CalledProcessError, OSError) as error:
         print("error: packaging failed: {0}".format(error), file=sys.stderr)
         return EXIT_PACKAGE
