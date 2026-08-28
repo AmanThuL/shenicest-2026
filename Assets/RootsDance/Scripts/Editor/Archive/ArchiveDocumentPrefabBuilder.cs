@@ -353,6 +353,7 @@ namespace RootsDance.Editor.Archive
         /// </summary>
         private static Material EnsurePaperMaterial()
         {
+            bool isNew = AssetDatabase.LoadAssetAtPath<Material>(k_PaperMaterialPath) == null;
             Material material = EnsureMaterial(k_PaperShader, k_PaperMaterialPath);
 
             if (material == null)
@@ -360,32 +361,38 @@ namespace RootsDance.Editor.Archive
                 return null;
             }
 
+            // Wiring, always re-applied: it has to follow the textures the baker writes.
             material.SetTexture("_FoldTex", ArchivePaperTextureBaker.LoadFoldField());
             material.SetTexture("_WarpTex", ArchivePaperTextureBaker.LoadWarpField());
             material.SetColor("_PaperLight", Color.white);
             material.SetVector("_LightDirection", new Vector4(-0.40f, 0.55f, 0.73f, 0f));
 
-            // How far a fold drags the writing across the page, in UV. The slope it multiplies is
-            // the bend's, so this displaces the whole band of the curve rather than a hairline.
-            //
-            // Small on purpose. Ink on a sheet that has been folded and flattened shifts by a few
-            // tenths of a millimetre — about three pixels at this page size. Ten times that does
-            // not read as a stronger fold, it reads as the text being torn in half: at 17 px the
-            // displacement was wider than the strokes themselves and the writing came apart.
-            // The shear either side of a crease, in UV — about fifteen pixels at this page size,
-            // reached over the millimetre the sheet rolls through. Strong on purpose: this is a
-            // localised shear at the crease, not a shift of the whole panel, so a large value
-            // bends the letters lying across the fold instead of sliding the page about.
-            material.SetFloat("_WarpStrength", 0.012f);
-            material.SetFloat("_CreaseDarken", 0.7f);
+            // Tuning, written only when the material is first created, so that dragging these in
+            // the Inspector sticks. Everything else in this file is a recipe re-applied on every
+            // build and these used to be too, which threw away any hand tuning the next time
+            // anyone pressed Build All. Delete the .mat to get these defaults back.
+            if (isNew)
+            {
+                // Fold Warp — how far a crease shears the writing across it, in UV. About fifteen
+                // pixels at this page size, reached over the millimetre the sheet rolls through.
+                // This is a localised shear at the crease, not a shift of the whole panel, so a
+                // large value bends the letters lying across a fold rather than sliding the page
+                // about. Raise it for a harder fold; lower it when small text crossing a crease
+                // stops being readable.
+                material.SetFloat("_WarpStrength", 0.012f);
 
-            // This now shades the sheet's panels, not a band around a line. A panel leaning three
-            // degrees should read as a clearly different tone across its whole width — that
-            // panel-to-panel difference is the main thing the eye reads as a fold.
-            material.SetFloat("_ReliefStrength", 1.6f);
-            material.SetFloat("_AmbientWrap", 0.55f);
-            material.SetFloat("_Sheen", 0.35f);
-            material.SetFloat("_Gloss", 24f);
+                // Crease Line — how dark the crushed line at the bottom of a fold prints.
+                material.SetFloat("_CreaseDarken", 0.7f);
+
+                // Relief — how strongly the sheet's panels shade against each other. A panel
+                // leaning three degrees should read as a clearly different tone across its width;
+                // that panel-to-panel difference is the main thing the eye reads as a fold.
+                material.SetFloat("_ReliefStrength", 1.6f);
+                material.SetFloat("_AmbientWrap", 0.55f);
+                material.SetFloat("_Sheen", 0.35f);
+                material.SetFloat("_Gloss", 24f);
+            }
+
             EditorUtility.SetDirty(material);
 
             return material;
@@ -418,11 +425,22 @@ namespace RootsDance.Editor.Archive
         /// <summary>The ink material every non-text graphic on the sheet is drawn with.</summary>
         private static Material EnsureInkMaterial()
         {
+            bool isNew = AssetDatabase.LoadAssetAtPath<Material>(k_InkMaterialPath) == null;
             Material material = EnsureMaterial(k_InkShader, k_InkMaterialPath);
 
             if (material == null)
             {
                 return null;
+            }
+
+            material.SetColor("_PaperLight", Color.white);
+
+            // Tuning only on creation; see EnsurePaperMaterial.
+            if (!isNew)
+            {
+                EditorUtility.SetDirty(material);
+
+                return material;
             }
 
             material.SetFloat("_Fade", 0.18f);
