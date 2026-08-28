@@ -386,6 +386,16 @@ namespace RootsDance.Editor.Environment
                     },
                     GapChance = 0.28f, PanelLean = 15f, PostLean = 11f, Seed = 1106,
                 },
+
+                // Lab terrace: a broken divider between the detached vault block (east, its open arch facing
+                // the gate) and the joined hall + hub complex. It starts in the inner corner where the SW
+                // wing's south side meets the annex's NE wall, runs ESE under the wing and the hub's south
+                // flank, then turns north through the 6 m corridor between the hub's east vertex and the
+                // block's roof edge, dying 4 m short of the NE wing. The gate-to-vault approach stays open.
+                Ring("Lab_Divider", 1121, 0.36f,
+                    new Vector2(-11.5f, 124.3f), new Vector2(-3f, 119.5f), new Vector2(6f, 123.5f),
+                    new Vector2(12.5f, 129f), new Vector2(13.2f, 138f), new Vector2(15f, 146f),
+                    new Vector2(18.5f, 152f)),
             };
         }
 
