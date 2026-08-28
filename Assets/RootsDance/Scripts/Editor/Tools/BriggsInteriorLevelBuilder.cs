@@ -3,6 +3,7 @@ using System.Linq;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Editor.Environment;
 using RootsDance.Investigation;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -27,6 +28,8 @@ namespace RootsDance.Editor.Tools
         private const string k_PlayerPrefabPath = "Assets/RootsDance/Prefabs/Characters/Player.prefab";
         private const string k_GarageShellPath =
             "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx";
+        private const string k_BriggsInteriorWallsPath =
+            "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx";
         private const string k_IvyHangingPath =
             "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx";
         private const string k_LabCorridorPath =
@@ -38,6 +41,9 @@ namespace RootsDance.Editor.Tools
         private const string k_GarageTextureFolder =
             "Assets/RootsDance/Textures/Environment/Garage";
         private const string k_LabEntranceAnchor = "Checkpoint_LaboratoryEntrance";
+        private const string k_PlantResearchLabAnchor = "Checkpoint_PlantResearchLab";
+        private const string k_SampleStorageAnchor = "Checkpoint_SampleStorage";
+        private const string k_GreenhouseAnchor = "Checkpoint_Greenhouse";
 
         private const float k_LabWidth = 18f;
         private const float k_LabDepth = 14f;
@@ -48,7 +54,7 @@ namespace RootsDance.Editor.Tools
         private const float k_CorridorCenterX = 3f;
         private const float k_CorridorYawDegrees = -37.837f;
         private const float k_SouthWallZ = -7f;
-        private const float k_NorthExitCenterX = 0.125f;
+        private const float k_NorthExitCenterX = 0f;
         private const float k_NorthExitWidth = 4.5f;
 
         private static readonly Vector3 k_LabTargetSize = new Vector3(k_LabWidth, k_LabHeight, k_LabDepth);
@@ -58,6 +64,14 @@ namespace RootsDance.Editor.Tools
 
         private static readonly Vector3 k_LabEntrancePosition =
             new Vector3(k_CorridorCenterX, 1f, k_SouthWallZ - k_CorridorLength + 1.3f);
+
+        private static readonly CheckpointPlacement[] k_CheckpointPlacements =
+        {
+            new CheckpointPlacement(k_LabEntranceAnchor, k_LabEntrancePosition, 0f),
+            new CheckpointPlacement(k_PlantResearchLabAnchor, new Vector3(3f, 1f, -5.5f), 0f),
+            new CheckpointPlacement(k_SampleStorageAnchor, new Vector3(-4.1f, 1f, -0.7f), 90f),
+            new CheckpointPlacement(k_GreenhouseAnchor, new Vector3(6.8f, 1f, -3.2f), 180f),
+        };
 
         [MenuItem("RootsDance/Build Briggs Interior Checkpoint Level")]
         private static void Build()
@@ -73,6 +87,7 @@ namespace RootsDance.Editor.Tools
                 EnsureFolder(k_LevelFolder);
                 EnsureFolder(k_CheckpointFolder);
                 GarageMaterials materials = CreateGarageMaterials();
+                BriggsInteriorExitDoorBuilder.EnsureDoorPrefab(materials.WallWeathered);
 
                 Dictionary<string, CheckpointPlacement> placements = BuildEnvironmentScene(materials);
                 BuildGameplayScene(placements);
@@ -111,8 +126,9 @@ namespace RootsDance.Editor.Tools
             Transform sourceArt = CreateChild("GarageSourceArt", geometry);
             Transform structure = CreateChild("PlanCollisionShell", geometry);
             Transform corridorRoot = CreateChild("EntranceCorridor", geometry);
-            CreateRoot("_Props");
+            Transform props = CreateRoot("_Props");
             CreateRoot("_NavMesh");
+            CreateRoot("Prefab World Builder");
 
             CreateInteriorLighting(lighting);
 
@@ -123,13 +139,20 @@ namespace RootsDance.Editor.Tools
                 InteractionMode.AutomatedAction);
             FitRendererBounds(shell, k_LabTargetSize, k_LabTargetCenter, Quaternion.Euler(0f, 180f, 0f));
             AssignGarageShellMaterials(shell, materials);
+            RemoveLegacyGarageWalls(shell);
             SetStatic(shell);
+
+            GameObject walls = InstantiateModel(k_BriggsInteriorWallsPath, "BriggsInteriorWalls", sourceArt, scene);
+            AssignBriggsWallMaterials(walls, materials);
+            SetStatic(walls);
 
             GameObject ivy = InstantiateModel(k_IvyHangingPath, "IvyHanging", sourceArt, scene);
             ivy.transform.SetPositionAndRotation(shell.transform.position, shell.transform.rotation);
             ivy.transform.localScale = shell.transform.localScale;
             AssignOneMaterial(ivy, materials.Ivy);
             SetStatic(ivy);
+            BriggsInteriorExitDoorBuilder.CreateCeilingHoleVines(ivy, props, materials.Ivy);
+            BriggsInteriorExitDoorBuilder.CreateClosedEntranceDoor(props, materials.Trim);
 
             CreatePlanCollisionShell(structure);
 
@@ -154,8 +177,13 @@ namespace RootsDance.Editor.Tools
             SetStatic(corridor);
 
             Dictionary<string, CheckpointPlacement> placements =
-                new Dictionary<string, CheckpointPlacement>(1);
-            placements.Add(k_LabEntranceAnchor, new CheckpointPlacement(k_LabEntrancePosition, 0f));
+                new Dictionary<string, CheckpointPlacement>(k_CheckpointPlacements.Length);
+
+            for (int i = 0; i < k_CheckpointPlacements.Length; i++)
+            {
+                CheckpointPlacement placement = k_CheckpointPlacements[i];
+                placements.Add(placement.AnchorName, placement);
+            }
 
             EditorSceneManager.SaveScene(scene, k_EnvironmentPath);
             return placements;
@@ -324,6 +352,37 @@ namespace RootsDance.Editor.Tools
             }
         }
 
+        private static void RemoveLegacyGarageWalls(GameObject shell)
+        {
+            MeshRenderer[] renderers = shell.GetComponentsInChildren<MeshRenderer>(true);
+
+            for (int i = renderers.Length - 1; i >= 0; i--)
+            {
+                string rendererName = renderers[i].name;
+
+                if (rendererName.StartsWith("Garage_Walls") ||
+                    rendererName.StartsWith("Wooden_Door_Panel") ||
+                    rendererName.StartsWith("Wall_Trim") ||
+                    rendererName.StartsWith("Windows_Broken"))
+                {
+                    Object.DestroyImmediate(renderers[i].gameObject);
+                }
+            }
+        }
+
+        private static void AssignBriggsWallMaterials(GameObject root, GarageMaterials materials)
+        {
+            MeshRenderer[] renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material material = renderers[i].name == "Briggs_Wall_South"
+                    ? materials.WallPlaster
+                    : materials.WallWeathered;
+                AssignMaterials(renderers[i], material);
+            }
+        }
+
         private static void AssignMaterials(Renderer renderer, params Material[] palette)
         {
             int materialCount = Mathf.Max(1, renderer.sharedMaterials.Length);
@@ -408,6 +467,8 @@ namespace RootsDance.Editor.Tools
             collision.transform.SetParent(parent, false);
             collision.transform.localPosition = center;
             collision.isStatic = true;
+            bool isFloor = name.StartsWith("Floor_") || name.StartsWith("Corridor_Floor_");
+            collision.layer = isFloor ? LayerMask.NameToLayer("Ground") : 0;
             BoxCollider collider = collision.AddComponent<BoxCollider>();
             collider.size = size;
         }
@@ -527,21 +588,38 @@ namespace RootsDance.Editor.Tools
             Transform cameras = CreateRoot("_Cameras");
             Transform spawns = CreateRoot("_Spawns");
             CreateRoot("_Triggers");
-            CreateRoot("_Interactables");
+            Transform interactables = CreateRoot("_Interactables");
             Transform anchors = CreateRoot("_Anchors");
 
-            CheckpointPlacement placement = placements[k_LabEntranceAnchor];
-            GameObject anchor = new GameObject(k_LabEntranceAnchor);
-            anchor.transform.SetParent(anchors, false);
-            anchor.transform.SetPositionAndRotation(
-                placement.Position,
-                Quaternion.Euler(0f, placement.Yaw, 0f));
+            GameObject doorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                BriggsInteriorExitDoorBuilder.DoorPrefabPath);
+
+            if (doorPrefab == null)
+            {
+                throw new System.IO.FileNotFoundException(
+                    "Briggs automatic exit door prefab was not found: " +
+                    BriggsInteriorExitDoorBuilder.DoorPrefabPath);
+            }
+
+            BriggsInteriorExitDoorBuilder.PlaceDoor(doorPrefab, interactables, scene);
+
+            for (int i = 0; i < k_CheckpointPlacements.Length; i++)
+            {
+                CheckpointPlacement placement = placements[k_CheckpointPlacements[i].AnchorName];
+                GameObject anchor = new GameObject(placement.AnchorName);
+                anchor.transform.SetParent(anchors, false);
+                anchor.transform.SetPositionAndRotation(
+                    placement.Position,
+                    Quaternion.Euler(0f, placement.Yaw, 0f));
+            }
+
+            CheckpointPlacement entrancePlacement = placements[k_LabEntranceAnchor];
 
             GameObject spawnPoint = new GameObject("PlayerSpawn");
             spawnPoint.transform.SetParent(spawns, false);
             spawnPoint.transform.SetPositionAndRotation(
-                placement.Position,
-                Quaternion.Euler(0f, placement.Yaw, 0f));
+                entrancePlacement.Position,
+                Quaternion.Euler(0f, entrancePlacement.Yaw, 0f));
 
             GameObject playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(k_PlayerPrefabPath);
 
@@ -636,6 +714,27 @@ namespace RootsDance.Editor.Tools
                 k_LabEntranceAnchor,
                 placements[k_LabEntranceAnchor],
                 completedExteriorFlags);
+            CreateCheckpoint(
+                k_CheckpointFolder + "/02-01_PlantResearchLab.asset",
+                "02-01 Plant research lab",
+                level,
+                k_PlantResearchLabAnchor,
+                placements[k_PlantResearchLabAnchor],
+                completedExteriorFlags);
+            CreateCheckpoint(
+                k_CheckpointFolder + "/02-02_SampleStorage.asset",
+                "02-02 Sample storage",
+                level,
+                k_SampleStorageAnchor,
+                placements[k_SampleStorageAnchor],
+                completedExteriorFlags);
+            CreateCheckpoint(
+                k_CheckpointFolder + "/02-03_Greenhouse.asset",
+                "02-03 Greenhouse",
+                level,
+                k_GreenhouseAnchor,
+                placements[k_GreenhouseAnchor],
+                completedExteriorFlags);
         }
 
         private static void CreateCheckpoint(
@@ -691,8 +790,11 @@ namespace RootsDance.Editor.Tools
 
         private static void AddSceneIfMissing(List<EditorBuildSettingsScene> scenes, string path)
         {
-            if (scenes.Any(scene => scene.path == path))
+            int existingIndex = scenes.FindIndex(scene => scene.path == path);
+
+            if (existingIndex >= 0)
             {
+                scenes[existingIndex] = new EditorBuildSettingsScene(path, true);
                 return;
             }
 
@@ -746,12 +848,14 @@ namespace RootsDance.Editor.Tools
 
         private struct CheckpointPlacement
         {
-            public CheckpointPlacement(Vector3 position, float yaw)
+            public CheckpointPlacement(string anchorName, Vector3 position, float yaw)
             {
+                AnchorName = anchorName;
                 Position = position;
                 Yaw = yaw;
             }
 
+            public string AnchorName;
             public Vector3 Position;
             public float Yaw;
         }

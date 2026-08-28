@@ -89,10 +89,8 @@ namespace RootsDance.Editor.Environment
             const float wallThickness = 0.5f;
             const float blockerHeight = 5.7f;
             const float southZ = -7.15f;
-            MeshRenderer northWall = FindMeshRenderer(scene, "Garage_Walls");
-            MeshRenderer westWall = FindMeshRenderer(scene, "Garage_Walls (1)");
-            MeshRenderer eastWall = FindMeshRenderer(scene, "Garage_Walls (2)");
-            float northZ = northWall != null ? northWall.bounds.min.z + 0.12f : 7.15f;
+            MeshRenderer westWall = FindMeshRenderer(scene, "Briggs_Wall_West");
+            MeshRenderer eastWall = FindMeshRenderer(scene, "Briggs_Wall_East");
             float westX = westWall != null ? westWall.bounds.max.x - 0.12f : -9.15f;
             float eastX = eastWall != null ? eastWall.bounds.min.x + 0.12f : 9.15f;
 
@@ -110,11 +108,10 @@ namespace RootsDance.Editor.Environment
                 material);
             CreateBlocker(
                 blockers,
-                "Blocker_North",
-                new Vector3(0f, 2.45f, northZ),
-                new Vector3(18.8f, blockerHeight, wallThickness),
+                "Blocker_Roof_NorthSeam",
+                new Vector3(0f, 5f, 6.5f),
+                new Vector3(18.6f, 0.3f, 1.6f),
                 material);
-
             // Keep the 3.2 m south entrance centred at X = 3 m open while sealing both corners.
             CreateBlocker(
                 blockers,
@@ -161,28 +158,19 @@ namespace RootsDance.Editor.Environment
         private static void CreateOpaqueLeakCaps(Transform parent, Material material, Scene scene)
         {
             Transform caps = CreateChild("LightLeakCaps_Opaque", parent);
-            MeshRenderer northWall = FindMeshRenderer(scene, "Garage_Walls");
-            MeshRenderer westWall = FindMeshRenderer(scene, "Garage_Walls (1)");
-            MeshRenderer eastWall = FindMeshRenderer(scene, "Garage_Walls (2)");
-            float northZ = northWall != null ? northWall.bounds.min.z + 0.12f : 7.05f;
+            MeshRenderer westWall = FindMeshRenderer(scene, "Briggs_Wall_West");
+            MeshRenderer eastWall = FindMeshRenderer(scene, "Briggs_Wall_East");
+            float northZ = 7.15f;
             float westX = westWall != null ? westWall.bounds.max.x - 0.12f : -9.05f;
             float eastX = eastWall != null ? eastWall.bounds.min.x + 0.12f : 9.05f;
-            Material northMaterial = GetWallPatchMaterial(northWall, material);
             Material westMaterial = GetWallPatchMaterial(westWall, material);
             Material eastMaterial = GetWallPatchMaterial(eastWall, material);
-
-            CreateOpaqueCap(
-                caps,
-                "Cap_Top_North",
-                new Vector3(0f, 4.38f, northZ),
-                new Vector3(18.7f, 1.35f, 0.4f),
-                northMaterial);
             CreateOpaqueCap(
                 caps,
                 "Cap_Top_South",
                 new Vector3(0f, 4.38f, -7.05f),
                 new Vector3(18.7f, 1.35f, 0.4f),
-                northMaterial);
+                westMaterial);
             CreateOpaqueCap(
                 caps,
                 "Cap_Top_West",
@@ -198,16 +186,10 @@ namespace RootsDance.Editor.Environment
 
             CreateOpaqueCap(
                 caps,
-                "Cap_Bottom_North",
-                new Vector3(0f, 0.02f, northZ),
-                new Vector3(18.7f, 0.12f, 0.4f),
-                northMaterial);
-            CreateOpaqueCap(
-                caps,
                 "Cap_Bottom_South",
                 new Vector3(0f, 0.02f, -7.05f),
                 new Vector3(18.7f, 0.12f, 0.4f),
-                northMaterial);
+                westMaterial);
             CreateOpaqueCap(
                 caps,
                 "Cap_Bottom_West",

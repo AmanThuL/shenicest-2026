@@ -1,0 +1,364 @@
+using System.IO;
+using System.Linq;
+using RootsDance.Environment;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace RootsDance.Editor.Environment
+{
+    /// <summary>
+    /// Adds the textured automatic exit door and the small roof-opening vine dressing without
+    /// rebuilding the rest of the Briggs interior.
+    /// </summary>
+    public static class BriggsInteriorExitDoorBuilder
+    {
+        public const string DoorPrefabPath =
+            "Assets/RootsDance/Prefabs/Environment/BriggsAutomaticExitDoor.prefab";
+
+        private const string k_EnvironmentPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
+        private const string k_GameplayPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
+        private const string k_WallMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageWallWeathered.mat";
+        private const string k_IvyMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageIvy.mat";
+        private const string k_TrimMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageTrim.mat";
+        private const string k_GarageShellPath =
+            "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx";
+        private const string k_DoorName = "BriggsAutomaticExitDoor";
+        private const string k_VinesName = "CeilingHoleVines";
+        private const string k_EntranceDoorName = "BriggsClosedEntranceDoor";
+
+        [MenuItem("RootsDance/Environment/Apply Briggs Exit Door And Vines")]
+        public static void ApplyFromMenu()
+        {
+            ApplyToLoadedScenes();
+        }
+
+        public static void ApplyToLoadedScenes()
+        {
+            Scene environment = FindLoadedScene(k_EnvironmentPath);
+            Scene gameplay = FindLoadedScene(k_GameplayPath);
+            Material wallMaterial = LoadRequiredAsset<Material>(k_WallMaterialPath);
+            Material ivyMaterial = LoadRequiredAsset<Material>(k_IvyMaterialPath);
+            Material trimMaterial = LoadRequiredAsset<Material>(k_TrimMaterialPath);
+            GameObject doorPrefab = EnsureDoorPrefab(wallMaterial);
+
+            AssignRoundExitWallMaterial(environment, wallMaterial);
+
+            Transform props = FindRoot(environment, "_Props");
+            GameObject ivy = FindGameObject(environment, "IvyHanging");
+            CreateCeilingHoleVines(ivy, props, ivyMaterial);
+            CreateClosedEntranceDoor(props, trimMaterial);
+
+            Transform interactables = FindRoot(gameplay, "_Interactables");
+            PlaceDoor(doorPrefab, interactables, gameplay);
+
+            EditorSceneManager.MarkSceneDirty(environment);
+            EditorSceneManager.MarkSceneDirty(gameplay);
+            EditorSceneManager.SaveScene(environment);
+            EditorSceneManager.SaveScene(gameplay);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[BriggsInteriorExitDoor] Applied textured round-exit wall, automatic door and roof vines.");
+        }
+
+        public static GameObject EnsureDoorPrefab(Material wallMaterial)
+        {
+            EnsureFolder("Assets/RootsDance/Prefabs/Environment");
+            Scene previewScene = EditorSceneManager.NewPreviewScene();
+
+            try
+            {
+                GameObject root = new GameObject(k_DoorName);
+                SceneManager.MoveGameObjectToScene(root, previewScene);
+                int triggerLayer = LayerMask.NameToLayer("TriggerVolume");
+
+                if (triggerLayer < 0)
+                {
+                    throw new System.InvalidOperationException("TriggerVolume layer is not configured.");
+                }
+
+                root.layer = triggerLayer;
+
+                GameObject left = CreateDoorLeaf("DoorLeaf_Left", root.transform, -1.125f, wallMaterial);
+                GameObject right = CreateDoorLeaf("DoorLeaf_Right", root.transform, 1.125f, wallMaterial);
+
+                BoxCollider trigger = root.AddComponent<BoxCollider>();
+                trigger.isTrigger = true;
+                trigger.center = new Vector3(0f, 2.25f, 0f);
+                trigger.size = new Vector3(6.25f, 4.6f, 6f);
+
+                AutomaticSlidingDoor door = root.AddComponent<AutomaticSlidingDoor>();
+                door.Configure(left.transform, right.transform, 2.5f, 2.2f);
+
+                GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, DoorPrefabPath);
+
+                if (prefab == null)
+                {
+                    throw new System.InvalidOperationException("Failed to create Briggs automatic exit door prefab.");
+                }
+
+                return prefab;
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(previewScene);
+            }
+        }
+
+        public static void PlaceDoor(GameObject doorPrefab, Transform parent, Scene scene)
+        {
+            Transform existing = parent.Find(k_DoorName);
+
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing.gameObject);
+            }
+
+            GameObject door = (GameObject)PrefabUtility.InstantiatePrefab(doorPrefab, scene);
+            door.name = k_DoorName;
+            door.transform.SetParent(parent, false);
+            door.transform.SetLocalPositionAndRotation(new Vector3(0f, 0f, 7.15f), Quaternion.identity);
+            door.transform.localScale = Vector3.one;
+        }
+
+        public static void CreateCeilingHoleVines(
+            GameObject ivyRoot,
+            Transform propsRoot,
+            Material ivyMaterial)
+        {
+            Transform existing = propsRoot.Find(k_VinesName);
+
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing.gameObject);
+            }
+
+            Transform vines = new GameObject(k_VinesName).transform;
+            vines.SetParent(propsRoot, false);
+            CreateVine(ivyRoot, vines, "Ivy_Hanging_09", "MainHoleVine_Left", -0.78f, 2.5f, 12f, ivyMaterial);
+            CreateVine(ivyRoot, vines, "Ivy_Hanging_10", "MainHoleVine_Right", 0.98f, 2.5f, -16f, ivyMaterial);
+        }
+
+        public static void CreateClosedEntranceDoor(Transform propsRoot, Material trimMaterial)
+        {
+            Transform existing = propsRoot.Find(k_EntranceDoorName);
+
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing.gameObject);
+            }
+
+            GameObject garageShell = LoadRequiredAsset<GameObject>(k_GarageShellPath);
+            MeshFilter source = garageShell.GetComponentsInChildren<MeshFilter>(true)
+                .FirstOrDefault(filter => filter.name == "Wooden_Door_Panel");
+
+            if (source == null || source.sharedMesh == null)
+            {
+                throw new System.InvalidOperationException(
+                    "Garage Wooden_Door_Panel source mesh was not found.");
+            }
+
+            Transform root = new GameObject(k_EntranceDoorName).transform;
+            root.SetParent(propsRoot, false);
+
+            GameObject visual = new GameObject("Wooden_Door_Panel");
+            visual.transform.SetParent(root, false);
+            MeshFilter meshFilter = visual.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = source.sharedMesh;
+            MeshRenderer renderer = visual.AddComponent<MeshRenderer>();
+            renderer.sharedMaterials = Enumerable.Repeat(
+                trimMaterial,
+                Mathf.Max(1, source.sharedMesh.subMeshCount)).ToArray();
+
+            Bounds meshBounds = source.sharedMesh.bounds;
+            visual.transform.localRotation =
+                Quaternion.Euler(0f, 90f, 0f) * Quaternion.Euler(90f, 0f, 0f);
+            visual.transform.localScale = new Vector3(
+                1f,
+                3.3f / Mathf.Max(0.0001f, meshBounds.size.y),
+                3.8f / Mathf.Max(0.0001f, meshBounds.size.z));
+
+            Bounds fittedBounds = renderer.bounds;
+            visual.transform.position += new Vector3(3f, 1.85f, -6.99f) - fittedBounds.center;
+
+            GameObject seal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            seal.name = "EntranceLightSeal";
+            seal.transform.SetParent(root, false);
+            seal.transform.localPosition = new Vector3(3f, 1.85f, -7.15f);
+            seal.transform.localScale = new Vector3(3.3f, 3.8f, 0.28f);
+            MeshRenderer sealRenderer = seal.GetComponent<MeshRenderer>();
+            sealRenderer.sharedMaterial = trimMaterial;
+            sealRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            sealRenderer.receiveShadows = false;
+
+            SetStatic(root.gameObject);
+        }
+
+        private static GameObject CreateDoorLeaf(
+            string name,
+            Transform parent,
+            float localX,
+            Material material)
+        {
+            GameObject leaf = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            leaf.name = name;
+            leaf.transform.SetParent(parent, false);
+            leaf.transform.localPosition = new Vector3(localX, 2.25f, 0f);
+            leaf.transform.localRotation = Quaternion.identity;
+            leaf.transform.localScale = new Vector3(2.3f, 4.6f, 0.28f);
+            leaf.GetComponent<MeshRenderer>().sharedMaterial = material;
+            return leaf;
+        }
+
+        private static void CreateVine(
+            GameObject ivyRoot,
+            Transform parent,
+            string sourceName,
+            string name,
+            float targetX,
+            float targetZ,
+            float yawOffset,
+            Material material)
+        {
+            MeshRenderer source = ivyRoot.GetComponentsInChildren<MeshRenderer>(true)
+                .FirstOrDefault(renderer => renderer.name == sourceName);
+
+            if (source == null)
+            {
+                throw new System.InvalidOperationException("Ivy source mesh was not found: " + sourceName);
+            }
+
+            GameObject clone = Object.Instantiate(source.gameObject);
+            clone.name = name;
+            clone.transform.SetParent(parent, true);
+            clone.transform.localScale *= 0.9f;
+            clone.transform.rotation = Quaternion.Euler(0f, yawOffset, 0f) * source.transform.rotation;
+
+            MeshRenderer renderer = clone.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            Bounds bounds = renderer.bounds;
+            clone.transform.position += new Vector3(
+                targetX - bounds.center.x,
+                4.96f - bounds.max.y,
+                targetZ - bounds.center.z);
+
+            Collider[] colliders = clone.GetComponentsInChildren<Collider>(true);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Object.DestroyImmediate(colliders[i]);
+            }
+
+            clone.isStatic = true;
+        }
+
+        private static void AssignRoundExitWallMaterial(Scene scene, Material wallMaterial)
+        {
+            GameObject wall = FindGameObject(scene, "Briggs_Wall_North_RoundExit");
+            MeshRenderer renderer = wall.GetComponent<MeshRenderer>();
+
+            if (renderer == null)
+            {
+                throw new System.InvalidOperationException("Round-exit wall has no MeshRenderer.");
+            }
+
+            int materialCount = Mathf.Max(1, renderer.sharedMaterials.Length);
+            Material[] materials = new Material[materialCount];
+
+            for (int i = 0; i < materialCount; i++)
+            {
+                materials[i] = wallMaterial;
+            }
+
+            renderer.sharedMaterials = materials;
+        }
+
+        private static Scene FindLoadedScene(string path)
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                if (scene.path == path)
+                {
+                    return scene;
+                }
+            }
+
+            throw new System.InvalidOperationException("Required scene is not loaded: " + path);
+        }
+
+        private static Transform FindRoot(Scene scene, string name)
+        {
+            GameObject root = scene.GetRootGameObjects().FirstOrDefault(item => item.name == name);
+
+            if (root == null)
+            {
+                throw new System.InvalidOperationException("Scene root was not found: " + name);
+            }
+
+            return root.transform;
+        }
+
+        private static GameObject FindGameObject(Scene scene, string name)
+        {
+            GameObject found = scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                .Select(item => item.gameObject)
+                .FirstOrDefault(item => item.name == name);
+
+            if (found == null)
+            {
+                throw new System.InvalidOperationException("Scene object was not found: " + name);
+            }
+
+            return found;
+        }
+
+        private static T LoadRequiredAsset<T>(string path) where T : Object
+        {
+            T asset = AssetDatabase.LoadAssetAtPath<T>(path);
+
+            if (asset == null)
+            {
+                throw new FileNotFoundException("Required asset was not found: " + path);
+            }
+
+            return asset;
+        }
+
+        private static void SetStatic(GameObject root)
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                transforms[i].gameObject.isStatic = true;
+            }
+        }
+
+        private static void EnsureFolder(string path)
+        {
+            string parent = Path.GetDirectoryName(path)?.Replace('\\', '/');
+
+            if (!string.IsNullOrEmpty(parent) && !AssetDatabase.IsValidFolder(parent))
+            {
+                EnsureFolder(parent);
+            }
+
+            if (AssetDatabase.IsValidFolder(path))
+            {
+                return;
+            }
+
+            string folderParent = Path.GetDirectoryName(path)?.Replace('\\', '/');
+            string folderName = Path.GetFileName(path);
+            AssetDatabase.CreateFolder(folderParent, folderName);
+        }
+    }
+}

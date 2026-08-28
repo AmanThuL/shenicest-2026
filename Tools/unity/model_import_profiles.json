@@ -225,6 +225,12 @@
       "m_materials": []
     },
     {
+      "m_path": "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx",
+      "m_profile": "static_garage",
+      "m_manifest": "SourceArt/Export/Garage/BriggsInteriorWalls.export.json",
+      "m_materials": []
+    },
+    {
       "m_path": "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx",
       "m_profile": "static_garage",
       "m_manifest": "SourceArt/Export/Garage/IvyHanging.export.json",
