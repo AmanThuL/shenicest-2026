@@ -266,3 +266,42 @@ clip 时长按 `(120−1)/30 = 3.9667 s` 计，不是 4.0 s——首尾帧都算
 - [Model 导入设置](../../reference/performance/manual-fbximporter-model.md)
 - [契约：美术资产交付](../contracts/美术资产交付规范.md) — D14 / D15 / D16
 - [guidelines/02 — 项目与资产组织](../../guidelines/02-project-structure.md)
+
+## 单位与缩放：为什么 `apply_scale_options` 必须是 `FBX_SCALE_UNITS`
+
+**结论先行**：两个 Blender profile 的 `fbx.apply_scale_options` 都必须是 `FBX_SCALE_UNITS`。
+改回 `FBX_SCALE_NONE` 会让每个导入节点重新带上约 100 的缩放，所有手持物、挂点和骨骼附着都会再次出问题。
+
+`FBX_SCALE_NONE`（Blender 的 "All Local"）把米→厘米的换算烘进**每一个物体的变换**，
+Unity 再用 `fileScale = 0.01` 抵消。世界尺寸看起来是对的，所以问题不显形——但每根骨头的
+`lossyScale` 都在 100 附近，而且并不均匀：
+
+| 资产 | `FBX_SCALE_NONE` 下的节点缩放 |
+|---|---|
+| `Arms.fbx` | 1.000 .. **114.000** |
+| `LabBlockout.fbx` | 1.000 .. **380.832** |
+| 其余静态道具 | 100.000 .. 100.000 |
+
+任何挂到骨骼层级下的道具都会继承这个数，于是出现"扫描仪大一百倍"，也逼出了
+`0.670016` 这种补偿常数和"把世界缩放写进 localScale"的挂点组件——都是在治标。
+
+`FBX_SCALE_UNITS` 把换算写进 FBX 头部（`UnitScaleFactor` 1.0 → 100.0），由 Unity 的
+Convert Units 消化。切换后全部 20 个资产实测：
+
+```
+fileScale = 1        （原 0.01）
+nodeScale = 1.000    （原 1.000..380.832）
+worldSize 逐个资产不变
+```
+
+手臂骨骼在 Unity 里的位置也与 Blender 契约逐值吻合（`hand.L` = (0.22, 1.05, 0)、
+root = 1.4657、camera = 1.7432，Z-up→Y-up 换算后），`lossyScale` 全为 1。
+
+### 切换时必须一起重导的东西
+
+- **全部资产**：`m_assets` 里每一条都要重导，混用两种模式会让同一场景里的比例互相矛盾。
+- **凡是为旧节点缩放而调出来的数值**都要重新推导，而不是留着。已知一处：扫描仪报告画布的
+  `localScale` 原为 `9.994e-7`，只为抵消父节点的 100；节点变成 1 之后它会小一百倍，
+  由 `RootsDance > Build Scanner (all steps)` 重新推导为 `9.994e-5`。
+- 重导后跑 `RootsDance.EditorTools.ScaleProbe.Report`，确认 `nodeScale` 全为 1、
+  `worldSize` 与改动前一致。
