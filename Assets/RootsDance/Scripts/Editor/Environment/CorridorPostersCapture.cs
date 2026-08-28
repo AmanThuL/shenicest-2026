@@ -36,10 +36,20 @@ namespace RootsDance.Editor.Environment
         private const float k_BeamRange = 12f;
         private const float k_OuterDegrees = 26f;
         private const float k_InnerDegrees = 13f;
+        private const float k_SpillDegrees = 18f;
+        private const float k_SpillLevel = 0.22f;
+
+        /// <summary>
+        /// How far the stand-in torch sits below and to the right of the camera, in metres. A beam
+        /// fired straight down the view axis lands as a circle whatever the shader does, so a
+        /// capture taken from the eye could never show the off-axis pool the hand actually throws.
+        /// </summary>
+        private static readonly Vector3 k_HandOffset = new Vector3(0.28f, -0.32f, 0.1f);
 
         private static readonly int k_PositionId = Shader.PropertyToID("_RootsFlashlightPosition");
         private static readonly int k_DirectionId = Shader.PropertyToID("_RootsFlashlightDirection");
         private static readonly int k_ConeId = Shader.PropertyToID("_RootsFlashlightCone");
+        private static readonly int k_SpillId = Shader.PropertyToID("_RootsFlashlightSpill");
 
         [MenuItem("RootsDance/Environment/Capture Corridor Posters")]
         public static void Capture()
@@ -123,15 +133,24 @@ namespace RootsDance.Editor.Environment
         /// <summary>Points the stand-in torch from the camera at what the camera is looking at.</summary>
         private static void Aim(Vector3 eye, Vector3 at)
         {
-            Vector3 direction = (at - eye).normalized;
+            // The torch is in a hand, not on the eye: offset the apex the way the rig does, so the
+            // capture shows the same oblique pool the player sees.
+            Quaternion facing = Quaternion.LookRotation((at - eye).normalized, Vector3.up);
+            Vector3 origin = eye + facing * k_HandOffset;
+            Vector3 direction = (at - origin).normalized;
 
-            Shader.SetGlobalVector(k_PositionId, eye);
+            Shader.SetGlobalVector(k_PositionId, origin);
             Shader.SetGlobalVector(k_DirectionId, direction);
             Shader.SetGlobalVector(k_ConeId, new Vector4(
                 Mathf.Cos(k_OuterDegrees * Mathf.Deg2Rad),
                 Mathf.Cos(k_InnerDegrees * Mathf.Deg2Rad),
                 k_BeamRange,
                 1f));
+            Shader.SetGlobalVector(k_SpillId, new Vector4(
+                Mathf.Cos((k_OuterDegrees + k_SpillDegrees) * Mathf.Deg2Rad),
+                k_SpillLevel,
+                0f,
+                0f));
         }
 
         /// <summary>Which way a hung sheet looks: the end of its thin axis that faces the room.</summary>

@@ -267,8 +267,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.FlashlightController
   m_light: {fileID: 3238816247033891326}
+  m_holdSocket: {fileID: 0}
+  m_torchItem: {fileID: 0}
+  m_beamAnchor: {fileID: 8979133815423464653}
   m_autoOnAtNight: 1
   m_fadeSeconds: 0.15
+  m_aimDistance: 7
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
 --- !u!114 &6841962975302966709
 MonoBehaviour:
@@ -285,6 +289,8 @@ MonoBehaviour:
   m_light: {fileID: 3238816247033891326}
   m_controller: {fileID: 8163118375396427749}
   m_coneMarginDegrees: 4
+  m_spillDegrees: 18
+  m_spillLevel: 0.22
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,7 +1699,6 @@ MonoBehaviour:
     m_animatesCameraBone: 0
     m_tweak: {x: 0, y: 0, z: 0}
   m_previewState: HelmetOff
-  m_height: {fileID: 0}
   m_basePosition: {x: -2.693514e-15, y: -1.7431548, z: 0.00000023841858}
   m_baseRotation: {x: -0, y: 180, z: 0}
   m_bindBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}

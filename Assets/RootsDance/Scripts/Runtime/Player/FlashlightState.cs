@@ -16,8 +16,21 @@ namespace RootsDance.Player
             AutoOnAtNight = autoOnAtNight;
         }
 
-        /// <summary>True while the beam should be lit.</summary>
+        /// <summary>True while the switch is on. Not the same as the beam being lit.</summary>
         public bool IsOn { get; private set; }
+
+        /// <summary>
+        /// True while the torch is actually in a hand. A switch left on in a pocket is still a
+        /// switch left on, so this is tracked apart from <see cref="IsOn"/> rather than folded
+        /// into it - put the torch back in the hand and it is lit again at the setting it had.
+        /// </summary>
+        public bool IsHeld { get; private set; } = true;
+
+        /// <summary>
+        /// True only when the switch is on *and* the torch is in a hand. This is what drives the
+        /// Light and the reveal: nothing in the world may react to a beam nobody is carrying.
+        /// </summary>
+        public bool IsLit => IsOn && IsHeld;
 
         /// <summary>
         /// When false the phase is ignored entirely and only <see cref="Toggle"/> changes the beam —
@@ -39,10 +52,16 @@ namespace RootsDance.Player
             IsOn = phase == TimeOfDay.Night;
         }
 
-        /// <summary>Flips the beam — what the flashlight button does, at any time of day.</summary>
+        /// <summary>Flips the switch — what the flashlight button does, at any time of day.</summary>
         public void Toggle()
         {
             IsOn = !IsOn;
+        }
+
+        /// <summary>Records whether a hand is holding the torch.</summary>
+        public void SetHeld(bool held)
+        {
+            IsHeld = held;
         }
 
         /// <summary>
