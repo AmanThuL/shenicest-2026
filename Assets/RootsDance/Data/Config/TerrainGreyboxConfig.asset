@@ -130,26 +130,35 @@ MonoBehaviour:
   m_deriveTerraceFromLab: 1
   m_labIncludedChildren: []
   m_anchors:
-  - m_name: Anchor_Center
-    m_specPosition: {x: 0, y: 7, z: 126}
+  - m_name: Anchor_00-07_FirstToolUse
+    m_specPosition: {x: -12, y: 0, z: 39}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-07_GrassPlatform
-    m_specPosition: {x: -12, y: 6, z: 39}
+  - m_name: Anchor_00-08_ResearchFacilityView
+    m_specPosition: {x: 0.473, y: 0, z: 85.366}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-09_MainGate
-    m_specPosition: {x: 24, y: 7, z: 106}
+  - m_name: Anchor_00-09_BlockedMainEntrance
+    m_specPosition: {x: 9.505, y: 0, z: 118.941}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-10_Sign
-    m_specPosition: {x: 17, y: 7, z: 102}
+  - m_name: Anchor_00-10_MainEntranceSign
+    m_specPosition: {x: 7.03, y: 0, z: 115.759}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-11_Poster
-    m_specPosition: {x: -27, y: 7, z: 117}
+  - m_name: Anchor_00-11_ResearchFacilityPoster
+    m_specPosition: {x: -4.637, y: 0, z: 114.699}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-14_ExhaustFan
-    m_specPosition: {x: 29.5, y: 10, z: 116}
-    m_useSpecHeight: 1
-  - m_name: Anchor_00-16_ServiceEntrance
-    m_specPosition: {x: 52, y: 4, z: 108}
+  - m_name: Anchor_00-12_AshleafVine
+    m_specPosition: {x: 12.334, y: 0, z: 123.184}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-13_FineVeinedVine
+    m_specPosition: {x: 13.394, y: 0, z: 124.952}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-14_VineGrowthDirection
+    m_specPosition: {x: 19.435, y: 0, z: 133.774}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-15_ClearAshleafVine
+    m_specPosition: {x: 23.538, y: 0, z: 139.749}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-16_MaintenanceEntrance
+    m_specPosition: {x: 24.237, y: 0, z: 140.785}
     m_useSpecHeight: 0
   m_layers:
   - m_name: AshDry

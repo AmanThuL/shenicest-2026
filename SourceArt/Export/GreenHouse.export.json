@@ -1,17 +1,17 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/GreenHouse.fbx",
-  "m_blend": "../shenicest-2026-arch-v4/SourceArt/Blender/GAIA1/GAIA1_v4.blend",
-  "m_blendModifiedUtc": "2026-08-28T08:36:28+00:00",
+  "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v8.blend",
+  "m_blendModifiedUtc": "2026-08-28T15:33:50+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
   "m_frameEnd": 250,
   "m_fps": 24,
-  "m_exportedCollection": "GreenHouse",
+  "m_exportedCollection": "",
   "m_exportedObjects": [
     "Mesh3472 Group49 Group26 Group1 Model",
-    "Mesh3473 Group49 Group26 Group1 Model",
     "Mesh3474 Group49 Group26 Group1 Model",
+    "Mesh3473 Group49 Group26 Group1 Model.001",
     "Mesh2664 Group50 Group49 Group26 Group1 Model",
     "Mesh2192 DOOR19 Group51 Group50 Group49 Group26 Group1 Model",
     "Mesh2251 DOOR20 Group51 Group50 Group49 Group26 Group1 Model",
@@ -54,5 +54,5 @@
   "m_excludedObjects": [],
   "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/static_prop.json",
-  "m_exportedUtc": "2026-08-28T08:48:49+00:00"
+  "m_exportedUtc": "2026-08-28T15:34:54+00:00"
 }

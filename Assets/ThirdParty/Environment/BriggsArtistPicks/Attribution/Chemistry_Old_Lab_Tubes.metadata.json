@@ -1,0 +1,231 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "606f202e5a3c4e62bf9aab1cd9f63e1b",
+      "name": "Furniture & Home",
+      "slug": "furniture-home",
+      "uri": "https://api.sketchfab.com/v3/categories/606f202e5a3c4e62bf9aab1cd9f63e1b",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/c999ae9e0525ccfb8fd8953190d5307d-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/606f202e5a3c4e62bf9aab1cd9f63e1b/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/606f202e5a3c4e62bf9aab1cd9f63e1b/800x450.png"
+        }
+      ]
+    },
+    {
+      "uid": "17d20ca7b35243d4a45171838b50704c",
+      "name": "Science & Technology",
+      "slug": "science-technology",
+      "uri": "https://api.sketchfab.com/v3/categories/17d20ca7b35243d4a45171838b50704c",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/86b1bae49e0ed3f43b2d59b26700234e-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 0,
+  "createdAt": "2019-12-06T06:23:06.765773",
+  "embedUrl": "https://sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/embed",
+  "faceCount": 4248,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 78,
+  "name": "3rd - Chemistry // Old Lab Tubes",
+  "publishedAt": "2019-12-06T07:01:23.639703",
+  "soundCount": 0,
+  "staffpickedAt": null,
+  "tags": [
+    {
+      "name": "prop",
+      "slug": "prop",
+      "uri": "https://api.sketchfab.com/v3/tags/prop"
+    },
+    {
+      "name": "tubes",
+      "slug": "tubes",
+      "uri": "https://api.sketchfab.com/v3/tags/tubes"
+    },
+    {
+      "name": "science",
+      "slug": "science",
+      "uri": "https://api.sketchfab.com/v3/tags/science"
+    },
+    {
+      "name": "Chemistry",
+      "slug": "chemistry",
+      "uri": "https://api.sketchfab.com/v3/tags/chemistry"
+    },
+    {
+      "name": "chile",
+      "slug": "chile",
+      "uri": "https://api.sketchfab.com/v3/tags/chile"
+    },
+    {
+      "name": "3december",
+      "slug": "3december",
+      "uri": "https://api.sketchfab.com/v3/tags/3december"
+    },
+    {
+      "name": "substance",
+      "slug": "substance",
+      "uri": "https://api.sketchfab.com/v3/tags/substance"
+    },
+    {
+      "name": "3dsmax",
+      "slug": "3dsmax",
+      "uri": "https://api.sketchfab.com/v3/tags/3dsmax"
+    },
+    {
+      "name": "lowpoly",
+      "slug": "lowpoly",
+      "uri": "https://api.sketchfab.com/v3/tags/lowpoly"
+    },
+    {
+      "name": "low",
+      "slug": "low",
+      "uri": "https://api.sketchfab.com/v3/tags/low"
+    },
+    {
+      "name": "poly",
+      "slug": "poly",
+      "uri": "https://api.sketchfab.com/v3/tags/poly"
+    },
+    {
+      "name": "wood",
+      "slug": "wood",
+      "uri": "https://api.sketchfab.com/v3/tags/wood"
+    },
+    {
+      "name": "3december2019",
+      "slug": "3december2019",
+      "uri": "https://api.sketchfab.com/v3/tags/3december2019"
+    },
+    {
+      "name": "3december2019-chemistry",
+      "slug": "3december2019-chemistry",
+      "uri": "https://api.sketchfab.com/v3/tags/3december2019-chemistry"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "4bf6b76ad1de427683e196ef6cd53767",
+        "width": 1920,
+        "height": 1080,
+        "size": 247002,
+        "url": "https://media.sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/thumbnails/89ec7b69c93d4d6b92cbf663ceb4b4ad/38fc453fd95e4750911996385c59ba53.jpeg"
+      },
+      {
+        "uid": "bbabfc784e3d4e89a152cec3035b3e87",
+        "width": 1024,
+        "height": 576,
+        "size": 45449,
+        "url": "https://media.sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/thumbnails/89ec7b69c93d4d6b92cbf663ceb4b4ad/fb04ecc76368461e97c3dc1bc60e895b.jpeg"
+      },
+      {
+        "uid": "5fec3e16c4b9484f8bd1517994b63545",
+        "width": 720,
+        "height": 405,
+        "size": 23828,
+        "url": "https://media.sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/thumbnails/89ec7b69c93d4d6b92cbf663ceb4b4ad/d3a9a82d8b104ebe9cd941b888530bb7.jpeg"
+      },
+      {
+        "uid": "09cb0ed0244942a0ba7048591fb55a01",
+        "width": 256,
+        "height": 144,
+        "size": 4596,
+        "url": "https://media.sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/thumbnails/89ec7b69c93d4d6b92cbf663ceb4b4ad/7656f684717745a7a3e5668d48e263eb.jpeg"
+      },
+      {
+        "uid": "f348d9c50c3244e1a5a71816560557dc",
+        "width": 64,
+        "height": 36,
+        "size": 883,
+        "url": "https://media.sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/thumbnails/89ec7b69c93d4d6b92cbf663ceb4b4ad/9f62c5ed528b43049eb806ee368b41f9.jpeg"
+      }
+    ]
+  },
+  "uid": "9467a293daf04c58a4edae02a89783e6",
+  "uri": "https://api.sketchfab.com/v3/models/9467a293daf04c58a4edae02a89783e6",
+  "user": {
+    "uid": "2ca734d910e14d07b164d6bc5629073d",
+    "username": "ringogunther",
+    "displayName": "Ringo Gunther",
+    "account": "basic",
+    "profileUrl": "https://sketchfab.com/ringogunther",
+    "avatar": {
+      "uid": "0bfb2081500e4016a1c6ec90f7ecb549",
+      "uri": "https://api.sketchfab.com/v3/avatars/0bfb2081500e4016a1c6ec90f7ecb549",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 699,
+          "url": "https://media.sketchfab.com/avatars/0bfb2081500e4016a1c6ec90f7ecb549/0556817136714dff8184d5fbc25626fa.jpeg"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 1067,
+          "url": "https://media.sketchfab.com/avatars/0bfb2081500e4016a1c6ec90f7ecb549/c8c92744a9554bfc973a7e09344b4546.jpeg"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 2406,
+          "url": "https://media.sketchfab.com/avatars/0bfb2081500e4016a1c6ec90f7ecb549/7c7f9494d86e4a37a61d911278dda016.jpeg"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 2708,
+          "url": "https://media.sketchfab.com/avatars/0bfb2081500e4016a1c6ec90f7ecb549/2172ecf08b98427289063eb7a1c822af.jpeg"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/2ca734d910e14d07b164d6bc5629073d"
+  },
+  "vertexCount": 2236,
+  "viewCount": 2429,
+  "viewerUrl": "https://sketchfab.com/3d-models/3rd-chemistry-old-lab-tubes-9467a293daf04c58a4edae02a89783e6",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "I've never been a friend with chemistry.\nMade some tubes with an old prop to hold them, which has suffered from some acid burns in the past.\n\nHad some troubles with Normals on Substance so I changed some of the export options in 3dsmax.",
+  "price": null,
+  "downloadCount": 1159,
+  "editorUrl": "https://sketchfab.com/models/9467a293daf04c58a4edae02a89783e6/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2022-07-18T14:05:51.953804",
+  "pbrType": "metalness",
+  "textureCount": 27,
+  "materialCount": 5
+}

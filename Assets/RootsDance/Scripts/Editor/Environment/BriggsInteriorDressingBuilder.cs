@@ -42,6 +42,9 @@ namespace RootsDance.Editor.Environment
         private const string k_TallCabinetPrefabPath = k_FurnitureFolder + "/TallCabinet.prefab";
         private const string k_EquipmentBankPrefabPath = k_FurnitureFolder + "/EquipmentBank.prefab";
         private const string k_BrokenIncubatorPrefabPath = k_FurnitureFolder + "/BrokenIncubator.prefab";
+        private const string k_NoticeBoardPrefabPath = k_PrefabRoot + "/LabArchives/LabNoticeBoard.prefab";
+        private const string k_BrokenClockPrefabPath =
+            k_PrefabRoot + "/LabArchives/BrokenVintageWallClock.prefab";
         private const string k_MossPatchPrefabPath = k_EcologyFolder + "/MossPatch.prefab";
         private const string k_MossCarpetPrefabPath = k_EcologyFolder + "/MossCarpet.prefab";
 
@@ -130,13 +133,13 @@ namespace RootsDance.Editor.Environment
             List<Placement> placements = new List<Placement>(96);
 
             AddCentralIsland(placements);
+            AddAbandonedTableClutter(placements);
             AddEastRootWorkstation(placements);
             AddWestArchives(placements);
             AddNorthWestCultivation(placements);
             AddNorthEastEquipment(placements);
             AddEcologyIslands(placements);
             AddDebris(placements);
-            AddDenseLabClutter(placements);
             AddGroundOvergrowth(placements);
 
             return placements.ToArray();
@@ -144,87 +147,48 @@ namespace RootsDance.Editor.Environment
 
         private static void AddCentralIsland(List<Placement> placements)
         {
-            float[] xPositions = { -0.55f, 0.55f };
-            float[] zPositions = { -1.75f, 0f, 1.75f };
-            int counterIndex = 1;
+            placements.Add(Furniture(
+                "BI_CentralIsland_Abandoned",
+                BriggsImportedLabPrefabBuilder.PrefabPath("AbandonedCentralLabIsland"),
+                new Vector3(0.1f, 0f, 0.1f),
+                90f));
 
-            for (int x = 0; x < xPositions.Length; x++)
-            {
-                for (int z = 0; z < zPositions.Length; z++)
-                {
-                    placements.Add(Furniture(
-                        $"BI_CentralCounter_{counterIndex:00}",
-                        k_CounterPrefabPath,
-                        new Vector3(xPositions[x], 0f, zPositions[z]),
-                        90f));
-                    counterIndex++;
-                }
-            }
+            // S8A, east workface: soil analysis and sample recording.
+            placements.Add(ArtistEvidence("BI_S8A_ElectronicScale", "machine_electronic_scale",
+                new Vector3(0.62f, 0.94f, -1.85f), new Vector3(0f, 15f, 0f), 0.62f));
+            placements.Add(LooseEvidence("BI_S8A_Microscope", "machine_microscope",
+                new Vector3(0.55f, 0.94f, -0.85f), new Vector3(0f, 205f, 0f), 0.68f, true));
+            placements.Add(Evidence("BI_S8A_PetriDish", "dish_petridish",
+                new Vector3(0.58f, 0.94f, -0.05f), 24f, 0.82f));
+            placements.Add(Evidence("BI_S8A_WatchGlass", "dish_watch_glass",
+                new Vector3(0.72f, 0.94f, 0.45f), -31f, 0.78f));
+            placements.Add(ArtistEvidence("BI_S8A_ChemistryOldLabTubes", "Chemistry_Old_Lab_Tubes",
+                new Vector3(0.55f, 0.94f, 1.35f), new Vector3(0f, -12f, 0f), 0.45f));
+            placements.Add(Evidence("BI_S8A_Thermometer", "heating_equipment_thermometer",
+                new Vector3(0.52f, 0.94f, 2.02f), 74f, 0.72f));
+            placements.Add(Evidence("BI_S8A_Forceps", "heating_equipment_forceps",
+                new Vector3(0.78f, 0.94f, 2.15f), 21f, 0.68f));
 
-            placements.Add(Evidence("BI_S8A_Scale", "misc_scale", new Vector3(0.55f, 0.98f, -1.98f), 18f));
-            placements.Add(Evidence(
-                "BI_S8A_TestTubeRack",
-                "bottle_test_tube_rack",
-                new Vector3(0.45f, 0.98f, -1.35f),
-                -12f));
-            placements.Add(Evidence(
-                "BI_S8A_PetriDish_01",
-                "dish_petridish",
-                new Vector3(0.3f, 0.98f, -0.35f),
-                32f));
-            placements.Add(Evidence(
-                "BI_S8A_PetriDish_02",
-                "dish_watch_glass",
-                new Vector3(0.63f, 0.98f, 0.12f),
-                -23f));
-            placements.Add(Evidence(
-                "BI_S8A_Thermometer",
-                "heating_equipment_thermometer",
-                new Vector3(0.45f, 0.98f, 1.05f),
-                74f));
-            placements.Add(Evidence(
-                "BI_S8A_Forceps",
-                "heating_equipment_forceps",
-                new Vector3(0.7f, 0.98f, 1.55f),
-                21f));
-
-            placements.Add(Evidence(
-                "BI_S8B_CentrifugeTube",
-                "bottle_glassware_centrifuge_tube",
-                new Vector3(-0.45f, 0.98f, -1.65f),
-                -18f));
-            placements.Add(Evidence(
-                "BI_S8B_Dropper",
-                "bottle_dropper",
-                new Vector3(-0.68f, 0.98f, -0.92f),
-                45f));
-            placements.Add(Evidence(
-                "BI_S8B_ReagentBottle_01",
-                "bottle_glassware_reagent_bottle_medium",
-                new Vector3(-0.42f, 0.98f, 0.25f),
-                10f));
-            placements.Add(Evidence(
-                "BI_S8B_ReagentBottle_02",
-                "bottle_glassware_reagent_bottle_small",
-                new Vector3(-0.65f, 0.98f, 0.52f),
-                -16f));
-            placements.Add(Evidence(
-                "BI_S8B_WashBottle",
-                "misc_wash_bottle",
-                new Vector3(-0.38f, 0.98f, 1.37f),
-                -34f));
-            placements.Add(Evidence(
-                "BI_S8B_Vial",
-                "bottle_glassware_vial_medium",
-                new Vector3(-0.67f, 0.98f, 1.77f),
-                24f));
+            // S8B, west workface: filtration and abandoned liquid analysis.
+            placements.Add(ArtistEvidence("BI_S8B_Centrifuge", "machine_centrifuge",
+                new Vector3(-0.58f, 0.94f, -1.75f), new Vector3(0f, 25f, 0f), 0.58f));
+            placements.Add(LooseEvidence("BI_S8B_FilterFlask", "bottle_glassware_filtering_flask_large",
+                new Vector3(-0.62f, 0.94f, -0.75f), new Vector3(0f, -19f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_S8B_RingStand", "heating_equipment_ring_stand",
+                new Vector3(-0.55f, 0.94f, 0.15f), new Vector3(0f, 17f, 0f), 0.62f, true));
+            placements.Add(ArtistEvidence("BI_S8B_LabGlassware", "Lab_Glassware",
+                new Vector3(-0.58f, 0.94f, 1.18f), new Vector3(0f, 14f, 0f), 0.38f));
+            placements.Add(ArtistEvidence("BI_S8B_HotPlate", "machine_hot_plate",
+                new Vector3(-0.6f, 0.94f, 1.88f), new Vector3(0f, -22f, 0f), 0.55f));
+            placements.Add(Evidence("BI_S8B_Dropper", "bottle_dropper",
+                new Vector3(-0.76f, 0.94f, 2.22f), 61f, 0.72f));
         }
 
         private static void AddEastRootWorkstation(List<Placement> placements)
         {
             placements.Add(Furniture(
                 "BI_S7_Workbench",
-                k_CounterPrefabPath,
+                BriggsImportedLabPrefabBuilder.PrefabPath("AbandonedS7Counter"),
                 new Vector3(7.35f, 0f, -0.85f),
                 90f));
             placements.Add(Furniture(
@@ -258,6 +222,19 @@ namespace RootsDance.Editor.Environment
                 "ppe_safety_glasses",
                 new Vector3(7.38f, 0.98f, -1.48f),
                 42f));
+            placements.Add(LooseEvidence(
+                "BI_S7_Microscope",
+                "machine_microscope",
+                new Vector3(7.05f, 0.94f, -1.78f),
+                new Vector3(0f, 66f, 0f),
+                0.58f,
+                true));
+            placements.Add(ArtistEvidence(
+                "BI_S7_SamplingSyringe",
+                "PSX_Adrenaline_Syringe",
+                new Vector3(7.15f, 0.94f, -0.35f),
+                new Vector3(3f, 55f, 78f),
+                0.7f));
 
             placements.Add(Ecology(
                 "BI_S7_RootCluster_Wall",
@@ -277,6 +254,41 @@ namespace RootsDance.Editor.Environment
                 new Vector3(7.85f, 0.04f, 0.62f),
                 74f,
                 0.58f));
+        }
+
+        private static void AddAbandonedTableClutter(List<Placement> placements)
+        {
+            const float worktop = 0.94f;
+
+            placements.Add(LooseEvidence("BI_CentralClutter_Beaker", "bottle_glassware_beaker_large",
+                new Vector3(-0.2f, worktop, -2.25f), new Vector3(0f, -18f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_SeparatoryFunnel", "funnel_seperatory_funnel",
+                new Vector3(0.78f, worktop, -1.28f), new Vector3(0f, -26f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_IronStand", "heating_equipment_iron_stand",
+                new Vector3(-0.78f, worktop, -0.25f), new Vector3(0f, 11f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_Burner", "heating_equipment_bunsen_burner",
+                new Vector3(-0.28f, worktop, 0.35f), new Vector3(0f, 17f, 0f), 0.68f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_Crucible", "heating_equipment_crucible",
+                new Vector3(0.28f, worktop, 0.62f), new Vector3(0f, 51f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_FoldedGown", "ppe_lab_gown_folded",
+                new Vector3(-0.72f, worktop, 0.72f), new Vector3(0f, -21f, 0f), 0.52f, true));
+            placements.Add(Evidence("BI_CentralClutter_Vial", "bottle_glassware_vial_medium",
+                new Vector3(0.25f, worktop, 1.02f), -28f, 0.72f));
+            placements.Add(LooseEvidence("BI_CentralClutter_TippedReagent",
+                "bottle_glassware_reagent_bottle_medium",
+                new Vector3(0.76f, worktop, 1.62f), new Vector3(0f, 16f, 82f), 0.62f));
+            placements.Add(LooseEvidence("BI_CentralClutter_WashBottle", "misc_wash_bottle",
+                new Vector3(-0.2f, worktop, 1.55f), new Vector3(0f, 34f, 0f), 0.66f));
+            placements.Add(Evidence("BI_CentralClutter_SafetyGlasses", "ppe_safety_glasses",
+                new Vector3(0.05f, worktop, 2.28f), -62f, 0.62f));
+            placements.Add(LooseEvidence("BI_CentralClutter_Scoopula", "misc_scoopula",
+                new Vector3(0.25f, worktop, -1.22f), new Vector3(2f, 74f, 6f), 0.68f, true));
+            placements.Add(LooseEvidence("BI_CentralClutter_Syringe", "syringe_syringe",
+                new Vector3(-0.78f, worktop, -1.08f), new Vector3(4f, 36f, 78f), 0.68f, true));
+            placements.Add(ArtistEvidence("BI_CentralClutter_Desiccator", "machine_desiccator",
+                new Vector3(0.15f, worktop, -0.22f), new Vector3(0f, -14f, 0f), 0.48f));
+            placements.Add(ArtistEvidence("BI_CentralClutter_CentrifugeTube", "machine_centrifuge_tube",
+                new Vector3(-0.22f, worktop, 2.02f), new Vector3(0f, 18f, 0f), 0.52f));
         }
 
         private static void AddWestArchives(List<Placement> placements)
@@ -323,6 +335,22 @@ namespace RootsDance.Editor.Environment
                 new Vector3(-6.95f, 0.09f, -1.92f),
                 168f,
                 0.8f));
+            placements.Add(ArtistEvidence(
+                "BI_S9_Calculator",
+                "machine_calculator_small",
+                new Vector3(-6.62f, 0.83f, -2.05f),
+                new Vector3(0f, 98f, 0f),
+                0.55f));
+            placements.Add(ArchivePrefab(
+                "BI_S9_NoticeBoard",
+                k_NoticeBoardPrefabPath,
+                new Vector3(-8.88f, 1.85f, -1.85f),
+                new Vector3(0f, 90f, 0f)));
+            placements.Add(ArchivePrefab(
+                "BI_S9_BrokenClock",
+                k_BrokenClockPrefabPath,
+                new Vector3(3.75f, 2.55f, 6.86f),
+                new Vector3(0f, 180f, 0f)));
         }
 
         private static void AddNorthWestCultivation(List<Placement> placements)
@@ -334,25 +362,9 @@ namespace RootsDance.Editor.Environment
                 12f));
             placements.Add(Furniture(
                 "BI_NW_ThermalCabinet",
-                k_TallCabinetPrefabPath,
+                BriggsImportedLabPrefabBuilder.PrefabPath("cabinet_cabinet_two_shelves"),
                 new Vector3(-4.75f, 0f, 5.85f),
                 180f));
-            placements.Add(Furniture(
-                "BI_NW_ServiceCounter",
-                k_CounterPrefabPath,
-                new Vector3(-5.1f, 0f, 3.05f),
-                8f));
-
-            placements.Add(Evidence(
-                "BI_NW_SampleBottle_01",
-                "bottle_plastic_bottle_medium",
-                new Vector3(-5.38f, 0.98f, 3.06f),
-                14f));
-            placements.Add(Evidence(
-                "BI_NW_SampleBottle_02",
-                "bottle_glassware_reagent_bottle_medium",
-                new Vector3(-4.9f, 0.98f, 3.13f),
-                -26f));
         }
 
         private static void AddNorthEastEquipment(List<Placement> placements)
@@ -364,25 +376,14 @@ namespace RootsDance.Editor.Environment
                 270f));
             placements.Add(Furniture(
                 "BI_NE_DisusedCabinet",
-                k_TallCabinetPrefabPath,
+                BriggsImportedLabPrefabBuilder.PrefabPath("cabinet_cabinet"),
                 new Vector3(5.45f, 0f, 5.65f),
                 180f));
             placements.Add(Furniture(
-                "BI_NE_ServiceCounter",
-                k_CounterPrefabPath,
-                new Vector3(5.8f, 0f, 3.25f),
-                8f));
-
-            placements.Add(Evidence(
-                "BI_NE_AbandonedRack",
-                "bottle_test_tube_rack",
-                new Vector3(5.6f, 0.98f, 3.22f),
-                34f));
-            placements.Add(Evidence(
-                "BI_NE_EmptyBottle",
-                "bottle_glassware_test_tube_medium",
-                new Vector3(6.05f, 0.98f, 3.28f),
-                -8f));
+                "BI_NE_OpticalCalibrator",
+                BriggsImportedLabPrefabBuilder.PrefabPath("Astronomical_Quintant"),
+                new Vector3(5.65f, 0f, 4.15f),
+                235f));
         }
 
         private static void AddEcologyIslands(List<Placement> placements)
@@ -686,6 +687,41 @@ namespace RootsDance.Editor.Environment
                 scale,
                 true,
                 true);
+        }
+
+        private static Placement ArtistEvidence(
+            string name,
+            string key,
+            Vector3 position,
+            Vector3 euler,
+            float scale)
+        {
+            return new Placement(
+                name,
+                k_CampEvidencePalette,
+                BriggsImportedLabPrefabBuilder.PrefabPath(key),
+                position,
+                euler,
+                scale,
+                true,
+                true);
+        }
+
+        private static Placement ArchivePrefab(
+            string name,
+            string path,
+            Vector3 position,
+            Vector3 euler)
+        {
+            return new Placement(
+                name,
+                k_LabArchivesPalette,
+                path,
+                position,
+                euler,
+                1f,
+                false,
+                false);
         }
 
         private static Placement LooseEvidence(
@@ -1074,6 +1110,9 @@ namespace RootsDance.Editor.Environment
         {
             EnsureFolder(k_FurnitureFolder);
             EnsureFolder(k_EcologyFolder);
+            BriggsImportedLabPrefabBuilder.EnsureAll();
+            BriggsInteriorWallPropPrefabBuilder.EnsureLabNoticeBoardPrefab();
+            BriggsInteriorWallPropPrefabBuilder.EnsureBrokenVintageWallClockPrefab();
             FurnitureMaterials materials = LoadFurnitureMaterials();
             Scene preview = EditorSceneManager.NewPreviewScene();
 
