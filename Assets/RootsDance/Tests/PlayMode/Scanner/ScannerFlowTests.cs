@@ -78,6 +78,13 @@ namespace RootsDance.Tests.PlayMode.Scanner
 
             var loopObject = new GameObject("ScannerLoop");
             loopObject.transform.SetParent(m_root.transform);
+
+            // Held inactive while the references go in: AddComponent runs Awake straight away in
+            // Play mode, and the controller caches its view there. Wiring an already-woken
+            // component leaves it holding the null it cached — the same trap a scene has if a
+            // builder adds a component before assigning what it points at.
+            loopObject.SetActive(false);
+
             m_view = loopObject.AddComponent<StubScannerView>();
             m_controller = loopObject.AddComponent<ScannerInspectController>();
             SetPrivate(m_controller, "m_viewBehaviour", m_view);
@@ -86,6 +93,8 @@ namespace RootsDance.Tests.PlayMode.Scanner
             SetPrivate(m_trigger, "m_controller", m_controller);
             SetPrivate(m_trigger, "m_player", m_player);
             SetPrivate(m_trigger, "m_range", 3f);
+
+            loopObject.SetActive(true);
         }
 
         [TearDown]
