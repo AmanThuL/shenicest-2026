@@ -65,6 +65,8 @@ namespace RootsDance.EditorTools
             // Built into the controller's own scene, not whichever scene happens to be active:
             // a serialized reference that crosses scenes is silently dropped when Unity saves, so
             // the beam would come back null at runtime and the scan stage would be skipped.
+            DedupeFlowRoots(controller, log);
+
             GameObject root = EnsureChild(null, k_FlowRoot, log);
 
             if (root.scene != controller.gameObject.scene)
@@ -394,6 +396,62 @@ namespace RootsDance.EditorTools
         /// one reported everything fine.
         /// </para>
         /// </summary>
+        /// <summary>
+        /// Collapses the flow root down to one. <see cref="EnsureChild"/> looks the root up with
+        /// GameObject.Find, which only sees active objects and searches every loaded scene, so a
+        /// run made with a different scene set open would build a second one beside the first; three
+        /// had accumulated in the test level before this existed. The survivor is whichever root
+        /// already sits in the controller's scene, because that is the one Build is about to wire.
+        /// </summary>
+        private static void DedupeFlowRoots(ScannerInspectController controller, StringBuilder log)
+        {
+            GameObject keep = null;
+            var extras = new System.Collections.Generic.List<GameObject>();
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                if (!scene.isLoaded)
+                {
+                    continue;
+                }
+
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    if (root.name != k_FlowRoot)
+                    {
+                        continue;
+                    }
+
+                    bool preferred = keep == null
+                        && scene == controller.gameObject.scene;
+
+                    if (preferred)
+                    {
+                        keep = root;
+                    }
+                    else
+                    {
+                        extras.Add(root);
+                    }
+                }
+            }
+
+            if (keep == null && extras.Count > 0)
+            {
+                keep = extras[0];
+                extras.RemoveAt(0);
+            }
+
+            foreach (GameObject extra in extras)
+            {
+                log.Append("flow: removed a duplicate ").Append(k_FlowRoot).Append(" from ")
+                    .AppendLine(extra.scene.name);
+                Undo.DestroyObjectImmediate(extra);
+            }
+        }
+
         private static void DedupeScanners(StringBuilder log)
         {
             ScannerInspectController[] scanners = Object.FindObjectsByType<ScannerInspectController>(
