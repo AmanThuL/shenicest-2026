@@ -65,16 +65,38 @@ namespace RootsDance.EditorTools
                 return;
             }
 
-            Transform anchor = EnsureHeightAnchor(arms.transform, log);
-            ArmsHeightRig height = Ensure<ArmsHeightRig>(anchor.gameObject, log);
-            SetObjectField(height, "m_standingLocalY", anchor.localPosition.y);
+            RemoveHeightAnchor(arms.transform, log);
+
+            // Re-resolve across the reparent. Moving a prefab instance rebuilds it rather than
+            // moving it, so every reference taken before this line can be dead afterwards — which
+            // is exactly how the first attempt died, on a GameObject it had been handed itself.
+            offset = Object.FindFirstObjectByType<ArmsViewOffset>(FindObjectsInactive.Include);
+
+            if (offset == null)
+            {
+                Debug.LogError("ArmsRigWiringBuilder: the arms went missing across the reparent.");
+                return;
+            }
+
+            arms = offset.gameObject;
+            Transform socketRoot = arms.transform.parent;
+
+            if (socketRoot == null)
+            {
+                Debug.LogError("ArmsRigWiringBuilder: the arms have no parent to hang sockets from.");
+                return;
+            }
+
+            ArmsHeightRig height = Ensure<ArmsHeightRig>(arms, log);
+            SetObjectField(height, "m_standingLocalY", 0f);
+            SetObjectField(offset, "m_height", height);
 
             ArmsDirector director = Ensure<ArmsDirector>(arms, log);
             SetObjectField(director, "m_actions", set);
 
-            HandSocket left = EnsureSocket(anchor, k_LeftSocketName, HandSide.Left,
+            HandSocket left = EnsureSocket(socketRoot, k_LeftSocketName, HandSide.Left,
                 FindBone(arms.transform, k_LeftBone), log);
-            HandSocket right = EnsureSocket(anchor, k_RightSocketName, HandSide.Right,
+            HandSocket right = EnsureSocket(socketRoot, k_RightSocketName, HandSide.Right,
                 FindBone(arms.transform, k_RightBone), log);
 
             SetObjectField(director, "m_leftSocket", left);
@@ -100,36 +122,151 @@ namespace RootsDance.EditorTools
         }
 
         /// <summary>
-        /// Inserts (or finds) a plain transform above the arms for the height rig to drive. The
-        /// arms keep their own local position, so framing is untouched by the move.
+        /// Takes the height anchor back out of the hierarchy, leaving the arms and the sockets
+        /// hanging directly from the head.
+        /// <para>
+        /// It was a mistake to put it there. The framing tools read the arms' parent as "the head",
+        /// so an object wedged between them silently became the head: the view bob was wired to it
+        /// and moved the arms instead of the camera, and every per-clip correction was measured in
+        /// the wrong frame. The height is a number on <see cref="ArmsHeightRig"/> now, applied by
+        /// the one component that already owns the arms' pose.
+        /// </para>
         /// </summary>
-        private static Transform EnsureHeightAnchor(Transform arms, StringBuilder log)
+        private static void RemoveHeightAnchor(Transform arms, StringBuilder log)
         {
-            if (arms.parent != null && arms.parent.name == k_AnchorName)
+            Transform anchor = arms.parent;
+
+            if (anchor == null || anchor.name != k_AnchorName)
             {
-                log.AppendLine("height anchor: already present");
-                return arms.parent;
+                return;
             }
 
-            var anchor = new GameObject(k_AnchorName);
-            Undo.RegisterCreatedObjectUndo(anchor, "Wire Player Arms Rig");
-            anchor.transform.SetParent(arms.parent, false);
-            anchor.transform.SetSiblingIndex(arms.GetSiblingIndex());
-            Undo.SetTransformParent(arms, anchor.transform, "Wire Player Arms Rig");
-            log.AppendLine("height anchor: created above " + arms.name);
-            return anchor.transform;
+            // The rig lives inside the Player prefab, and a prefab instance will not let its own
+            // children be reparented in the scene: SetParent logs and returns, leaving the child
+            // where it was. Doing the surgery on the asset is the only way it takes — and it also
+            // means the change reaches every instance instead of this one scene.
+            //
+            // It has to be the OUTERMOST instance: the arms are an Arms.fbx model instance nested
+            // inside the Player prefab, and a model is not an editable prefab. Asking the arms for
+            // their nearest prefab hands back the FBX every time.
+            GameObject outermost = PrefabUtility.GetOutermostPrefabInstanceRoot(anchor.gameObject);
+            string assetPath = outermost == null
+                ? null
+                : PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(outermost);
+
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                if (!assetPath.EndsWith(".prefab", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    Debug.LogError("ArmsRigWiringBuilder: the height anchor sits inside "
+                        + assetPath + ", which is not an editable prefab. Remove it by hand.");
+                    return;
+                }
+
+                RemoveHeightAnchorFromPrefab(assetPath, log);
+                return;
+            }
+
+            Transform head = anchor.parent;
+
+            if (head == null)
+            {
+                log.AppendLine("height anchor: no grandparent to reparent onto, left in place");
+                return;
+            }
+
+            if (!Reparent(anchor, head, log))
+            {
+                return;
+            }
+
+            log.Append("height anchor: removed, its children reparented onto ").AppendLine(head.name);
+            Object.DestroyImmediate(anchor.gameObject);
         }
 
-        private static HandSocket EnsureSocket(Transform anchor, string name, HandSide hand,
+        /// <summary>
+        /// Same surgery, performed on the prefab asset itself.
+        /// </summary>
+        private static void RemoveHeightAnchorFromPrefab(string assetPath, StringBuilder log)
+        {
+            GameObject contents = PrefabUtility.LoadPrefabContents(assetPath);
+
+            try
+            {
+                Transform anchor = null;
+
+                foreach (Transform t in contents.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name == k_AnchorName)
+                    {
+                        anchor = t;
+                        break;
+                    }
+                }
+
+                if (anchor == null)
+                {
+                    log.Append("height anchor: not present in ").AppendLine(assetPath);
+                    return;
+                }
+
+                Transform head = anchor.parent;
+
+                if (head == null)
+                {
+                    log.AppendLine("height anchor: it is the prefab root, left in place");
+                    return;
+                }
+
+                if (!Reparent(anchor, head, log))
+                {
+                    return;
+                }
+
+                Object.DestroyImmediate(anchor.gameObject);
+                PrefabUtility.SaveAsPrefabAsset(contents, assetPath);
+                log.Append("height anchor: removed from ").Append(assetPath)
+                    .Append(", children reparented onto ").AppendLine(head.name);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
+        /// <summary>
+        /// Moves every child of <paramref name="from"/> onto <paramref name="to"/>, keeping world
+        /// placement. Returns false if a child would not move: Unity refuses some reparents by
+        /// logging rather than throwing, and a loop that trusts childCount to fall spins forever.
+        /// </summary>
+        private static bool Reparent(Transform from, Transform to, StringBuilder log)
+        {
+            for (int i = from.childCount - 1; i >= 0; i--)
+            {
+                Transform child = from.GetChild(i);
+                child.SetParent(to, true);
+
+                if (child.parent == from)
+                {
+                    log.Append("height anchor: ").Append(child.name)
+                        .AppendLine(" refused to reparent, anchor left in place");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static HandSocket EnsureSocket(Transform socketRoot, string name, HandSide hand,
             Transform bone, StringBuilder log)
         {
-            Transform root = anchor.Find(k_SocketRootName);
+            Transform root = socketRoot.Find(k_SocketRootName);
 
             if (root == null)
             {
                 var created = new GameObject(k_SocketRootName);
                 Undo.RegisterCreatedObjectUndo(created, "Wire Player Arms Rig");
-                created.transform.SetParent(anchor, false);
+                created.transform.SetParent(socketRoot, false);
                 root = created.transform;
             }
 

@@ -77,6 +77,10 @@ namespace RootsDance.Player
             + "playing — the Animator's own state wins there.")]
         [SerializeField] private string m_previewState;
 
+        [Tooltip("Supplies how far the body has dropped below standing, for the crawl baseline. "
+            + "Optional — without it the arms simply stay at standing height.")]
+        [SerializeField] private RootsDance.Player.Arms.ArmsHeightRig m_height;
+
         [Header("Anchor (written by RootsDance > Refresh Arms Framing)")]
         [Tooltip("Local position that places the rig's bind-pose eye on the head pivot.")]
         [SerializeField] private Vector3 m_basePosition;
@@ -210,7 +214,11 @@ namespace RootsDance.Player
         {
             Vector3 framing = Resolve();
 
-            transform.localPosition = m_basePosition + m_positionOffset + framing;
+            // The body's height comes in as a number rather than a transform of its own, so this
+            // stays the only component writing the arms' pose.
+            float drop = m_height == null ? 0f : m_height.CurrentDrop;
+
+            transform.localPosition = m_basePosition + m_positionOffset + framing + Vector3.up * drop;
             transform.localRotation = Quaternion.Euler(m_baseRotation + m_rotationOffset);
         }
 
