@@ -41,7 +41,11 @@ docs/architecture/
 
 ## 当前系统
 
-`systems/` 暂时是空的——两份切片 00 文档已移入 [`archive/`](archive/README.md)，不再作为实现依据。
+| 文档 | 适用角色 | 用途 |
+|---|---|---|
+| [手臂动画统一驱动 · 实施计划](systems/手臂动画统一驱动_实施计划.md) | gameplay 程序、技术美术 | 把散装的 clip 驱动收敛成「一个 ArmsDirector + 一张 ArmsActionSO 表」：三层遮罩状态机、neutral/hold 姿势、手持物挂接与抓放时点、地面↔站立高度基准，以及 scanner 百倍缩放与 `stand_up` root 抬升两个已定位缺陷的修法。 |
+
+两份切片 00 文档已移入 [`archive/`](archive/README.md)，不再作为实现依据。
 
 ## 技术决策与研究
 
