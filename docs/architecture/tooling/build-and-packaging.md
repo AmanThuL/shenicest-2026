@@ -137,7 +137,7 @@ committed once, in their own `chore(settings):` commit, separately from this doc
 | IL2CPP Code Generation | `Il2CppCodeGeneration.OptimizeSpeed` (Faster runtime) | Trades build size for runtime speed. |
 | C++ Compiler Configuration | `Il2CppCompilerConfiguration.Release` | `Master` costs far more build time than it returns for a jam-scale project. |
 | Managed Stripping Level | **Minimal** | The IL2CPP default and "least likely to cause unexpected runtime behavior" — Odin Inspector and the Input System are both reflection-driven and a more aggressive level can strip code they need at runtime. `Low` is **marked for future deprecation** in the 6.3 docs and must never be used. Source: `docs/reference/scripting/manual-managed-code-stripping-configure.md`. |
-| Compression Method | `CompressWithLz4HC` for release, `CompressWithLz4` for `--dev` | LZ4HC is "slower to build but produces better results for release builds"; the Standalone default is no compression at all. `--dev` trades some of that ratio back for faster iteration builds. Source: `docs/reference/testing-tooling/manual-build-profiles-reference.md`. |
+| Compression Method | `CompressWithLz4HC` for release, `CompressWithLz4` for `--dev` (set via `BuildOptions` in `BuildScript.cs` at build time, not baked into the profile asset) | LZ4HC is "slower to build but produces better results for release builds"; the Standalone default is no compression at all. `--dev` trades some of that ratio back for faster iteration builds. Source: `docs/reference/testing-tooling/manual-build-profiles-reference.md`. |
 | Target architecture | Apple Silicon (ARM64) only | Halves IL2CPP build time and size versus a universal binary. Intel Macs cannot run the result — Rosetta does not translate ARM64→Intel. **[project decision]** |
 | Graphics API | Metal only, Auto Graphics API off | Avoids generating shader variants for graphics APIs this project never ships against. |
 | Development Build / Script Debugging / Autoconnect Profiler / Deep Profiling | Off | Set per build via `BuildOptions`, not baked into the profile — see below. |
@@ -180,7 +180,7 @@ minutes of an IL2CPP build. Each one exits `1` and names its own fix:
 | The platform's PlaybackEngine module is not installed | Install it via Unity Hub, or `unity install --module <name>`. |
 | The Editor is already running for this project | Close it — a batch build cannot share the project with an open Editor (the same rule as guideline 08 / `CLAUDE.local.md`). |
 | No usable Unity binary found | Pass `--unity PATH`, or set `$UNITY_EDITOR`; the script otherwise tries the direct-install path, then the Hub path, for the version pinned in `ProjectVersion.txt`. |
-| Xcode not found (`xcode-select -p`) on a macOS IL2CPP profile | Install Xcode; macOS IL2CPP builds need it to compile the generated C++. |
+| `xcodebuild` not found on `PATH` (`shutil.which("xcodebuild")`) on a macOS IL2CPP profile | Install full Xcode from the App Store or developer.apple.com — the Command Line Tools alone are not enough: `xcode-select -p` succeeds with just CLT installed, but IL2CPP's C++ toolchain needs the full `Xcode.app` (the CLT bundle doesn't ship it). Then run `xcode-select --install` if prompted. |
 
 ## Exit codes
 
@@ -206,8 +206,9 @@ xattr -dr com.apple.quarantine RootsDance.app
 
 - **Compile errors send the Editor into Safe Mode.** In Safe Mode, `-executeMethod` cannot find
   `RootsDance.Editor.Build.BuildScript` and the batch build fails immediately with a generic
-  error. Fix the compile errors first (Console, or the log file) — the same trap as the Unity CLI
-  workflow doc's Safe Mode gotcha.
+  error. Fix the compile errors first (Console, or the log file) — see guideline 08's
+  [compile-check-without-tests note](../../guidelines/08-testing-tooling.md#from-the-command-line-humans-and-agents)
+  (sourced from `manual-safemode.md`).
 - **A non-zero exit does not always mean the build failed.** `-executeMethod` can report "Timeout
   after 300 seconds while waiting async operations to finish" and exit non-zero *after* the
   player has already been written successfully — the timeout is Unity's batch-mode shutdown
