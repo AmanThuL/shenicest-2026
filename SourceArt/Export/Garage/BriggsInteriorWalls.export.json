@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx",
   "m_blend": "SourceArt/Blender/Garage/Assets/Garage_Shell.blend",
-  "m_blendModifiedUtc": "2026-08-28T13:27:06+00:00",
+  "m_blendModifiedUtc": "2026-08-28T15:01:12+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -15,7 +15,7 @@
     "Briggs_Wall_North_RoundExit"
   ],
   "m_excludedObjects": [],
-  "m_blenderVersion": "5.2.1 LTS",
+  "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/static_prop.json",
-  "m_exportedUtc": "2026-08-28T13:27:06+00:00"
+  "m_exportedUtc": "2026-08-28T15:04:03+00:00"
 }
