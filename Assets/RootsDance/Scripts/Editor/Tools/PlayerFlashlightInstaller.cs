@@ -45,15 +45,15 @@ namespace RootsDance.Editor.Tools
         private const string k_FlashlightName = "Flashlight";
 
         /// <summary>Outer cone in degrees — wide enough to walk by, narrow enough to read as a beam.</summary>
-        private const float k_SpotAngle = 45f;
+        private const float k_SpotAngle = 36f;
 
         /// <summary>Inner cone in degrees; everything between the two angles is the soft falloff.</summary>
-        private const float k_InnerSpotAngle = 25f;
+        private const float k_InnerSpotAngle = 20f;
 
         private const float k_Range = 30f;
 
         /// <summary>Spot lights are authored in lumen (guideline 07 §5.1: 1 000–3 000 lm for a practical).</summary>
-        private const float k_IntensityLumen = 2000f;
+        private const float k_IntensityLumen = 2200f;
 
         /// <summary>Neutral-white LED torch, in kelvin.</summary>
         private const float k_ColorTemperatureKelvin = 5000f;

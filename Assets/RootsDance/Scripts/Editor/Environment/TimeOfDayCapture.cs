@@ -310,13 +310,13 @@ namespace RootsDance.Editor.Environment
 
             Debug.LogWarning($"{k_LogPrefix}: no '{k_FlashlightPath}' on the Player prefab; using stand-in values.");
             light.type = LightType.Spot;
-            light.spotAngle = 45f;
-            light.innerSpotAngle = 25f;
+            light.spotAngle = 36f;
+            light.innerSpotAngle = 20f;
             light.range = 30f;
             light.enableSpotReflector = true;
             light.lightUnit = LightUnit.Lumen;
             // Light.intensity is natively candela for a spot; convert like PlayerFlashlightInstaller does.
-            light.intensity = LightUnitUtils.ConvertIntensity(light, 2000f, LightUnit.Lumen, LightUnit.Candela);
+            light.intensity = LightUnitUtils.ConvertIntensity(light, 2200f, LightUnit.Lumen, LightUnit.Candela);
             light.useColorTemperature = true;
             light.colorTemperature = 5000f;
             light.color = Color.white;

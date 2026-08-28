@@ -2,6 +2,7 @@ using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RootsDance.Player
 {
@@ -65,6 +66,27 @@ namespace RootsDance.Player
             {
                 m_timeOfDayChanged.EventRaised += OnTimeOfDayChanged;
             }
+
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+        }
+
+        /// <summary>
+        /// Glues the Light to the camera that is about to render. The camera follows Head through
+        /// Cinemachine with a little damping, so while walking it trails Head by a centimetre or
+        /// two — enough to put the light's origin in front of the near plane, where HDRP's volumetric
+        /// fog integrates the near-singular irradiance around it and the whole view goes white. At
+        /// the camera's exact pose that region is never rendered. Done right before rendering (after
+        /// every LateUpdate, including the CinemachineBrain's) so the pose can never be a frame stale.
+        /// </summary>
+        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            if (!m_hasLight || !FlashlightCameraLock.ShouldFollow(camera.cameraType))
+            {
+                return;
+            }
+
+            Transform cameraTransform = camera.transform;
+            m_light.transform.SetPositionAndRotation(cameraTransform.position, cameraTransform.rotation);
         }
 
         private void Update()
@@ -86,6 +108,8 @@ namespace RootsDance.Player
 
         private void OnDisable()
         {
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+
             if (m_timeOfDayChanged != null)
             {
                 m_timeOfDayChanged.EventRaised -= OnTimeOfDayChanged;
