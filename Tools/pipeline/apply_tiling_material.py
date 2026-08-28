@@ -24,10 +24,13 @@ nt.nodes.clear()
 out = nt.nodes.new("ShaderNodeOutputMaterial")
 bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
 nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
-coord = nt.nodes.new("ShaderNodeTexCoord")
+# world position, not object coordinates: the placed instances carry their
+# own transforms, and object space stretches the projection with them -- and
+# world space is what makes the material continuous from one object to the next
+geo = nt.nodes.new("ShaderNodeNewGeometry")
 mapping = nt.nodes.new("ShaderNodeMapping")
 mapping.inputs["Scale"].default_value = (1.0 / TILE_M,) * 3
-nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+nt.links.new(geo.outputs["Position"], mapping.inputs["Vector"])
 
 
 def image(suffix, colorspace):
