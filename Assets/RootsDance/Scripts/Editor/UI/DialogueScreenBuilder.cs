@@ -31,10 +31,11 @@ namespace RootsDance.Editor.UI
         public const string k_PrefabPath = "Assets/RootsDance/Prefabs/UI/DialogueScreen.prefab";
 
         /// <summary>
-        /// The CJK pixel face the project already has. When the m5x7 Latin face with a Fusion Pixel
-        /// CJK fallback lands, this is the one reference to repoint.
+        /// The project's text face: m5x7 sets the Latin, and its fallback table hands anything it
+        /// has no glyph for — every Chinese character in the script — to Fusion Pixel. Pointing at
+        /// the fallback directly instead would set the English in a CJK face too.
         /// </summary>
-        private const string k_FontPath = "Assets/RootsDance/Fonts/FusionPixel-12px SDF.asset";
+        private const string k_FontPath = "Assets/RootsDance/Fonts/m5x7 SDF.asset";
 
         // 1920x1080 reference, matching MainMenu.prefab's canvas scaler.
         private const float k_ReferenceWidth = 1920f;
