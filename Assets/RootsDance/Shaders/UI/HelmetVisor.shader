@@ -73,6 +73,11 @@ Shader "RootsDance/UI/HelmetVisor"
         _SmudgeStrength ("Glass Smudge Strength", Range(0, 1)) = 0.35
         _SmudgeMean ("Smudge Map Scale (linear)", Range(0.005, 1)) = 0.08
 
+        // Grime is scattered light, so it reads by being brighter than what is behind it. The old
+        // value was a mid grey that happened to match a grey environment exactly, which made the
+        // smudges measurably invisible however strong they were.
+        _SmudgeColor ("Smudge Colour", Color) = (0.88, 0.91, 0.95, 1)
+
         // Only meaningful edge to edge: how much of the middle of the view stays clean. Measured
         // in the same aspect-corrected units as the opening, where the corner sits at about 1.02.
         _SmudgeCenterClear ("Smudge Centre Clear Radius", Range(0, 1)) = 0.35
@@ -185,6 +190,7 @@ Shader "RootsDance/UI/HelmetVisor"
             float _SmudgeTiling;
             float _SmudgeStrength;
             float _SmudgeMean;
+            fixed4 _SmudgeColor;
             float _SmudgeCenterClear;
 
             Varyings Vert(Attributes input)
@@ -322,7 +328,7 @@ Shader "RootsDance/UI/HelmetVisor"
                 float smudgeMask = lerp(saturate(1.0 + pixels / max(shadowPixels * 2.2, 1.0)),
                     periphery, glassOnly) * (1.0 - frameMask);
                 float smudgeAmount = smudge * _SmudgeStrength * smudgeMask * smudgeMask;
-                colour = lerp(colour, float3(0.62, 0.67, 0.70), saturate(smudgeAmount * 2.0));
+                colour = lerp(colour, _SmudgeColor.rgb, saturate(smudgeAmount * 2.0));
                 alpha = saturate(alpha + smudgeAmount);
 
                 fixed4 result = fixed4(colour, alpha);
