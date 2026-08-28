@@ -8,8 +8,8 @@ namespace RootsDance.Player.Arms
     /// or clip is involved.
     /// <para>
     /// The existing presentation contracts (<see cref="RootsDance.Player.IHelmetView"/>,
-    /// <see cref="RootsDance.Scanner.IScannerView"/>, <see cref="RootsDance.Interaction.IToolView"/>
-    /// — 表现层驱动契约 D17) keep their signatures and are implemented as thin adapters over this.
+    /// <c>IScannerView</c>, <see cref="RootsDance.Interaction.IToolView"/> — 表现层驱动契约 D17)
+    /// keep their signatures and are implemented as thin adapters over this.
     /// </para>
     /// </summary>
     public interface IArmsDirector
