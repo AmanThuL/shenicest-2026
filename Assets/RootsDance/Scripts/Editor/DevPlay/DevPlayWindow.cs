@@ -147,9 +147,11 @@ namespace RootsDance.Editor.DevPlay
             }
 
             bool playing = EditorApplication.isPlaying;
-            string action = playing ? "Go here" : "Play here";
+            bool switchingLevel = DevPlaySession.IsSwitchingLevel;
+            string action = switchingLevel ? "Loading..." : playing ? "Go here" : "Play here";
 
-            using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode && !playing))
+            using (new EditorGUI.DisabledScope(
+                switchingLevel || (EditorApplication.isPlayingOrWillChangePlaymode && !playing)))
             {
                 for (int i = 0; i < m_checkpoints.Count; i++)
                 {

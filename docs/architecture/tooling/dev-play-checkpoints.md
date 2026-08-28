@@ -46,10 +46,15 @@ positions are documented in [02章 Briggs Interior 实验室室内设计与实�
    - enqueues `SetTimeOfDayCommand` / `RaiseFlagCommand` / `AddReportEntryCommand` on `GameBootstrap.Commands` — the
      same path trigger volumes and the investigation service use (D1/D7 in `运行时架构说明书.md`). Nothing writes
      `WorldState` directly.
-3. Play mode: the same button reads **Go here** and applies immediately without restarting.
+3. Play mode: the same button reads **Go here**. A checkpoint in the current level applies immediately without
+   restarting. A checkpoint in another level changes to **Loading...** while the existing runtime `SceneLoader`
+   keeps `Bootstrap`, unloads every old content scene, loads the target `LevelSO` scenes in order, and makes the
+   first scene active. Dev Play applies the checkpoint only after that load completes, so its Player and anchors
+   come from the requested chapter rather than the chapter being left.
 
-Flags are monotonic (D8): **Go here** can move you back along the route but never un-raises a flag. To reset state,
-stop Play and use **Play here** again. Teleporting into a `TriggerVolume` raises that volume's flag as usual.
+Flags are monotonic (D8): **Go here** can move you back along the route or into another chapter but never un-raises
+a flag. A Play-mode chapter switch deliberately preserves the Bootstrap and its world state. To reset state, stop
+Play and use **Play here** again. Teleporting into a `TriggerVolume` raises that volume's flag as usual.
 
 **Time of day is the carve-out.** It is a discrete world-state *value*, not a flag, and it is not monotonic: **Go
 here** on a checkpoint whose Time of day is `Day` or `Night` really does switch the world, in both directions, as
