@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx",
   "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v3.blend",
-  "m_blendModifiedUtc": "2026-08-27T18:51:17+00:00",
+  "m_blendModifiedUtc": "2026-08-27T18:30:42+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -48,7 +48,7 @@
     "Mesh289 Group25 Group2 Group1 Model"
   ],
   "m_excludedObjects": [],
-  "m_blenderVersion": "5.2.1 LTS",
+  "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/static_prop.json",
-  "m_exportedUtc": "2026-08-28T05:32:21+00:00"
+  "m_exportedUtc": "2026-08-28T08:21:43+00:00"
 }

@@ -300,6 +300,12 @@
       "m_materials": []
     },
     {
+      "m_path": "Assets/RootsDance/Meshes/Environment/LabCorridor.fbx",
+      "m_profile": "static_blockout",
+      "m_manifest": "SourceArt/Export/LabCorridor.export.json",
+      "m_materials": []
+    },
+    {
       "m_path": "Assets/RootsDance/Meshes/Environment/LabBlockout.fbx",
       "m_profile": "static_blockout",
       "m_manifest": "SourceArt/Export/LabBlockout.export.json",

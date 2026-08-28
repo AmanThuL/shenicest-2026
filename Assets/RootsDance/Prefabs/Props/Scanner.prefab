@@ -59,7 +59,7 @@ Transform:
   m_GameObject: {fileID: 1575462039063166060}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.0013665316}
+  m_LocalPosition: {x: 0, y: 0, z: -0.13665316}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -154,15 +154,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.0000009994337
+      value: 0.00009994337
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.0000009994337
+      value: 0.00009994337
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.0000009994337
+      value: 0.00009994337
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -174,7 +174,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0000059999993
+      value: -0.0005999999
       objectReference: {fileID: 0}
     - target: {fileID: 6673153407628896764, guid: 294e53ba6ff664a4aaf0be95de2acb4a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -357,9 +357,11 @@ MonoBehaviour:
   m_screenBehaviour: {fileID: 5715114157766437574}
   m_inspectCamera: {fileID: 6606563160627885748}
   m_framing: {fileID: 7081789391425153476}
+  m_scanEffect: {fileID: 0}
   m_input: {fileID: 0}
   m_suspendedWhileReading: []
   m_zoomSeconds: 0.9
+  m_scanHoldSeconds: 0.25
   m_activePriority: 30
   m_releaseCursorWhileReading: 1
 --- !u!114 &3355186191872282767

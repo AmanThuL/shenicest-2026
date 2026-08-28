@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms_GrabGround.fbx",
   "m_blend": "SourceArt/Blender/ArmsRig/arms_rig_all.blend",
-  "m_blendModifiedUtc": "2026-08-28T06:52:52+00:00",
+  "m_blendModifiedUtc": "2026-08-28T08:07:03+00:00",
   "m_action": "grab_ground",
   "m_armature": "ArmsRig",
   "m_frameStart": 1,
@@ -15,5 +15,5 @@
   "m_excludedObjects": [],
   "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/fps_arms.json",
-  "m_exportedUtc": "2026-08-28T06:53:14+00:00"
+  "m_exportedUtc": "2026-08-28T08:21:28+00:00"
 }

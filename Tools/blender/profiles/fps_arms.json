@@ -2,7 +2,7 @@
   "fbx": {
     "apply_unit_scale": true,
     "global_scale": 1.0,
-    "apply_scale_options": "FBX_SCALE_NONE",
+    "apply_scale_options": "FBX_SCALE_UNITS",
     "bake_space_transform": false,
     "axis_forward": "-Z",
     "axis_up": "Y",

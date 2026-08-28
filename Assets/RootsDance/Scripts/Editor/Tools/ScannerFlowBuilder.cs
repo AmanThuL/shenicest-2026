@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using RootsDance.Player;
 using RootsDance.Player.Arms;
@@ -209,13 +210,54 @@ namespace RootsDance.EditorTools
                 log.AppendLine("beam: ScannerLines.mat not found, pass left without a material");
             }
 
-            GameObject emitter = EnsureChild(holder.transform, k_EmitterName, log);
+            // Found by name across the whole scene, not under this object: the emitter is
+            // reparented onto the hand socket below, so a child search here would miss it and
+            // build another one every run. Extras from earlier runs are removed.
+            GameObject emitter = AdoptOrCreateEmitter(holder.transform, log);
+
             SetField(effect, "m_volume", volume);
             SetField(effect, "m_emitter", emitter.transform);
 
             // The emitter rides the held scanner so the beam leaves the device, not the world origin.
             HandSocketFollow(emitter, log);
             return effect;
+        }
+
+        /// <summary>Keeps exactly one emitter, wherever a previous run left it.</summary>
+        private static GameObject AdoptOrCreateEmitter(Transform fallbackParent, StringBuilder log)
+        {
+            GameObject kept = null;
+            var extras = new List<GameObject>();
+
+            foreach (Transform t in Object.FindObjectsByType<Transform>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (t == null || t.name != k_EmitterName)
+                {
+                    continue;
+                }
+
+                if (kept == null)
+                {
+                    kept = t.gameObject;
+                }
+                else
+                {
+                    extras.Add(t.gameObject);
+                }
+            }
+
+            for (int i = 0; i < extras.Count; i++)
+            {
+                Undo.DestroyObjectImmediate(extras[i]);
+            }
+
+            if (extras.Count > 0)
+            {
+                log.Append("beam: removed ").Append(extras.Count).AppendLine(" duplicate emitter(s)");
+            }
+
+            return kept != null ? kept : EnsureChild(fallbackParent, k_EmitterName, log);
         }
 
         /// <summary>Parents the emitter to the left hand socket when the arms rig has one.</summary>
