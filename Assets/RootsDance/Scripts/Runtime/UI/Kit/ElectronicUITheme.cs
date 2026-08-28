@@ -116,11 +116,11 @@ namespace RootsDance.UI.Kit
         [Range(1f, 1.5f)]
         [SerializeField] private float m_interactiveRadiusUnits = 1.5f;
 
-        [Header("Type (spec §2C) — VT323, a real pixel mono face; no mspace fakery")]
+        [Header("Type (spec §2C) — Fusion Pixel, a real pixel mono face; no mspace fakery")]
         [SerializeField] private TMP_FontAsset m_font;
 
         [Tooltip("Synthetic bold on every label. The dossier reference's face is a heavy slab pixel " +
-            "font; until a true bold pixel face is added this is the closest VT323 gets.")]
+            "font; until a true bold pixel face is added this is the closest Fusion Pixel gets.")]
         [SerializeField] private bool m_boldText;
 
         [SerializeField] private float m_microSize = 16f;

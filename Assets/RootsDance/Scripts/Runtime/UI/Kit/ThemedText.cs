@@ -27,8 +27,8 @@ namespace RootsDance.UI.Kit
         [Tooltip("Family defers to the theme: Archive upper-cases, Terminal keeps the string. Spec §2C.")]
         [SerializeField] private KitCase m_case = KitCase.Family;
 
-        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — VT323 has one weight " +
-            "and no italic cut, and the spec allows faking the slant but never the weight.")]
+        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — Fusion Pixel has one " +
+            "weight and no italic cut, and the spec allows faking the slant but never the weight.")]
         [SerializeField] private bool m_italic;
 
         private ElectronicUITheme m_theme;

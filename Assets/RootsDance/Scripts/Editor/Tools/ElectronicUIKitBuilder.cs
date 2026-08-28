@@ -50,6 +50,20 @@ namespace RootsDance.EditorTools
             Debug.Log($"Electronic UI kit built in {KitFolder} and {ThemeFolder}.");
         }
 
+        /// <summary>
+        /// Rebuilds only the theme assets. Split out of <see cref="Build"/> so a palette can be
+        /// added or corrected without regenerating every prefab in the kit and putting that churn
+        /// in front of a reviewer.
+        /// </summary>
+        [MenuItem("RootsDance/Build Electronic UI Themes")]
+        public static void BuildThemesOnly()
+        {
+            EnsureFolder(ThemeFolder);
+            BuildThemes();
+            AssetDatabase.SaveAssets();
+            Debug.Log($"Electronic UI themes written to {ThemeFolder}.");
+        }
+
         // §2A. Three ramps taken from the references' palettes, not their layouts. Violet's accent is
         // deliberately equal to its Ink4: that reference has no alarm state, and the spec would rather
         // a theme say so than have a red forced into it.
@@ -72,6 +86,18 @@ namespace RootsDance.EditorTools
             {
                 Hex(0x040F04), Hex(0x32422F), Hex(0x598E47), Hex(0x8DB081), Hex(0xB9D4A0), Hex(0xD7EFA0)
             }, Hex(0xEDFA4F), Hex(0x598E47), KitFamily.Terminal, 16f, 24f, 40f, false);
+
+            // Amber is the odd one out on purpose: its ramp runs bright to dark, because it is
+            // matched to a physical object rather than to a reference image. The scanner prop's
+            // baked screen is a positive display — a lit amber field with near-black text — and the
+            // whole point of the theme is that the live UI and the baked bezel around it read as
+            // one machine. Values resampled from game_1001_BaseColor.jpeg over the screen island:
+            // field #A8822D at the 50th percentile, ink #060407 at the 1st, the transitional brown
+            // #523200 at the 10th, and the accent taken from the prop's own red buttons.
+            BuildTheme("Amber", new[]
+            {
+                Hex(0xA8822D), Hex(0x9A7529), Hex(0x6E5219), Hex(0x4A3610), Hex(0x2A1D08), Hex(0x0A0705)
+            }, Hex(0x7F2725), Hex(0x523200), KitFamily.Archive, 24f, 40f, 56f, false);
         }
 
         private static ElectronicUITheme BuildTheme(string name, Color[] ramp, Color accent,
@@ -113,14 +139,21 @@ namespace RootsDance.EditorTools
         }
 
         /// <summary>
-        /// The kit's one font asset: an SDF TMP asset generated from the VT323 ttf (spec §2C). Dynamic
-        /// population, so the atlas grows with whatever the screens actually set. Faking a mono face
-        /// with LiberationSans plus an mspace tag — the old spec's approach — is exactly the giveaway
-        /// the revision bans; this asset is what replaced it.
+        /// The kit's one font asset: an SDF TMP asset generated from the Fusion Pixel ttf (spec
+        /// §2C). Dynamic population, so the atlas grows with whatever the screens actually set.
+        /// Faking a mono face with LiberationSans plus an mspace tag — the old spec's approach — is
+        /// exactly the giveaway the revision bans; this asset is what replaced it.
+        /// <para>
+        /// VT323 was the original choice and has no CJK coverage at all — every Chinese character
+        /// on a kit screen rendered as a tofu box. Fusion Pixel's zh_hans variant
+        /// (TakWolf/fusion-pixel-font, OFL-1.1, <c>Assets/RootsDance/Fonts/FusionPixel-OFL.txt</c>)
+        /// is a pixel-grid mono face like VT323 but ships Latin and Simplified Chinese in the same
+        /// file, which this project's copy is heaviest on.
+        /// </para>
         /// </summary>
         internal static TMP_FontAsset EnsureFont()
         {
-            string path = $"{FontFolder}/VT323-Regular SDF.asset";
+            string path = $"{FontFolder}/FusionPixel-12px SDF.asset";
             TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
 
             if (asset != null)
@@ -128,23 +161,27 @@ namespace RootsDance.EditorTools
                 return asset;
             }
 
-            Font source = AssetDatabase.LoadAssetAtPath<Font>($"{FontFolder}/VT323-Regular.ttf");
+            Font source = AssetDatabase.LoadAssetAtPath<Font>(
+                $"{FontFolder}/FusionPixel-12px-Zh_Hans.ttf");
 
             if (source == null)
             {
-                Debug.LogError($"{FontFolder}/VT323-Regular.ttf missing — cannot build the kit font.");
+                Debug.LogError($"{FontFolder}/FusionPixel-12px-Zh_Hans.ttf missing — cannot build "
+                    + "the kit font.");
                 return null;
             }
 
-            asset = TMP_FontAsset.CreateFontAsset(source, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+            // Larger atlas than VT323 needed: CJK glyphs are denser and there are far more of them
+            // once a screen mixes English and Chinese labels.
+            asset = TMP_FontAsset.CreateFontAsset(source, 90, 9, GlyphRenderMode.SDFAA, 2048, 2048);
 
             if (asset == null)
             {
-                Debug.LogError("TMP_FontAsset.CreateFontAsset failed for VT323-Regular.ttf.");
+                Debug.LogError("TMP_FontAsset.CreateFontAsset failed for FusionPixel-12px-Zh_Hans.ttf.");
                 return null;
             }
 
-            asset.name = "VT323-Regular SDF";
+            asset.name = "FusionPixel-12px SDF";
             AssetDatabase.CreateAsset(asset, path);
 
             asset.material.name = asset.name + " Material";
