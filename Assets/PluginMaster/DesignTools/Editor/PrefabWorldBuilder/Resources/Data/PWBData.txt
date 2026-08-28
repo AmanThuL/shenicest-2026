@@ -24,18 +24,14 @@
     "_maxPreviewCountInEditMode": 200,
     "_unsavedChangesAction": 0,
     "_prefabCountDict": {
-        "_keys": [
-            "4a75beca28d8e4351ac26921ae729d4a"
-        ],
-        "_values": [
-            20
-        ]
+        "_keys": [],
+        "_values": []
     },
     "_paletteManager": {
-        "_selectedBrushIdx": 0,
+        "_selectedBrushIdx": -1,
         "_showBrushName": false,
         "_viewList": false,
-        "_showTabsInMultipleRows": true,
+        "_showTabsInMultipleRows": false,
         "_iconSize": 64,
         "_selectedPaletteId": -1
     },
@@ -1552,7 +1548,7 @@
                 "z": 0.0
             },
             "_spacingType": 0,
-            "_minSpacing": 2.880000114440918,
+            "_minSpacing": 1.0,
             "_randomizePositions": true,
             "_randomness": 1.0,
             "_maxHeightFromCenter": 2.0,
@@ -3859,7 +3855,7 @@
             },
             "_origin": {
                 "x": 0.0,
-                "y": 4.162538528442383,
+                "y": 0.0,
                 "z": 0.0
             },
             "_rotation": {

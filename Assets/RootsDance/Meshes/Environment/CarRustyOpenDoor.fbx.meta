@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 9516235265eaf4680878b6c46b706c59
+guid: 29c13fdd60a1b4a019ba653ab8138cf4
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
@@ -7,8 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: HelmetShell
-    second: {fileID: 2100000, guid: db61640e8500f4372a4acebfe76560dd, type: 2}
+      name: Material.017
+    second: {fileID: 2100000, guid: d583e0711f19a4ee9b264688c7cdea4f, type: 2}
   materials:
     materialImportMode: 1
     materialName: 1
@@ -39,7 +39,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 2.7
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
@@ -97,7 +97,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
+    globalScale: 2.7
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
@@ -111,7 +111,8 @@ ModelImporter:
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
-  userData: current animation (1-250 @ 24fps) from Helmet.blend via Blender 4.5.3
-    LTS, profile Tools/blender/profiles/static_prop.json, exported 2026-08-27T07:54:23+00:00
+  userData: current animation (1-250 @ 24fps) from Car_Rusty_Open_Door.blend via
+    Blender 4.5.3 LTS, profile Tools/blender/profiles/static_prop.json, exported
+    2026-08-27T19:14:08+00:00
   assetBundleName: 
   assetBundleVariant: 

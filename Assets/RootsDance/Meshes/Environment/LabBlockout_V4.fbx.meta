@@ -1,16 +1,11 @@
 fileFormatVersion: 2
-guid: 9516235265eaf4680878b6c46b706c59
+guid: 6c9bb92ccc1ab4f7abf31f60a2090c12
 ModelImporter:
   serializedVersion: 24300
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: HelmetShell
-    second: {fileID: 2100000, guid: db61640e8500f4372a4acebfe76560dd, type: 2}
+  externalObjects: {}
   materials:
-    materialImportMode: 1
+    materialImportMode: 2
     materialName: 1
     materialSearch: 2
     materialLocation: 1
@@ -39,9 +34,9 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.4
     meshCompression: 0
-    addColliders: 0
+    addColliders: 1
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
     importPhysicalCameras: 1
@@ -97,7 +92,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
+    globalScale: 0.4
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
@@ -111,7 +106,7 @@ ModelImporter:
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
   additionalBone: 0
-  userData: current animation (1-250 @ 24fps) from Helmet.blend via Blender 4.5.3
-    LTS, profile Tools/blender/profiles/static_prop.json, exported 2026-08-27T07:54:23+00:00
+  userData: current animation (1-250 @ 24fps) from GAIA1_v4.blend via Blender 4.5.3
+    LTS, profile Tools/blender/profiles/static_prop.json, exported 2026-08-28T07:02:14+00:00
   assetBundleName: 
   assetBundleVariant: 
