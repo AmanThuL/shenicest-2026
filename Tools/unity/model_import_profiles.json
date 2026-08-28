@@ -76,10 +76,11 @@
       "m_animationCompression": "Off",
       "m_resampleCurves": true,
 
-      "m_materialImportMode": "None",
-      "m_materialLocation": "External",
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
       "m_materialName": "BasedOnMaterialName",
-      "m_materialSearch": "Everywhere"
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
     },
     {
       "m_name": "static_environment",

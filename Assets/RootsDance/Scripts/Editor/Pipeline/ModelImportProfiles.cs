@@ -70,6 +70,7 @@ namespace RootsDance.Editor.Pipeline
             [SerializeField] private string m_materialLocation = "External";
             [SerializeField] private string m_materialName = "BasedOnMaterialName";
             [SerializeField] private string m_materialSearch = "Everywhere";
+            [SerializeField] private bool m_doubleSidedMaterials;
 
             public string Name => m_name;
 
@@ -119,6 +120,15 @@ namespace RootsDance.Editor.Pipeline
 
             public ModelImporterMaterialSearch MaterialSearch =>
                 ParseEnum(m_materialSearch, ModelImporterMaterialSearch.Everywhere);
+
+            /// <summary>
+            /// Draws both faces of every material this model owns. Architectural geometry exported
+            /// from SketchUp-style tools is single-sided surface shells with inconsistent winding:
+            /// Blender never culls backfaces, so it looks solid there, while Unity culls them and
+            /// roughly half of every wall disappears. FBX carries no double-sided flag, so this
+            /// cannot be answered on the Blender side short of giving the walls real thickness.
+            /// </summary>
+            public bool DoubleSidedMaterials => m_doubleSidedMaterials;
 
             private TEnum ParseEnum<TEnum>(string value, TEnum fallback)
                 where TEnum : struct
