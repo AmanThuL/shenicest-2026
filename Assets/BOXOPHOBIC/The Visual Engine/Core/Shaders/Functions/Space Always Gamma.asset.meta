@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f2ff984f884d14c4bbbdc35cd3554af2
+timeCreated: 1574174400
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Space Always
+    Gamma.asset
+  uploadId: 974988

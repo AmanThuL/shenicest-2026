@@ -1,0 +1,132 @@
+"""Tests for the build zip naming convention."""
+import unittest
+
+from naming import (BASE_NAME, PLATFORM_BY_PROFILE, parse_bundle_version,
+                    platform_for_profile, zip_stem)
+
+
+class ZipStemTests(unittest.TestCase):
+    def test_plain_release_uses_all_five_fields(self):
+        self.assertEqual(
+            zip_stem("macOS", "0.1.0", "20260828", "fb56640", dirty=False, dev=False),
+            "RootsDance_macOS_v0.1.0_20260828_fb56640")
+
+    def test_dirty_tree_appends_dirty(self):
+        self.assertEqual(
+            zip_stem("macOS", "0.1.0", "20260828", "fb56640", dirty=True, dev=False),
+            "RootsDance_macOS_v0.1.0_20260828_fb56640-dirty")
+
+    def test_dev_build_appends_dev(self):
+        self.assertEqual(
+            zip_stem("Windows", "0.1.0", "20260828", "fb56640", dirty=False, dev=True),
+            "RootsDance_Windows_v0.1.0_20260828_fb56640-dev")
+
+    def test_dirty_dev_appends_both_dirty_first(self):
+        self.assertEqual(
+            zip_stem("macOS", "1.2.3", "20261231", "abc1234", dirty=True, dev=True),
+            "RootsDance_macOS_v1.2.3_20261231_abc1234-dirty-dev")
+
+    def test_base_name_is_not_the_temp_product_name(self):
+        self.assertEqual(BASE_NAME, "RootsDance")
+
+
+class PlatformForProfileTests(unittest.TestCase):
+    def test_macos_release_maps_to_macos(self):
+        self.assertEqual(platform_for_profile("macOS-Release"), "macOS")
+
+    def test_windows_release_maps_to_windows(self):
+        self.assertEqual(platform_for_profile("Windows-Release"), "Windows")
+
+    def test_unknown_profile_raises_listing_known_profiles(self):
+        with self.assertRaises(ValueError) as ctx:
+            platform_for_profile("Linux-Release")
+        self.assertIn("macOS-Release", str(ctx.exception))
+
+    def test_every_known_profile_has_a_platform(self):
+        for profile in PLATFORM_BY_PROFILE:
+            self.assertTrue(platform_for_profile(profile))
+
+
+class ParseBundleVersionTests(unittest.TestCase):
+    def test_reads_bundle_version_from_project_settings_text(self):
+        text = "PlayerSettings:\n  productName: she-nicest-temp-proj\n  bundleVersion: 0.1.0\n  foo: 1\n"
+        self.assertEqual(parse_bundle_version(text), "0.1.0")
+
+    def test_reads_multi_segment_version(self):
+        self.assertEqual(parse_bundle_version("  bundleVersion: 1.2.3-rc1\n"), "1.2.3-rc1")
+
+    def test_missing_bundle_version_raises(self):
+        with self.assertRaises(ValueError):
+            parse_bundle_version("PlayerSettings:\n  productName: x\n")
+
+
+import os
+import tempfile
+
+import build as build_cli
+
+
+class GitStateTests(unittest.TestCase):
+    def test_short_sha_is_seven_characters(self):
+        sha, _dirty = build_cli.git_state(os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__)))))
+        self.assertEqual(len(sha), 7)
+
+
+class EditorIsRunningTests(unittest.TestCase):
+    def test_absent_instance_file_means_not_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertFalse(build_cli.editor_is_running(tmp))
+
+    def test_instance_file_with_dead_pid_means_not_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "Library"))
+            with open(os.path.join(tmp, "Library", "EditorInstance.json"), "w") as handle:
+                handle.write('{"process_id": 999999, "version": "6000.3.22f1"}')
+            self.assertFalse(build_cli.editor_is_running(tmp))
+
+
+class ResolveUnityTests(unittest.TestCase):
+    def test_explicit_override_wins(self):
+        with tempfile.NamedTemporaryFile() as handle:
+            self.assertEqual(build_cli.resolve_unity(handle.name, "6000.3.22f1"), handle.name)
+
+    def test_missing_override_raises(self):
+        with self.assertRaises(build_cli.PreflightError):
+            build_cli.resolve_unity("/nope/does/not/exist", "6000.3.22f1")
+
+
+class BuildSucceededTests(unittest.TestCase):
+    def test_marker_present_means_succeeded(self):
+        log = "some noise\n[BuildScript] macOS-Release: result=Succeeded size=1 bytes errors=0 time=0\nmore noise\n"
+        self.assertTrue(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_absent_means_not_succeeded(self):
+        log = "Unhandled exception. IL2CPP error.\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_for_a_different_profile_does_not_count(self):
+        log = "[BuildScript] Windows-Release: result=Succeeded size=1 bytes errors=0 time=0\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+    def test_marker_with_a_failed_result_does_not_count(self):
+        log = "[BuildScript] macOS-Release: result=Failed size=0 bytes errors=1 time=0\n"
+        self.assertFalse(build_cli.build_succeeded("macOS-Release", log))
+
+
+class StageableEntriesTests(unittest.TestCase):
+    def test_drops_unity_debug_sidecars_but_keeps_the_player(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "RootsDance.app"))
+            os.makedirs(os.path.join(
+                tmp, "RootsDance_BackUpThisFolder_ButDontShipItWithYourGame"))
+            os.makedirs(os.path.join(
+                tmp, "she-nicest-temp-proj_BurstDebugInformation_DoNotShip"))
+
+            entries = build_cli.stageable_entries(sorted(os.listdir(tmp)))
+
+            self.assertEqual(entries, ["RootsDance.app"])
+
+
+if __name__ == "__main__":
+    unittest.main()

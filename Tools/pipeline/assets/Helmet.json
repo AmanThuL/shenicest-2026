@@ -1,0 +1,22 @@
+{
+  "asset": "Helmet",
+  "category": "Props",
+  "preset": "psx_prop",
+  "source": {
+    "blend": "SourceArt/Blender/ArmsRig/arms_rig_all.blend",
+    "object": "Helmet_Placeholder",
+    "licence": "Helmet_02 mesh (2018 download) -- licence not yet recorded in docs/third-party.md; surrounding arms rig is CC0 PSX First Person Arms (drillimpact, itch.io)",
+    "note": "In-repo source art. The pipeline opens it read-only and never writes back; the prepared output is SourceArt/Blender/Helmet/Helmet.blend. Helmet_Placeholder keeps its name (load-bearing in HelmetTestRigBuilder and export commands) but carries the real sci-fi helmet mesh; original OBJ + maps live in SourceArt/Blender/Helmet/Source and Textures."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": true,
+    "material_slots": ["HelmetShell", "Visor"]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": ["HelmetShell", "HelmetVisor"]
+}

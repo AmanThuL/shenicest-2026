@@ -1,0 +1,19 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms_KeypadPoke.fbx",
+  "m_blend": "SourceArt/Blender/ArmsRig/arms_rig_all.blend",
+  "m_blendModifiedUtc": "2026-08-28T14:33:10+00:00",
+  "m_action": "keypad_poke",
+  "m_armature": "ArmsRig",
+  "m_frameStart": 1,
+  "m_frameEnd": 50,
+  "m_fps": 30,
+  "m_exportedCollection": "",
+  "m_exportedObjects": [
+    "ArmsMesh",
+    "ArmsRig"
+  ],
+  "m_excludedObjects": [],
+  "m_blenderVersion": "4.5.3 LTS",
+  "m_profile": "Tools/blender/profiles/fps_arms.json",
+  "m_exportedUtc": "2026-08-28T14:33:38+00:00"
+}

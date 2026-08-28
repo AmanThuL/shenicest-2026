@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4bb0fe44f36bac749bd06f07aaa7bd33
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Space Half
+    Value.asset
+  uploadId: 974988

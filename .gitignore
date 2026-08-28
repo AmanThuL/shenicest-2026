@@ -113,6 +113,11 @@ InitTestScene*.unity*
 # Merge-tool backups (UnityYAMLMerge / git mergetool)
 *.orig
 
+# glTF exports under SourceArt stay local: Unity does not import .glb, and the .blend + .fbx
+# sources are already committed (LFS) — re-export from the .blend if one is needed.
+/SourceArt/**/*.glb
+/SourceArt/**/*.gltf
+
 # Odin Inspector per-user editor preferences (which types you've shown/hidden in its pickers),
 # auto-created the first time the Editor opens with Odin installed. Not part of the vendor
 # package, not shared project config — same category as UserSettings/ above.
@@ -129,3 +134,15 @@ Thumbs.db
 # Shared agent instructions are AGENTS.md / CLAUDE.md, which are committed (guideline 06).
 CLAUDE.local.md
 .claude/settings.local.json
+# Claude Code native worktrees (each one is a full checkout with its own Library/).
+.claude/worktrees/
+
+# Python bytecode from Tools/ pipeline scripts
+__pycache__/
+*.py[cod]
+# Superpowers agent workflow (rudyz): design specs / implementation plans and the SDD scratch workspace stay local
+docs/superpowers/
+.superpowers/
+
+# AmbientCG mask source channels: Unity ignores '~' folders, git must not
+!Assets/ThirdParty/Environment/**/Source~/

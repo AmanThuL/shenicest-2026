@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a179aeaa9c9392b47be89a53ac265668
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Block Instanced
+    Dither.asset
+  uploadId: 974988

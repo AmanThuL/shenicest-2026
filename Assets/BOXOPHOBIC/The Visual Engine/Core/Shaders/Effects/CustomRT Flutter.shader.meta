@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 3be76787077e7444fbe85272be397e63
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Effects/CustomRT Flutter.shader
+  uploadId: 974988

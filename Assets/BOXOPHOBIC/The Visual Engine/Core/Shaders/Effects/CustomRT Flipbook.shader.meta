@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4013d596450d6514591e8ed0c8cd0bcf
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Effects/CustomRT Flipbook.shader
+  uploadId: 974988

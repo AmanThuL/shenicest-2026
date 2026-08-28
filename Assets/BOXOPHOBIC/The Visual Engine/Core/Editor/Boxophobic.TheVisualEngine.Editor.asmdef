@@ -1,0 +1,24 @@
+{
+    "name": "Boxophobic.TheVisualEngine.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0169ec9b0d8746d41bf129d2e8c3cebc",
+        "GUID:10f1dd4cfd6afb54da274d7d818bd8f6",
+        "GUID:825ad574da7360d4e8aea558f272972e",
+        "GUID:f540dafdfbc0586439d98823585550d4",
+        "GUID:beb7ced4cc341384592d9187e65da6b5",
+        "GUID:a1a7cacb6cec073439a2b2c1849d773b",
+        "GUID:0f9e8f73c69964f1e8176f9a0b86f9b2"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -51,6 +51,7 @@ NOISE_SELECTORS = [
     "form",
     "div.sidebar",
     "div#sidebar",
+    "div.sidenav",  # DocFX package docs: "Show / Hide Table of Contents" toggle + sidetoc
     "div.breadcrumbs",
     "div.feedbackbox",
     "div.footer-wrapper",

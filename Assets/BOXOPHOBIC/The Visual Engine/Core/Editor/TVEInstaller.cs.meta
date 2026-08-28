@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 55cc0345f9b839c4293a408b8483db4e
+timeCreated: 1561049081
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Editor/TVEInstaller.cs
+  uploadId: 974988

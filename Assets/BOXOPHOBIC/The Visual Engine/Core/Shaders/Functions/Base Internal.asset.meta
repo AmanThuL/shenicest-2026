@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: aae3ebb43937e78498ea57ec9b3227c9
+timeCreated: 1574174400
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Base Internal.asset
+  uploadId: 974988

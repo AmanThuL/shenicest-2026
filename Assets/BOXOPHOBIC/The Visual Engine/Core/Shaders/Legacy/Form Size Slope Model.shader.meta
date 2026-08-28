@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 738d0ea1778010c478e4a3e46ddcf956
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Form Size Slope
+    Model.shader
+  uploadId: 974988

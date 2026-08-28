@@ -3,7 +3,16 @@
     "rootNamespace": "RootsDance.Editor",
     "references": [
         "RootsDance.Runtime",
-        "Unity.Cinemachine"
+        "Boxophobic.TheVisualEngine.Runtime",
+        "Boxophobic.Utils.Scripts",
+        "CurvedUIUtility",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

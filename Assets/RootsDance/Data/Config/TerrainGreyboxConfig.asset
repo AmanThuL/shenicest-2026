@@ -1,0 +1,217 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d9ce33e3fc034c90893257b1502bb04, type: 3}
+  m_Name: TerrainGreyboxConfig
+  m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.Terrain.TerrainGreyboxConfigSO
+  m_params:
+    TerrainPosition: {x: -144, y: -8, z: -32}
+    TerrainSize: {x: 288, y: 48, z: 288}
+    HeightmapResolution: 513
+    AlphamapResolution: 512
+    RingCenter: {x: 0, y: 112}
+    RingWarpAmplitude: 5
+    RingWarpAmplitudeFine: 3
+    RingWarpPhase: 0.7
+    RadialProfile:
+    - Radius: 0
+      Height: 7
+    - Radius: 44
+      Height: 7
+    - Radius: 52
+      Height: 6
+    - Radius: 60
+      Height: 5
+    - Radius: 68
+      Height: 5.6
+    - Radius: 74
+      Height: 6
+    - Radius: 82
+      Height: 6.2
+    - Radius: 90
+      Height: 5.4
+    - Radius: 100
+      Height: 4
+    - Radius: 112
+      Height: 8
+    - Radius: 122
+      Height: 3
+    - Radius: 130
+      Height: 4
+    - Radius: 137
+      Height: 8
+    - Radius: 150
+      Height: 14
+    - Radius: 200
+      Height: 18
+    NorthRiseHeight: 12
+    NorthRiseStartZ: 150
+    NorthRiseEndZ: 250
+    TerraceCenter: {x: 0, y: 126}
+    TerraceHalfExtents: {x: 38.86789, y: 27.902071}
+    TerraceYawDegrees: -45
+    TerraceCornerRadius: 12
+    TerraceHeight: 7
+    TerraceBlend: 8
+    FlatSpots:
+    - Center: {x: 1.5, y: -11}
+      Radius: 9.5
+      Blend: 5.5
+      Height: 3
+    - Center: {x: -12, y: 39}
+      Radius: 4
+      Blend: 6
+      Height: 6
+    - Center: {x: 52, y: 108}
+      Radius: 5
+      Blend: 6
+      Height: 4
+    Paths:
+    - Nodes:
+      - Position: {x: 0, y: -10}
+        Height: 3
+      - Position: {x: -7, y: 4}
+        Height: 7
+      - Position: {x: -15, y: 18}
+        Height: 4
+      - Position: {x: -16, y: 28}
+        Height: 5.2
+      - Position: {x: -12, y: 39}
+        Height: 6
+      - Position: {x: -6, y: 52}
+        Height: 5
+      - Position: {x: 0, y: 66}
+        Height: 6.4
+      - Position: {x: 2, y: 75}
+        Height: 7
+      - Position: {x: 9, y: 87}
+        Height: 7
+      - Position: {x: 24, y: 106}
+        Height: 7
+      HalfWidth: 2.5
+      Blend: 4
+    - Nodes:
+      - Position: {x: 9, y: 87}
+        Height: 7
+      - Position: {x: 20, y: 96}
+        Height: 7
+      - Position: {x: 36, y: 105}
+        Height: 7
+      - Position: {x: 44, y: 106}
+        Height: 5.5
+      - Position: {x: 52, y: 108}
+        Height: 4
+      HalfWidth: 2
+      Blend: 3
+    DetailNoiseAmplitude: 0.5
+    DetailNoiseFrequency: 0.04
+    RingRadiusAB: 112
+    RingRadiusBC: 90
+    RingRadiusCD: 68
+    RingRadiusDE: 55
+    SplatBlend: 8
+    BandNoiseAmplitude: 10
+    BandNoiseFrequency: 0.015
+    TrailExtraWidth: 1
+  m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_terrainDataPath: Assets/RootsDance/Scenes/Levels/Main/Main_TerrainData.asset
+  m_labBlockout: {fileID: 919132149155446097, guid: 0f04effc217a84eee9c6b6dfa4ed8cd9, type: 3}
+  m_labPosition: {x: 15.487199, y: 4.1294947, z: 97.97394}
+  m_labYawDegrees: -45
+  m_labFloorOffset: 0.45
+  m_deriveTerraceFromLab: 1
+  m_labIncludedChildren: []
+  m_anchors:
+  - m_name: Anchor_00-07_FirstToolUse
+    m_specPosition: {x: -12, y: 0, z: 39}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-08_ResearchFacilityView
+    m_specPosition: {x: 0.473, y: 0, z: 85.366}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-09_BlockedMainEntrance
+    m_specPosition: {x: 9.505, y: 0, z: 118.941}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-10_MainEntranceSign
+    m_specPosition: {x: 7.03, y: 0, z: 115.759}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-11_ResearchFacilityPoster
+    m_specPosition: {x: -4.637, y: 0, z: 114.699}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-12_AshleafVine
+    m_specPosition: {x: 12.334, y: 0, z: 123.184}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-13_FineVeinedVine
+    m_specPosition: {x: 13.394, y: 0, z: 124.952}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-14_VineGrowthDirection
+    m_specPosition: {x: 19.435, y: 0, z: 133.774}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-15_ClearAshleafVine
+    m_specPosition: {x: 23.538, y: 0, z: 139.749}
+    m_useSpecHeight: 0
+  - m_name: Anchor_00-16_MaintenanceEntrance
+    m_specPosition: {x: 24.237, y: 0, z: 140.785}
+    m_useSpecHeight: 0
+  m_layers:
+  - m_name: AshDry
+    m_albedo: {fileID: 2800000, guid: 4e6440fa0e08e40c5abaef64cb1fb018, type: 3}
+    m_normal: {fileID: 2800000, guid: 7ce7e586b814f4fff90a0d52883b7c27, type: 3}
+    m_mask: {fileID: 2800000, guid: 1c2b51d8115fa4feea8957d39ae87cb3, type: 3}
+    m_tileSize: 8
+    m_tint: {r: 0.72, g: 0.78, b: 0.95, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: HumusDead
+    m_albedo: {fileID: 2800000, guid: 34a721d7766b948aabe2a2140584013a, type: 3}
+    m_normal: {fileID: 2800000, guid: a7e7f48b0baae4a3c845856234ba84fb, type: 3}
+    m_mask: {fileID: 2800000, guid: bf99f3fbb495b4879bef48e0caf92a0c, type: 3}
+    m_tileSize: 7
+    m_tint: {r: 0.62, g: 0.52, b: 0.44, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: GrassBand
+    m_albedo: {fileID: 2800000, guid: 206257a698a2b4642a229b2dd931173a, type: 3}
+    m_normal: {fileID: 2800000, guid: 2e4e5cca640864dd087e536490c5f84e, type: 3}
+    m_mask: {fileID: 2800000, guid: c9a69f5e4d8b1408ebea142b944084d9, type: 3}
+    m_tileSize: 6
+    m_tint: {r: 0.44, g: 0.47, b: 0.48, a: 1}
+    m_tintMin: {r: 0.21, g: 0.22, b: 0.23, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: StableSoil
+    m_albedo: {fileID: 2800000, guid: 7e857f5e604794bf48b76a7440e33a73, type: 3}
+    m_normal: {fileID: 2800000, guid: 00a1c5477e90f4947810a1ebe54fdb56, type: 3}
+    m_mask: {fileID: 2800000, guid: 77a71f4b1b019407eb3e054b3929ccb3, type: 3}
+    m_tileSize: 7
+    m_tint: {r: 0.6, g: 0.62, b: 0.6, a: 1}
+    m_tintMin: {r: 0.18, g: 0.18, b: 0.18, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: ResearchGround
+    m_albedo: {fileID: 2800000, guid: 32c3fbc7246c242dc9d4171554e100d1, type: 3}
+    m_normal: {fileID: 2800000, guid: 9eb0da33792874fca868a995338aa7c3, type: 3}
+    m_mask: {fileID: 2800000, guid: aa40dba2cb65a4ea5a7813ed6f66135f, type: 3}
+    m_tileSize: 4
+    m_tint: {r: 0.78, g: 0.8, b: 0.8, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1
+  - m_name: Trail
+    m_albedo: {fileID: 2800000, guid: 396fc5e22f50a4ccf834993384a5b1b8, type: 3}
+    m_normal: {fileID: 2800000, guid: ec70d1bf6c3d94d7b99df3f6b3634751, type: 3}
+    m_mask: {fileID: 2800000, guid: 3b8f348e14495464eb8ad68d41961ec6, type: 3}
+    m_tileSize: 3
+    m_tint: {r: 0.5, g: 0.48, b: 0.45, a: 1}
+    m_tintMin: {r: 0, g: 0, b: 0, a: 1}
+    m_smoothness: 0.1
+    m_normalScale: 1

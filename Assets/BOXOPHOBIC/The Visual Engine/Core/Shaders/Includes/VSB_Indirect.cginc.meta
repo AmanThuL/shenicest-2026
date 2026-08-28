@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: aeafadf4665ed00478a7d0745039bae6
+timeCreated: 1531037273
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Includes/VSB_Indirect.cginc
+  uploadId: 974988

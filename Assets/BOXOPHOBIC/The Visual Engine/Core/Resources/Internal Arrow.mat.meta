@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: b3f9938062719a844bb639f7a27993f3
+timeCreated: 1575314762
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Resources/Internal Arrow.mat
+  uploadId: 974988

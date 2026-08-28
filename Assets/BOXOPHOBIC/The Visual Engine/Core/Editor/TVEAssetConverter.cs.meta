@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 32bf67bf1ee48b14fa8b5624861faca5
+timeCreated: 1538943308
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Editor/TVEAssetConverter.cs
+  uploadId: 974988

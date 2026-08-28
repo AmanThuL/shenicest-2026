@@ -1,0 +1,39 @@
+{
+  "asset": "CorridorPanel",
+  "category": "Environment",
+  "preset": "realistic_prop",
+  "source": {
+    "blend": "SourceArt/Blender/GAIA1/GAIA1_v6.blend",
+    "object": "Mesh1322 Group40 Group35 Group27 Group26 Group1 Model",
+    "licence": "In-repo source art (GAIA1 corridor geometry).",
+    "note": "One of the 6 distinct shapes in the Corridor collection; repeats 2 times."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "FrontColor=CorridorPanel"
+    ],
+    "material_slots": [
+      "CorridorPanel"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "painter": {
+    "fills": [
+      "Rust:basecolor=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_diff_1k.jpg;normal=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_nor_gl_1k.jpg;roughness=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_rough_1k.jpg"
+    ],
+    "layers": []
+  },
+  "texture_sets": [
+    "CorridorPanel"
+  ]
+}

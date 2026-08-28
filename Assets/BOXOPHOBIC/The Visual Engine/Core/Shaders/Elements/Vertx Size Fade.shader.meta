@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 4776cc0409f0f4e4da64e5837bff4b0d
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/Vertx Size
+    Fade.shader
+  uploadId: 974988

@@ -4,7 +4,7 @@
 > **Applies to:** `Packages/manifest.json`, all assets under `Assets/RootsDance/`, and all C# under `Assets/RootsDance/Scripts`.
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
-Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); generic scripting rules (lifecycle, Update vs FixedUpdate, null checks, Awaitable) by [04-unity-scripting-rules.md](./04-unity-scripting-rules.md); the 6.3 API renames by [10-unity6-facts.md](./10-unity6-facts.md). This document only adds the package-specific rules on top of those.
+Rendering and HDRP are owned by [07-rendering-hdrp.md](./07-rendering-hdrp.md); generic scripting rules (lifecycle, Update vs FixedUpdate, null checks, Awaitable) by [04-unity-scripting-rules.md](./04-unity-scripting-rules.md); the 6.3 API renames by [10-unity6-facts.md](./10-unity6-facts.md). This document only adds the package-specific rules on top of those.
 
 ## TL;DR — rules at a glance
 
@@ -32,10 +32,12 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | Cinemachine `com.unity.cinemachine` | 3.1.7 (released) | **Required** | [ref](../reference/packages/manual-com-unity-cinemachine.md) |
 | UniTask (Cysharp) `com.cysharp.unitask` | 2.5.11 (OpenUPM) | **Installed**, narrow scope: only `WhenAll`/`WhenAny` across a DOTween tween **and** a non-tween async op (scene load, `InstantiateAsync`) via `.ToUniTask()`. `Awaitable` stays the default; DOTween `Sequence` for tween-only composition. Full rule in [04](./04-unity-scripting-rules.md#async-awaitable-dotween-sequence-and-unitask). | [github.com/Cysharp/UniTask](https://github.com/Cysharp/UniTask) |
 | Odin Inspector (Sirenix, Asset Store `.unitypackage`, **not** UPM) | 4.0.2.3 at `Assets/Plugins/Sirenix/` | **Required** — Editor-UX only, Odin serializer unused; rules in [12](./12-odin-inspector.md) | [ref](../reference/third-party/odin-inspector/README.md) |
+| The Visual Engine (BOXOPHOBIC, Asset Store `.unitypackage`) | 22.0.0 at `Assets/BOXOPHOBIC/` + `Assets/BOXOPHOBIC+/` | **Installed 2026-08-27** — HDRP vegetation/wind/interaction shaders and `TVE Manager`; demo, tutorial and pipeline archives deleted after import; record in [`docs/third-party.md`](../third-party.md) | `Assets/BOXOPHOBIC/The Visual Engine/The Visual Engine.pdf` |
+| Prefab World Builder (PluginMaster, Asset Store `.unitypackage`) | 4.12.2 at `Assets/PluginMaster/` | **Installed 2026-08-27** — Editor-only prefab painting/placement for level dressing ([11](./11-scenes-prefabs-workflow.md)); palettes + `ProjectSettings/PWBSettings.txt` committed; record in [`docs/third-party.md`](../third-party.md) | `Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Documentation/Prefab World Builder Documentation.pdf` |
 | AI Navigation `com.unity.ai.navigation` | 2.0.14 (released) | **Required** when there are NPCs | [ref](../reference/packages/manual-com-unity-ai-navigation.md) |
 | uGUI + TextMeshPro `com.unity.ugui` | 2.0 (core, fixed to Editor) | **Required** (runtime UI) | [ref](../reference/packages/manual-com-unity-ugui.md), [ref](../reference/packages/ugui-2-0-textmeshpro-index.md) |
 | UI Toolkit | part of the core Editor, no package | Editor tooling only (custom Inspectors, Editor windows); **never** for runtime UI | [ref](../reference/packages/manual-install-ui-toolkit-and-sample-projects.md) |
-| URP / Shader Graph | 17.3 (core) | Required — see [07](./07-rendering-urp.md) | [ref](../reference/packages/manual-pack-core.md) |
+| HDRP `com.unity.render-pipelines.high-definition` / Shader Graph | 17.3.0 (built-in with the Editor) | **Required** — the only render pipeline, see [07](./07-rendering-hdrp.md); `com.unity.render-pipelines.high-definition-config` is a transitive dependency and is **never** embedded into `Packages/` | [ref](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-index.md) |
 | Test Framework `com.unity.test-framework` | 1.6 (core) | Required — see [08](./08-testing-tooling.md) | [ref](../reference/packages/manual-com-unity-test-framework.md) |
 | Unity Pipeline `com.unity.pipeline` | 0.5.0-exp.1 (experimental) | **Adopted 2026-08-25** — Editor/agent tooling only (official Unity CLI `unity command …` against the open Editor); trade-offs and rules in [Unity CLI agent workflow](../architecture/tooling/unity-cli-agent-workflow.md#3-the-package-decision-comunitypipeline-050-exp1) | [live](https://docs.unity3d.com/Packages/com.unity.pipeline@0.5/manual/index.html) |
 | ProBuilder `com.unity.probuilder` | 6.1 (released) | **Optional** (greyboxing) | [ref](../reference/packages/manual-pack-safe.md) |
@@ -46,6 +48,8 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | Netcode for GameObjects | 2.13 (released) | **Not used** (single-player) | [ref](../reference/packages/manual-pack-safe.md) |
 
 Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below; re-added 2026-08-25 as Editor/agent tooling for Editor/agent tooling, see its table row), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
+
+Removed on **2026-08-27** by the URP → HDRP migration: `com.unity.render-pipelines.universal` (and its transitive `com.unity.render-pipelines.universal-config`), replaced by `com.unity.render-pipelines.high-definition` 17.3.0. The two pipelines are mutually exclusive — HDRP assets, shaders and components do not work under URP and vice versa — so **NEVER** re-add the URP package "to compare" or to unblock a shader; raise it with the rendering owner instead. Both packages ship built into the 6000.3 Editor (`"source": "builtin"` in the lock file), so neither is downloaded. HDRP does not support WebGL/WebGPU or mobile: the project is desktop standalone only. **[project decision]**
 
 *Why:* "Released" packages are the ones Unity has tested against this Editor version; core packages ship with the Editor and cannot be switched to another version. Everything else is a risk the hackathon cannot absorb.
 *Source:* [Released packages](../reference/packages/manual-pack-safe.md), [Core packages](../reference/packages/manual-pack-core.md), [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md).
@@ -259,7 +263,7 @@ If the camera follows a Rigidbody-driven object and jitters, set that Rigidbody'
 - *Source:* folder layout in [02](./02-project-structure.md).
 
 **MUST** put exactly one screen-space canvas root in `Bootstrap.unity` — a `UI` GameObject with `Canvas` in **Screen Space – Overlay**, `CanvasScaler` in **Scale With Screen Size** at reference resolution 1920×1080 with **Match** = 0.5, and `GraphicRaycaster`. Screen prefabs are instantiated as children of it. **[project decision on the reference resolution and Match value]**
-- *Why:* Screen Space – Overlay renders without a camera, so the one-camera rule in [07](./07-rendering-urp.md) still holds; Scale With Screen Size against a fixed reference resolution is Unity's documented way to keep one layout usable on other resolutions, and Match 0.5 splits the scaling between width and height.
+- *Why:* Screen Space – Overlay renders without a camera, so the one-camera rule in [07](./07-rendering-hdrp.md) still holds (HDRP has no camera stacking, so a second camera would be a second full frame); Scale With Screen Size against a fixed reference resolution is Unity's documented way to keep one layout usable on other resolutions, and Match 0.5 splits the scaling between width and height.
 - *Source:* [Canvas](../reference/packages/ugui-2-0-uicanvas.md), [Canvas Scaler](../reference/packages/ugui-2-0-script-canvasscaler.md), [Designing UI for multiple resolutions](../reference/packages/ugui-2-0-howto-uimultiresolution.md).
 
 **MUST** have exactly one `EventSystem` + **Input System UI Input Module**, in `Bootstrap.unity` next to the UI root — see [UI vs gameplay input](#ui-vs-gameplay-input) above for the rule and its sources.
@@ -505,7 +509,7 @@ If a real need appears (remote content, memory pressure from optional content), 
 ## Review checklist
 
 - [ ] `Packages/manifest.json` / `packages-lock.json` changed only in a dedicated `chore(packages):` commit; no Git/local/embedded/pre-release entries.
-- [ ] No new Asset Store package outside `Assets/ThirdParty/` (Odin at `Assets/Plugins/Sirenix/` is the recorded exception); Odin usage follows the checklist in [12](./12-odin-inspector.md).
+- [ ] No new Asset Store package outside `Assets/ThirdParty/` (Odin at `Assets/Plugins/Sirenix/`, The Visual Engine at `Assets/BOXOPHOBIC*/` and Prefab World Builder at `Assets/PluginMaster/` are the recorded exceptions — [`docs/third-party.md`](../third-party.md)); Odin usage follows the checklist in [12](./12-odin-inspector.md).
 - [ ] No legacy `UnityEngine.Input` calls, `PlayerInput`, generated input class, or `Keyboard.current` outside `_Sandbox/`.
 - [ ] `FindAction` only in `Awake`/`Start`; `WasPressedThisFrame` only in `Update`; Player map disabled while menus are open.
 - [ ] New camera shots are `CinemachineCamera` GameObjects named `CM_*`, switched by `SetActive`; nobody touches the Unity Camera transform; Brain settings unchanged.

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: d99c24a25ef31d24d8578906f04d1675
+timeCreated: 1522329043
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Editor/TVEShaderGUIElement.cs
+  uploadId: 974988

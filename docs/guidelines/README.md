@@ -1,4 +1,4 @@
-# Coding guidelines — Unity 6000.3 (Unity 6.3 LTS), URP, C# 9
+# Coding guidelines — Unity 6000.3 (Unity 6.3 LTS), HDRP, C# 9
 
 Twelve documents that together define how this project is built. They were distilled from the official Unity documentation snapshot in [`../reference/`](../reference/README.md) (Unity 6 e-books, the 6000.3 manual and Script Reference, unity.com how-to articles), from the vendor documentation shipped with Odin Inspector ([`../reference/third-party/odin-inspector/`](../reference/third-party/odin-inspector/README.md)), and from a small set of explicit **[project decision]**s recorded in each document. The ≤ 15-line **TL;DR** at the top of each guideline is the fast path; the body has the rationale, examples and sources.
 
@@ -13,7 +13,7 @@ Twelve documents that together define how this project is built. They were disti
 | 04 | [Unity scripting rules](04-unity-scripting-rules.md) | Lifecycle, serialization, null checks, finding objects, Awaitable vs coroutines, physics API, input in code, logging, asmdef usage | writing MonoBehaviour/ScriptableObject code |
 | 05 | [Performance guidelines](05-performance.md) | Frame/memory budgets, allocation hygiene, pooling, physics, rendering and UI performance, import settings, profiling workflow | writing per-frame code, spawning, importing assets |
 | 06 | [Version control with Git](06-version-control.md) | Editor VCS settings, `.meta` rules, what to commit, Git LFS, `.gitattributes`, UnityYAMLMerge, branches and commits, conflict resolution | committing, branching, merging |
-| 07 | [Rendering and URP conventions](07-rendering-urp.md) | URP assets/renderers/quality tiers, Render Graph, lighting (APV/lightmaps), post-processing volumes, cameras, materials, Shader Graph, texture import | touching anything that renders |
+| 07 | [Rendering and HDRP conventions](07-rendering-hdrp.md) | HDRP asset/global settings/quality tier, custom passes, physical lighting + fixed exposure (APV/lightmaps), volumes (sky/fog/post), cameras, materials, Shader Graph, texture import | touching anything that renders |
 | 08 | [Testing, tooling and IDE setup](08-testing-tooling.md) | Unity Test Framework, test assemblies, CLI test/build commands, Build Profiles, IDE setup, analyzers, Console hygiene | writing tests, building, setting up a machine |
 | 09 | [Packages and game systems](09-packages-systems.md) | Package versions and policy; Input System, Cinemachine, uGUI + TextMeshPro, physics layers, AI Navigation, animation, audio, Addressables (not used) | using a Unity package or engine subsystem |
 | 11 | [Scenes, prefabs and team workflow](11-scenes-prefabs-workflow.md) | Bootstrap + additive level scenes, scene/prefab ownership and coordination, prefab workflow, ScriptableObject tunables, daily routine, build scene list | opening scenes, making prefabs, coordinating work |

@@ -15,14 +15,28 @@ namespace RootsDance.Core
         private readonly HashSet<string> m_flags = new HashSet<string>();
         private readonly List<ReportEntry> m_report = new List<ReportEntry>();
 
+        // Left at its default, RootsDance.Core.TimeOfDay.Day: every session starts in daylight and a
+        // level, checkpoint or trigger switches it from there.
+        private TimeOfDay m_timeOfDay;
+        private bool m_timeOfDaySet;
+
         /// <summary>Report entries in the order they were recorded.</summary>
         public IReadOnlyList<ReportEntry> Report => m_report;
+
+        /// <summary>The discrete story time the world is currently in. Starts at Day.</summary>
+        public TimeOfDay TimeOfDay => m_timeOfDay;
+
+        /// <summary>True once anything has chosen a time of day this session, even the current one.</summary>
+        public bool IsTimeOfDaySet => m_timeOfDaySet;
 
         /// <summary>Raised once per flag, the first time it is set.</summary>
         public event Action<string> FlagRaised;
 
         /// <summary>Raised once per accepted report entry.</summary>
         public event Action<ReportEntry> ReportEntryAdded;
+
+        /// <summary>Raised whenever the time of day actually changes, with the new phase.</summary>
+        public event Action<TimeOfDay> TimeOfDayChanged;
 
         public bool HasFlag(string id)
         {
@@ -86,6 +100,27 @@ namespace RootsDance.Core
             }
 
             return count;
+        }
+
+        /// <summary>
+        /// Switches the discrete story time. Unlike <see cref="RaiseFlag"/> this is <b>not monotonic</b>
+        /// — Night may go back to Day. Setting the value it already holds changes nothing, returns false
+        /// and raises no event, so a re-entered trigger volume cannot restart a lighting blend.
+        /// </summary>
+        public bool SetTimeOfDay(TimeOfDay value)
+        {
+            // Explicitly choosing the current value still counts as a choice: a Day checkpoint must be able
+            // to pin Day before the level's own Night seed arrives (see SeedTimeOfDayCommand).
+            m_timeOfDaySet = true;
+
+            if (m_timeOfDay == value)
+            {
+                return false;
+            }
+
+            m_timeOfDay = value;
+            TimeOfDayChanged?.Invoke(value);
+            return true;
         }
     }
 }

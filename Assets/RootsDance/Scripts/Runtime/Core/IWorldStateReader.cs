@@ -13,9 +13,17 @@ namespace RootsDance.Core
     {
         IReadOnlyList<ReportEntry> Report { get; }
 
+        /// <summary>The discrete story time. Not monotonic: it may change back and forth.</summary>
+        TimeOfDay TimeOfDay { get; }
+
+        /// <summary>True once anything has chosen a time of day this session, even the current one.</summary>
+        bool IsTimeOfDaySet { get; }
+
         event Action<string> FlagRaised;
 
         event Action<ReportEntry> ReportEntryAdded;
+
+        event Action<TimeOfDay> TimeOfDayChanged;
 
         bool HasFlag(string id);
 

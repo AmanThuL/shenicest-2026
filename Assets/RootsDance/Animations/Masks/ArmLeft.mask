@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ArmLeft
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 0
+  - m_Path: ArmsMesh
+    m_Weight: 0
+  - m_Path: ArmsRig
+    m_Weight: 0
+  - m_Path: ArmsRig/elbowIK.L
+    m_Weight: 1
+  - m_Path: ArmsRig/elbowIK.R
+    m_Weight: 0
+  - m_Path: ArmsRig/handIK.L
+    m_Weight: 1
+  - m_Path: ArmsRig/handIK.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root
+    m_Weight: 0
+  - m_Path: ArmsRig/root/camera
+    m_Weight: 0
+  - m_Path: ArmsRig/root/helmet_socket
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/f_index.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/f_index.01.L/f_index.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/f_index.01.L/f_index.02.L/f_index.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/thumb.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/thumb.01.L/thumb.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.01.L/thumb.01.L/thumb.02.L/thumb.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.02.L/f_middle.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.02.L/f_middle.01.L/f_middle.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.02.L/f_middle.01.L/f_middle.02.L/f_middle.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.03.L/f_ring.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.03.L/f_ring.01.L/f_ring.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.03.L/f_ring.01.L/f_ring.02.L/f_ring.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.04.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.04.L/f_pinky.01.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.04.L/f_pinky.01.L/f_pinky.02.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.L/upper_arm.L/forearm.L/hand.L/palm.04.L/f_pinky.01.L/f_pinky.02.L/f_pinky.03.L
+    m_Weight: 1
+  - m_Path: ArmsRig/root/shoulder.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/f_index.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/f_index.01.R/f_index.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/f_index.01.R/f_index.02.R/f_index.03.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/thumb.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/thumb.01.R/thumb.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.01.R/thumb.01.R/thumb.02.R/thumb.03.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.02.R/f_middle.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.02.R/f_middle.01.R/f_middle.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.02.R/f_middle.01.R/f_middle.02.R/f_middle.03.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.03.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.03.R/f_ring.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.03.R/f_ring.01.R/f_ring.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.03.R/f_ring.01.R/f_ring.02.R/f_ring.03.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.04.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.04.R/f_pinky.01.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.04.R/f_pinky.01.R/f_pinky.02.R
+    m_Weight: 0
+  - m_Path: ArmsRig/root/shoulder.R/upper_arm.R/forearm.R/hand.R/palm.04.R/f_pinky.01.R/f_pinky.02.R/f_pinky.03.R
+    m_Weight: 0
+  - m_Path: Helmet_Placeholder
+    m_Weight: 0

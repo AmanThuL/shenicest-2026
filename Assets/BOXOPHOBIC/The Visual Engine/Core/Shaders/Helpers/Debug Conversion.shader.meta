@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 22d950d203c7e904fa29f1c1820a3f9f
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Helpers/Debug Conversion.shader
+  uploadId: 974988

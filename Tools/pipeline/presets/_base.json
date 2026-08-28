@@ -1,0 +1,52 @@
+{
+  "description": "Shared defaults. Never selected directly -- always extended.",
+  "texture": {
+    "resolution": 1024,
+    "format": "png",
+    "bit_depth": 8,
+    "maps": ["BaseMap", "Normal", "Mask"]
+  },
+  "uv": {
+    "padding_px": 8,
+    "padding_reference_resolution": 1024,
+    "padding_px_min": 2,
+    "target_texel_density_px_per_m": 256,
+    "texel_density_tolerance": 0.35,
+    "allow_udim": false,
+    "allow_overlap": false
+  },
+  "mesh": {
+    "require_applied_scale": true,
+    "require_applied_rotation": true,
+    "max_material_slots": 6,
+    "require_material_slots": true
+  },
+  "bake": {
+    "normal": true,
+    "ambient_occlusion": true,
+    "curvature": true,
+    "world_space_normal": true,
+    "position": true,
+    "thickness": false,
+    "antialiasing": "SUBSAMPLING_2X2",
+    "max_frontal_distance": 0.01,
+    "max_rear_distance": 0.01
+  },
+  "export": {
+    "painter_preset": "Unity HD Render Pipeline (Metallic Standard)",
+    "normal_format": "OpenGL",
+    "mask_alpha_is_smoothness": true
+  },
+  "unity": {
+    "render_pipeline": "HDRP",
+    "shader": "HDRP/Lit",
+    "max_size": 1024,
+    "compression": "Automatic",
+    "compression_quality": "Normal",
+    "mipmaps": true,
+    "read_write": false,
+    "filter_mode": "Bilinear",
+    "npot_scale": "None",
+    "srgb_maps": ["BaseMap", "Emission"]
+  }
+}

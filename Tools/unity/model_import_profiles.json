@@ -1,0 +1,490 @@
+{
+  "m_profiles": [
+    {
+      "m_name": "fps_arms",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 1.0,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": false,
+      "m_animationType": "Generic",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": true,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportStandard",
+      "m_materialLocation": "External",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere"
+    },
+    {
+      "m_name": "static_prop",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 1.0,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportStandard",
+      "m_materialLocation": "External",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere"
+    },
+    {
+      "m_name": "static_blockout",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 0.4,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": true,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
+    },
+    {
+      "m_name": "static_prop_garage",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 2.7,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportStandard",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere"
+    },
+    {
+      "m_name": "static_environment",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 0.4,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "None",
+      "m_materialLocation": "External",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere"
+    },
+    {
+      "m_name": "static_architecture_v7",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 0.6045,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": true,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
+    },
+    {
+      "m_name": "static_greenhouse_v7",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 0.6045,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": true,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
+    },
+    {
+      "m_name": "static_garage",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 1.0,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
+    }
+  ],
+  "m_assets": [
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms.export.json",
+      "m_clipName": "Arms_HelmetOff",
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        },
+        {
+          "m_source": "HelmetShell",
+          "m_asset": "Assets/RootsDance/Materials/HelmetShell.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Props/Helmet.fbx",
+      "m_profile": "static_prop",
+      "m_manifest": "SourceArt/Export/Helmet.export.json",
+      "m_materials": [
+        {
+          "m_source": "HelmetShell",
+          "m_asset": "Assets/RootsDance/Materials/HelmetShell.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_Crawl.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_Crawl.export.json",
+      "m_clipName": "Arms_Crawl",
+      "m_loopTime": true,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_KeypadPoke.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_KeypadPoke.export.json",
+      "m_clipName": "Arms_KeypadPoke",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_StandUp.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_StandUp.export.json",
+      "m_clipName": "Arms_StandUp",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_ScannerRaise.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_ScannerRaise.export.json",
+      "m_clipName": "Arms_ScannerRaise",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_ScannerLower.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_ScannerLower.export.json",
+      "m_clipName": "Arms_ScannerLower",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_Neutral.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_Neutral.export.json",
+      "m_clipName": "Arms_Neutral",
+      "m_loopTime": true,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_Hold.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_Hold.export.json",
+      "m_clipName": "Arms_Hold",
+      "m_loopTime": true,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_GrabGround.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_GrabGround.export.json",
+      "m_clipName": "Arms_GrabGround",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Characters/Arms_Drop.fbx",
+      "m_profile": "fps_arms",
+      "m_manifest": "SourceArt/Export/Arms_Drop.export.json",
+      "m_clipName": "Arms_Drop",
+      "m_loopTime": false,
+      "m_materials": [
+        {
+          "m_source": "Arms",
+          "m_asset": "Assets/RootsDance/Materials/Arms.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Props/Scanner.fbx",
+      "m_profile": "static_prop",
+      "m_manifest": "SourceArt/Export/Scanner.export.json",
+      "m_materials": [
+        {
+          "m_source": "Scanner_1001",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1001.mat"
+        },
+        {
+          "m_source": "Scanner_1002",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1002.mat"
+        },
+        {
+          "m_source": "Scanner_1003",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1003.mat"
+        },
+        {
+          "m_source": "Scanner_1004",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1004.mat"
+        },
+        {
+          "m_source": "Scanner_1005",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1005.mat"
+        },
+        {
+          "m_source": "Scanner_1006",
+          "m_asset": "Assets/RootsDance/Materials/Scanner_1006.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/LabBlockout_V4.fbx",
+      "m_profile": "static_blockout",
+      "m_manifest": "SourceArt/Export/LabBlockout_V4.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/LabCorridor.fbx",
+      "m_profile": "static_blockout",
+      "m_manifest": "SourceArt/Export/LabCorridor.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/LabBlockout.fbx",
+      "m_profile": "static_blockout",
+      "m_manifest": "SourceArt/Export/LabBlockout.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/CarRustyOpenDoor.fbx",
+      "m_profile": "static_prop_garage",
+      "m_manifest": "SourceArt/Export/CarRustyOpenDoor.export.json",
+      "m_materials": [
+        {
+          "m_source": "Material.017",
+          "m_asset": "Assets/RootsDance/Materials/Environment/CarRustyOpenDoor.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Props/Flashlight.fbx",
+      "m_profile": "static_prop",
+      "m_manifest": "SourceArt/Export/Flashlight.export.json",
+      "m_materials": [
+        {
+          "m_source": "small_plastic_torch",
+          "m_asset": "Assets/RootsDance/Materials/Flashlight.mat"
+        },
+        {
+          "m_source": "small_plastic_torch_glass",
+          "m_asset": "Assets/RootsDance/Materials/FlashlightLens.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_PlantResearchLab.fbx",
+      "m_profile": "static_architecture_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/Briggs_PlantResearchLab.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx",
+      "m_profile": "static_greenhouse_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/Briggs_Greenhouse.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_LabCorridor01.fbx",
+      "m_profile": "static_architecture_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/Briggs_LabCorridor01.export.json",
+      "m_materials": [
+        {
+          "m_source": "LabCorridorRust",
+          "m_asset": "Assets/RootsDance/Materials/Environment/LabCorridorRust.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_LabCorridor02.fbx",
+      "m_profile": "static_architecture_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/Briggs_LabCorridor02.export.json",
+      "m_materials": [
+        {
+          "m_source": "LabCorridorRust",
+          "m_asset": "Assets/RootsDance/Materials/Environment/LabCorridorRust.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_SampleStorage.fbx",
+      "m_profile": "static_environment",
+      "m_manifest": "SourceArt/Export/GAIA1/Briggs_SampleStorage.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx",
+      "m_profile": "static_garage",
+      "m_manifest": "SourceArt/Export/Garage/GarageShell.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx",
+      "m_profile": "static_garage",
+      "m_manifest": "SourceArt/Export/Garage/BriggsInteriorWalls.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx",
+      "m_profile": "static_garage",
+      "m_manifest": "SourceArt/Export/Garage/IvyHanging.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GreenHouse.fbx",
+      "m_profile": "static_greenhouse_v7",
+      "m_manifest": "SourceArt/Export/GreenHouse.export.json",
+      "m_materials": [
+        {
+          "m_source": "GH_Metal",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseMetal.mat"
+        },
+        {
+          "m_source": "GH_Glass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseGlass.mat"
+        },
+        {
+          "m_source": "GH_StainedGlass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseStained.mat"
+        }
+      ]
+    }
+  ]
+}

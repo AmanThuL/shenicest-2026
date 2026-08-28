@@ -2,6 +2,7 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using RootsDance.App;
 using RootsDance.Events;
@@ -21,6 +22,17 @@ namespace RootsDance.Editor.Tools
         private const string k_LoadLevelRequestedPath = k_EventsFolder + "/LoadLevelRequested.asset";
         private const string k_FlagRaisedPath = k_EventsFolder + "/FlagRaised.asset";
         private const string k_ReportUpdatedPath = k_EventsFolder + "/ReportUpdated.asset";
+        private const string k_TimeOfDayChangedPath = k_EventsFolder + "/TimeOfDayChanged.asset";
+
+        /// <summary>
+        /// Batch entry point (-executeMethod). In batch mode
+        /// <see cref="EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo"/> cannot show its dialog
+        /// and returns true, so the interactive <see cref="Build"/> is safe to call as-is.
+        /// </summary>
+        public static void BuildFromCommandLine()
+        {
+            Build();
+        }
 
         [MenuItem("RootsDance/Build Bootstrap Scene")]
         public static void Build()
@@ -41,6 +53,7 @@ namespace RootsDance.Editor.Tools
             EnsureChannel<LevelEventChannelSO>(k_LoadLevelRequestedPath);
             EnsureChannel<StringEventChannelSO>(k_FlagRaisedPath);
             EnsureChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath);
+            EnsureChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath);
 
             // Re-load every channel from its path immediately before wiring. Creating an asset can
             // invalidate the instance CreateAsset handed back (an import in between reloads it), and
@@ -49,21 +62,22 @@ namespace RootsDance.Editor.Tools
                 bootstrap,
                 LoadChannel<LevelEventChannelSO>(k_LoadLevelRequestedPath),
                 LoadChannel<StringEventChannelSO>(k_FlagRaisedPath),
-                LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath));
+                LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath),
+                LoadChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath));
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
-            Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 3 channel assets, "
+            Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 4 channel assets, "
                 + "UI slot created, forbidden content removed.");
         }
 
         /// <summary>
-        /// The bootstrap scene holds no content: no geometry, no lights, no APV, no Volume. The
-        /// Directional Light here is a leftover from the Universal 3D template — the level's own
-        /// _Environment part owns the sun, and with several scenes open Unity takes lighting from
-        /// the *active* scene, so a second sun here silently competes with it.
+        /// The bootstrap scene holds no content: no geometry, no lights, no APV, no Volume. Under
+        /// HDRP the level's own _Environment part owns both the sun and the Global Volume that carries
+        /// sky, fog and exposure; with several scenes open Unity takes lighting from the *active*
+        /// scene, so a Directional Light left over here from the project template competes with it.
         /// </summary>
         private static void RemoveForbiddenContent(Scene scene)
         {
@@ -117,6 +131,20 @@ namespace RootsDance.Editor.Tools
             {
                 camera.gameObject.AddComponent<AudioListener>();
             }
+
+            // HDRP's per-camera data: the project's only Camera carries it explicitly instead of
+            // relying on HDRP to attach a default one the first time the camera renders.
+            HDAdditionalCameraData cameraData = camera.GetComponent<HDAdditionalCameraData>();
+
+            if (cameraData == null)
+            {
+                cameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+            }
+
+            cameraData.antialiasing = HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            cameraData.SMAAQuality = HDAdditionalCameraData.SMAAQualityLevel.High;
+            cameraData.dithering = true;
+            cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
         }
 
         private static GameBootstrap EnsureBootstrapRoot(Scene scene)
@@ -162,7 +190,8 @@ namespace RootsDance.Editor.Tools
         }
 
         private static void WireBootstrap(GameBootstrap bootstrap, LevelEventChannelSO loadLevelRequested,
-            StringEventChannelSO flagRaised, ReportUpdateEventChannelSO reportUpdated)
+            StringEventChannelSO flagRaised, ReportUpdateEventChannelSO reportUpdated,
+            TimeOfDayEventChannelSO timeOfDayChanged)
         {
             SerializedObject serialized = new SerializedObject(bootstrap);
 
@@ -171,6 +200,7 @@ namespace RootsDance.Editor.Tools
             serialized.FindProperty("m_loadLevelRequested").objectReferenceValue = loadLevelRequested;
             serialized.FindProperty("m_flagRaised").objectReferenceValue = flagRaised;
             serialized.FindProperty("m_reportUpdated").objectReferenceValue = reportUpdated;
+            serialized.FindProperty("m_timeOfDayChanged").objectReferenceValue = timeOfDayChanged;
 
             // m_startupLevel stays empty on purpose: there is no MainMenu scene yet, so Play always
             // starts from a level scene and GameBootstrap.Start adopts whatever is already open.

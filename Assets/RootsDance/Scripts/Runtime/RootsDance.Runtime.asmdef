@@ -5,7 +5,11 @@
         "Unity.InputSystem",
         "Unity.Cinemachine",
         "IngameDebugConsole.Runtime",
-        "DOTween.Modules"
+        "DOTween.Modules",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

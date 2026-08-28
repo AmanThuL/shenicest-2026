@@ -1,6 +1,6 @@
 # 架构文档索引（docs/architecture）
 
-《Where the Roots Dance》（Unity 6000.3.22f1 / URP 17.3 / C# 9）的架构文档入口。
+《Where the Roots Dance》（Unity 6000.3.22f1 / HDRP 17.3 / C# 9）的架构文档入口。
 
 当前运行时事实优先阅读 [运行时架构说明书](运行时架构说明书.md)；
 工程规则以 [`docs/guidelines/`](../guidelines/README.md) 为准；策划、叙事和关卡需求见
@@ -15,7 +15,7 @@ docs/architecture/
 ├── 程序组工作流与架构原则.md                 # 团队协作、单向数据流、测试边界
 ├── contracts/                              # 被代码与跨岗位协作引用的锁定规范
 ├── decisions/                              # 已落定的技术决策及取舍依据
-├── systems/                                # 当前系统和切片的实现级说明
+├── systems/                                # 当前系统和切片的实现级说明（暂空）
 ├── tooling/                                # 调试、预览和接线工具说明
 └── archive/                                # 已被当前实现取代的历史资料
 ```
@@ -37,13 +37,15 @@ docs/architecture/
 | [表现层驱动契约](contracts/表现层驱动契约.md) | gameplay 程序、技术美术 | 四个 View 接口、高亮方案与音频边界。 |
 | [美术资产交付规范](contracts/美术资产交付规范.md) | 场景美术、技术美术、gameplay 程序 | FBX 轴向、pivot、碰撞体和 prefab variant。 |
 | [UI 与前端契约](contracts/UI与前端契约.md) | 前端工程师、gameplay 程序、UI 美术 | 界面 prefab 的控件契约、频道清单和代码边界。 |
+| [手臂动画状态机](contracts/手臂动画状态机.md) | 技术美术、gameplay 程序 | ArmsRig 全部动画 clip 的骨骼覆盖、起止状态假设、衔接顺序和手腕校验规约。 |
 
 ## 当前系统
 
-| 文档 | 用途 |
-|---|---|
-| [切片 00 实施计划](systems/切片00_实施计划.md) | 切片 00 的技术范围、开工顺序、已完成文件清单和明确不做的事。 |
-| [切片 00 场景搭建与接线](systems/切片00_场景搭建与接线.md) | Editor 里需要创建和接线的资产、Layer、prefab、场景与自测步骤。 |
+| 文档 | 适用角色 | 用途 |
+|---|---|---|
+| [手臂动画统一驱动 · 实施计划](systems/手臂动画统一驱动_实施计划.md) | gameplay 程序、技术美术 | 把散装的 clip 驱动收敛成「一个 ArmsDirector + 一张 ArmsActionSO 表」：三层遮罩状态机、neutral/hold 姿势、手持物挂接与抓放时点、地面↔站立高度基准，以及 scanner 百倍缩放与 `stand_up` root 抬升两个已定位缺陷的修法。 |
+
+两份切片 00 文档已移入 [`archive/`](archive/README.md)，不再作为实现依据。
 
 ## 技术决策与研究
 
@@ -57,7 +59,10 @@ docs/architecture/
 |---|---|
 | [工具说明索引](tooling/README.md) | 调试、预览和接线工具的入口。 |
 | [Unity CLI 与 Pipeline：从 shell 驱动 Editor](tooling/unity-cli-agent-workflow.md) | 人和 AI agent 用官方 Unity CLI 跑测试/构建、对打开的 Editor 进 Play mode、读 Console、截图、eval C#、打断点的已验证流程（英文）；含 `com.unity.pipeline` 的取舍（待团队决定）和 agent 安全规则。 |
-| [Blender → Unity 导出管线](tooling/Blender到Unity导出管线.md) | 绑定/动画资产的 FBX 导出与导入设置清单、约束是否需要预先 bake 的实测结论、手持道具挂接方案，以及 D14 对蒙皮动画的补充（选项 1 对 armature 无效，提案增加选项 4）。 |
+| [Blender → Unity 导出管线](tooling/Blender到Unity导出管线.md) | 模型/绑定/动画管线：通用导出器 + JSON profile + 每资产参数、不走 `.blend` 原生导入的理由、约束不需预先 bake、手持道具的 socket 挂接，以及 D14/D15/D16 的 Unity 侧实测结果（**D15 不达标，待技术美术定**）。 |
+| [贴图管线](tooling/贴图管线.md) | Blender → Substance Painter → Unity 的贴图管线：目录与命名约定、九段流程与机器校验、预设、Painter 远程脚本协议与 API 探针、Unity 导入设置自动化、版本控制策略（**材质创作与贴花尚未实现**）。 |
+| [Dev Play：从检查点开始玩](tooling/dev-play-checkpoints.md) | Editor 专用：一键打开 Main 场景、进 Play、把玩家传送到站点并通过命令队列补齐世界状态（flag / 报告条目）；Play 中可跳到其他检查点；检查点是 `Data/DevPlay/` 下的 `DevCheckpointSO`（英文）。 |
+| [构建与打包](tooling/build-and-packaging.md) | `Tools/build/build.py`：preflight 检查 + 无头 Unity 构建 + 打包成按提交号命名的 zip；命名约定、zip 结构、profile 与玩家设置对照表（含出处）、Gatekeeper 隔离说明（英文；**Windows 路径未经实测**）。 |
 
 ## 历史资料
 

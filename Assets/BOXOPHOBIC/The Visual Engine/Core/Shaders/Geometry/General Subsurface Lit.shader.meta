@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: a933075b367f9b24981408633f72ff34
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Geometry/General Subsurface
+    Lit.shader
+  uploadId: 974988
