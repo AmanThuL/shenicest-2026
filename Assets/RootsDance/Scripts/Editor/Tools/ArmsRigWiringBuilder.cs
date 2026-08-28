@@ -89,7 +89,6 @@ namespace RootsDance.EditorTools
 
             ArmsHeightRig height = Ensure<ArmsHeightRig>(arms, log);
             SetObjectField(height, "m_standingLocalY", 0f);
-            SetObjectField(offset, "m_height", height);
 
             ArmsDirector director = Ensure<ArmsDirector>(arms, log);
             SetObjectField(director, "m_actions", set);

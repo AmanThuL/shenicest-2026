@@ -1028,19 +1028,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0006000001
+      value: -0.00059999974
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1216,6 +1216,7 @@ GameObject:
   - component: {fileID: 1078182040}
   - component: {fileID: 1078182039}
   - component: {fileID: 1078182038}
+  - component: {fileID: 1078182043}
   m_Layer: 0
   m_Name: HelmetHudCanvas
   m_TagString: Untagged
@@ -1352,6 +1353,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1078182043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078182037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f39af939a675d4513951b0a444ed3c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.CurvedHudKeeper
 --- !u!1 &1255309274
 GameObject:
   m_ObjectHideFlags: 0
@@ -2286,7 +2299,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsHeightRig
   m_standingLocalY: 0
-  m_playerHeight: 1.75
+  m_playerHeight: 0.98
   m_groundOffset: 0.35
   m_riseCurve:
     serializedVersion: 2

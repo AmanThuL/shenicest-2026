@@ -256,6 +256,10 @@ namespace RootsDance.Editor.Tools
                     + "the visor will not react to the removal. Rebuild after adding the rig.");
             }
 
+            // Without this the readouts render flat whenever a text rebuild loses the race with
+            // the curve library's once-per-frame guard.
+            canvasGo.AddComponent<RootsDance.UI.CurvedHudKeeper>();
+
             HelmetHudView hudView = canvasGo.AddComponent<HelmetHudView>();
             SerializedObject serialized = new SerializedObject(hudView);
             serialized.FindProperty("m_helmetViewBehaviour").objectReferenceValue = helmetView;
