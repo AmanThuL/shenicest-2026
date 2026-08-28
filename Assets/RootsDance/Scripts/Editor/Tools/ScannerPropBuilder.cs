@@ -86,7 +86,15 @@ namespace RootsDance.EditorTools
 
             GameObject canvas = (GameObject)PrefabUtility.InstantiatePrefab(screenPrefab);
             canvas.transform.SetParent(anchor, false);
-            canvas.GetComponent<ScannerScreenSurface>().Apply();
+
+            // Point the surface at the plate it is drawn on, so the canvas measures the art rather
+            // than a number typed in when the art happened to be a different size.
+            ScannerScreenSurface surface = canvas.GetComponent<ScannerScreenSurface>();
+            SerializedObject surfaceSerialized = new SerializedObject(surface);
+            surfaceSerialized.FindProperty("m_plate").objectReferenceValue =
+                screen.GetComponent<Renderer>();
+            surfaceSerialized.ApplyModifiedPropertiesWithoutUndo();
+            surface.Apply();
 
             GameObject cameraGo = new GameObject(k_CameraName);
             cameraGo.transform.SetParent(anchor, false);

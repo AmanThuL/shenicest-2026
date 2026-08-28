@@ -133,13 +133,18 @@ namespace RootsDance.EditorTools
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.12f, m_key = Key.P,
                 },
 
+                // One press, one cycle. The clip's first and last frames are identical, so holding
+                // the last frame leaves the body exactly where the cycle began — press again for
+                // another stride, or stand up. Looping it instead would make the key a toggle,
+                // which is not what a single stride should feel like.
                 // No authored way into the crawl pose yet, so the gate is off for this one.
                 new Row
                 {
                     m_id = "crawl", m_model = arms + "Arms_Crawl.fbx", m_clip = "Arms_Crawl",
-                    m_scope = ArmsScope.Both, m_loop = true, m_gate = false,
+                    m_scope = ArmsScope.Both, m_loop = false, m_gate = false,
                     m_required = ArmsPose.CrawlPose, m_result = ArmsPose.CrawlPose,
-                    m_height = ArmsHeightBase.Ground, m_fadeIn = 0.2f, m_key = Key.C,
+                    m_hold = true, m_height = ArmsHeightBase.Ground,
+                    m_fadeIn = 0.2f, m_key = Key.N,
                 },
                 new Row
                 {

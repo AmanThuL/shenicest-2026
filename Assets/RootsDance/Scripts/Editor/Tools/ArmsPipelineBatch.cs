@@ -94,6 +94,54 @@ namespace RootsDance.EditorTools
             Debug.Log(sb.ToString());
         }
 
+        /// <summary>
+        /// Rebuilds the action set and controller, then reports how each action will actually be
+        /// driven — whether it loops, whether it holds, and what the underlying clip's own loop
+        /// flag says. The clip's flag wins over the table's: a clip imported as looping keeps
+        /// wrapping no matter what the director thinks, which turns a one-shot key into a toggle.
+        /// </summary>
+        public static void RebuildAndReportLooping()
+        {
+            AssetDatabase.Refresh();
+
+            foreach (string guid in AssetDatabase.FindAssets(
+                "t:Model", new[] { "Assets/RootsDance/Meshes/Characters" }))
+            {
+                AssetDatabase.ImportAsset(
+                    AssetDatabase.GUIDToAssetPath(guid), ImportAssetOptions.ForceUpdate);
+            }
+
+            AssetDatabase.SaveAssets();
+            ArmsControllerBuilder.CreateActionSet();
+            ArmsControllerBuilder.BuildController();
+            AssetDatabase.SaveAssets();
+
+            var set = AssetDatabase.LoadAssetAtPath<ArmsActionSetSO>(
+                "Assets/RootsDance/Data/Arms/PlayerArmsActions.asset");
+            var sb = new StringBuilder("LOOPING REPORT\n");
+
+            foreach (ArmsActionSO action in set.Actions)
+            {
+                if (action == null)
+                {
+                    continue;
+                }
+
+                bool clipLoops = action.Clip != null && action.Clip.isLooping;
+                string verdict = clipLoops
+                    ? "runs forever (toggle)"
+                    : action.HoldAfterFinish ? "plays once, holds" : "plays once, returns";
+
+                sb.Append("  ").Append(action.Id.PadRight(14))
+                    .Append("table.loop=").Append(action.Loop.ToString().PadRight(6))
+                    .Append("clip.isLooping=").Append(clipLoops.ToString().PadRight(6))
+                    .Append("hold=").Append(action.HoldAfterFinish.ToString().PadRight(6))
+                    .AppendLine(verdict);
+            }
+
+            Debug.Log(sb.ToString());
+        }
+
         /// <summary>Wires, measures, and saves — the batch equivalent of doing it by hand.</summary>
         public static void WireMeasureAndSave()
         {
