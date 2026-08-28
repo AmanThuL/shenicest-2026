@@ -23,6 +23,13 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_HelmetRemoved,
                     WorldFlags.k_EnteredGrassBelt,
                     WorldFlags.k_FirstInvestigationDone,
+                    WorldFlags.k_MainEntranceBlocked,
+                    WorldFlags.k_MainEntranceSignRead,
+                    WorldFlags.k_ResearchFacilityPosterRead,
+                    WorldFlags.k_AshleafVineScanned,
+                    WorldFlags.k_FineVeinedVineScanned,
+                    WorldFlags.k_VineGrowthDirectionObserved,
+                    WorldFlags.k_MaintenanceEntranceRevealed,
                 },
                 all);
         }

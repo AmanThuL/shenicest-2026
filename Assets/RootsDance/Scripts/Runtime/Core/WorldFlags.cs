@@ -27,5 +27,26 @@ namespace RootsDance.Core
 
         /// <summary>First investigation of any kind completed (node 00-07).</summary>
         public const string k_FirstInvestigationDone = "flow.first_investigation_done";
+
+        /// <summary>The player confirmed that the research facility's main entrance is blocked (node 00-09).</summary>
+        public const string k_MainEntranceBlocked = "flow.main_entrance_blocked";
+
+        /// <summary>The downward main-entrance sign has been examined (node 00-10).</summary>
+        public const string k_MainEntranceSignRead = "flow.main_entrance_sign_read";
+
+        /// <summary>The Briggs botanical-garden poster has been examined (node 00-11).</summary>
+        public const string k_ResearchFacilityPosterRead = "flow.research_facility_poster_read";
+
+        /// <summary>Ashleaf vine has been scanned into the biological report (node 00-12).</summary>
+        public const string k_AshleafVineScanned = "flow.ashleaf_vine_scanned";
+
+        /// <summary>Fine-veined vine has been scanned into the biological report (node 00-13).</summary>
+        public const string k_FineVeinedVineScanned = "flow.fine_veined_vine_scanned";
+
+        /// <summary>The player connected the fine vine's growth direction to the service hardware (node 00-14).</summary>
+        public const string k_VineGrowthDirectionObserved = "flow.vine_growth_direction_observed";
+
+        /// <summary>The maintenance-entrance vine cover has been moved aside (node 00-15).</summary>
+        public const string k_MaintenanceEntranceRevealed = "flow.maintenance_entrance_revealed";
     }
 }

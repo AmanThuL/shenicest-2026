@@ -115,14 +115,14 @@ namespace RootsDance.Editor.Terrain
         /// local half size (33.05, 35.70) at import scale 0.4 plus a 6 m margin. The greybox builder
         /// overwrites it with the value it derives from the lab's own bounds.
         /// </summary>
-        public Vector2 TerraceHalfExtents = new Vector2(39.05f, 41.71f);
+        public Vector2 TerraceHalfExtents = new Vector2(44.5f, 31.5f);
 
         /// <summary>
         /// Yaw of the lab terrace around world Y, in degrees, with the <c>Quaternion.Euler(0, yaw, 0)</c>
         /// convention (the terrace's local +X is that rotation applied to world +X). The greybox builder
         /// overwrites it with the lab's yaw when it derives the terrace from the lab blockout.
         /// </summary>
-        public float TerraceYawDegrees = -45f;
+        public float TerraceYawDegrees;
 
         /// <summary>Corner radius of the rounded terrace rectangle, in metres.</summary>
         public float TerraceCornerRadius = 12f;
@@ -205,14 +205,14 @@ namespace RootsDance.Editor.Terrain
                 // short of the (-7, 4) ridge node, so the first climb and its slope test are untouched.
                 new FlatSpot { Center = new Vector2(1.5f, -11f), Radius = 9.5f, Blend = 5.5f, Height = 3f },
                 new FlatSpot { Center = new Vector2(-12f, 39f), Radius = 4f, Blend = 6f, Height = 6f },
-                // Service pit east of the lab, outside the terrace outline (its edge is ~7.8 m away).
-                new FlatSpot { Center = new Vector2(52f, 108f), Radius = 5f, Blend = 6f, Height = 4f },
+                // The maintenance entrance sits below Greenhouse Door12's main floor. A local cut at Y=5
+                // makes the sign's "down" clue spatially true without moving any building in the Gaia group.
+                new FlatSpot { Center = new Vector2(21.8f, 137.5f), Radius = 3f, Blend = 6f, Height = 5f },
             };
 
-            // Nodes up to (0, 66) are the opening route and must stay bit-identical; from there the
-            // corridor climbs onto the terrace and runs to the gate at the south end of the portal corridor.
-            // The climb must reach terrace height before the corridor enters the lab's footprint: the
-            // lab's south corner sits at about (1.9, 77.4), so the first node at 7 m is placed south of it.
+            // Nodes up to (0, 66) are the opening route and stay bit-identical. From there the path is
+            // checkpoint-led: the facility-view station frames the fixed Gaia complex, then the route
+            // approaches the blocked main entrance without exposing the maintenance clue branch early.
             HeightPath mainRoute = new HeightPath
             {
                 HalfWidth = 2.5f,
@@ -226,31 +226,48 @@ namespace RootsDance.Editor.Terrain
                     new PathNode { Position = new Vector2(-12f, 39f), Height = 6f },
                     new PathNode { Position = new Vector2(-6f, 52f),  Height = 5f },
                     new PathNode { Position = new Vector2(0f, 66f),   Height = 6.4f },
-                    new PathNode { Position = new Vector2(2f, 75f),   Height = 7f },
-                    new PathNode { Position = new Vector2(9f, 87f),   Height = 7f },
-                    new PathNode { Position = new Vector2(24f, 106f), Height = 7f },
+                    new PathNode { Position = new Vector2(1.5f, 73.5f), Height = 6.8f },
+                    new PathNode { Position = new Vector2(4f, 88f), Height = 7f },
+                    new PathNode { Position = new Vector2(7f, 103f), Height = 7f },
+                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
                 }
             };
 
-            // Branches off the main route along the lab's south-east side, held at terrace height until it
-            // is clear of the building footprint, then drops into the service pit. The descent starts on
-            // the terrace lip, 6 m outside the lab's local bounds, so the corridor's 5 m influence
-            // (HalfWidth 2 + Blend 3) never reaches under the building.
-            HeightPath serviceRing = new HeightPath
+            // A short narrative spur makes the sign and poster optional discoveries after the player has
+            // understood that the main entrance is blocked. It deliberately does not connect to the clue
+            // path at its far end, so the building perimeter reads as exploration rather than a racetrack.
+            HeightPath narrativeSpur = new HeightPath
             {
                 HalfWidth = 2f,
                 Blend = 3f,
                 Nodes = new[]
                 {
-                    new PathNode { Position = new Vector2(9f, 87f),   Height = 7f },
-                    new PathNode { Position = new Vector2(20f, 96f),  Height = 7f },
-                    new PathNode { Position = new Vector2(36f, 105f), Height = 7f },
-                    new PathNode { Position = new Vector2(44f, 106f), Height = 5.5f },
-                    new PathNode { Position = new Vector2(52f, 108f), Height = 4f },
+                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
+                    new PathNode { Position = new Vector2(7.03f, 115.759f), Height = 7f },
+                    new PathNode { Position = new Vector2(1f, 113.8f), Height = 7f },
+                    new PathNode { Position = new Vector2(-4.637f, 114.699f), Height = 7f },
                 }
             };
 
-            parameters.Paths = new[] { mainRoute, serviceRing };
+            // The actual puzzle route starts at the failed main entrance. Every bend is a gameplay station:
+            // common ashleaf vine, distinct fine-veined vine, growth-direction/fan view, covered entrance,
+            // then the revealed maintenance door. No branch exists before the main-entrance checkpoint.
+            HeightPath clueRoute = new HeightPath
+            {
+                HalfWidth = 2.25f,
+                Blend = 3f,
+                Nodes = new[]
+                {
+                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
+                    new PathNode { Position = new Vector2(12.334f, 123.184f), Height = 7f },
+                    new PathNode { Position = new Vector2(15f, 127.8f), Height = 6.8f },
+                    new PathNode { Position = new Vector2(19.435f, 133.774f), Height = 6.3f },
+                    new PathNode { Position = new Vector2(20.7f, 135.8f), Height = 6f },
+                    new PathNode { Position = new Vector2(21.8f, 137.5f), Height = 5f },
+                }
+            };
+
+            parameters.Paths = new[] { mainRoute, narrativeSpur, clueRoute };
 
             return parameters;
         }

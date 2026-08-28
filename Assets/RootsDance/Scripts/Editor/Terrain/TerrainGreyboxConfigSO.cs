@@ -75,7 +75,7 @@ namespace RootsDance.Editor.Terrain
         private Vector3 m_labPosition = new Vector3(0f, 7f, 112f);
 
         [SerializeField, TitleGroup("Lab Blockout")]
-        private float m_labYawDegrees = -45f;
+        private float m_labYawDegrees;
 
         [SerializeField, TitleGroup("Lab Blockout"), Min(0f)]
         [Tooltip("Distance from the model's lowest point up to its main floor slab, in metres (on the "
@@ -112,8 +112,8 @@ namespace RootsDance.Editor.Terrain
         public Vector3 LabPosition => m_labPosition;
 
         /// <summary>
-        /// Yaw of the lab, in degrees. -45 turns the V2 model's Blender -X-Y diagonal (the portal
-        /// corridor) towards the -Z approach.
+        /// Yaw of the legacy lab blockout, in degrees. The current Gaia facility is a locked group in the
+        /// scene and no longer derives its placement from this field.
         /// </summary>
         public float LabYawDegrees => m_labYawDegrees;
 
@@ -178,24 +178,25 @@ namespace RootsDance.Editor.Terrain
         }
 
         /// <summary>
-        /// The Chapter-00 checkpoints around the Gaia v7 research facility. The wake spawn and the
+        /// The Chapter-00 checkpoints around the Gaia v8 research facility. The wake spawn and the
         /// non-playable facility reference points are not checkpoint anchors.
         /// </summary>
-        /// <returns>A new array of the ten Chapter-00 checkpoint anchors from 00-07 through 00-16.</returns>
+        /// <returns>A new array of the eleven Chapter-00 checkpoint anchors from 00-06 through 00-16.</returns>
         public static AnchorDefinition[] CreateDefaultAnchors()
         {
             return new[]
             {
+                new AnchorDefinition("Anchor_00-06_GrassBelt", new Vector3(-16f, 0f, 28f)),
                 new AnchorDefinition("Anchor_00-07_FirstToolUse", new Vector3(-12f, 0f, 39f)),
-                new AnchorDefinition("Anchor_00-08_ResearchFacilityView", new Vector3(0.473f, 0f, 85.366f)),
+                new AnchorDefinition("Anchor_00-08_ResearchFacilityView", new Vector3(1.5f, 0f, 73.5f)),
                 new AnchorDefinition("Anchor_00-09_BlockedMainEntrance", new Vector3(9.505f, 0f, 118.941f)),
                 new AnchorDefinition("Anchor_00-10_MainEntranceSign", new Vector3(7.030f, 0f, 115.759f)),
                 new AnchorDefinition("Anchor_00-11_ResearchFacilityPoster", new Vector3(-4.637f, 0f, 114.699f)),
                 new AnchorDefinition("Anchor_00-12_AshleafVine", new Vector3(12.334f, 0f, 123.184f)),
-                new AnchorDefinition("Anchor_00-13_FineVeinedVine", new Vector3(13.394f, 0f, 124.952f)),
+                new AnchorDefinition("Anchor_00-13_FineVeinedVine", new Vector3(15f, 0f, 127.8f)),
                 new AnchorDefinition("Anchor_00-14_VineGrowthDirection", new Vector3(19.435f, 0f, 133.774f)),
-                new AnchorDefinition("Anchor_00-15_ClearAshleafVine", new Vector3(23.538f, 0f, 139.749f)),
-                new AnchorDefinition("Anchor_00-16_MaintenanceEntrance", new Vector3(24.237f, 0f, 140.785f)),
+                new AnchorDefinition("Anchor_00-15_ClearAshleafVine", new Vector3(20.7f, 7f, 135.8f), true),
+                new AnchorDefinition("Anchor_00-16_MaintenanceEntrance", new Vector3(20.7f, 7f, 135.8f), true),
             };
         }
 

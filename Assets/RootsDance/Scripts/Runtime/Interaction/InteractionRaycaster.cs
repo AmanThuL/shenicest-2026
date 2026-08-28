@@ -27,6 +27,7 @@ namespace RootsDance.Interaction
 
         private IInteractable m_focused;
         private IInteractableView m_focusedView;
+        private string m_lastPrompt = string.Empty;
 
         private void Update()
         {
@@ -81,6 +82,7 @@ namespace RootsDance.Interaction
 
             if (ReferenceEquals(hitInteractable, m_focused))
             {
+                PublishPromptIfChanged();
                 return;
             }
 
@@ -97,11 +99,21 @@ namespace RootsDance.Interaction
                 m_focusedView.SetFocused(true);
             }
 
-            if (m_promptChanged != null)
+            PublishPromptIfChanged();
+        }
+
+        private void PublishPromptIfChanged()
+        {
+            bool showPrompt = m_focused != null && m_focused.CanInteract;
+            string prompt = showPrompt ? m_focused.PromptText : string.Empty;
+
+            if (prompt == m_lastPrompt)
             {
-                bool showPrompt = m_focused != null && m_focused.CanInteract;
-                m_promptChanged.RaiseEvent(showPrompt ? m_focused.PromptText : string.Empty);
+                return;
             }
+
+            m_lastPrompt = prompt;
+            m_promptChanged?.RaiseEvent(prompt);
         }
     }
 }

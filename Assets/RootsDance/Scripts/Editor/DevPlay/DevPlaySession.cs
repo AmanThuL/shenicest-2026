@@ -322,7 +322,8 @@ namespace RootsDance.Editor.DevPlay
 
             if (anchor != null)
             {
-                basePosition = anchor.position;
+                basePosition = DevCheckpointSeed.ResolveBasePosition(
+                    checkpoint.Position, true, anchor.position, checkpoint.UseAnchorHeight);
             }
             else if (!string.IsNullOrEmpty(checkpoint.AnchorName))
             {
@@ -331,7 +332,8 @@ namespace RootsDance.Editor.DevPlay
             }
 
             float groundY = 0f;
-            bool groundFound = checkpoint.SnapToGround && TryFindGround(basePosition, player.transform, out groundY);
+            bool groundFound = checkpoint.SnapToGround
+                && TryFindGround(basePosition, player.transform, checkpoint.GroundLayers, out groundY);
 
             Vector3 position = DevCheckpointSeed.ResolvePosition(
                 basePosition, groundFound, groundY, checkpoint.GroundClearance);
@@ -419,12 +421,13 @@ namespace RootsDance.Editor.DevPlay
             return null;
         }
 
-        /// <summary>Highest solid surface under the target, ignoring triggers and the Player's own colliders.</summary>
-        private static bool TryFindGround(Vector3 basePosition, Transform player, out float groundY)
+        /// <summary>Highest allowed ground surface under the target, ignoring triggers and the Player.</summary>
+        private static bool TryFindGround(
+            Vector3 basePosition, Transform player, LayerMask groundLayers, out float groundY)
         {
             Vector3 origin = basePosition + Vector3.up * k_GroundProbeHeight;
             RaycastHit[] hits = Physics.RaycastAll(
-                origin, Vector3.down, k_GroundProbeDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+                origin, Vector3.down, k_GroundProbeDistance, groundLayers, QueryTriggerInteraction.Ignore);
             bool found = false;
             groundY = float.MinValue;
 

@@ -10,13 +10,29 @@ namespace RootsDance.Tests.EditMode.Terrain
 
         [TestCase(0f, -10f, 3f, TestName = "wake lowland")]
         [TestCase(-12f, 39f, 6f, TestName = "grass platform")]
-        [TestCase(24f, 106f, 7f, TestName = "main gate terrace")]
-        [TestCase(52f, 108f, 4f, TestName = "service entrance pocket")]
+        [TestCase(9.505f, 118.941f, 7f, TestName = "main gate terrace")]
+        [TestCase(21.8f, 137.5f, 5f, TestName = "service entrance landing")]
         [TestCase(0f, 126f, 7f, TestName = "lab centre")]
         public void SampleWorldHeight_SpecAnchor_MatchesSpecHeight(float x, float z, float expected)
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             Assert.AreEqual(expected, TerrainHeightmapGenerator.SampleWorldHeight(p, x, z), k_Tolerance);
+        }
+
+        [Test]
+        public void CreateDefault_FacilityLayout_UsesLockedGaiaTerraceAndCheckpointLedBranches()
+        {
+            TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
+
+            Assert.AreEqual(Vector2.zero + new Vector2(0f, 126f), p.TerraceCenter);
+            Assert.AreEqual(new Vector2(44.5f, 31.5f), p.TerraceHalfExtents);
+            Assert.AreEqual(0f, p.TerraceYawDegrees);
+            Assert.AreEqual(3, p.Paths.Length, "main, narrative spur, and clue route must stay distinct");
+            Assert.AreEqual(new Vector2(9.505f, 118.941f), p.Paths[1].Nodes[0].Position);
+            Assert.AreEqual(p.Paths[1].Nodes[0].Position, p.Paths[2].Nodes[0].Position,
+                "both optional branches start only after the blocked main entrance");
+            Assert.AreEqual(new Vector2(20.7f, 135.8f), p.Paths[2].Nodes[^2].Position);
+            Assert.AreEqual(new Vector2(21.8f, 137.5f), p.Paths[2].Nodes[^1].Position);
         }
 
         [Test]
@@ -34,19 +50,14 @@ namespace RootsDance.Tests.EditMode.Terrain
         public void SampleWorldHeight_InsideTerrace_IsExactlyTerraceHeight()
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
-            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, 10f, 126f), 1e-3f);
-            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, -15f, 118f), 1e-3f);
+            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, -20f, 130f), 1e-3f);
+            Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, -15f, 125f), 1e-3f);
         }
 
         /// <summary>
-        /// Regression test for the sunken service bay that used to punch a 3 m pit through the terrace
-        /// under the lab: nothing (pit, service ring falloff) may disturb the terrace inside the
-        /// building's footprint. The lab is a local box yawed by the terrace yaw, and the terrace is that
-        /// box plus a fixed margin, so the footprint's half extents are derived from the params (terrace
-        /// half extents minus the margin) and follow a rescaled import. The grid walks the lab's local OBB
-        /// and maps every sample into world XZ the way the builder places the model:
-        /// <c>TerraceCenter + Euler(0, yaw, 0) * local</c>. Both height paths end or pass close to the
-        /// footprint, so this also pins their ramps to terrace height inside it.
+        /// The facility's structural footprint stays on the terrace except for the explicitly authored
+        /// service approach beneath Greenhouse Door12. The exclusion follows the clue path and its local
+        /// landing rather than weakening the assertion across the rest of the buildings.
         /// </summary>
         [Test]
         public void SampleWorldHeight_InsideLabFootprint_IsTerraceHeight()
@@ -68,6 +79,19 @@ namespace RootsDance.Tests.EditMode.Terrain
                     Vector3 offset = rotation * new Vector3(lx, 0f, lz);
                     float x = p.TerraceCenter.x + offset.x;
                     float z = p.TerraceCenter.y + offset.z;
+                    Vector2 point = new Vector2(x, z);
+                    float routeHeight;
+                    float clueDistance = TerrainHeightmapGenerator.DistanceToPolyline(
+                        p.Paths[2].Nodes, point, out routeHeight);
+                    FlatSpot landing = p.FlatSpots[2];
+                    float landingDistance = Vector2.Distance(point, landing.Center);
+
+                    if (clueDistance <= p.Paths[2].HalfWidth + p.Paths[2].Blend
+                        || landingDistance <= landing.Radius + landing.Blend)
+                    {
+                        continue;
+                    }
+
                     Assert.AreEqual(p.TerraceHeight, TerrainHeightmapGenerator.SampleWorldHeight(p, x, z),
                         1e-3f, $"lab footprint sample local ({lx:F1}, {lz:F1}) = world ({x:F1}, {z:F1})");
                 }
@@ -75,16 +99,17 @@ namespace RootsDance.Tests.EditMode.Terrain
         }
 
         /// <summary>
-        /// The service pit must stay clear of the terrace: its flattened core (radius + blend) may not
-        /// overlap the terrace outline, otherwise it punches a hole into the lab's floor.
+        /// The service landing is an intentional cut into the terrace edge below Greenhouse Door12.
+        /// Its centre must be inside the facility apron while its small core remains local.
         /// </summary>
         [Test]
-        public void ServicePit_Core_LiesOutsideTheTerrace()
+        public void ServiceLanding_Core_IsLocalAndTouchesTerraceEdge()
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             FlatSpot pit = p.FlatSpots[2];
             float distance = TerrainHeightmapGenerator.TerraceSignedDistance(p, pit.Center.x, pit.Center.y);
-            Assert.Greater(distance, pit.Radius, "the pit core reaches under the terrace");
+            Assert.LessOrEqual(pit.Radius, 3f, "the landing must not become a broad under-building pit");
+            Assert.Less(distance, 0f, "the landing must cut the terrace edge below the greenhouse door");
         }
 
         [Test]

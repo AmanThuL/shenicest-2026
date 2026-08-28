@@ -210,5 +210,33 @@ namespace RootsDance.Tests.PlayMode.Scanner
 
             Assert.IsNull(m_trigger.InReach, "A one-shot sample stops offering once it is read.");
         }
+
+        [UnityTest]
+        public IEnumerator Target_MarkedTwice_RaisesCompletedEventOnce()
+        {
+            int completedCount = 0;
+            m_target.Scanned += _ => completedCount++;
+
+            m_target.MarkScanned();
+            m_target.MarkScanned();
+            yield return null;
+
+            Assert.AreEqual(1, completedCount,
+                "Report and world-state adapters must run once even if scan completion is signalled twice.");
+        }
+
+        [UnityTest]
+        public IEnumerator Target_RestoredFromCheckpoint_DoesNotReplayCompletedEvent()
+        {
+            int completedCount = 0;
+            m_target.Scanned += _ => completedCount++;
+
+            m_target.RestoreScannedState();
+            yield return null;
+
+            Assert.IsTrue(m_target.HasBeenScanned);
+            Assert.AreEqual(0, completedCount,
+                "Checkpoint hydration must not enqueue the report and flag a second time.");
+        }
     }
 }

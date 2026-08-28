@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 396c272e9e6e54c608d0ac2906fa3a0c, type: 3}
-  m_Name: FL-001_Tanmao
+  m_Name: BOT-FL-041_Tanmao
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Investigation.InvestigationTargetSO
-  m_id: FL-001
+  m_id: BOT-FL-041
   m_kind: 1
   m_category: 1
   m_title: "\u6BEF\u8305"

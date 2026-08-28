@@ -18,7 +18,11 @@ MonoBehaviour:
   m_position: {x: 9.505, y: 7.299, z: 118.941}
   m_yaw: 0
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 2
   m_flags:
   - flow.left_start_area
@@ -29,5 +33,5 @@ MonoBehaviour:
   - flow.entered_grass_belt
   - flow.first_investigation_done
   m_recordedTargets:
-  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}

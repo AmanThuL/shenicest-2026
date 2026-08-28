@@ -18,7 +18,11 @@ MonoBehaviour:
   m_position: {x: 0, y: 3.8, z: -10}
   m_yaw: 0
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 2
   m_flags: []
   m_recordedTargets: []

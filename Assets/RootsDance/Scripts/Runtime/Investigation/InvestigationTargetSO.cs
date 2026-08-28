@@ -11,12 +11,14 @@ namespace RootsDance.Investigation
     /// </summary>
     [CreateAssetMenu(fileName = "InvestigationTarget", menuName = "RootsDance/Investigation/Target")]
     [TypeInfoBox("One investigation node: a sample or species the player can act on. IDs follow "
-        + "PREFIX-NNN (e.g. SO-001, FL-001). Sections: Basic Info → Interaction → Result → Scene Change.")]
+        + "PREFIX-NNN or DOMAIN-PREFIX-NNN (e.g. SO-001, BOT-FL-041). Sections: Basic Info → "
+        + "Interaction → Result → Scene Change.")]
     public class InvestigationTargetSO : ScriptableObject
     {
         // ---- Basic Info -----------------------------------------------------------------------
-        [SerializeField, TitleGroup("Basic Info"), Required, ValidateInput("IsValidId", "Use the form SO-001 or FL-001.")]
-        [Tooltip("Stable id printed in the report, for example SO-001 or FL-001.")]
+        [SerializeField, TitleGroup("Basic Info"), Required,
+            ValidateInput("IsValidId", "Use the form SO-001, FL-001, or BOT-FL-041.")]
+        [Tooltip("Stable id printed in the report, for example SO-001 or BOT-FL-041.")]
         private string m_id;
 
         [SerializeField, TitleGroup("Basic Info"), EnumToggleButtons]
