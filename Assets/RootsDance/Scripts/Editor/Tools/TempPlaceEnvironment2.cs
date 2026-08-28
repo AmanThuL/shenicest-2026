@@ -105,9 +105,10 @@ namespace RootsDance.EditorTools
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
-            // Re-placing the poster destroys the rune overlay parented to it, so the overlay is
-            // rebuilt here rather than left for whoever notices the runes have gone.
+            // Re-placing a prop destroys whatever was parented to it, so both overlays are rebuilt
+            // here rather than left for whoever notices the runes or the cabin walls have gone.
             FluorescentRunesBuilder.Build();
+            CarCabinColliderBuilder.Build();
 
             Debug.Log("TempPlaceEnvironment2: done.");
         }
