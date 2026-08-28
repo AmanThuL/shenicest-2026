@@ -73,9 +73,16 @@ Shader "RootsDance/UI/HelmetVisor"
         _SmudgeStrength ("Glass Smudge Strength", Range(0, 1)) = 0.35
         _SmudgeMean ("Smudge Map Scale (linear)", Range(0.005, 1)) = 0.08
 
-        // Only meaningful edge to edge: how much of the middle of the view stays clean. Measured
-        // in the same aspect-corrected units as the opening, where the corner sits at about 1.02.
-        _SmudgeCenterClear ("Smudge Centre Clear Radius", Range(0, 1)) = 0.35
+        // Grime is scattered light, so it reads by being brighter than what is behind it. The old
+        // value was a mid grey that happened to match a grey environment exactly, which made the
+        // smudges measurably invisible however strong they were.
+        _SmudgeColor ("Smudge Colour", Color) = (0.88, 0.91, 0.95, 1)
+
+        // How far in from the edge of the glass the grime creeps, measured in the opening's own
+        // distance field. That field is scaled by _ShapeRange, so the deepest point of the glass
+        // sits around half of it — a reach near that value wipes the whole window instead of
+        // ringing it. Larger reaches further toward the middle of the view.
+        _SmudgeSpread ("Smudge Reach Into The Glass", Range(0.005, 0.5)) = 0.12
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -185,7 +192,8 @@ Shader "RootsDance/UI/HelmetVisor"
             float _SmudgeTiling;
             float _SmudgeStrength;
             float _SmudgeMean;
-            float _SmudgeCenterClear;
+            fixed4 _SmudgeColor;
+            float _SmudgeSpread;
 
             Varyings Vert(Attributes input)
             {
@@ -311,18 +319,25 @@ Shader "RootsDance/UI/HelmetVisor"
                     input.uv * _SmudgeTiling * float2(1.778, 1.0)).rgb,
                     float3(0.299, 0.587, 0.114)) / max(_SmudgeMean, 1e-3));
 
-                // Edge to edge there is no seal for grime to collect against, and a flat mask
-                // spreads the map over the whole view — which reads as patterned glass rather than
-                // as dirt. Grime gathers instead where the wearer neither wipes nor looks: away
-                // from the centre of the field of view.
-                float2 fromCentre = (input.uv - 0.5) * float2(1.778, 1.0);
-                float periphery = saturate((length(fromCentre) - _SmudgeCenterClear)
-                    / max(1.02 - _SmudgeCenterClear, 1e-3));
+                // Grime belongs to the glass, so it is keyed to the opening's own distance field
+                // rather than to a circle around the middle of the screen: a circle ignores the
+                // faceplate's silhouette entirely, which is how the grime ended up ringing the
+                // outside of the window — over the shell, where there is no glass to smear — while
+                // the glass itself stayed clean.
+                //
+                // The band lives strictly inside the opening: it fades up off the edge over the
+                // first third of the reach, peaks within the glass, then fades out again by
+                // `reach` further in. Smooth at both ends, so neither the outer boundary nor the
+                // inner limit ever draws a line.
+                float depthIntoGlass = max(-d, 0.0);
+                float reach = max(_SmudgeSpread, 1e-4);
+                float fadeIn = reach * 0.35;
 
-                float smudgeMask = lerp(saturate(1.0 + pixels / max(shadowPixels * 2.2, 1.0)),
-                    periphery, glassOnly) * (1.0 - frameMask);
-                float smudgeAmount = smudge * _SmudgeStrength * smudgeMask * smudgeMask;
-                colour = lerp(colour, float3(0.62, 0.67, 0.70), saturate(smudgeAmount * 2.0));
+                float smudgeMask = smoothstep(0.0, fadeIn, depthIntoGlass)
+                    * (1.0 - smoothstep(fadeIn, reach, depthIntoGlass))
+                    * (1.0 - frameMask);
+                float smudgeAmount = smudge * _SmudgeStrength * smudgeMask;
+                colour = lerp(colour, _SmudgeColor.rgb, saturate(smudgeAmount * 2.0));
                 alpha = saturate(alpha + smudgeAmount);
 
                 fixed4 result = fixed4(colour, alpha);

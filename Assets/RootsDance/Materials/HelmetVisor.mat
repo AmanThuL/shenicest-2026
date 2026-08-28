@@ -72,9 +72,9 @@ Material:
     - _ShellMean: 0.026
     - _ShellTexStrength: 0.85
     - _ShellTiling: 2.5
-    - _SmudgeCenterClear: 0.35
     - _SmudgeMean: 0.22
-    - _SmudgeStrength: 0.22
+    - _SmudgeSpread: 0.12
+    - _SmudgeStrength: 0.4
     - _SmudgeTiling: 0.7
     - _Stencil: 0
     - _StencilComp: 8
@@ -90,5 +90,6 @@ Material:
     - _FrameColor: {r: 0.085, g: 0.09, b: 0.098, a: 1}
     - _OpeningCenter: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _RimColor: {r: 0.34, g: 0.365, b: 0.39, a: 1}
+    - _SmudgeColor: {r: 0.88, g: 0.91, b: 0.95, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
