@@ -244,10 +244,10 @@ MonoBehaviour:
     m_Value: 0.18
   grainSize:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 3
   grainRate:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 10
   grainShadowBias:
     m_OverrideState: 1
     m_Value: 0.6

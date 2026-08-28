@@ -40,7 +40,7 @@ namespace RootsDance.Editor.Environment
         public Color ColorFilter;
         public float VignetteIntensity;
         public float BloomIntensity;
-        /// <summary>The PSX post-process override, grain included (the only grain source — no HDRP Film Grain).</summary>
+        /// <summary>The PSX post-process override, grain included (the single grain source, no Film Grain).</summary>
         public PsxLook Psx;
     }
 
@@ -304,8 +304,8 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
-        /// Grain defaults every segment shares: one grain cell per virtual pixel, re-seeded at 15 Hz (the
-        /// cadence of a VHS transfer rather than a per-frame hiss), 60 % biased into the shadows.
+        /// Grain defaults every segment shares: 3x3 virtual pixels per grain cell (chunky speckle), re-seeded at
+        /// 10 Hz (the cadence of a VHS transfer rather than a per-frame hiss), 60 % biased into the shadows.
         /// </summary>
         private static PsxLook PsxLookWithGrain(
             float intensity, int pixelScale, int colorLevels, float dither, float grainIntensity)
@@ -313,7 +313,7 @@ namespace RootsDance.Editor.Environment
             return new PsxLook
             {
                 Intensity = intensity, PixelScale = pixelScale, ColorLevels = colorLevels, Dither = dither,
-                GrainIntensity = grainIntensity, GrainSize = 1, GrainRate = 15f, GrainShadowBias = 0.6f,
+                GrainIntensity = grainIntensity, GrainSize = 3, GrainRate = 10f, GrainShadowBias = 0.6f,
             };
         }
     }
