@@ -144,7 +144,25 @@ namespace RootsDance.Editor.Tools
             view.Clips.Clear();
             view.Clips.AddRange(table);
             view.RebuildLookup();
-            view.BindBonePosition = ResolveBindBonePosition(arms, table);
+
+            Vector3 bindBone = ResolveBindBonePosition(arms, table);
+            view.BindBonePosition = bindBone;
+
+            // The anchor exists to land the rig's bind-pose eye on the head pivot, so it is the
+            // negation of the bind bone through the anchored rotation — a derived value, not a
+            // taste one (taste lives in the shared offset and the per-clip tweaks, which are
+            // carried across untouched). Re-derive it whenever the rig has moved underneath it:
+            // changing the export's unit handling shifts the bind pose, and a stale anchor then
+            // frames the arms below the view where they cannot be seen.
+            Vector3 derivedAnchor = -(Quaternion.Euler(baseRotation) * bindBone);
+
+            if (Vector3.Distance(derivedAnchor, basePosition) > 0.001f)
+            {
+                Debug.Log($"ArmsFramingBuilder: anchor re-derived {basePosition:F4} -> "
+                    + $"{derivedAnchor:F4}; the rig's bind pose moved.");
+                basePosition = derivedAnchor;
+                view.BasePosition = basePosition;
+            }
 
             if (string.IsNullOrEmpty(view.PreviewState) && table.Count > 0)
             {
