@@ -59,10 +59,12 @@ Play and use **Play here** again. Teleporting into a `TriggerVolume` raises that
 **Time of day is the carve-out.** It is a discrete world-state *value*, not a flag, and it is not monotonic: **Go
 here** on a checkpoint whose Time of day is `Day` or `Night` really does switch the world, in both directions, as
 often as you like. `Level Default` is the opt-out and stays value 0, so a checkpoint authored before this field
-existed still means "leave the level alone". Every default checkpoint is `Night`, because the whole pre-lab route
-(00-01 … 00-16) plays at night; `RootsDance > Dev Play > Set All Checkpoints To Night` rewrites the committed assets
-in place (Create Default Checkpoints never overwrites an existing one). The live section of the window shows the
-current phase with **Day** / **Night** buttons that enqueue the same command by hand.
+existed still means "leave the level alone". The 00-01 … 00-16 outdoor checkpoints use `Level Default`, which now
+resolves to the Main level's yellow `PollutedDay` state; Briggs Interior checkpoints remain explicitly `Night`.
+`RootsDance > Dev Play > Set All Checkpoints To Level Default` rewrites the outdoor committed assets in place and
+skips the `BriggsInterior/` subfolder (Create Default Checkpoints never overwrites an existing one). The live section
+of the window shows the current phase with **Day** / **Polluted** / **Night** buttons that enqueue the same command
+by hand.
 
 The window also shows the live world state while playing (every `WorldFlags` id with a **Raise** button, report
 entry count) — the checkpoint dropdown and this list share `WorldFlagCatalog`, so a new flag constant appears in
@@ -92,5 +94,6 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 - `Scripts/Editor/DevPlay/DevPlaySession.cs` — open scenes, enter Play, apply.
 - `Scripts/Editor/DevPlay/DevPlayWindow.cs` — the window.
 - `Scripts/Editor/DevPlay/DevCheckpointDefaults.cs` — the default set, plus `RootsDance > Dev Play > Set All
-  Checkpoints To Night` (`SetAllTimeOfDayToNight`, no dialogs — batch-callable via `-executeMethod`).
+  Checkpoints To Level Default` (`SetAllTimeOfDayToLevelDefault`, no dialogs — batch-callable via `-executeMethod`;
+  Briggs Interior is intentionally excluded).
 - `Tests/EditMode/DevPlay/` — seed and catalog tests.
