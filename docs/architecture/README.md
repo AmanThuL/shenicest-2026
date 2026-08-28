@@ -44,6 +44,7 @@ docs/architecture/
 | 文档 | 适用角色 | 用途 |
 |---|---|---|
 | [手臂动画统一驱动 · 实施计划](systems/手臂动画统一驱动_实施计划.md) | gameplay 程序、技术美术 | 把散装的 clip 驱动收敛成「一个 ArmsDirector + 一张 ArmsActionSO 表」：三层遮罩状态机、neutral/hold 姿势、手持物挂接与抓放时点、地面↔站立高度基准，以及 scanner 百倍缩放与 `stand_up` root 抬升两个已定位缺陷的修法。 |
+| [音频管线](systems/音频管线.md) | gameplay 程序、前端工程师、技术美术 | 一份 `AudioCueSO` + 一个监听组件 + 一个对象池导演：频道驱动的发声路径、按文件夹决定的导入设置、唯一 Mixer 的手工创建步骤与校验入口、环境床与音乐的交叉淡入。 |
 
 两份切片 00 文档已移入 [`archive/`](archive/README.md)，不再作为实现依据。
 
