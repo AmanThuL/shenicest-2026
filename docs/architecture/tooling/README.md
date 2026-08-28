@@ -20,7 +20,7 @@ D14/D15/D16 的 Unity 侧实测结果，见
 [贴图管线.md](贴图管线.md)（2026-08-26；三段均已实测跑通，Painter 12.1.2，无 GUI 自动化；
 **材质创作与贴花尚未实现**）。
 
-从任意检查点开始玩（快速迭代，跳过启动画面和主菜单）：`RootsDance > Dev Play > Window` 一键打开 Main 的两个场景、进
+从任意检查点开始玩（快速迭代，跳过启动画面和主菜单）：`RootsDance > Dev Play > Window` 一键打开检查点所属 LevelSO 的场景、进
 Play、把玩家放到某个站点并按命令队列补齐此前应有的世界状态（flag、报告条目）；Play 中可直接跳到别的检查点；也可从 shell
 调用。见 [dev-play-checkpoints.md](dev-play-checkpoints.md)（英文；2026-08-27）。
 

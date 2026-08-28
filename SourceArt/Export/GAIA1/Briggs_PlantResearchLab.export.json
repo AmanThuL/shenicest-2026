@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_PlantResearchLab.fbx",
-  "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v7.blend",
-  "m_blendModifiedUtc": "2026-08-28T16:39:00+00:00",
+  "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v8.blend",
+  "m_blendModifiedUtc": "2026-08-28T17:46:18+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -47,11 +47,8 @@
     "Mesh279 WIN18 Group24 Group19 Group2 Group1 Model",
     "Mesh289 Group25 Group2 Group1 Model"
   ],
-  "m_excludedObjects": [
-    "Mesh129 WIN1_9 Group13 Group9 Group2 Group1 Model",
-    "Mesh135 WIN9 Group13 Group9 Group2 Group1 Model"
-  ],
+  "m_excludedObjects": [],
   "m_blenderVersion": "5.2.1 LTS",
   "m_profile": "Tools/blender/profiles/static_prop.json",
-  "m_exportedUtc": "2026-08-28T17:09:04+00:00"
+  "m_exportedUtc": "2026-08-28T18:15:35+00:00"
 }

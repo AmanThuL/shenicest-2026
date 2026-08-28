@@ -77,21 +77,28 @@ namespace RootsDance.EditorTools
                 "Assets/RootsDance/Textures/Environment",
                 "GreenHouseMetal",
                 false,
-                0.22f),
+                1.00f,
+                1f,
+                metallic: 0.55f,
+                colorMultiplier: 2.2f),
             new Spec(
                 "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseGlass.mat",
                 "Assets/RootsDance/Textures/Environment",
                 "GreenHouseGlass",
                 true,
-                0.16f,
-                0.30f),
+                0.80f,
+                0.55f,
+                ior: 1.45f,
+                refractionModel: 3f,
+                colorMultiplier: 2.2f),
             new Spec(
                 "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseStained.mat",
                 "Assets/RootsDance/Textures/Environment",
                 "GreenHouseStained",
-                true,
-                0.16f,
-                0.62f),
+                false,
+                0.50f,
+                1f,
+                colorMultiplier: 3f),
         };
 
         [MenuItem("RootsDance/Build Prop Materials")]
@@ -146,6 +153,9 @@ namespace RootsDance.EditorTools
             material.SetTexture(k_BaseColorMap, baseMap);
             material.SetTexture(k_MaskMap, mask);
             material.SetTexture(k_NormalMap, normal);
+            material.SetFloat(k_Metallic, spec.Metallic);
+            material.SetFloat(k_Ior, spec.Ior);
+            material.SetFloat(k_RefractionModel, spec.RefractionModel);
 
             // Without the packed mask there is no smoothness channel to read, so the material
             // falls back to a constant.
@@ -165,12 +175,12 @@ namespace RootsDance.EditorTools
             // Surface type drives keywords and the render queue, so it goes through the HDRP
             // helper rather than a raw SetFloat; it validates the material on the way out.
             // The bakes are fully opaque, so opacity comes from the base colour's alpha.
-            if (spec.Transparent)
-            {
-                Color tint = material.GetColor(k_BaseColor);
-                tint.a = spec.Opacity;
-                material.SetColor(k_BaseColor, tint);
-            }
+            Color tint = material.GetColor(k_BaseColor);
+            tint.r = spec.ColorMultiplier;
+            tint.g = spec.ColorMultiplier;
+            tint.b = spec.ColorMultiplier;
+            tint.a = spec.Opacity;
+            material.SetColor(k_BaseColor, tint);
 
             HDMaterial.SetSurfaceType(material, spec.Transparent);
 
@@ -192,9 +202,15 @@ namespace RootsDance.EditorTools
         private readonly struct Spec
         {
             public Spec(string materialPath, string textureFolder, string textureSet,
-                bool transparent, float triplanarWorldScale = 0f, float opacity = 1f)
+                bool transparent, float triplanarWorldScale = 0f, float opacity = 1f,
+                float metallic = 0f, float ior = 1.5f, float refractionModel = 0f,
+                float colorMultiplier = 1f)
             {
+                ColorMultiplier = colorMultiplier;
+                Ior = ior;
+                Metallic = metallic;
                 Opacity = opacity;
+                RefractionModel = refractionModel;
                 MaterialPath = materialPath;
                 TextureFolder = textureFolder;
                 TextureSet = textureSet;
@@ -218,6 +234,14 @@ namespace RootsDance.EditorTools
             /// baked maps carry no alpha of their own, so glass has to state its opacity here.
             /// </summary>
             public float Opacity { get; }
+
+            public float Metallic { get; }
+
+            public float ColorMultiplier { get; }
+
+            public float Ior { get; }
+
+            public float RefractionModel { get; }
         }
 
         private static readonly int k_BaseColorMap = Shader.PropertyToID("_BaseColorMap");
@@ -225,6 +249,9 @@ namespace RootsDance.EditorTools
         private static readonly int k_NormalMap = Shader.PropertyToID("_NormalMap");
         private static readonly int k_Smoothness = Shader.PropertyToID("_Smoothness");
         private static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int k_Metallic = Shader.PropertyToID("_Metallic");
+        private static readonly int k_Ior = Shader.PropertyToID("_Ior");
+        private static readonly int k_RefractionModel = Shader.PropertyToID("_RefractionModel");
         private static readonly int k_UVBase = Shader.PropertyToID("_UVBase");
         private static readonly int k_UVDetail = Shader.PropertyToID("_UVDetail");
         private static readonly int k_TexWorldScale = Shader.PropertyToID("_TexWorldScale");

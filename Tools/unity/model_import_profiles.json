@@ -442,7 +442,20 @@
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx",
       "m_profile": "static_greenhouse_v7",
       "m_manifest": "SourceArt/Export/GAIA1/Briggs_Greenhouse.export.json",
-      "m_materials": []
+      "m_materials": [
+        {
+          "m_source": "GH_Metal",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseMetal.mat"
+        },
+        {
+          "m_source": "GH_Glass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseGlass.mat"
+        },
+        {
+          "m_source": "GH_StainedGlass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseStained.mat"
+        }
+      ]
     },
     {
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_LabCorridor01.fbx",
@@ -459,12 +472,7 @@
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_LabCorridor02.fbx",
       "m_profile": "static_architecture_v7",
       "m_manifest": "SourceArt/Export/GAIA1/Briggs_LabCorridor02.export.json",
-      "m_materials": [
-        {
-          "m_source": "LabCorridorRust",
-          "m_asset": "Assets/RootsDance/Materials/Environment/LabCorridorRust.mat"
-        }
-      ]
+      "m_materials": []
     },
     {
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_SampleStorage.fbx",

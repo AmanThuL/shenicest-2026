@@ -29,6 +29,7 @@ namespace RootsDance.Editor.DevPlay
 
         private static DevCheckpointSO s_pending;
         private static double s_waitStart;
+        private static bool s_isSwitchingLevel;
 
         static DevPlaySession()
         {
@@ -37,6 +38,9 @@ namespace RootsDance.Editor.DevPlay
 
         /// <summary>The checkpoint waiting to be applied once Play is ready, or null.</summary>
         public static DevCheckpointSO Pending => s_pending;
+
+        /// <summary>True while a Play-mode checkpoint is switching to another level.</summary>
+        public static bool IsSwitchingLevel => s_isSwitchingLevel;
 
         /// <summary>True when every scene of the level is loaded in the Editor (extra scenes are fine).</summary>
         public static bool AreLevelScenesLoaded(LevelSO level)
@@ -102,6 +106,12 @@ namespace RootsDance.Editor.DevPlay
 
             if (EditorApplication.isPlaying)
             {
+                if (!AreLevelScenesLoaded(checkpoint.Level))
+                {
+                    SwitchLevelAndApplyAsync(checkpoint);
+                    return;
+                }
+
                 string failure;
 
                 if (!TryApply(checkpoint, out failure))
@@ -134,6 +144,87 @@ namespace RootsDance.Editor.DevPlay
             // checkpoint (observed 2026-08-27); one update tick later it applies reliably. Not
             // delayCall: that waits for a GUI event and never fires while the Editor is unfocused.
             EditorApplication.update += EnterPlayNextTick;
+        }
+
+        /// <summary>
+        /// A Play-mode checkpoint can belong to another chapter. Use the runtime loader so Bootstrap
+        /// survives while every old content scene is unloaded, then apply only after the new Player
+        /// and anchors exist. Same-level checkpoints stay on the immediate teleport path above.
+        /// </summary>
+        private static async void SwitchLevelAndApplyAsync(DevCheckpointSO checkpoint)
+        {
+            if (s_isSwitchingLevel)
+            {
+                Debug.LogWarning("Dev Play: a level switch is already in progress.");
+                return;
+            }
+
+            LevelSO level = checkpoint.Level;
+
+            if (level == null || level.ScenePaths == null || level.ScenePaths.Count == 0)
+            {
+                Debug.LogError("Dev Play: cannot switch levels because '" + checkpoint.Label
+                    + "' has no level, or its level lists no scenes.");
+                return;
+            }
+
+            SceneLoader loader = Object.FindFirstObjectByType<SceneLoader>();
+
+            if (loader == null)
+            {
+                Debug.LogError("Dev Play: cannot switch to '" + checkpoint.Label
+                    + "' because the Bootstrap SceneLoader is not available.");
+                return;
+            }
+
+            if (loader.IsLoading)
+            {
+                Debug.LogWarning("Dev Play: the runtime SceneLoader is already loading another level.");
+                return;
+            }
+
+            s_isSwitchingLevel = true;
+
+            try
+            {
+                Debug.Log("Dev Play: switching levels for '" + checkpoint.Label + "'.");
+                await loader.LoadLevelAsync(level, loader.destroyCancellationToken);
+
+                if (!EditorApplication.isPlaying)
+                {
+                    return;
+                }
+
+                if (!AreLevelScenesLoaded(level))
+                {
+                    Debug.LogError("Dev Play: the level switch for '" + checkpoint.Label
+                        + "' finished without loading all of its scenes.");
+                    return;
+                }
+
+                string failure;
+
+                if (!TryApply(checkpoint, out failure))
+                {
+                    Debug.LogError("Dev Play: switched levels but could not apply '"
+                        + checkpoint.Label + "': " + failure);
+                    return;
+                }
+
+                Debug.Log("Dev Play: switched levels and moved to '" + checkpoint.Label + "'.");
+            }
+            catch (System.OperationCanceledException)
+            {
+                // Play mode ended while the runtime loader was working.
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+            finally
+            {
+                s_isSwitchingLevel = false;
+            }
         }
 
         private static void EnterPlayNextTick()
