@@ -704,15 +704,15 @@ namespace RootsDance.Editor.Environment
                     new Vector2(-16f, 29f), 0f, 12f, 60, 1.1f, 0.8f, 2030, tilt: 6f, align: 0.75f,
                     scaleMin: 0.65f, scaleMax: 1.1f),
 
-                // --- recovery: ferns leave shelter, then live bushes, then the band ---------------------
+                // --- contaminated transition: sparse half-dead plants, then the anomalous band ----------
                 Patch("S5_Ferns", PropPool.TransitionGrowth, k_Ferns,
-                    new Vector2(-16f, 29f), 0f, 12f, 55, 1.4f, 0.8f, 2031, tilt: 8f, align: 0.55f,
+                    new Vector2(-16f, 29f), 0f, 12f, 32, 1.4f, 0.8f, 2031, tilt: 8f, align: 0.55f,
                     scaleMin: 0.5f, scaleMax: 0.85f, clump: 0.42f),
                 Patch("S6_Ferns", PropPool.TransitionGrowth, k_Ferns,
                     new Vector2(-12f, 39f), 0f, 14f, 80, 1.3f, 0.7f, 2032, tilt: 8f, align: 0.55f,
                     scaleMin: 0.55f, scaleMax: 0.95f, clump: 0.38f),
                 Patch("S5_LiveBushes", PropPool.TransitionGrowth, k_LiveBushes,
-                    new Vector2(-15f, 33f), 0f, 12f, 34, 2f, 1.2f, 2033, tilt: 7f, align: 0.5f,
+                    new Vector2(-15f, 33f), 0f, 12f, 16, 2f, 1.2f, 2033, tilt: 7f, align: 0.5f,
                     scaleMin: 0.5f, scaleMax: 0.9f, clump: 0.4f),
                 Patch("S6_Ivy", PropPool.TransitionGrowth, k_Ivy,
                     new Vector2(-14f, 36f), 0f, 13f, 34, 1.6f, 0.8f, 2034, tilt: 6f, align: 1f,

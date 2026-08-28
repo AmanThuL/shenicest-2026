@@ -238,6 +238,14 @@ namespace RootsDance.Editor.DevPlay
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Time of day: " + phase);
 
+            using (new EditorGUI.DisabledScope(phase == TimeOfDay.PollutedDay))
+            {
+                if (GUILayout.Button("Polluted", GUILayout.Width(70f)))
+                {
+                    WorldAccess.Enqueue(new SetTimeOfDayCommand(TimeOfDay.PollutedDay), null);
+                }
+            }
+
             using (new EditorGUI.DisabledScope(phase == TimeOfDay.Day))
             {
                 if (GUILayout.Button("Day", GUILayout.Width(60f)))

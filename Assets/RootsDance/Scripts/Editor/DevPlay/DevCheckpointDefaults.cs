@@ -10,12 +10,12 @@ namespace RootsDance.Editor.DevPlay
     /// RootsDance > Dev Play > Create Default Checkpoints. Find-or-create one checkpoint per opening
     /// station (00章前段), each carrying the world state the route has produced by then. Existing
     /// assets are never touched, so tuned positions and yaws survive a re-run — which is why the
-    /// second menu, Set All Checkpoints To Night, exists to migrate the committed assets in place.
+    /// second menu resets the committed assets to the level-authored time of day in place.
     /// </summary>
     public static class DevCheckpointDefaults
     {
         private const string k_MenuPath = "RootsDance/Dev Play/Create Default Checkpoints";
-        private const string k_NightMenuPath = "RootsDance/Dev Play/Set All Checkpoints To Night";
+        private const string k_LevelDefaultMenuPath = "RootsDance/Dev Play/Set All Checkpoints To Level Default";
         private const string k_CheckpointFilter = "t:DevCheckpointSO";
         private const string k_ParentFolder = "Assets/RootsDance/Data";
         private const string k_FolderName = "DevPlay";
@@ -81,12 +81,12 @@ namespace RootsDance.Editor.DevPlay
         }
 
         /// <summary>
-        /// Forces every committed checkpoint to Night. <see cref="CreateMissing"/> never overwrites an
+        /// Restores every committed checkpoint to the level default. <see cref="CreateMissing"/> never overwrites an
         /// existing asset, so this is how the assets authored before time of day existed catch up with
         /// the defaults above. No dialogs — safe to call from a batch -executeMethod run.
         /// </summary>
-        [MenuItem(k_NightMenuPath)]
-        public static void SetAllTimeOfDayToNight()
+        [MenuItem(k_LevelDefaultMenuPath)]
+        public static void SetAllTimeOfDayToLevelDefault()
         {
             if (!AssetDatabase.IsValidFolder(k_Folder))
             {
@@ -99,21 +99,27 @@ namespace RootsDance.Editor.DevPlay
 
             for (int i = 0; i < guids.Length; i++)
             {
-                DevCheckpointSO checkpoint =
-                    AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(AssetDatabase.GUIDToAssetPath(guids[i]));
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+
+                if (path.IndexOf("/BriggsInterior/", System.StringComparison.Ordinal) >= 0)
+                {
+                    continue;
+                }
+
+                DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
 
                 if (checkpoint == null)
                 {
                     continue;
                 }
 
-                checkpoint.SetTimeOfDay(CheckpointTimeOfDay.Night);
+                checkpoint.SetTimeOfDay(CheckpointTimeOfDay.LevelDefault);
                 EditorUtility.SetDirty(checkpoint);
                 changed++;
             }
 
             AssetDatabase.SaveAssets();
-            Debug.Log("Dev Play: " + changed + " checkpoint(s) set to Night in " + k_Folder + ".");
+            Debug.Log("Dev Play: " + changed + " checkpoint(s) set to Level Default in " + k_Folder + ".");
         }
 
         private static Spec[] BuildSpecs()
@@ -136,38 +142,38 @@ namespace RootsDance.Editor.DevPlay
                 WorldFlags.k_FirstInvestigationDone,
             };
 
-            // The whole pre-lab route plays at night, so every default checkpoint forces Night rather
-            // than trusting whatever the level happened to seed.
+            // The pre-lab route follows Main's authored polluted-day default. Keeping checkpoints on
+            // LevelDefault prevents them from silently overriding later lighting revisions.
             return new[]
             {
                 Make("00-01_Wake", "00-01 Wake", "",
-                    new Vector3(0f, 3.8f, -10f), CheckpointTimeOfDay.Night, new string[0], false),
+                    new Vector3(0f, 3.8f, -10f), CheckpointTimeOfDay.LevelDefault, new string[0], false),
                 Make("00-04_RadioBriefing", "00-04 Radio briefing", "",
-                    new Vector3(0f, 5f, 0f), CheckpointTimeOfDay.Night, afterStart, false),
+                    new Vector3(0f, 5f, 0f), CheckpointTimeOfDay.LevelDefault, afterStart, false),
                 Make("00-05_HelmetUnlock", "00-05 Helmet unlock", "",
-                    new Vector3(0f, 5f, 15f), CheckpointTimeOfDay.Night, afterRadio, false),
+                    new Vector3(0f, 5f, 15f), CheckpointTimeOfDay.LevelDefault, afterRadio, false),
                 Make("00-06_GrassBelt", "00-06 Grass belt", "",
-                    new Vector3(0f, 7f, 32f), CheckpointTimeOfDay.Night, afterHelmet, false),
+                    new Vector3(0f, 7f, 32f), CheckpointTimeOfDay.LevelDefault, afterHelmet, false),
                 Make("00-07_FirstToolUse", "00-07 First tool use", "Anchor_00-07_FirstToolUse",
-                    new Vector3(-12f, 6.285f, 39f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(-12f, 6.285f, 39f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-08_ResearchFacilityView", "00-08 Research facility view", "Anchor_00-08_ResearchFacilityView",
-                    new Vector3(0.473f, 7.289f, 85.366f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(0.473f, 7.289f, 85.366f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-09_BlockedMainEntrance", "00-09 Blocked main entrance", "Anchor_00-09_BlockedMainEntrance",
-                    new Vector3(9.505f, 7.299f, 118.941f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(9.505f, 7.299f, 118.941f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-10_MainEntranceSign", "00-10 Main entrance sign", "Anchor_00-10_MainEntranceSign",
-                    new Vector3(7.030f, 7.299f, 115.759f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(7.030f, 7.299f, 115.759f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-11_ResearchFacilityPoster", "00-11 Research facility poster", "Anchor_00-11_ResearchFacilityPoster",
-                    new Vector3(-4.637f, 7.299f, 114.699f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(-4.637f, 7.299f, 114.699f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-12_AshleafVine", "00-12 Ashleaf vine", "Anchor_00-12_AshleafVine",
-                    new Vector3(12.334f, 7.299f, 123.184f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(12.334f, 7.299f, 123.184f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-13_FineVeinedVine", "00-13 Fine-veined vine", "Anchor_00-13_FineVeinedVine",
-                    new Vector3(13.394f, 7.299f, 124.952f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(13.394f, 7.299f, 124.952f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-14_VineGrowthDirection", "00-14 Vine growth direction", "Anchor_00-14_VineGrowthDirection",
-                    new Vector3(19.435f, 7.299f, 133.774f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(19.435f, 7.299f, 133.774f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-15_ClearAshleafVine", "00-15 Clear ashleaf vine", "Anchor_00-15_ClearAshleafVine",
-                    new Vector3(23.538f, 7.299f, 139.749f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(23.538f, 7.299f, 139.749f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
                 Make("00-16_MaintenanceEntrance", "00-16 Maintenance entrance", "Anchor_00-16_MaintenanceEntrance",
-                    new Vector3(24.237f, 7.299f, 140.785f), CheckpointTimeOfDay.Night, afterInvestigation, true),
+                    new Vector3(24.237f, 7.299f, 140.785f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
             };
         }
 

@@ -56,6 +56,9 @@ namespace RootsDance.Editor.Tools
         /// <summary>Spot lights are authored in lumen (guideline 07 §5.1: 1 000–3 000 lm for a practical).</summary>
         private const float k_IntensityLumen = 2200f;
 
+        /// <summary>The opening polluted daylight is readable without a beam; the player opts in manually.</summary>
+        private const bool k_AutoOnAtNight = false;
+
         /// <summary>Neutral-white LED torch, in kelvin.</summary>
         private const float k_ColorTemperatureKelvin = 5000f;
 
@@ -234,6 +237,7 @@ namespace RootsDance.Editor.Tools
                 SerializedObject serialized = new SerializedObject(controller);
                 serialized.FindProperty("m_light").objectReferenceValue = light;
                 serialized.FindProperty("m_timeOfDayChanged").objectReferenceValue = channel;
+                serialized.FindProperty("m_autoOnAtNight").boolValue = k_AutoOnAtNight;
                 serialized.ApplyModifiedProperties();
 
                 // The broadcaster is part of the flashlight, not a separate feature: anything in the

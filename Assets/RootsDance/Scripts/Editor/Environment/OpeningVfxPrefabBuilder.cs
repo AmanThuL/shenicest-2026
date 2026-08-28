@@ -50,18 +50,18 @@ namespace RootsDance.Editor.Environment
                 case OpeningVfxKind.AnomalousSpores:
                     return new Recipe
                     {
-                        Name = "AnomalousSpores", TextureFile = "light_01.png",
-                        BaseColor = new Color(0.75f, 0.95f, 0.80f, 0.9f), EmissiveNits = 4500f,
-                        LifetimeMin = 10f, LifetimeMax = 18f, SizeMin = 0.14f, SizeMax = 0.24f,
-                        Speed = 0.10f, NoiseStrength = 0.25f, MaxParticles = 200,
+                        Name = "AnomalousSpores", TextureFile = "circle_05.png",
+                        BaseColor = new Color(0.32f, 0.43f, 0.12f, 0.62f), EmissiveNits = 1500f,
+                        LifetimeMin = 10f, LifetimeMax = 18f, SizeMin = 0.08f, SizeMax = 0.16f,
+                        Speed = 0.08f, NoiseStrength = 0.18f, MaxParticles = 120,
                     };
                 default:
                     return new Recipe
                     {
                         Name = "ContaminationMotes", TextureFile = "circle_05.png",
-                        BaseColor = new Color(0.90f, 0.85f, 0.55f, 0.85f), EmissiveNits = 3000f,
-                        LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.08f, SizeMax = 0.16f,
-                        Speed = 0.05f, NoiseStrength = 0.15f, MaxParticles = 400,
+                        BaseColor = new Color(0.55f, 0.45f, 0.16f, 0.65f), EmissiveNits = 1200f,
+                        LifetimeMin = 8f, LifetimeMax = 14f, SizeMin = 0.05f, SizeMax = 0.12f,
+                        Speed = 0.04f, NoiseStrength = 0.12f, MaxParticles = 260,
                     };
             }
         }
