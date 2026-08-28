@@ -188,7 +188,15 @@ namespace RootsDance.Player
 
         private void Update()
         {
-            Apply();
+            // Play mode only. Outside it, rewriting the pose every tick made the arms impossible to
+            // move by hand — a drag in the Scene view was reverted before it could be seen — and it
+            // fought every other tool that legitimately writes this transform. In the editor the
+            // pose is applied when something actually changes: an Inspector edit, a preview-state
+            // change, or a rebuild. That leaves the transform free to be dragged.
+            if (Application.isPlaying)
+            {
+                Apply();
+            }
         }
 
         private void OnValidate()
