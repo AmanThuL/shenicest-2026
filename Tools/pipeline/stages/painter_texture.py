@@ -309,7 +309,14 @@ def main():
                 channel, _, path = pair.partition("=")
                 channels.append([channel.strip().lower(),
                                  os.path.abspath(path.strip())])
-            fill_spec.append([name.strip(), channels, mask.strip()])
+            tri = 0.0
+            if name.strip().endswith(")") and "(" in name:
+                head, _, tail = name.strip().rpartition("(")
+                try:
+                    tri = float(tail[:-1]); name = head
+                except ValueError:
+                    tri = 0.0
+            fill_spec.append([name.strip(), channels, mask.strip(), tri])
 
         try:
             filled = painter.run_python(_FILL.replace("__SPEC__", repr(fill_spec)))
@@ -563,11 +570,26 @@ out = []
 
 for ts in TS.all_texture_sets():
     stack = ts.get_stack()
-    for name, channels, mask_query in spec:
+    for name, channels, mask_query, triplanar in spec:
         entry = {"texture_set": ts.name(), "layer": name, "channels": [],
                  "mask": mask_query or "", "status": "ok"}
         fill = L.insert_fill(L.InsertPosition.from_textureset_stack(stack))
         fill.set_name(name)
+
+        # A unique unwrap breaks a tiling source into disconnected islands, and
+        # UV projection makes every island edge a seam. Triplanar keeps the
+        # material continuous in 3D and the bake resolves it onto the unwrap.
+        if triplanar:
+            try:
+                fill.set_projection_mode(L.ProjectionMode.Triplanar)
+                params = fill.get_projection_parameters()
+                if hasattr(params, "scale"):
+                    params.scale = triplanar
+                    fill.set_projection_parameters(params)
+            except Exception as exc:
+                entry["projection"] = "triplanar-failed: %s" % exc
+            else:
+                entry["projection"] = "triplanar"
 
         for channel, path in channels:
             if channel not in CHANNELS:
