@@ -69,13 +69,15 @@ namespace RootsDance.EditorTools
                 "Assets/RootsDance/Textures/Environment",
                 "GreenHouseGlass",
                 true,
-                0.16f),
+                0.16f,
+                0.30f),
             new Spec(
                 "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseStained.mat",
                 "Assets/RootsDance/Textures/Environment",
                 "GreenHouseStained",
                 true,
-                0.16f),
+                0.16f,
+                0.62f),
         };
 
         [MenuItem("RootsDance/Build Prop Materials")]
@@ -148,6 +150,14 @@ namespace RootsDance.EditorTools
 
             // Surface type drives keywords and the render queue, so it goes through the HDRP
             // helper rather than a raw SetFloat; it validates the material on the way out.
+            // The bakes are fully opaque, so opacity comes from the base colour's alpha.
+            if (spec.Transparent)
+            {
+                Color tint = material.GetColor(k_BaseColor);
+                tint.a = spec.Opacity;
+                material.SetColor(k_BaseColor, tint);
+            }
+
             HDMaterial.SetSurfaceType(material, spec.Transparent);
 
             // Opaque materials still need the validation pass to pick up the mask and normal
@@ -168,8 +178,9 @@ namespace RootsDance.EditorTools
         private readonly struct Spec
         {
             public Spec(string materialPath, string textureFolder, string textureSet,
-                bool transparent, float triplanarWorldScale = 0f)
+                bool transparent, float triplanarWorldScale = 0f, float opacity = 1f)
             {
+                Opacity = opacity;
                 MaterialPath = materialPath;
                 TextureFolder = textureFolder;
                 TextureSet = textureSet;
@@ -187,12 +198,19 @@ namespace RootsDance.EditorTools
 
             /// <summary>World-space tile size for triplanar sampling; 0 keeps the mesh UVs.</summary>
             public float TriplanarWorldScale { get; }
+
+            /// <summary>
+            /// Base-colour alpha. A transparent surface whose alpha is 1 renders solid, and the
+            /// baked maps carry no alpha of their own, so glass has to state its opacity here.
+            /// </summary>
+            public float Opacity { get; }
         }
 
         private static readonly int k_BaseColorMap = Shader.PropertyToID("_BaseColorMap");
         private static readonly int k_MaskMap = Shader.PropertyToID("_MaskMap");
         private static readonly int k_NormalMap = Shader.PropertyToID("_NormalMap");
         private static readonly int k_Smoothness = Shader.PropertyToID("_Smoothness");
+        private static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly int k_UVBase = Shader.PropertyToID("_UVBase");
         private static readonly int k_UVDetail = Shader.PropertyToID("_UVDetail");
         private static readonly int k_TexWorldScale = Shader.PropertyToID("_TexWorldScale");
