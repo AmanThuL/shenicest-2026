@@ -627,7 +627,10 @@ namespace RootsDance.Editor.Archive
                         Threshold(0f, 0.14f, Mathf.Min(u, 1f - u)),
                         Threshold(0f, 0.30f, Mathf.Min(v, 1f - v)));
 
-                    float alpha = Mathf.Clamp01((edge - shape * 0.55f) * 2.2f) * 0.80f;
+                    // Opaque enough to still lift the writing clear of a real scanned sheet. The
+                    // procedural paper this was tuned against was darker, so the same wash read as
+                    // a bigger lift than it does now.
+                    float alpha = Mathf.Clamp01((edge - shape * 0.55f) * 2.2f) * 0.92f;
 
                     Color color = wash * (0.97f + shape * 0.05f);
                     color.a = alpha;

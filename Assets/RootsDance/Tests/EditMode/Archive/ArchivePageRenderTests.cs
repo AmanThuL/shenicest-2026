@@ -150,9 +150,13 @@ namespace RootsDance.Tests.EditMode.Archive
 
             try
             {
-                Rect wash = ArchivePageLayout.WashOf(ArchiveDocumentKind.ObservationRecord, Block.Body);
-                float lit = MeanLuma(with, wash);
-                float bare = MeanLuma(without, wash);
+                // Measured over the writing, not over the wash's whole padded rectangle. The
+                // patch has soft irregular edges that fade to nothing well inside that rectangle,
+                // so averaging across it is mostly averaging across unwashed paper — the lift came
+                // out at a third of its real value and the test failed on a wash that works.
+                Rect body = ArchivePageLayout.RectOf(ArchiveDocumentKind.ObservationRecord, Block.Body);
+                float lit = MeanLuma(with, body);
+                float bare = MeanLuma(without, body);
 
                 Assert.Greater(lit, bare * 1.05f,
                     $"With the washes the body area read {lit:F3} and without them {bare:F3}; the "
