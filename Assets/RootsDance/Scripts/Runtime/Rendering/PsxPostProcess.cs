@@ -33,10 +33,27 @@ namespace RootsDance.Rendering
         [Tooltip("Ordered (Bayer 4x4) dither amplitude, in colour steps.")]
         public ClampedFloatParameter ditherStrength = new ClampedFloatParameter(0.6f, 0f, 1f);
 
+        [Tooltip("Grain amplitude. 1 = +/-25 % of the sRGB range on the pixels the shadow bias lets through. "
+            + "Independent of Intensity, so grain can stay on where the pixelation is off.")]
+        public ClampedFloatParameter grainIntensity = new ClampedFloatParameter(0f, 0f, 1f);
+
+        [Tooltip("Grain cell edge in virtual pixels (one grain cell = Grain Size x Pixel Scale screen pixels).")]
+        public ClampedIntParameter grainSize = new ClampedIntParameter(1, 1, 8);
+
+        [Tooltip("How many times per second the grain pattern re-seeds. 0 = a new pattern every frame.")]
+        public ClampedFloatParameter grainRate = new ClampedFloatParameter(15f, 0f, 60f);
+
+        [Tooltip("0 = the same grain everywhere; 1 = full grain in the blacks, none in the whites.")]
+        public ClampedFloatParameter grainShadowBias = new ClampedFloatParameter(0.6f, 0f, 1f);
+
         private static readonly int k_IntensityId = Shader.PropertyToID("_Intensity");
         private static readonly int k_PixelScaleId = Shader.PropertyToID("_PixelScale");
         private static readonly int k_ColorLevelsId = Shader.PropertyToID("_ColorLevels");
         private static readonly int k_DitherStrengthId = Shader.PropertyToID("_DitherStrength");
+        private static readonly int k_GrainIntensityId = Shader.PropertyToID("_GrainIntensity");
+        private static readonly int k_GrainSizeId = Shader.PropertyToID("_GrainSize");
+        private static readonly int k_GrainSeedId = Shader.PropertyToID("_GrainSeed");
+        private static readonly int k_GrainShadowBiasId = Shader.PropertyToID("_GrainShadowBias");
         private static readonly int k_MainTexId = Shader.PropertyToID("_MainTex");
 
         private Material m_material;
@@ -48,7 +65,22 @@ namespace RootsDance.Rendering
 
         public bool IsActive()
         {
-            return m_material != null && intensity.value > 0f;
+            return m_material != null && (intensity.value > 0f || grainIntensity.value > 0f);
+        }
+
+        /// <summary>
+        /// Seed the grain hash uses this frame. A positive <paramref name="rate"/> holds one pattern for
+        /// 1/rate seconds (the low-frame-rate video flicker); rate 0 re-seeds every frame. Pure so it is unit
+        /// tested; unscaled time keeps the grain moving while the game is paused.
+        /// </summary>
+        public static float ComputeGrainSeed(float unscaledTime, float rate, int frameCount)
+        {
+            if (rate <= 0f)
+            {
+                return frameCount;
+            }
+
+            return Mathf.Floor(unscaledTime * rate);
         }
 
         public override void Setup()
@@ -78,6 +110,11 @@ namespace RootsDance.Rendering
             m_material.SetFloat(k_PixelScaleId, pixelScale.value);
             m_material.SetFloat(k_ColorLevelsId, colorLevels.value);
             m_material.SetFloat(k_DitherStrengthId, ditherStrength.value);
+            m_material.SetFloat(k_GrainIntensityId, grainIntensity.value);
+            m_material.SetFloat(k_GrainSizeId, grainSize.value);
+            m_material.SetFloat(k_GrainSeedId,
+                ComputeGrainSeed(Time.unscaledTime, grainRate.value, Time.frameCount));
+            m_material.SetFloat(k_GrainShadowBiasId, grainShadowBias.value);
             m_material.SetTexture(k_MainTexId, source);
             HDUtils.DrawFullScreen(cmd, m_material, destination, shaderPassId: 0);
         }

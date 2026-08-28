@@ -171,6 +171,8 @@ Custom post-process rules (all **MUST**):
 
 The project's first custom post-process is `RootsDance.Rendering.PsxPostProcess` (`Scripts/Runtime/Rendering/`, shader `Shaders/PostProcess/PsxPostProcess.shader`), injection point **After Post Process**. Because `CustomPostProcessOrdersSettings` is `internal`, registration goes through the Editor tool **RootsDance > Rendering > Register PSX Post Process**, which writes the injection point's order list on `HDRenderPipelineGlobalSettings.asset` and adds the shader to **Always Included Shaders** on `GraphicsSettings.asset` through a `SerializedObject` — idempotent, and its two file changes land in one `chore(rendering):` commit. `RootsDance.Runtime.asmdef` now references `Unity.RenderPipelines.Core.Runtime` and `Unity.RenderPipelines.HighDefinition.Runtime`, per the project decision above. **[project decision]**
 
+The PSX override is the level's always-on look: pixelate → quantise + Bayer dither → **grain** (monochrome noise per virtual-pixel cell, re-seeded `grainRate` times a second, biased into the shadows by `grainShadowBias`; it is applied after quantisation so the colour steps cannot swallow it, and it stays active when `intensity` is 0). `MainProfile` carries the level-wide baseline (`OpeningAtmosphereParams.PsxBaseline`) and the opening's local volumes override it per checkpoint (`OpeningLook.Psx`); a new checkpoint is a local Volume with its own `PsxPostProcess` override, nothing more. **RootsDance > Rendering > Apply PSX Baseline** (batch: `OpeningAtmosphereBuilder.ApplyPsxBaselineFromCommandLine`) writes only the PSX override onto `MainProfile` and the four `Opening*Profile`s and removes HDRP's Film Grain from them, leaving fog, sky and exposure untouched; the opening builder's overwrite entry does the same as part of its reset. **[project decision]**
+
 ## 5. Lighting workflow
 
 ### 5.1 Colour space and physical light units
@@ -314,8 +316,8 @@ Allowed overrides on a level profile — this is the canonical set; [05 §6.4](.
 | **Color Adjustments** | post-exposure, contrast, saturation |
 | **White Balance** | temperature/tint, for scene mood |
 | **Vignette** | mild |
-| **Film Grain** | mild |
-| **RootsDance PSX** (custom, `PsxPostProcess`) | intensity, pixel scale, colour levels, dither; opening profiles only for now |
+| **Film Grain** | **not used** in the level profiles — the PSX override's own grain is the single grain source (it runs after the quantiser, where HDRP's grain would be crushed); MAY still be used on a profile that has no PSX override |
+| **RootsDance PSX** (custom, `PsxPostProcess`) | intensity, pixel scale, colour levels, dither, grain intensity / size / rate / shadow bias; **always on** — `MainProfile` carries the level-wide baseline, the opening's local volumes override it per checkpoint |
 
 Disallowed by default (need an art reason and a capture in the PR): **Motion Blur**, **Depth of Field**, **Chromatic Aberration**, **Lens Distortion**, **Panini Projection**, **Screen Space Reflection**, **Screen Space Global Illumination**, **Contact Shadows**.
 - *Why:* Motion blur and depth of field are the two heaviest post effects in HDRP and both need motion vectors or a focus setup; the lens effects are look-specific and read as "shipped by accident" when nobody tuned them. Tonemapping is required for any HDR value above 1 to land on screen, which is why it is in the allowed set and not optional.

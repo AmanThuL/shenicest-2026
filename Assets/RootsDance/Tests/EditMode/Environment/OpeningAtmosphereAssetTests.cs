@@ -46,18 +46,42 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsTrue(profile.TryGet(out Bloom _), s.ProfileName + ": Bloom");
                 Assert.IsTrue(profile.TryGet(out ColorAdjustments _), s.ProfileName + ": ColorAdjustments");
                 Assert.IsTrue(profile.TryGet(out Vignette _), s.ProfileName + ": Vignette");
-                Assert.IsTrue(profile.TryGet(out FilmGrain _), s.ProfileName + ": FilmGrain");
+                Assert.IsFalse(profile.TryGet(out FilmGrain _),
+                    s.ProfileName + ": HDRP Film Grain must be gone — the PSX grain is the only grain source");
                 Assert.IsTrue(profile.TryGet(out PsxPostProcess psx), s.ProfileName + ": PsxPostProcess");
                 Assert.Greater(psx.intensity.value, 0f, s.ProfileName + ": PSX intensity");
+                AssertPsxMatches(s.Look.Psx, psx, s.ProfileName);
             }
         }
 
         [Test]
-        public void MainProfile_HasNoPsxOverride_SoTheLookStaysInsideTheOpening()
+        public void MainProfile_CarriesThePsxBaseline_SoGrainIsAlwaysOn()
         {
+            OpeningAtmosphereParams p = OpeningAtmosphereParams.CreateDefault();
             VolumeProfile main = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_MainProfilePath);
             Assert.IsTrue(main != null, k_MainProfilePath);
-            Assert.IsFalse(main.TryGet(out PsxPostProcess _), "MainProfile must not carry the PSX override");
+            Assert.IsTrue(main.TryGet(out PsxPostProcess psx),
+                "MainProfile must carry the PSX override — run RootsDance/Rendering/Apply PSX Baseline");
+            Assert.Greater(psx.grainIntensity.value, 0f, "MainProfile grain must be on");
+            AssertPsxMatches(p.PsxBaseline, psx, "MainProfile");
+            Assert.IsFalse(main.TryGet(out FilmGrain _), "MainProfile must not carry HDRP Film Grain");
+        }
+
+        private const float k_Tolerance = 1e-4f;
+
+        private static void AssertPsxMatches(PsxLook expected, PsxPostProcess actual, string name)
+        {
+            Assert.That(actual.intensity.value, Is.EqualTo(expected.Intensity).Within(k_Tolerance), name + " intensity");
+            Assert.AreEqual(expected.PixelScale, actual.pixelScale.value, name + " pixelScale");
+            Assert.AreEqual(expected.ColorLevels, actual.colorLevels.value, name + " colorLevels");
+            Assert.That(actual.ditherStrength.value, Is.EqualTo(expected.Dither).Within(k_Tolerance), name + " dither");
+            Assert.That(actual.grainIntensity.value, Is.EqualTo(expected.GrainIntensity).Within(k_Tolerance),
+                name + " grainIntensity");
+            Assert.AreEqual(expected.GrainSize, actual.grainSize.value, name + " grainSize");
+            Assert.That(actual.grainRate.value, Is.EqualTo(expected.GrainRate).Within(k_Tolerance), name + " grainRate");
+            Assert.That(actual.grainShadowBias.value, Is.EqualTo(expected.GrainShadowBias).Within(k_Tolerance),
+                name + " grainShadowBias");
+            Assert.IsTrue(actual.grainIntensity.overrideState, name + " grainIntensity override ticked");
         }
 
         [Test]

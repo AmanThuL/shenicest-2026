@@ -57,6 +57,33 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
+        /// Writes only the PSX override: the level-wide baseline onto MainProfile and each segment's values onto
+        /// its Opening profile (dropping the stock Film Grain there — the PSX grain is the single grain source).
+        /// Nothing else on any profile is touched, so hand-tuned fog, sky and exposure survive. Registers the
+        /// effect first so a fresh checkout gets a working override.
+        /// </summary>
+        [MenuItem("RootsDance/Rendering/Apply PSX Baseline")]
+        public static void ApplyPsxBaselineFromMenu()
+        {
+            if (ApplyPsxOnly(OpeningAtmosphereParams.CreateDefault()))
+            {
+                Debug.Log($"{k_LogPrefix}: PSX baseline applied.");
+            }
+        }
+
+        /// <summary>
+        /// Batch entry point:
+        /// <c>-executeMethod RootsDance.Editor.Environment.OpeningAtmosphereBuilder.ApplyPsxBaselineFromCommandLine</c>.
+        /// </summary>
+        public static void ApplyPsxBaselineFromCommandLine()
+        {
+            if (!ApplyPsxOnly(OpeningAtmosphereParams.CreateDefault()))
+            {
+                throw new InvalidOperationException($"{k_LogPrefix}: PSX baseline failed — see the log above.");
+            }
+        }
+
+        /// <summary>
         /// Batch equivalent of the overwrite menu entry (no dialog):
         /// <c>-executeMethod RootsDance.Editor.Environment.OpeningAtmosphereBuilder.RebuildFromCommandLine</c>.
         /// Resets every Opening profile and the Sun to the seed values. Throws on failure.
@@ -122,6 +149,7 @@ namespace RootsDance.Editor.Environment
             if (overwriteTuned)
             {
                 ApplyBeyondFog(p.BeyondFog);
+                ApplyPsxBaseline(p.PsxBaseline);
             }
 
             AssetDatabase.SaveAssets();
@@ -215,6 +243,94 @@ namespace RootsDance.Editor.Environment
             Debug.Log($"{k_LogPrefix}: applied the beyond-threshold fog to {k_MainProfilePath}.");
         }
 
+        /// <summary>See <see cref="ApplyPsxBaselineFromMenu"/>. Returns false after logging on failure.</summary>
+        public static bool ApplyPsxOnly(OpeningAtmosphereParams p)
+        {
+            if (p == null || p.Segments == null || p.PsxBaseline == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: no params — nothing to apply.");
+                return false;
+            }
+
+            PsxPostProcessRegistrar.Register();
+
+            if (!ApplyPsxBaseline(p.PsxBaseline))
+            {
+                return false;
+            }
+
+            foreach (OpeningSegment segment in p.Segments)
+            {
+                string path = ProfilePath(p, segment);
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+
+                if (profile == null)
+                {
+                    Debug.LogError($"{k_LogPrefix}: '{path}' not found — run Build Opening Atmosphere first.");
+                    return false;
+                }
+
+                ApplyPsx(profile, segment.Look.Psx);
+                EditorUtility.SetDirty(profile);
+            }
+
+            AssetDatabase.SaveAssets();
+            return true;
+        }
+
+        /// <summary>Writes the always-on PSX look onto MainProfile. Returns false after logging on failure.</summary>
+        private static bool ApplyPsxBaseline(PsxLook baseline)
+        {
+            VolumeProfile main = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_MainProfilePath);
+
+            if (main == null || baseline == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: '{k_MainProfilePath}' not found; PSX baseline not applied.");
+                return false;
+            }
+
+            ApplyPsx(main, baseline);
+            EditorUtility.SetDirty(main);
+            Debug.Log($"{k_LogPrefix}: applied the PSX baseline to {k_MainProfilePath}.");
+            return true;
+        }
+
+        /// <summary>
+        /// Writes every <see cref="PsxPostProcess"/> parameter and removes HDRP's Film Grain from the profile:
+        /// two grain layers stack into mud, and the PSX grain is the one that survives the quantiser.
+        /// </summary>
+        private static void ApplyPsx(VolumeProfile profile, PsxLook look)
+        {
+            PsxPostProcess psx = GetOrAdd<PsxPostProcess>(profile);
+            Set(psx.intensity, look.Intensity);
+            Set(psx.pixelScale, look.PixelScale);
+            Set(psx.colorLevels, look.ColorLevels);
+            Set(psx.ditherStrength, look.Dither);
+            Set(psx.grainIntensity, look.GrainIntensity);
+            Set(psx.grainSize, look.GrainSize);
+            Set(psx.grainRate, look.GrainRate);
+            Set(psx.grainShadowBias, look.GrainShadowBias);
+            RemoveComponent<FilmGrain>(profile);
+        }
+
+        /// <summary>
+        /// VolumeProfile.Remove only unlists the component; the sub-asset stays in the file until it is also
+        /// removed from the asset and destroyed (what the Volume Inspector's "Remove" does).
+        /// </summary>
+        private static void RemoveComponent<T>(VolumeProfile profile) where T : VolumeComponent
+        {
+            T component;
+
+            if (!profile.TryGet(out component))
+            {
+                return;
+            }
+
+            profile.Remove<T>();
+            AssetDatabase.RemoveObjectFromAsset(component);
+            UnityEngine.Object.DestroyImmediate(component, true);
+        }
+
         /// <summary>Custom quality level with a manual, denser volumetric grid (see the constants above).</summary>
         private static void ApplyFogQuality(Fog fog)
         {
@@ -302,16 +418,7 @@ namespace RootsDance.Editor.Environment
             Set(vignette.roundness, 1f);
             Set(vignette.rounded, false);
 
-            FilmGrain grain = GetOrAdd<FilmGrain>(profile);
-            Set(grain.type, FilmGrainLookup.Thin1);
-            Set(grain.intensity, look.GrainIntensity);
-            Set(grain.response, 0.8f);
-
-            PsxPostProcess psx = GetOrAdd<PsxPostProcess>(profile);
-            Set(psx.intensity, look.PsxIntensity);
-            Set(psx.pixelScale, look.PsxPixelScale);
-            Set(psx.colorLevels, look.PsxColorLevels);
-            Set(psx.ditherStrength, look.PsxDither);
+            ApplyPsx(profile, look.Psx);
         }
 
         // ---- scene objects ---------------------------------------------------------------------------------
