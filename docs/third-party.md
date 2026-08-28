@@ -81,6 +81,13 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
   slot has no faces assigned. It is a stand-in until the real helmet model arrives.
 - CC0 imposes no attribution requirement; this entry exists for provenance, not obligation.
 
+## An Abandoned Garage (dasy444) — art asset, `SourceArt/Blender/Garage/`
+
+- **Licence:** Sketchfab Free Standard. Source: dasy444, [An Abandoned Garage](https://sketchfab.com/3d-models/an-abandoned-garage-cae82b98d3654226a67ed05f2c927c99), model UID `cae82b98d3654226a67ed05f2c927c99`.
+- **What is used:** `Assets/Garage_Shell.blend` supplies the laboratory walls, floor, broken ceiling, beams, trim, windows and door panel; `Assets/Ivy_Hanging.blend` supplies the eleven hanging-ivy meshes aligned to the ceiling openings.
+- **Derived assets:** `Assets/RootsDance/Meshes/Environment/Garage/` contains the Unity FBX exports, `Assets/RootsDance/Textures/Environment/Garage/` contains the packed Blender images extracted for HDRP materials, and `SourceArt/Export/Garage/` contains reproducible export manifests.
+- **Import note:** the source files were already present in project `SourceArt` and were used in preference to the separately downloaded Sketchfab archive. The export was regenerated with Blender 5.2.1; the manifests record the exact source and export settings.
+
 ## ambientCG — `Assets/ThirdParty/Environment/AmbientCG/`
 
 - **Version/date:** downloaded 2026-08-26 from the ambientCG library.

@@ -159,7 +159,7 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 0.1
+  m_Height: 1.8
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
@@ -1938,11 +1938,11 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[0]'
+      propertyPath: m_suspendedWhileReading.Array.data[0]
       value: 
       objectReference: {fileID: 3067282954758705644}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[1]'
+      propertyPath: m_suspendedWhileReading.Array.data[1]
       value: 
       objectReference: {fileID: 1168216218860767587}
     - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}

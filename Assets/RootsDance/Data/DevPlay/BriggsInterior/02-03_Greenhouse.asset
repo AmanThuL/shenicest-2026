@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 02-03 Greenhouse
   m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
   m_anchorName: Checkpoint_Greenhouse
-  m_position: {x: 32.756096, y: 3.803216, z: 23.14246}
+  m_position: {x: 6.8, y: 1, z: -3.2}
   m_yaw: 180
   m_snapToGround: 0
   m_groundClearance: 0

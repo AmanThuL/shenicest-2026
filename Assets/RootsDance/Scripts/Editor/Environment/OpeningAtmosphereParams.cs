@@ -40,7 +40,7 @@ namespace RootsDance.Editor.Environment
         public Color ColorFilter;
         public float VignetteIntensity;
         public float BloomIntensity;
-        /// <summary>The PSX post-process override, grain included (the single grain source, no Film Grain).</summary>
+        /// <summary>The selectable PSX or grain post-process override.</summary>
         public PsxLook Psx;
     }
 
@@ -53,9 +53,15 @@ namespace RootsDance.Editor.Environment
     {
         /// <summary>0 = pixelation/quantisation off, 1 = full PSX treatment.</summary>
         public float Intensity;
+        /// <summary>False = PSX treatment, true = grain only. The two paths never stack.</summary>
+        public bool GrainMode;
         public int PixelScale;
         public int ColorLevels;
         public float Dither;
+        /// <summary>Alternating horizontal-band dimming, 0..1.</summary>
+        public float InterlaceStrength;
+        /// <summary>Interlaced band height in virtual pixels, 1..8.</summary>
+        public int InterlaceSize;
         /// <summary>Grain amplitude, 0..1 (1 = +/-25 % of the sRGB range in the shadows).</summary>
         public float GrainIntensity;
         /// <summary>Grain cell edge in virtual pixels, 1..8.</summary>
@@ -195,7 +201,7 @@ namespace RootsDance.Editor.Environment
                         FixedExposure = 12.3f, Contrast = 6f, Saturation = -28f,
                         ColorFilter = new Color(0.96f, 0.92f, 0.80f),
                         VignetteIntensity = 0.34f, BloomIntensity = 0.04f,
-                        Psx = PsxLookWithGrain(1f, 2, 48, 0.25f, grainIntensity: 0.22f),
+                        Psx = PsxLookWithGrainFallback(1f, 4, 24, 0.6f, grainIntensity: 0.22f),
                     },
                 },
                 new OpeningSegment
@@ -214,7 +220,7 @@ namespace RootsDance.Editor.Environment
                         FixedExposure = 12.2f, Contrast = 6f, Saturation = -24f,
                         ColorFilter = new Color(0.95f, 0.94f, 0.85f),
                         VignetteIntensity = 0.30f, BloomIntensity = 0.05f,
-                        Psx = PsxLookWithGrain(1f, 2, 56, 0.25f, grainIntensity: 0.18f),
+                        Psx = PsxLookWithGrainFallback(1f, 4, 28, 0.6f, grainIntensity: 0.18f),
                     },
                 },
                 new OpeningSegment
@@ -233,7 +239,7 @@ namespace RootsDance.Editor.Environment
                         FixedExposure = 12.5f, Contrast = 8f, Saturation = -20f,
                         ColorFilter = new Color(0.90f, 0.94f, 0.90f),
                         VignetteIntensity = 0.30f, BloomIntensity = 0.06f,
-                        Psx = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.18f),
+                        Psx = PsxLookWithGrainFallback(1f, 4, 32, 0.6f, grainIntensity: 0.18f),
                     },
                 },
                 new OpeningSegment
@@ -252,14 +258,14 @@ namespace RootsDance.Editor.Environment
                         FixedExposure = 12.0f, Contrast = 4f, Saturation = -12f,
                         ColorFilter = new Color(0.92f, 0.98f, 0.94f),
                         VignetteIntensity = 0.24f, BloomIntensity = 0.08f,
-                        Psx = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.14f),
+                        Psx = PsxLookWithGrainFallback(1f, 4, 32, 0.6f, grainIntensity: 0.14f),
                     },
                 },
             };
 
             // Level-wide PSX look: same grid and dither as the opening, the relaxed Threshold quantisation,
             // and lighter grain than any opening segment so the checkpoints read as "worse" than the rest.
-            p.PsxBaseline = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.12f);
+            p.PsxBaseline = PsxLookWithGrainFallback(1f, 4, 32, 0.6f, grainIntensity: 0.12f);
 
             p.BeyondFog = new OpeningBeyondFog
             {
@@ -304,15 +310,17 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
-        /// Grain defaults every segment shares: 3x3 virtual pixels per grain cell (chunky speckle), re-seeded at
-        /// 10 Hz (the cadence of a VHS transfer rather than a per-frame hiss), 60 % biased into the shadows.
+        /// Shared display defaults: 12 % interlacing on one-virtual-pixel bands; 3x3 virtual pixels per grain
+        /// cell (chunky speckle), re-seeded at 10 Hz, 60 % biased into the shadows.
         /// </summary>
-        private static PsxLook PsxLookWithGrain(
+        private static PsxLook PsxLookWithGrainFallback(
             float intensity, int pixelScale, int colorLevels, float dither, float grainIntensity)
         {
             return new PsxLook
             {
                 Intensity = intensity, PixelScale = pixelScale, ColorLevels = colorLevels, Dither = dither,
+                GrainMode = false,
+                InterlaceStrength = 0.12f, InterlaceSize = 1,
                 GrainIntensity = grainIntensity, GrainSize = 3, GrainRate = 10f, GrainShadowBias = 0.6f,
             };
         }

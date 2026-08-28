@@ -312,15 +312,24 @@ MonoBehaviour:
   intensity:
     m_OverrideState: 1
     m_Value: 1
+  grainMode:
+    m_OverrideState: 1
+    m_Value: 0
   pixelScale:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   colorLevels:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 32
   ditherStrength:
     m_OverrideState: 1
-    m_Value: 0.25
+    m_Value: 0.6
+  interlaceStrength:
+    m_OverrideState: 1
+    m_Value: 0.12
+  interlaceSize:
+    m_OverrideState: 1
+    m_Value: 1
   grainIntensity:
     m_OverrideState: 1
     m_Value: 0.12

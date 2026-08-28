@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 02-01 Plant research lab
   m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
   m_anchorName: Checkpoint_PlantResearchLab
-  m_position: {x: 16.621597, y: 3.4205036, z: 30.768526}
+  m_position: {x: 3, y: 1, z: -5.5}
   m_yaw: 0
   m_snapToGround: 0
   m_groundClearance: 0

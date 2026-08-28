@@ -3,18 +3,19 @@ using System.Linq;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Editor.Environment;
 using RootsDance.Investigation;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Editor.Tools
 {
     /// <summary>
-    /// Builds the additive Briggs botanical facility interior level and its developer checkpoints.
-    /// The three FBX assets keep their shared Blender origin so their connecting architecture remains aligned.
+    /// Builds the additive Briggs laboratory interior from the standardised plan and Garage source art.
     /// </summary>
     public static class BriggsInteriorLevelBuilder
     {
@@ -25,28 +26,51 @@ namespace RootsDance.Editor.Tools
         private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/" + k_LevelName + ".asset";
         private const string k_CheckpointFolder = "Assets/RootsDance/Data/DevPlay/BriggsInterior";
         private const string k_PlayerPrefabPath = "Assets/RootsDance/Prefabs/Characters/Player.prefab";
-
+        private const string k_GarageShellPath =
+            "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx";
+        private const string k_BriggsInteriorWallsPath =
+            "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx";
+        private const string k_IvyHangingPath =
+            "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx";
+        private const string k_LabCorridorPath =
+            "Assets/RootsDance/Meshes/Environment/LabCorridor.fbx";
+        private const string k_ConcreteLabMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Concrete_Lab.mat";
+        private const string k_GarageMaterialFolder =
+            "Assets/RootsDance/Materials/Environment/Garage";
+        private const string k_GarageTextureFolder =
+            "Assets/RootsDance/Textures/Environment/Garage";
+        private const string k_LabEntranceAnchor = "Checkpoint_LaboratoryEntrance";
         private const string k_PlantResearchLabAnchor = "Checkpoint_PlantResearchLab";
-        private const string k_GreenhouseAnchor = "Checkpoint_Greenhouse";
         private const string k_SampleStorageAnchor = "Checkpoint_SampleStorage";
+        private const string k_GreenhouseAnchor = "Checkpoint_Greenhouse";
 
-        private static readonly BuildingSpec[] k_Buildings =
+        private const float k_LabWidth = 18f;
+        private const float k_LabDepth = 14f;
+        private const float k_LabHeight = 5f;
+        private const float k_WallThickness = 0.5f;
+        private const float k_CorridorWidth = 3.2f;
+        private const float k_CorridorLength = 16.8f;
+        private const float k_CorridorCenterX = 3f;
+        private const float k_CorridorYawDegrees = -37.837f;
+        private const float k_SouthWallZ = -7f;
+        private const float k_NorthExitCenterX = 0f;
+        private const float k_NorthExitWidth = 4.5f;
+
+        private static readonly Vector3 k_LabTargetSize = new Vector3(k_LabWidth, k_LabHeight, k_LabDepth);
+
+        private static readonly Vector3 k_LabTargetCenter =
+            new Vector3(0f, k_LabHeight * 0.5f, 0f);
+
+        private static readonly Vector3 k_LabEntrancePosition =
+            new Vector3(k_CorridorCenterX, 1f, k_SouthWallZ - k_CorridorLength + 1.3f);
+
+        private static readonly CheckpointPlacement[] k_CheckpointPlacements =
         {
-            new BuildingSpec(
-                "PlantResearchLab",
-                "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_PlantResearchLab.fbx",
-                k_PlantResearchLabAnchor,
-                0f),
-            new BuildingSpec(
-                "Greenhouse",
-                "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx",
-                k_GreenhouseAnchor,
-                180f),
-            new BuildingSpec(
-                "SampleStorage",
-                "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_SampleStorage.fbx",
-                k_SampleStorageAnchor,
-                90f),
+            new CheckpointPlacement(k_LabEntranceAnchor, k_LabEntrancePosition, 0f),
+            new CheckpointPlacement(k_PlantResearchLabAnchor, new Vector3(3f, 1f, -5.5f), 0f),
+            new CheckpointPlacement(k_SampleStorageAnchor, new Vector3(-4.1f, 1f, -0.7f), 90f),
+            new CheckpointPlacement(k_GreenhouseAnchor, new Vector3(6.8f, 1f, -3.2f), 180f),
         };
 
         [MenuItem("RootsDance/Build Briggs Interior Checkpoint Level")]
@@ -62,8 +86,10 @@ namespace RootsDance.Editor.Tools
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
                 EnsureFolder(k_LevelFolder);
                 EnsureFolder(k_CheckpointFolder);
+                GarageMaterials materials = CreateGarageMaterials();
+                BriggsInteriorExitDoorBuilder.EnsureDoorPrefab(materials.WallWeathered);
 
-                Dictionary<string, CheckpointPlacement> placements = BuildEnvironmentScene();
+                Dictionary<string, CheckpointPlacement> placements = BuildEnvironmentScene(materials);
                 BuildGameplayScene(placements);
                 level = CreateLevelAsset();
                 CreateCheckpointAssets(level, placements);
@@ -75,7 +101,7 @@ namespace RootsDance.Editor.Tools
                 EditorSceneManager.RestoreSceneManagerSetup(originalSetup);
             }
 
-            Log.Info("Built BriggsInterior Environment + Gameplay scenes and three indoor checkpoints.", level);
+            Log.Info("Built BriggsInterior laboratory, Garage shell and ivy, and the entrance corridor.", level);
         }
 
         private static void ThrowIfAnyOpenSceneIsDirty()
@@ -92,30 +118,71 @@ namespace RootsDance.Editor.Tools
             }
         }
 
-        private static Dictionary<string, CheckpointPlacement> BuildEnvironmentScene()
+        private static Dictionary<string, CheckpointPlacement> BuildEnvironmentScene(GarageMaterials materials)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             Transform lighting = CreateRoot("_Lighting");
             Transform geometry = CreateRoot("_Geometry");
-            CreateRoot("_Props");
+            Transform sourceArt = CreateChild("GarageSourceArt", geometry);
+            Transform structure = CreateChild("PlanCollisionShell", geometry);
+            Transform corridorRoot = CreateChild("EntranceCorridor", geometry);
+            Transform props = CreateRoot("_Props");
             CreateRoot("_NavMesh");
+            CreateRoot("Prefab World Builder");
 
-            CreateSun(lighting);
+            CreateInteriorLighting(lighting);
+
+            GameObject shell = InstantiateModel(k_GarageShellPath, "GarageShell", sourceArt, scene);
+            PrefabUtility.UnpackPrefabInstance(
+                shell,
+                PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+            FitRendererBounds(shell, k_LabTargetSize, k_LabTargetCenter, Quaternion.Euler(0f, 180f, 0f));
+            AssignGarageShellMaterials(shell, materials);
+            RemoveLegacyGarageWalls(shell);
+            SetStatic(shell);
+
+            GameObject walls = InstantiateModel(k_BriggsInteriorWallsPath, "BriggsInteriorWalls", sourceArt, scene);
+            AssignBriggsWallMaterials(walls, materials);
+            SetStatic(walls);
+
+            GameObject ivy = InstantiateModel(k_IvyHangingPath, "IvyHanging", sourceArt, scene);
+            ivy.transform.SetPositionAndRotation(shell.transform.position, shell.transform.rotation);
+            ivy.transform.localScale = shell.transform.localScale;
+            AssignOneMaterial(ivy, materials.Ivy);
+            SetStatic(ivy);
+            BriggsInteriorExitDoorBuilder.CreateCeilingHoleVines(ivy, props, materials.Ivy);
+            BriggsInteriorExitDoorBuilder.CreateClosedEntranceDoor(props, materials.Trim);
+
+            CreatePlanCollisionShell(structure);
+
+            GameObject corridor = InstantiateModel(k_LabCorridorPath, "LabCorridor", corridorRoot, scene);
+            Vector3 corridorCenter = new Vector3(
+                k_CorridorCenterX,
+                k_LabHeight * 0.5f,
+                k_SouthWallZ - k_CorridorLength * 0.5f);
+            Vector3 corridorSize = new Vector3(k_CorridorWidth, k_LabHeight, k_CorridorLength);
+            corridor.transform.localRotation = Quaternion.Euler(0f, k_CorridorYawDegrees, 0f);
+            FitParentRendererBounds(corridorRoot, corridorSize, corridorCenter);
+
+            Material corridorMaterial = AssetDatabase.LoadAssetAtPath<Material>(k_ConcreteLabMaterialPath);
+
+            if (corridorMaterial == null)
+            {
+                throw new System.IO.FileNotFoundException(
+                    "Corridor material was not found: " + k_ConcreteLabMaterialPath);
+            }
+
+            AssignOneMaterial(corridor, corridorMaterial);
+            SetStatic(corridor);
 
             Dictionary<string, CheckpointPlacement> placements =
-                new Dictionary<string, CheckpointPlacement>(k_Buildings.Length);
+                new Dictionary<string, CheckpointPlacement>(k_CheckpointPlacements.Length);
 
-            for (int i = 0; i < k_Buildings.Length; i++)
+            for (int i = 0; i < k_CheckpointPlacements.Length; i++)
             {
-                BuildingSpec building = k_Buildings[i];
-                GameObject instance = InstantiateBuilding(building, geometry, scene);
-                Bounds bounds = GetRendererBounds(instance);
-                Vector3 checkpointPosition = new Vector3(bounds.center.x, bounds.min.y + 1f, bounds.center.z);
-
-                CreateCheckpointFloor(geometry, building.Name, checkpointPosition, bounds.min.y);
-                placements.Add(
-                    building.AnchorName,
-                    new CheckpointPlacement(checkpointPosition, building.Yaw));
+                CheckpointPlacement placement = k_CheckpointPlacements[i];
+                placements.Add(placement.AnchorName, placement);
             }
 
             EditorSceneManager.SaveScene(scene, k_EnvironmentPath);
@@ -130,55 +197,94 @@ namespace RootsDance.Editor.Tools
             return root.transform;
         }
 
-        private static void CreateSun(Transform parent)
+        private static Transform CreateChild(string name, Transform parent)
+        {
+            Transform child = CreateRoot(name);
+            child.SetParent(parent, false);
+            return child;
+        }
+
+        private static void CreateInteriorLighting(Transform parent)
         {
             GameObject sun = new GameObject("Sun");
             sun.transform.SetParent(parent, false);
             sun.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
-            Light light = sun.AddComponent<Light>();
-            light.type = LightType.Directional;
-            light.intensity = 1f;
-            light.shadows = LightShadows.Soft;
+            Light sunlight = sun.AddComponent<Light>();
+            sunlight.type = LightType.Directional;
+            sunlight.intensity = 1f;
+            sunlight.shadows = LightShadows.Soft;
+
+            CreatePointLight(parent, "LabFill_North", new Vector3(-3f, 3.8f, 3.5f), 1300f, 12f);
+            CreatePointLight(parent, "LabFill_South", new Vector3(4f, 3.5f, -3.5f), 1100f, 11f);
+            CreatePointLight(parent, "CorridorFill", new Vector3(3f, 3.2f, -15f), 900f, 10f);
         }
 
-        private static GameObject InstantiateBuilding(BuildingSpec building, Transform parent, Scene scene)
+        private static void CreatePointLight(
+            Transform parent,
+            string name,
+            Vector3 position,
+            float intensity,
+            float range)
         {
-            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(building.AssetPath);
+            GameObject lightObject = new GameObject(name);
+            lightObject.transform.SetParent(parent, false);
+            lightObject.transform.localPosition = position;
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.intensity = intensity;
+            light.range = range;
+            light.shadows = LightShadows.None;
+            light.color = new Color(0.72f, 0.84f, 0.78f);
+        }
+
+        private static GameObject InstantiateModel(string path, string name, Transform parent, Scene scene)
+        {
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
 
             if (model == null)
             {
-                throw new System.IO.FileNotFoundException("Building FBX was not imported: " + building.AssetPath);
+                throw new System.IO.FileNotFoundException("Model was not imported: " + path);
             }
 
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(model, scene);
-            instance.name = building.Name;
+            instance.name = name;
             instance.transform.SetParent(parent, false);
             instance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             instance.transform.localScale = Vector3.one;
-
-            MeshFilter[] filters = instance.GetComponentsInChildren<MeshFilter>(true);
-
-            for (int i = 0; i < filters.Length; i++)
-            {
-                MeshFilter filter = filters[i];
-                filter.gameObject.isStatic = true;
-
-                if (filter.sharedMesh == null || filter.sharedMesh.vertexCount == 0)
-                {
-                    continue;
-                }
-
-                MeshCollider collider = filter.GetComponent<MeshCollider>();
-
-                if (collider == null)
-                {
-                    collider = filter.gameObject.AddComponent<MeshCollider>();
-                }
-
-                collider.sharedMesh = filter.sharedMesh;
-            }
-
             return instance;
+        }
+
+        private static void FitRendererBounds(
+            GameObject instance,
+            Vector3 targetSize,
+            Vector3 targetCenter,
+            Quaternion rotation)
+        {
+            instance.transform.SetPositionAndRotation(Vector3.zero, rotation);
+            instance.transform.localScale = Vector3.one;
+            Bounds initialBounds = GetRendererBounds(instance);
+            instance.transform.localScale = new Vector3(
+                targetSize.x / initialBounds.size.x,
+                targetSize.y / initialBounds.size.y,
+                targetSize.z / initialBounds.size.z);
+            Bounds fittedBounds = GetRendererBounds(instance);
+            instance.transform.position += targetCenter - fittedBounds.center;
+        }
+
+        private static void FitParentRendererBounds(
+            Transform parent,
+            Vector3 targetSize,
+            Vector3 targetCenter)
+        {
+            parent.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            parent.localScale = Vector3.one;
+            Bounds initialBounds = GetRendererBounds(parent.gameObject);
+            parent.localScale = new Vector3(
+                targetSize.x / initialBounds.size.x,
+                targetSize.y / initialBounds.size.y,
+                targetSize.z / initialBounds.size.z);
+            Bounds fittedBounds = GetRendererBounds(parent.gameObject);
+            parent.position += targetCenter - fittedBounds.center;
         }
 
         private static Bounds GetRendererBounds(GameObject root)
@@ -187,7 +293,7 @@ namespace RootsDance.Editor.Tools
 
             if (renderers.Length == 0)
             {
-                throw new System.InvalidOperationException("Building has no renderers: " + root.name);
+                throw new System.InvalidOperationException("Model has no renderers: " + root.name);
             }
 
             Bounds bounds = renderers[0].bounds;
@@ -200,19 +306,280 @@ namespace RootsDance.Editor.Tools
             return bounds;
         }
 
-        private static void CreateCheckpointFloor(
-            Transform parent,
-            string buildingName,
-            Vector3 checkpointPosition,
-            float floorHeight)
+        private static void AssignGarageShellMaterials(GameObject shell, GarageMaterials materials)
         {
-            GameObject floor = new GameObject("CheckpointFloor_" + buildingName);
-            floor.transform.SetParent(parent, false);
-            floor.transform.position = new Vector3(checkpointPosition.x, floorHeight - 0.05f, checkpointPosition.z);
-            floor.isStatic = true;
+            Renderer[] renderers = shell.GetComponentsInChildren<Renderer>(true);
 
-            BoxCollider collider = floor.AddComponent<BoxCollider>();
-            collider.size = new Vector3(4f, 0.1f, 4f);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+
+                if (renderer.name == "Garage_Walls")
+                {
+                    AssignMaterials(
+                        renderer,
+                        materials.WallConcrete,
+                        materials.WallPlaster,
+                        materials.WallWeathered,
+                        materials.WallRust);
+                }
+                else if (renderer.name == "Windows_Broken")
+                {
+                    AssignMaterials(renderer, materials.Window, materials.WallPlaster);
+                }
+                else if (renderer.name == "Ceiling" || renderer.name.StartsWith("Ceiling_Beam"))
+                {
+                    AssignMaterials(renderer, materials.Ceiling);
+                }
+                else if (renderer.name.StartsWith("Wall_Trim") || renderer.name == "Wooden_Door_Panel")
+                {
+                    AssignMaterials(renderer, materials.Trim);
+                }
+                else
+                {
+                    AssignMaterials(renderer, materials.WallConcrete);
+                }
+            }
+        }
+
+        private static void AssignOneMaterial(GameObject root, Material material)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                AssignMaterials(renderers[i], material);
+            }
+        }
+
+        private static void RemoveLegacyGarageWalls(GameObject shell)
+        {
+            MeshRenderer[] renderers = shell.GetComponentsInChildren<MeshRenderer>(true);
+
+            for (int i = renderers.Length - 1; i >= 0; i--)
+            {
+                string rendererName = renderers[i].name;
+
+                if (rendererName.StartsWith("Garage_Walls") ||
+                    rendererName.StartsWith("Wooden_Door_Panel") ||
+                    rendererName.StartsWith("Wall_Trim") ||
+                    rendererName.StartsWith("Windows_Broken"))
+                {
+                    Object.DestroyImmediate(renderers[i].gameObject);
+                }
+            }
+        }
+
+        private static void AssignBriggsWallMaterials(GameObject root, GarageMaterials materials)
+        {
+            MeshRenderer[] renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material material = renderers[i].name == "Briggs_Wall_South"
+                    ? materials.WallPlaster
+                    : materials.WallWeathered;
+                AssignMaterials(renderers[i], material);
+            }
+        }
+
+        private static void AssignMaterials(Renderer renderer, params Material[] palette)
+        {
+            int materialCount = Mathf.Max(1, renderer.sharedMaterials.Length);
+            Material[] assigned = new Material[materialCount];
+
+            for (int i = 0; i < materialCount; i++)
+            {
+                assigned[i] = palette[Mathf.Min(i, palette.Length - 1)];
+            }
+
+            renderer.sharedMaterials = assigned;
+        }
+
+        private static void SetStatic(GameObject root)
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                transforms[i].gameObject.isStatic = true;
+            }
+        }
+
+        private static void CreatePlanCollisionShell(Transform parent)
+        {
+            CreateCollisionBox(
+                parent,
+                "Floor_18x14m",
+                new Vector3(0f, -0.1f, 0f),
+                new Vector3(k_LabWidth, 0.2f, k_LabDepth));
+            CreateCollisionBox(
+                parent,
+                "Corridor_Floor_3p2x16p8m",
+                new Vector3(k_CorridorCenterX, -0.1f, k_SouthWallZ - k_CorridorLength * 0.5f),
+                new Vector3(k_CorridorWidth, 0.2f, k_CorridorLength));
+            CreateCollisionBox(
+                parent,
+                "Wall_West",
+                new Vector3(-9.25f, 2.5f, 0f),
+                new Vector3(k_WallThickness, k_LabHeight, 15f));
+            CreateCollisionBox(
+                parent,
+                "Wall_East",
+                new Vector3(9.25f, 2.5f, 0f),
+                new Vector3(k_WallThickness, k_LabHeight, 15f));
+
+            float outerMinX = -9.5f;
+            float outerMaxX = 9.5f;
+            float northOpeningMinX = k_NorthExitCenterX - k_NorthExitWidth * 0.5f;
+            float northOpeningMaxX = k_NorthExitCenterX + k_NorthExitWidth * 0.5f;
+            CreateHorizontalWallSegment(parent, "Wall_North_West", outerMinX, northOpeningMinX, 7.25f);
+            CreateHorizontalWallSegment(parent, "Wall_North_East", northOpeningMaxX, outerMaxX, 7.25f);
+
+            float southOpeningMinX = k_CorridorCenterX - k_CorridorWidth * 0.5f;
+            float southOpeningMaxX = k_CorridorCenterX + k_CorridorWidth * 0.5f;
+            CreateHorizontalWallSegment(parent, "Wall_South_West", outerMinX, southOpeningMinX, -7.25f);
+            CreateHorizontalWallSegment(parent, "Wall_South_East", southOpeningMaxX, outerMaxX, -7.25f);
+        }
+
+        private static void CreateHorizontalWallSegment(
+            Transform parent,
+            string name,
+            float minimumX,
+            float maximumX,
+            float centerZ)
+        {
+            float width = maximumX - minimumX;
+            CreateCollisionBox(
+                parent,
+                name,
+                new Vector3((minimumX + maximumX) * 0.5f, 2.5f, centerZ),
+                new Vector3(width, k_LabHeight, k_WallThickness));
+        }
+
+        private static void CreateCollisionBox(
+            Transform parent,
+            string name,
+            Vector3 center,
+            Vector3 size)
+        {
+            GameObject collision = new GameObject(name);
+            collision.transform.SetParent(parent, false);
+            collision.transform.localPosition = center;
+            collision.isStatic = true;
+            bool isFloor = name.StartsWith("Floor_") || name.StartsWith("Corridor_Floor_");
+            collision.layer = isFloor ? LayerMask.NameToLayer("Ground") : 0;
+            BoxCollider collider = collision.AddComponent<BoxCollider>();
+            collider.size = size;
+        }
+
+        private static GarageMaterials CreateGarageMaterials()
+        {
+            EnsureFolder(k_GarageMaterialFolder);
+            ConfigureTexture(k_GarageTextureFolder + "/GarageWindow_Normal.png", true, false);
+            ConfigureTexture(k_GarageTextureFolder + "/GarageIvy_BaseMap.png", false, true);
+
+            return new GarageMaterials(
+                EnsureMaterial("GarageWallConcrete", "GarageWallConcrete_BaseMap.jpg", null, 0f, 0.3f, false),
+                EnsureMaterial("GarageWallPlaster", "GarageWallPlaster_BaseMap.jpg", null, 0f, 0.25f, false),
+                EnsureMaterial("GarageWallWeathered", "GarageWallWeathered_BaseMap.jpg", null, 0f, 0.22f, false),
+                EnsureMaterial("GarageWallRust", "GarageWallRust_BaseMap.jpg", null, 0.2f, 0.18f, false),
+                EnsureMaterial("GarageCeiling", "GarageCeiling_BaseMap.jpg", null, 0f, 0.24f, false),
+                EnsureMaterial(
+                    "GarageWindow",
+                    "GarageWindow_BaseMap.jpg",
+                    "GarageWindow_Normal.png",
+                    0.5f,
+                    0.42f,
+                    false),
+                EnsureMaterial("GarageTrim", "GarageTrim_BaseMap.jpg", null, 0f, 0.28f, false),
+                EnsureMaterial("GarageIvy", "GarageIvy_BaseMap.png", null, 0f, 0.2f, true));
+        }
+
+        private static void ConfigureTexture(string path, bool isNormalMap, bool hasTransparency)
+        {
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            if (importer == null)
+            {
+                throw new System.IO.FileNotFoundException("Garage texture was not imported: " + path);
+            }
+
+            TextureImporterType textureType = isNormalMap
+                ? TextureImporterType.NormalMap
+                : TextureImporterType.Default;
+            bool needsImport = importer.textureType != textureType
+                || importer.maxTextureSize != 2048
+                || !importer.mipmapEnabled
+                || importer.alphaIsTransparency != hasTransparency;
+
+            if (!needsImport)
+            {
+                return;
+            }
+
+            importer.textureType = textureType;
+            importer.maxTextureSize = 2048;
+            importer.mipmapEnabled = true;
+            importer.alphaIsTransparency = hasTransparency;
+            importer.textureCompression = TextureImporterCompression.Compressed;
+            importer.SaveAndReimport();
+        }
+
+        private static Material EnsureMaterial(
+            string name,
+            string baseMapName,
+            string normalMapName,
+            float metallic,
+            float smoothness,
+            bool isAlphaClipped)
+        {
+            string materialPath = k_GarageMaterialFolder + "/" + name + ".mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+
+            if (material == null)
+            {
+                Shader shader = Shader.Find("HDRP/Lit");
+
+                if (shader == null)
+                {
+                    throw new System.InvalidOperationException("HDRP/Lit shader was not found.");
+                }
+
+                material = new Material(shader);
+                material.name = name;
+                AssetDatabase.CreateAsset(material, materialPath);
+            }
+
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                k_GarageTextureFolder + "/" + baseMapName);
+
+            if (baseMap == null)
+            {
+                throw new System.IO.FileNotFoundException("Garage base map was not imported: " + baseMapName);
+            }
+
+            material.SetTexture("_BaseColorMap", baseMap);
+            material.SetColor("_BaseColor", Color.white);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.SetFloat("_DoubleSidedEnable", 1f);
+            material.SetFloat("_DoubleSidedNormalMode", 1f);
+            material.SetFloat("_AlphaCutoffEnable", isAlphaClipped ? 1f : 0f);
+            material.SetFloat("_AlphaCutoff", 0.42f);
+            material.enableInstancing = true;
+
+            if (!string.IsNullOrEmpty(normalMapName))
+            {
+                Texture2D normalMap = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    k_GarageTextureFolder + "/" + normalMapName);
+                material.SetTexture("_NormalMap", normalMap);
+                material.SetFloat("_NormalScale", 1f);
+            }
+
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static void BuildGameplayScene(IReadOnlyDictionary<string, CheckpointPlacement> placements)
@@ -221,26 +588,38 @@ namespace RootsDance.Editor.Tools
             Transform cameras = CreateRoot("_Cameras");
             Transform spawns = CreateRoot("_Spawns");
             CreateRoot("_Triggers");
-            CreateRoot("_Interactables");
+            Transform interactables = CreateRoot("_Interactables");
             Transform anchors = CreateRoot("_Anchors");
 
-            for (int i = 0; i < k_Buildings.Length; i++)
+            GameObject doorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                BriggsInteriorExitDoorBuilder.DoorPrefabPath);
+
+            if (doorPrefab == null)
             {
-                BuildingSpec building = k_Buildings[i];
-                CheckpointPlacement placement = placements[building.AnchorName];
-                GameObject anchor = new GameObject(building.AnchorName);
+                throw new System.IO.FileNotFoundException(
+                    "Briggs automatic exit door prefab was not found: " +
+                    BriggsInteriorExitDoorBuilder.DoorPrefabPath);
+            }
+
+            BriggsInteriorExitDoorBuilder.PlaceDoor(doorPrefab, interactables, scene);
+
+            for (int i = 0; i < k_CheckpointPlacements.Length; i++)
+            {
+                CheckpointPlacement placement = placements[k_CheckpointPlacements[i].AnchorName];
+                GameObject anchor = new GameObject(placement.AnchorName);
                 anchor.transform.SetParent(anchors, false);
                 anchor.transform.SetPositionAndRotation(
                     placement.Position,
                     Quaternion.Euler(0f, placement.Yaw, 0f));
             }
 
-            CheckpointPlacement initialPlacement = placements[k_PlantResearchLabAnchor];
+            CheckpointPlacement entrancePlacement = placements[k_LabEntranceAnchor];
+
             GameObject spawnPoint = new GameObject("PlayerSpawn");
             spawnPoint.transform.SetParent(spawns, false);
             spawnPoint.transform.SetPositionAndRotation(
-                initialPlacement.Position,
-                Quaternion.Euler(0f, initialPlacement.Yaw, 0f));
+                entrancePlacement.Position,
+                Quaternion.Euler(0f, entrancePlacement.Yaw, 0f));
 
             GameObject playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(k_PlayerPrefabPath);
 
@@ -264,6 +643,7 @@ namespace RootsDance.Editor.Tools
             {
                 head = player.Find("m_head");
             }
+
             GameObject cameraRig = new GameObject("FirstPersonCamera");
             cameraRig.transform.SetParent(cameras, false);
             CinemachineCamera camera = cameraRig.AddComponent<CinemachineCamera>();
@@ -309,7 +689,6 @@ namespace RootsDance.Editor.Tools
             }
 
             AssetDatabase.SaveAssetIfDirty(level);
-
             return level;
         }
 
@@ -328,6 +707,13 @@ namespace RootsDance.Editor.Tools
                 WorldFlags.k_FirstInvestigationDone,
             };
 
+            CreateCheckpoint(
+                k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset",
+                "02-01 Laboratory entrance",
+                level,
+                k_LabEntranceAnchor,
+                placements[k_LabEntranceAnchor],
+                completedExteriorFlags);
             CreateCheckpoint(
                 k_CheckpointFolder + "/02-01_PlantResearchLab.asset",
                 "02-01 Plant research lab",
@@ -404,8 +790,11 @@ namespace RootsDance.Editor.Tools
 
         private static void AddSceneIfMissing(List<EditorBuildSettingsScene> scenes, string path)
         {
-            if (scenes.Any(scene => scene.path == path))
+            int existingIndex = scenes.FindIndex(scene => scene.path == path);
+
+            if (existingIndex >= 0)
             {
+                scenes[existingIndex] = new EditorBuildSettingsScene(path, true);
                 return;
             }
 
@@ -425,30 +814,48 @@ namespace RootsDance.Editor.Tools
             AssetDatabase.CreateFolder(parent, folderName);
         }
 
-        private sealed class BuildingSpec
+        private sealed class GarageMaterials
         {
-            public BuildingSpec(string name, string assetPath, string anchorName, float yaw)
+            public GarageMaterials(
+                Material wallConcrete,
+                Material wallPlaster,
+                Material wallWeathered,
+                Material wallRust,
+                Material ceiling,
+                Material window,
+                Material trim,
+                Material ivy)
             {
-                Name = name;
-                AssetPath = assetPath;
-                AnchorName = anchorName;
-                Yaw = yaw;
+                WallConcrete = wallConcrete;
+                WallPlaster = wallPlaster;
+                WallWeathered = wallWeathered;
+                WallRust = wallRust;
+                Ceiling = ceiling;
+                Window = window;
+                Trim = trim;
+                Ivy = ivy;
             }
 
-            public string Name { get; }
-            public string AssetPath { get; }
-            public string AnchorName { get; }
-            public float Yaw { get; }
+            public Material WallConcrete { get; }
+            public Material WallPlaster { get; }
+            public Material WallWeathered { get; }
+            public Material WallRust { get; }
+            public Material Ceiling { get; }
+            public Material Window { get; }
+            public Material Trim { get; }
+            public Material Ivy { get; }
         }
 
         private struct CheckpointPlacement
         {
-            public CheckpointPlacement(Vector3 position, float yaw)
+            public CheckpointPlacement(string anchorName, Vector3 position, float yaw)
             {
+                AnchorName = anchorName;
                 Position = position;
                 Yaw = yaw;
             }
 
+            public string AnchorName;
             public Vector3 Position;
             public float Yaw;
         }

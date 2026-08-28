@@ -42,6 +42,8 @@ Shader "Hidden/RootsDance/PsxPostProcess"
     float _PixelScale;
     float _ColorLevels;
     float _DitherStrength;
+    float _InterlaceStrength;
+    float _InterlaceSize;
     float _GrainIntensity;
     float _GrainSize;
     float _GrainSeed;
@@ -88,9 +90,12 @@ Shader "Hidden/RootsDance/PsxPostProcess"
         float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler,
             ClampAndScaleUVForBilinearPostProcessTexture(uv)).xyz;
 
-        // 1. Pixelate: snap the UV to a virtual grid of (screen / pixelScale) cells and point-sample it.
+        // 1. Pixelate: _PixelScale is authored for 1080p, then scaled with output height. This keeps the
+        // virtual resolution and the perceived dither/interlace granularity stable from 1080p through 4K.
         float2 screenSize = _PostProcessScreenSize.xy;
-        float2 virtualSize = max(floor(screenSize / max(_PixelScale, 1.0)), 1.0);
+        float outputScale = max(screenSize.y / 1080.0, 1.0 / max(_PixelScale, 1.0));
+        float effectivePixelScale = max(_PixelScale * outputScale, 1.0);
+        float2 virtualSize = max(floor(screenSize / effectivePixelScale), 1.0);
         float2 cell = floor(uv * virtualSize);
         float2 snappedUv = (cell + 0.5) / virtualSize;
         float3 psxColor = SAMPLE_TEXTURE2D_X(_MainTex, s_point_clamp_sampler,
@@ -106,7 +111,16 @@ Shader "Hidden/RootsDance/PsxPostProcess"
 
         float3 color = lerp(sourceColor, psxColor, _Intensity);
 
-        // 3. Grain, after quantisation so the colour steps cannot swallow it; cells follow the virtual grid.
+        // 3. Interlacing: dim alternate horizontal bands on the same virtual grid as the pixelation. Keeping
+        // the pattern grid-aligned prevents sub-pixel shimmer when the Game view resolution changes.
+        if (_InterlaceStrength > 0.0)
+        {
+            float band = floor(cell.y / max(_InterlaceSize, 1.0));
+            float alternate = fmod(band, 2.0);
+            color *= 1.0 - alternate * _InterlaceStrength * _Intensity;
+        }
+
+        // 4. Grain, after quantisation so the colour steps cannot swallow it; cells follow the virtual grid.
         if (_GrainIntensity > 0.0)
         {
             uint2 grainCell = uint2(floor(cell / max(_GrainSize, 1.0)));

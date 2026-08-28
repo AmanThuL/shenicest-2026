@@ -58,7 +58,8 @@ namespace RootsDance.Editor.Environment
 
         /// <summary>
         /// Writes only the PSX override: the level-wide baseline onto MainProfile and each segment's values onto
-        /// its Opening profile (dropping the stock Film Grain there — the PSX grain is the single grain source).
+        /// its Opening profile. The component selects either PSX or grain, and stock Film Grain is removed so
+        /// the alternative grain mode cannot stack with it.
         /// Nothing else on any profile is touched, so hand-tuned fog, sky and exposure survive. Registers the
         /// effect first so a fresh checkout gets a working override.
         /// </summary>
@@ -73,7 +74,8 @@ namespace RootsDance.Editor.Environment
 
         /// <summary>
         /// Batch entry point:
-        /// <c>-executeMethod RootsDance.Editor.Environment.OpeningAtmosphereBuilder.ApplyPsxBaselineFromCommandLine</c>.
+        /// <c>-executeMethod
+        /// RootsDance.Editor.Environment.OpeningAtmosphereBuilder.ApplyPsxBaselineFromCommandLine</c>.
         /// </summary>
         public static void ApplyPsxBaselineFromCommandLine()
         {
@@ -303,9 +305,12 @@ namespace RootsDance.Editor.Environment
         {
             PsxPostProcess psx = GetOrAdd<PsxPostProcess>(profile);
             Set(psx.intensity, look.Intensity);
+            Set(psx.grainMode, look.GrainMode);
             Set(psx.pixelScale, look.PixelScale);
             Set(psx.colorLevels, look.ColorLevels);
             Set(psx.ditherStrength, look.Dither);
+            Set(psx.interlaceStrength, look.InterlaceStrength);
+            Set(psx.interlaceSize, look.InterlaceSize);
             Set(psx.grainIntensity, look.GrainIntensity);
             Set(psx.grainSize, look.GrainSize);
             Set(psx.grainRate, look.GrainRate);

@@ -6,10 +6,10 @@ using UnityEngine.Rendering.HighDefinition;
 namespace RootsDance.Rendering
 {
     /// <summary>
-    /// PSX-style full-screen treatment: renders the frame on a coarse pixel grid, quantises colour per channel
-    /// and breaks the banding with an ordered 4x4 Bayer dither. Injected After Post Process so it works on the
-    /// tone-mapped image. Register it once via RootsDance > Rendering > Register PSX Post Process, then add it
-    /// as a Volume override (guideline 07 §4).
+    /// Selectable full-screen treatment: either a PSX-style coarse pixel grid, colour quantisation, ordered
+    /// Bayer dither and interlacing, or grain alone. Injected After Post Process so it works on the tone-mapped
+    /// image. Register it once via RootsDance > Rendering > Register PSX Post Process, then add it as a Volume
+    /// override (guideline 07 §4).
     /// </summary>
     /// <remarks>
     /// The parameters are public fields because that is the Volume system's contract for every override
@@ -24,8 +24,12 @@ namespace RootsDance.Rendering
         [Tooltip("0 = off, 1 = the full PSX treatment. Blends per Volume like any other override.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
-        [Tooltip("Screen pixels per virtual pixel. 1 keeps the native resolution; 3 renders a 1080p frame as 640x360.")]
-        public ClampedIntParameter pixelScale = new ClampedIntParameter(3, 1, 8);
+        [Tooltip("Off = PSX pixelation, colour depth, dithering and interlacing. On = grain only.")]
+        public BoolParameter grainMode = new BoolParameter(false);
+
+        [Tooltip("Screen pixels per virtual pixel at 1080p. Scales with output height so the PSX grid keeps "
+            + "the same visual granularity.")]
+        public ClampedIntParameter pixelScale = new ClampedIntParameter(4, 1, 8);
 
         [Tooltip("Colour steps per channel after tone mapping. 32 reads as 15-bit PSX colour.")]
         public ClampedIntParameter colorLevels = new ClampedIntParameter(32, 4, 256);
@@ -33,8 +37,14 @@ namespace RootsDance.Rendering
         [Tooltip("Ordered (Bayer 4x4) dither amplitude, in colour steps.")]
         public ClampedFloatParameter ditherStrength = new ClampedFloatParameter(0.6f, 0f, 1f);
 
+        [Tooltip("How much to dim every other horizontal band. Multiplied by Intensity; 0 disables interlacing.")]
+        public ClampedFloatParameter interlaceStrength = new ClampedFloatParameter(0.12f, 0f, 1f);
+
+        [Tooltip("Height of one interlaced band in virtual pixels.")]
+        public ClampedIntParameter interlaceSize = new ClampedIntParameter(1, 1, 8);
+
         [Tooltip("Grain amplitude. 1 = +/-25 % of the sRGB range on the pixels the shadow bias lets through. "
-            + "Independent of Intensity, so grain can stay on where the pixelation is off.")]
+            + "Used only when Grain Mode is enabled.")]
         public ClampedFloatParameter grainIntensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         [Tooltip("Grain cell edge in virtual pixels (one grain cell = Grain Size x Pixel Scale screen pixels).")]
@@ -50,6 +60,8 @@ namespace RootsDance.Rendering
         private static readonly int k_PixelScaleId = Shader.PropertyToID("_PixelScale");
         private static readonly int k_ColorLevelsId = Shader.PropertyToID("_ColorLevels");
         private static readonly int k_DitherStrengthId = Shader.PropertyToID("_DitherStrength");
+        private static readonly int k_InterlaceStrengthId = Shader.PropertyToID("_InterlaceStrength");
+        private static readonly int k_InterlaceSizeId = Shader.PropertyToID("_InterlaceSize");
         private static readonly int k_GrainIntensityId = Shader.PropertyToID("_GrainIntensity");
         private static readonly int k_GrainSizeId = Shader.PropertyToID("_GrainSize");
         private static readonly int k_GrainSeedId = Shader.PropertyToID("_GrainSeed");
@@ -65,7 +77,12 @@ namespace RootsDance.Rendering
 
         public bool IsActive()
         {
-            return m_material != null && (intensity.value > 0f || grainIntensity.value > 0f);
+            if (m_material == null)
+            {
+                return false;
+            }
+
+            return grainMode.value ? grainIntensity.value > 0f : intensity.value > 0f;
         }
 
         /// <summary>
@@ -106,11 +123,14 @@ namespace RootsDance.Rendering
                 return;
             }
 
-            m_material.SetFloat(k_IntensityId, intensity.value);
+            bool useGrain = grainMode.value;
+            m_material.SetFloat(k_IntensityId, useGrain ? 0f : intensity.value);
             m_material.SetFloat(k_PixelScaleId, pixelScale.value);
             m_material.SetFloat(k_ColorLevelsId, colorLevels.value);
             m_material.SetFloat(k_DitherStrengthId, ditherStrength.value);
-            m_material.SetFloat(k_GrainIntensityId, grainIntensity.value);
+            m_material.SetFloat(k_InterlaceStrengthId, useGrain ? 0f : interlaceStrength.value);
+            m_material.SetFloat(k_InterlaceSizeId, interlaceSize.value);
+            m_material.SetFloat(k_GrainIntensityId, useGrain ? grainIntensity.value : 0f);
             m_material.SetFloat(k_GrainSizeId, grainSize.value);
             m_material.SetFloat(k_GrainSeedId,
                 ComputeGrainSeed(Time.unscaledTime, grainRate.value, Time.frameCount));
