@@ -31,6 +31,19 @@ namespace RootsDance.EditorTools
         private const string k_ScanPoster = "Assets/RootsDance/Meshes/Environment/SHA2017Poster.obj";
 
         /// <summary>
+        /// Where the wreck's pivot sits, in metres. Derived from the spawn at (0, -10): the car is
+        /// nudged +X so the spawn lands in the driver's seat rather than the middle of the bench,
+        /// and far enough down +Z that the windscreen sits ahead of the eye instead of through it.
+        /// </summary>
+        private static readonly Vector2 k_CarGroundXZ = new Vector2(0.394f, -9.882f);
+
+        /// <summary>
+        /// Turns the wreck's nose down +Z, the direction the player faces on spawn. The body is
+        /// authored at 45 degrees inside its own FBX, so this is not the identity it looks like.
+        /// </summary>
+        private const float k_CarYaw = -45f;
+
+        /// <summary>
         /// Which way the poster's printed face looks after the FBX axis conversion. The Maya
         /// source hangs it in the XY plane with the pushpins protruding towards -Z, so this is the
         /// yaw that turns that face back towards the player spawn at (0, -10).
@@ -67,11 +80,14 @@ namespace RootsDance.EditorTools
 
             StripTemplateObjects(scene);
 
-            // The player spawns at (0, ~3, -10) looking down +Z. The torch lies just in front of
-            // the spawn where it reads as a pickup; the wreck sits further up the path on the one
-            // patch that is both clear of vegetation and flat enough for a 4 m body (the ridge
-            // around (7, 4) is inside a thicket and hides it completely).
-            Place(scene, terrain, k_Car, "CarRustyOpenDoor", new Vector2(8f, 26f), 35f, 0.15f);
+            // The player spawns at (0, 3.8, -10) looking down +Z, and starts the level sitting in
+            // the wreck: the car is placed around the spawn rather than somewhere to walk to. The
+            // offset from the spawn puts the eye in the driver's seat instead of the middle of the
+            // cabin, and the yaw turns the nose down +Z so the first thing in view is the
+            // windscreen. It is the one prop that must stay level — tilting it along the slope
+            // moves the seat out from under an eye height the spawn fixes.
+            Place(scene, terrain, k_Car, "CarRustyOpenDoor", k_CarGroundXZ, k_CarYaw, 0f,
+                alignToSlope: false, levelToPivot: true);
             Place(scene, terrain, k_Flashlight, "Flashlight", new Vector2(0.8f, -7.5f), -25f, 0f);
 
             // The poster is a flat sheet, so it is the one prop that must stay upright: laying it
@@ -88,6 +104,10 @@ namespace RootsDance.EditorTools
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
+
+            // Re-placing the poster destroys the rune overlay parented to it, so the overlay is
+            // rebuilt here rather than left for whoever notices the runes have gone.
+            FluorescentRunesBuilder.Build();
 
             Debug.Log("TempPlaceEnvironment2: done.");
         }
@@ -120,8 +140,15 @@ namespace RootsDance.EditorTools
         /// Whether the prop lies along the ground normal. A body that rests on the ground does;
         /// anything that reads as upright — a poster, a sign — must not, or it leans with the hill.
         /// </param>
+        /// <param name="levelToPivot">
+        /// Take the ground height from under the pivot rather than averaging it over the prop's
+        /// footprint. The mean is right for a body resting on the slope, but the wreck's footprint
+        /// runs 0.18 m uphill of the spawn, which would lift the seat that far out from under an
+        /// eye height the spawn fixes.
+        /// </param>
         private static void Place(Scene scene, Terrain terrain, string modelPath, string name,
-            Vector2 groundXZ, float yaw, float sink, bool alignToSlope = true)
+            Vector2 groundXZ, float yaw, float sink, bool alignToSlope = true,
+            bool levelToPivot = false)
         {
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
 
@@ -156,7 +183,9 @@ namespace RootsDance.EditorTools
             // The mean height beds the prop into the slope; snapping to the highest point under it
             // would leave the downhill end hanging in the air.
             Bounds bounds = Measure(instance);
-            float ground = MeanGroundUnder(terrain, bounds);
+            float ground = levelToPivot
+                ? terrain.SampleHeight(spot) + terrain.transform.position.y
+                : MeanGroundUnder(terrain, bounds);
             instance.transform.position += new Vector3(0f, ground - sink - bounds.min.y, 0f);
 
             bounds = Measure(instance);
