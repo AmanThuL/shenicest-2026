@@ -49,6 +49,35 @@ def parse_args():
                         "the object, it does NOT bake the offset into the mesh "
                         "-- baking it would leave the pivot metres away from the "
                         "geometry. Pivot placement itself is a D15 decision.")
+    p.add_argument("--merge-doubles", type=float, default=0.0,
+                   metavar="DISTANCE",
+                   help="weld vertices closer than DISTANCE and drop the "
+                        "duplicate faces that fall out. SketchUp-derived art "
+                        "carries coincident double-sided faces, which land on "
+                        "identical UVs and read as overlap the bake cannot "
+                        "resolve. 0 (default) does nothing.")
+    p.add_argument("--delete-duplicate-faces", action="store_true",
+                   help="remove faces built from an identical set of vertices. "
+                        "Double-sided DCC art carries front/back pairs on the "
+                        "same verts; they project to identical UVs, which no "
+                        "unwrap can separate and which reads as total overlap.")
+    p.add_argument("--delete-degenerate", action="store_true",
+                   help="dissolve zero-area faces and zero-length edges; they "
+                        "bake to black texels.")
+    p.add_argument("--drop-empty-slots", action="store_true",
+                   help="remove material slots that no face is assigned to. "
+                        "Painter turns every slot into a texture set, and a "
+                        "slot with no faces yields an empty set that fails the "
+                        "Painter stage. Off by default: dropping a slot is a "
+                        "repair, and repairs are opt-in.")
+    p.add_argument("--rename-slot", action="append", default=[], dest="renames",
+                   metavar="OLD=NEW",
+                   help="rename a material slot, e.g. FrontColor=CorridorColumn. "
+                        "The slot name becomes the Painter texture-set name and "
+                        "therefore the texture file names, so DCC defaults like "
+                        "SketchUp's FrontColor/BackColor need renaming. The "
+                        "material is copied first, so the source datablock is "
+                        "never touched.")
     p.add_argument("--slot", action="append", default=[], dest="slots",
                    help="material slot to guarantee exists; repeatable. Each "
                         "becomes one Painter texture set.")
@@ -256,6 +285,104 @@ def ensure_slots(obj, asset, slot_names, preset, report):
                 "%d slot(s) after prepare: %s" % (len(got), ", ".join(got)), slots=got)
 
 
+def clean_geometry(obj, merge_distance, delete_degenerate,
+                   delete_duplicate_faces, report):
+    """Weld coincident vertices and remove zero-area faces. Opt-in."""
+    import bmesh
+
+    before_v = len(obj.data.vertices)
+    before_f = len(obj.data.polygons)
+
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+
+    if merge_distance > 0.0:
+        bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=merge_distance)
+
+    if delete_duplicate_faces:
+        seen = {}
+        dupes = []
+        for face in bm.faces:
+            key = tuple(sorted(v.index for v in face.verts))
+            if key in seen:
+                dupes.append(face)
+            else:
+                seen[key] = face
+        if dupes:
+            bmesh.ops.delete(bm, geom=dupes, context="FACES")
+
+    if delete_degenerate:
+        bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges[:])
+        gone = [f for f in bm.faces if f.calc_area() <= 1e-9]
+        if gone:
+            bmesh.ops.delete(bm, geom=gone, context="FACES")
+
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+
+    report.info(
+        "mesh.cleaned", obj.name,
+        "verts %d -> %d, faces %d -> %d (merge_distance=%s, delete_degenerate=%s)"
+        % (before_v, len(obj.data.vertices), before_f, len(obj.data.polygons),
+           merge_distance, delete_degenerate),
+        verts_before=before_v, verts_after=len(obj.data.vertices),
+        faces_before=before_f, faces_after=len(obj.data.polygons))
+
+
+def drop_empty_slots(obj, report):
+    """Remove material slots no face uses. Explicitly requested only."""
+    before = [slot.name for slot in obj.material_slots]
+    used = {poly.material_index for poly in obj.data.polygons}
+    empty = [nm for i, nm in enumerate(before) if i not in used]
+
+    if not empty:
+        report.info("material.no_empty_slots", obj.name,
+                    "every slot has faces assigned; nothing dropped")
+        return
+
+    bpy.ops.object.material_slot_remove_unused()
+
+    after = [slot.name for slot in obj.material_slots]
+    report.info(
+        "material.slots_dropped", obj.name,
+        "dropped %d slot(s) with no faces: %s -> %s"
+        % (len(empty), ", ".join(empty), ", ".join(after) or "(none)"),
+        dropped=empty, slots=after)
+
+
+def rename_slots_explicit(obj, specs, report):
+    """Apply OLD=NEW slot renames, on a copy of each material."""
+    for spec in specs:
+        old, sep, new = spec.partition("=")
+        if not sep or not old or not new:
+            report.error("material.bad_rename", spec,
+                         "expected OLD=NEW, got %r" % spec)
+            continue
+
+        slot = next((s for s in obj.material_slots if s.name == old), None)
+        if slot is None:
+            report.warn("material.rename_no_slot", old,
+                        "no slot named %r on %s; slots are %s"
+                        % (old, obj.name,
+                           ", ".join(s.name for s in obj.material_slots) or "(none)"))
+            continue
+
+        if slot.material is None:
+            mat = bpy.data.materials.new(new)
+            mat.use_nodes = True
+            slot.material = mat
+        else:
+            # copy first: the source material is shared across the scene
+            mat = slot.material.copy()
+            mat.name = new
+            slot.material = mat
+
+        report.info("material.slot_renamed", new,
+                    "renamed slot %r -> %r (material copied, source untouched)"
+                    % (old, new))
+
+
 def main():
     args = parse_args()
     preset = presetlib.load(args.preset)
@@ -271,6 +398,8 @@ def main():
             "apply_rotation": args.apply_rotation,
             "apply_scale": args.apply_scale,
             "slots": args.slots,
+            "drop_empty_slots": args.drop_empty_slots,
+            "rename_slots": args.renames,
         },
     })
 
@@ -297,6 +426,14 @@ def main():
         return
 
     apply_transforms(obj, args, r)
+    if (args.merge_doubles > 0.0 or args.delete_degenerate
+            or args.delete_duplicate_faces):
+        clean_geometry(obj, args.merge_doubles, args.delete_degenerate,
+                       args.delete_duplicate_faces, r)
+    if args.drop_empty_slots:
+        drop_empty_slots(obj, r)
+    if args.renames:
+        rename_slots_explicit(obj, args.renames, r)
     ensure_slots(obj, args.asset, args.slots, preset, r)
     verify_applied(obj, args, r)
 

@@ -76,6 +76,7 @@ DEFAULT_EXPORT_PRESET = "Unity HD Render Pipeline (Metallic Standard)"
 # pipeline has to state its padding policy rather than inherit a default.
 # "infinite" dilates the island outwards indefinitely, which is what stops
 # mip-mapping pulling background pixels into island edges.
+DEFAULT_TEMPLATE = "Unity HD Render Pipeline (Metallic Standard)"
 DEFAULT_PADDING = "infinite"
 
 
@@ -127,6 +128,31 @@ def main():
     parser.add_argument("--padding", default=DEFAULT_PADDING)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=60041)
+    parser.add_argument(
+        "--layer", action="append", default=[], dest="layers",
+        metavar="MATERIAL[|MASK]",
+        help="author a smart material into every texture set, bottom-up, "
+             "between bake and export. 'Iron Old' lays a base; "
+             "'Steel Rust Surface|Edge Rust' lays a material behind a smart "
+             "mask. Names are resolved against Painter's shelf. Omit to leave "
+             "the stack empty, which is what every asset did before.")
+    parser.add_argument(
+        "--template", default=DEFAULT_TEMPLATE, metavar="NAME_OR_PATH",
+        help="project template (.spt) to create from, by name or absolute "
+             "path. Without one Painter builds a legacy colour-managed "
+             "project, and shelf smart materials -- which are authored in a "
+             "modern colour space -- refuse to contribute colour, so every "
+             "export comes out grey. Resolved against Painter's own shelves, "
+             "so no machine-specific path belongs in an asset config.")
+    parser.add_argument(
+        "--fill", action="append", default=[], dest="fills",
+        metavar="NAME:CHANNEL=PATH[;CHANNEL=PATH][|MASK]",
+        help="author a fill layer from image files, e.g. "
+             "'Rust:basecolor=a.jpg;normal=b.jpg;roughness=c.jpg|Edge Rust'. "
+             "Channels: basecolor, normal, roughness, metallic, height. "
+             "Unlike --layer this actually carries colour: shelf smart "
+             "materials insert their structure but contribute nothing in a "
+             "legacy colour-managed project.")
     parser.add_argument("--bake-timeout", type=int, default=900)
     args = parser.parse_args()
 
@@ -175,7 +201,21 @@ def main():
 
     # --- create project ---------------------------------------------------
     try:
-        painter.run_python(_CREATE.format(mesh=repr(mesh)))
+        template = None
+        if args.template:
+            template = painter.run_python(
+                _TEMPLATE_PATH.format(name=args.template))
+            if template:
+                report.info("painter.template", args.asset,
+                            "creating from template %s" % os.path.basename(template))
+            else:
+                report.warn(
+                    "painter.template_missing", args.template,
+                    "no such template on any shelf; falling back to a legacy "
+                    "colour-managed project, whose exports come out grey")
+
+        painter.run_python(_CREATE.format(mesh=repr(mesh),
+                                          template=repr(template)))
     except PainterError as error:
         report.error("painter.create_failed", args.asset, str(error).strip())
         report.emit(args.report, exit_on_error=True)
@@ -222,14 +262,21 @@ def main():
             report.emit(args.report, exit_on_error=True)
             return
 
+        # is_busy() alone is not enough: it reads False in the window between
+        # bake_async() returning and the bake actually starting, and the stage
+        # then walks on and finds no mesh maps. Wait for the maps themselves.
         deadline = time.time() + args.bake_timeout
+        baked = {}
 
         while time.time() < deadline:
-            if not painter.eval_python(
+            time.sleep(2)
+            if painter.eval_python(
                 "__import__('substance_painter.project', fromlist=['x']).is_busy()"
             ):
+                continue
+            baked = painter.run_python(_BAKED.format(bakers=repr(bakers)))
+            if all(baked.get(name) for name in bakers):
                 break
-            time.sleep(2)
         else:
             report.error(
                 "painter.bake_timeout", args.asset,
@@ -237,8 +284,6 @@ def main():
             )
             report.emit(args.report, exit_on_error=True)
             return
-
-        baked = painter.run_python(_BAKED.format(bakers=repr(bakers)))
 
         for name in bakers:
             if baked.get(name):
@@ -248,6 +293,94 @@ def main():
                              "%s was requested but no mesh map came back" % name)
     else:
         report.info("bake.skipped", args.asset, "preset enables no bakers")
+
+    # --- author -----------------------------------------------------------
+    # The bake gives curvature/AO/thickness; those are what the rust masks read,
+    # so authoring has to sit after the bake and before the export.
+    if args.fills:
+        fill_spec = []
+        for item in args.fills:
+            body, _, mask = item.partition("|")
+            name, _, channel_part = body.partition(":")
+            channels = []
+            for pair in channel_part.split(";"):
+                if not pair.strip():
+                    continue
+                channel, _, path = pair.partition("=")
+                channels.append([channel.strip().lower(),
+                                 os.path.abspath(path.strip())])
+            fill_spec.append([name.strip(), channels, mask.strip()])
+
+        try:
+            filled = painter.run_python(_FILL.replace("__SPEC__", repr(fill_spec)))
+        except PainterError as error:
+            report.error("painter.fill_failed", args.asset, str(error).strip())
+            report.emit(args.report, exit_on_error=True)
+            return
+
+        for row in filled:
+            subject = "%s / %s" % (row["texture_set"], row["layer"])
+            if row["status"].startswith("ok"):
+                report.info("author.fill", subject,
+                            "fill layer from %s%s" % (
+                                ", ".join(row["channels"]) or "no channels",
+                                " masked by %r" % row["mask"] if row["mask"] else ""),
+                            **row)
+            else:
+                report.error("author.fill_%s" % row["status"].split(":")[0].replace("-", "_"),
+                             subject, "fill layer problem: %s" % row["status"], **row)
+
+    if args.layers or args.fills:
+        spec = []
+        for item in args.layers:
+            material, _, mask = item.partition("|")
+            spec.append([material.strip(), mask.strip()])
+
+        try:
+            authored = painter.run_python(
+                _AUTHOR.replace("__SPEC__", repr(spec))
+            )
+        except PainterError as error:
+            report.error("painter.author_failed", args.asset, str(error).strip())
+            report.emit(args.report, exit_on_error=True)
+            return
+
+        for row in authored:
+            subject = "%s / %s" % (row["texture_set"], row["material"])
+            if row["status"] in ("ok", "ok-masked"):
+                report.info("author.layer", subject,
+                            "inserted %r%s" % (
+                                row.get("layer", row["material"]),
+                                " masked by %r" % row["mask"] if row["mask"] else ""),
+                            **row)
+            else:
+                report.error("author.%s" % row["status"].replace("-", "_"), subject,
+                             "could not resolve %r on the shelf"
+                             % (row["mask"] if "mask" in row["status"] else row["material"]),
+                             **row)
+        # Inserting a smart material kicks off an async recompute. Exporting
+        # before it settles writes the pre-authoring stack -- grey, not rusty,
+        # and silently so. Same trap as project.create() in 6.3.
+        deadline = time.time() + args.bake_timeout
+        while time.time() < deadline:
+            if not painter.eval_python(
+                "__import__('substance_painter.project', fromlist=['x']).is_busy()"
+            ):
+                break
+            time.sleep(2)
+        else:
+            report.error(
+                "painter.author_timeout", args.asset,
+                "layer computation did not settle within %ds" % args.bake_timeout,
+            )
+            report.emit(args.report, exit_on_error=True)
+            return
+        time.sleep(3)  # is_busy drops before the last tiles land
+        report.info("author.settled", args.asset,
+                    "layer stack finished computing before export")
+    else:
+        report.info("author.skipped", args.asset,
+                    "no --layer given; exporting the bare stack")
 
     # --- export -----------------------------------------------------------
     try:
@@ -346,13 +479,33 @@ def main():
     report.emit(args.report, exit_on_error=True)
 
 
+_TEMPLATE_PATH = """
+import os
+import substance_painter.resource as R
+
+name = {name!r}
+found = None
+if os.path.isabs(name) and os.path.isfile(name):
+    found = name
+else:
+    stem = name[:-4] if name.endswith(".spt") else name
+    for shelf in R.Shelves.all():
+        candidate = os.path.join(shelf.path(), "templates", stem + ".spt")
+        if os.path.isfile(candidate):
+            found = candidate
+            break
+
+RESULT = found
+"""
+
+
 _CREATE = """
 import substance_painter.project as P
 
 if P.is_open():
     P.close()
 
-P.create(mesh_file_path={mesh}, settings=P.Settings(
+P.create(mesh_file_path={mesh}, template_file_path={template}, settings=P.Settings(
     normal_map_format=P.NormalMapFormat.OpenGL,
     tangent_space_mode=P.TangentSpace.PerFragment,
 ))
@@ -377,6 +530,127 @@ for ts in TS.all_texture_sets():
 
 RESULT = "set"
 """
+
+_FILL = """
+import os
+import substance_painter.layerstack as L
+import substance_painter.resource as R
+import substance_painter.textureset as TS
+
+CHANNELS = {
+    "basecolor": L.ChannelType.BaseColor,
+    "normal": L.ChannelType.Normal,
+    "roughness": L.ChannelType.SpecularRoughness,
+    "metallic": L.ChannelType.BaseMetalness,
+    "height": L.ChannelType.Height,
+}
+
+
+def _mask(query):
+    for hit in R.search(query):
+        try:
+            rid = hit.identifier()
+            stem = rid.url().rsplit("/", 1)[-1].split("?")[0].rsplit(".", 1)[0]
+        except Exception:
+            continue
+        if stem.lower() == query.lower():
+            return rid
+    return None
+
+
+spec = __SPEC__
+out = []
+
+for ts in TS.all_texture_sets():
+    stack = ts.get_stack()
+    for name, channels, mask_query in spec:
+        entry = {"texture_set": ts.name(), "layer": name, "channels": [],
+                 "mask": mask_query or "", "status": "ok"}
+        fill = L.insert_fill(L.InsertPosition.from_textureset_stack(stack))
+        fill.set_name(name)
+
+        for channel, path in channels:
+            if channel not in CHANNELS:
+                entry["status"] = "unknown-channel:" + channel
+                continue
+            if not os.path.isfile(path):
+                entry["status"] = "missing-file"
+                continue
+            res = R.import_project_resource(path, R.Usage.TEXTURE)
+            fill.set_source(CHANNELS[channel], res.identifier())
+            entry["channels"].append(channel)
+
+        if mask_query:
+            rid = _mask(mask_query)
+            if rid is None:
+                entry["status"] = "mask-not-found"
+            else:
+                fill.add_mask(L.MaskBackground.Black)
+                L.insert_smart_mask(
+                    L.InsertPosition.inside_node(fill, L.NodeStack.Mask), rid)
+                entry["status"] = "ok-masked"
+        out.append(entry)
+
+RESULT = out
+"""
+
+
+_AUTHOR = """
+import substance_painter.layerstack as L
+import substance_painter.resource as R
+import substance_painter.textureset as TS
+
+
+def _resolve(query):
+    '''Shelf lookup: exact filename stem wins, else the first hit.'''
+    fallback = None
+    for hit in R.search(query):
+        try:
+            rid = hit.identifier()
+            stem = rid.url().rsplit("/", 1)[-1].split("?")[0].rsplit(".", 1)[0]
+        except Exception:
+            continue
+        if stem.lower() == query.lower():
+            return rid
+        if fallback is None:
+            fallback = rid
+    return fallback
+
+
+spec = __SPEC__
+out = []
+
+for ts in TS.all_texture_sets():
+    stack = ts.get_stack()
+    for material_query, mask_query in spec:
+        entry = {"texture_set": ts.name(), "material": material_query,
+                 "mask": mask_query or ""}
+        rid = _resolve(material_query)
+        if rid is None:
+            entry["status"] = "material-not-found"
+            out.append(entry)
+            continue
+
+        group = L.insert_smart_material(
+            L.InsertPosition.from_textureset_stack(stack), rid)
+        entry["layer"] = group.get_name()
+        entry["status"] = "ok"
+
+        if mask_query:
+            mask_rid = _resolve(mask_query)
+            if mask_rid is None:
+                entry["status"] = "mask-not-found"
+            else:
+                group.add_mask(L.MaskBackground.Black)
+                L.insert_smart_mask(
+                    L.InsertPosition.inside_node(group, L.NodeStack.Mask),
+                    mask_rid)
+                entry["status"] = "ok-masked"
+        out.append(entry)
+
+RESULT = out
+"""
+
 
 _BAKE = """
 import substance_painter.textureset as TS

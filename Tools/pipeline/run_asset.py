@@ -103,6 +103,16 @@ def main():
                           ("--strip-animation", "strip_animation")):
             if p.get(key):
                 cmd.append(flag)
+        if p.get("merge_doubles"):
+            cmd += ["--merge-doubles", str(p["merge_doubles"])]
+        if p.get("delete_duplicate_faces"):
+            cmd.append("--delete-duplicate-faces")
+        if p.get("delete_degenerate"):
+            cmd.append("--delete-degenerate")
+        if p.get("drop_empty_slots"):
+            cmd.append("--drop-empty-slots")
+        for old_new in p.get("rename_slots", []):
+            cmd += ["--rename-slot", old_new]
         for slot in p.get("material_slots", []):
             cmd += ["--slot", slot]
         if args.overwrite:
@@ -144,7 +154,12 @@ def main():
                "--mesh", fbx, "--out", tex_dir,
                "--project", rel("SourceArt", "Painter", asset + ".spp"),
                "--report", rep("painter_texture")]
-        run(cmd, "painter_texture (create + bake + export over remote scripting)")
+        for layer in cfg.get("painter", {}).get("layers", []):
+            cmd += ["--layer", layer]
+        for fill in cfg.get("painter", {}).get("fills", []):
+            cmd += ["--fill", fill]
+        run(cmd, "painter_texture (create + bake + author + export over remote "
+                 "scripting)")
 
     # 7. back into Blender
     if want("import_material"):
