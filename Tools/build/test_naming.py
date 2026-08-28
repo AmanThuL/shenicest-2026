@@ -60,5 +60,41 @@ class ParseBundleVersionTests(unittest.TestCase):
             parse_bundle_version("PlayerSettings:\n  productName: x\n")
 
 
+import os
+import tempfile
+
+import build as build_cli
+
+
+class GitStateTests(unittest.TestCase):
+    def test_short_sha_is_seven_characters(self):
+        sha, _dirty = build_cli.git_state(os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__)))))
+        self.assertEqual(len(sha), 7)
+
+
+class EditorIsRunningTests(unittest.TestCase):
+    def test_absent_instance_file_means_not_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertFalse(build_cli.editor_is_running(tmp))
+
+    def test_instance_file_with_dead_pid_means_not_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "Library"))
+            with open(os.path.join(tmp, "Library", "EditorInstance.json"), "w") as handle:
+                handle.write('{"process_id": 999999, "version": "6000.3.22f1"}')
+            self.assertFalse(build_cli.editor_is_running(tmp))
+
+
+class ResolveUnityTests(unittest.TestCase):
+    def test_explicit_override_wins(self):
+        with tempfile.NamedTemporaryFile() as handle:
+            self.assertEqual(build_cli.resolve_unity(handle.name, "6000.3.22f1"), handle.name)
+
+    def test_missing_override_raises(self):
+        with self.assertRaises(build_cli.PreflightError):
+            build_cli.resolve_unity("/nope/does/not/exist", "6000.3.22f1")
+
+
 if __name__ == "__main__":
     unittest.main()
