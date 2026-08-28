@@ -30,6 +30,14 @@ BUILD_METHOD = "RootsDance.Editor.Build.BuildScript.BuildFromCommandLine"
 PROFILE_FOLDER = "Assets/RootsDance/Settings/BuildProfiles"
 APP_NAME = "RootsDance"
 
+# Unity's IL2CPP backend drops these next to the player it builds. Their own folder
+# names say not to ship them (multi-gigabyte debug symbols / Burst debug info), and the
+# prefix varies with productName, so match by suffix instead of by exact name.
+EXCLUDED_SIDECAR_SUFFIXES = (
+    "_BackUpThisFolder_ButDontShipItWithYourGame",
+    "_BurstDebugInformation_DoNotShip",
+)
+
 RUN_README = """{stem}
 
 Requires macOS 12 or newer on an Apple Silicon Mac.
@@ -221,6 +229,11 @@ def tail(path, lines):
         return "(no log at {0})".format(path)
 
 
+def stageable_entries(names):
+    """Return the names to copy into the staged build, dropping Unity's debug sidecars."""
+    return [name for name in names if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES)]
+
+
 def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, version, profile, dev, force):
     zip_path = os.path.join(output_dir, stem + ".zip")
     if os.path.exists(zip_path) and not force:
@@ -233,7 +246,12 @@ def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, vers
     os.makedirs(staging)
 
     try:
-        for entry in sorted(os.listdir(build_dir)):
+        all_entries = sorted(os.listdir(build_dir))
+        keep = set(stageable_entries(all_entries))
+        for entry in all_entries:
+            if entry not in keep:
+                print("  skip: {0} (Unity debug sidecar, not shipped)".format(entry))
+                continue
             source = os.path.join(build_dir, entry)
             destination = os.path.join(staging, entry)
             if target_platform == "macOS":

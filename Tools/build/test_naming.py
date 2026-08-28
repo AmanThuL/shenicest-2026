@@ -96,5 +96,19 @@ class ResolveUnityTests(unittest.TestCase):
             build_cli.resolve_unity("/nope/does/not/exist", "6000.3.22f1")
 
 
+class StageableEntriesTests(unittest.TestCase):
+    def test_drops_unity_debug_sidecars_but_keeps_the_player(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "RootsDance.app"))
+            os.makedirs(os.path.join(
+                tmp, "RootsDance_BackUpThisFolder_ButDontShipItWithYourGame"))
+            os.makedirs(os.path.join(
+                tmp, "she-nicest-temp-proj_BurstDebugInformation_DoNotShip"))
+
+            entries = build_cli.stageable_entries(sorted(os.listdir(tmp)))
+
+            self.assertEqual(entries, ["RootsDance.app"])
+
+
 if __name__ == "__main__":
     unittest.main()
