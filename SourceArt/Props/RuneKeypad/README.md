@@ -20,3 +20,28 @@ This attribution must appear in the shipped game's credits.
 - `RuneKeypad.blend`: editable Blender source.
 - `Assets/RootsDance/Meshes/Props/RuneKeypad/RuneKeypad.fbx`: Unity model.
 - `Assets/RootsDance/Textures/Props/RuneKeypad/`: source PBR textures.
+
+## Rune Layout
+
+The keypad uses ten visually distinct rune forms selected from the supplied
+reference sheet:
+
+| Position | Rune | Theme |
+| --- | --- | --- |
+| Row 1 left | Othila | Separation |
+| Row 1 center | Algiz | Protection |
+| Row 1 right | Perth | Initiation |
+| Row 2 left | Jera | Cycle / harvest |
+| Row 2 center | Raidho | Journey |
+| Row 2 right | Berkana | Growth |
+| Row 3 left | Sowelu | Wholeness |
+| Row 3 center | Dagaz | Breakthrough |
+| Row 3 right | Ansuz | Signal |
+| Row 4 center | Nauthiz | Constraint |
+
+The four-symbol password is:
+
+`Ansuz -> Raidho -> Berkana -> Dagaz`
+
+Narrative meaning: receive the signal, begin the journey, witness growth, and
+complete the breakthrough.
