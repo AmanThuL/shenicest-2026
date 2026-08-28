@@ -20,7 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity
     guid: 7fe9ea91681084c77b49ed39168833a4
-  - enabled: 0
+  - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity
     guid: 0ec12772141794c39a36cd8a87ec0068
   - enabled: 0
