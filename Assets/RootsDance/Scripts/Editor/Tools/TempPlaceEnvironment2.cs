@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.EditorTools
 {
     /// <summary>
-    /// Temporary one-off: imports the two new props and places them in Main_Environment_2.
+    /// Temporary one-off: imports the new props and places them in Main_Environment_2.
     /// <para>
     /// Main_Environment_2 is an additive *content* part: it is loaded on top of Main_Environment
     /// (terrain, lighting) and Main_Gameplay, so it must carry neither a camera nor a light of its
@@ -27,6 +27,15 @@ namespace RootsDance.EditorTools
         private const string k_Scene = "Assets/RootsDance/Scenes/Levels/Main/Main_Environment_2.unity";
         private const string k_Car = "Assets/RootsDance/Meshes/Environment/CarRustyOpenDoor.fbx";
         private const string k_Flashlight = "Assets/RootsDance/Meshes/Props/Flashlight.fbx";
+        private const string k_Poster = "Assets/RootsDance/Meshes/Environment/BandPoster.fbx";
+        private const string k_ScanPoster = "Assets/RootsDance/Meshes/Environment/SHA2017Poster.obj";
+
+        /// <summary>
+        /// Which way the poster's printed face looks after the FBX axis conversion. The Maya
+        /// source hangs it in the XY plane with the pushpins protruding towards -Z, so this is the
+        /// yaw that turns that face back towards the player spawn at (0, -10).
+        /// </summary>
+        private const float k_PosterYaw = 20f;
 
         /// <summary>Objects the default new-scene template ships that an additive part must not keep.</summary>
         private static readonly string[] k_TemplateObjects = { "Main Camera", "Directional Light" };
@@ -40,6 +49,8 @@ namespace RootsDance.EditorTools
 
             AssetDatabase.ImportAsset(k_Car, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(k_Flashlight, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(k_Poster, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(k_ScanPoster, ImportAssetOptions.ForceUpdate);
             AssetDatabase.Refresh();
 
             // Main_Environment only supplies the terrain to sample against; it is never saved.
@@ -62,6 +73,17 @@ namespace RootsDance.EditorTools
             // around (7, 4) is inside a thicket and hides it completely).
             Place(scene, terrain, k_Car, "CarRustyOpenDoor", new Vector2(8f, 26f), 35f, 0.15f);
             Place(scene, terrain, k_Flashlight, "Flashlight", new Vector2(0.8f, -7.5f), -25f, 0f);
+
+            // The poster is a flat sheet, so it is the one prop that must stay upright: laying it
+            // along the slope would tip a hanging print onto its face. It stands just left of the
+            // spawn, turned back towards it, with its bottom edge on the ground.
+            Place(scene, terrain, k_Poster, "BandPoster", new Vector2(-2.2f, -6.5f), k_PosterYaw, 0f,
+                alignToSlope: false);
+
+            // The SHA2017 scan is not a sheet but a 3.7 x 2.4 x 2.4 m photogrammetry chunk that
+            // stands on its own base, so it beds into the slope like the wreck does. It sits off
+            // the path to the left, turned towards it.
+            Place(scene, terrain, k_ScanPoster, "SHA2017Poster", new Vector2(-6.5f, 1f), 110f, 0.05f);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -94,8 +116,12 @@ namespace RootsDance.EditorTools
         /// How far the snapped body is pushed back into the ground, so a wide prop on uneven
         /// terrain beds in instead of showing a gap under its low corner.
         /// </param>
+        /// <param name="alignToSlope">
+        /// Whether the prop lies along the ground normal. A body that rests on the ground does;
+        /// anything that reads as upright — a poster, a sign — must not, or it leans with the hill.
+        /// </param>
         private static void Place(Scene scene, Terrain terrain, string modelPath, string name,
-            Vector2 groundXZ, float yaw, float sink)
+            Vector2 groundXZ, float yaw, float sink, bool alignToSlope = true)
         {
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
 
@@ -120,7 +146,9 @@ namespace RootsDance.EditorTools
 
             // Lie along the slope, then yaw, then the import rotation — which is never replaced,
             // only composed onto (see the class remarks).
-            Quaternion tilt = Quaternion.FromToRotation(Vector3.up, GroundNormal(terrain, spot));
+            Quaternion tilt = alignToSlope
+                ? Quaternion.FromToRotation(Vector3.up, GroundNormal(terrain, spot))
+                : Quaternion.identity;
             instance.transform.rotation = tilt * Quaternion.Euler(0f, yaw, 0f) * model.transform.rotation;
             instance.transform.position = spot;
 
