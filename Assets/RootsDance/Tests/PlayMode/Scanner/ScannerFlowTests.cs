@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
+using RootsDance.Rendering;
 using RootsDance.Scanner;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -142,6 +143,32 @@ namespace RootsDance.Tests.PlayMode.Scanner
             yield return null;
             Assert.AreEqual(ScannerInspectController.ScannerState.Idle, m_controller.State);
             Assert.IsNull(m_controller.Target, "The target is released when the loop ends.");
+        }
+
+        [UnityTest]
+        public IEnumerator WithABeam_TheSweepRunsBetweenTheRaiseAndTheScreen()
+        {
+            // The reading is meant to be the result of the scan, so the screen must not come up
+            // while the beam is still travelling.
+            var effect = m_controller.gameObject.AddComponent<ScannerScanEffect>();
+            effect.Duration = 0.2f;
+            SetPrivate(m_controller, "m_scanEffect", effect);
+            SetPrivate(m_controller, "m_scanHoldSeconds", 0f);
+
+            m_controller.BeginInspect(m_target);
+            yield return null;
+            yield return null;
+
+            Assert.AreEqual(ScannerInspectController.ScannerState.Scanning, m_controller.State,
+                "The raise is over, so the beam should be sweeping, not the screen showing.");
+            Assert.IsTrue(effect.IsPlaying, "The beam is running during the scan stage.");
+            Assert.IsFalse(m_target.HasBeenScanned, "The target is not marked until the sweep ends.");
+
+            yield return new WaitForSeconds(0.4f);
+
+            Assert.AreEqual(ScannerInspectController.ScannerState.Reading, m_controller.State,
+                "Once the sweep is done the screen comes up.");
+            Assert.IsTrue(m_target.HasBeenScanned, "A completed sweep marks the target read.");
         }
 
         [UnityTest]
