@@ -94,6 +94,14 @@ namespace RootsDance.EditorTools
             Debug.Log(sb.ToString());
         }
 
+        /// <summary>Wires, measures, and saves — the batch equivalent of doing it by hand.</summary>
+        public static void WireMeasureAndSave()
+        {
+            WireAndMeasure();
+            UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+            Debug.Log("ArmsPipelineBatch: scenes saved.");
+        }
+
         /// <summary>
         /// Prints what the pipeline actually produced — clip lengths, layers, masks and every
         /// action's wiring — so a batch log is enough to tell whether the rebuild is sound.
