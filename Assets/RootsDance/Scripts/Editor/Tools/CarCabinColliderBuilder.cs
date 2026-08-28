@@ -6,26 +6,32 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.EditorTools
 {
     /// <summary>
-    /// Walls the wreck's cabin in Main_Environment_2 so the player, who starts the level sitting in
-    /// it, can only climb out through the open door on the driver's side.
+    /// Gives the wreck in Main_Environment_2 the collision it has no way to import: solid where the
+    /// car is solid, and open only at the driver's door, which the player starts the level behind.
     /// </summary>
     /// <remarks>
     /// <para>
     /// The FBX imports with no collider — the profile turns them off, because a mesh collider on a
-    /// 7 000-vertex wreck would be both expensive and full of holes the player could fall through.
-    /// A cage of boxes is cheaper and, more to the point, is the only way to say "this gap is the
-    /// way out and the other three sides are not", which no automatic collider can express.
+    /// 7 000-vertex wreck would be both expensive and full of holes. Boxes are cheaper and, more to
+    /// the point, are the only way to say "this gap is the way out and nothing else is", which no
+    /// automatic collider can express.
     /// </para>
     /// <para>
-    /// The numbers are the cabin measured off an orthographic top-down of the placed car, in metres
-    /// relative to its pivot, on world axes — <see cref="TempPlaceEnvironment2"/> parks the wreck
-    /// square to them, so the cage needs no rotation of its own and stays readable. Both front doors
-    /// hang open on the model; the right-hand one is walled off, so only the driver's side lets the
-    /// player out.
+    /// Three pieces: the engine bay and the boot are filled solid, so the car cannot be walked
+    /// through from outside; the passenger's flank is a wall along the cabin. The driver's flank is
+    /// deliberately left open along the whole cabin rather than cut to the door's real width — the
+    /// cabin is 1.4 m across and the player's capsule is a metre wide, so stubs of wall at either
+    /// end of a door-sized gap would wedge the player in the seat. In play it reads the same: that
+    /// side has an open door, and every other way out is shut.
+    /// </para>
+    /// <para>
+    /// The numbers are the car measured off an orthographic top-down of the placed wreck, in metres
+    /// from its pivot on world axes — <see cref="TempPlaceEnvironment2"/> parks it square to them,
+    /// so the boxes need no rotation of their own and stay readable.
     /// </para>
     /// <para>
     /// Idempotent, and rebuilt by <see cref="TempPlaceEnvironment2"/>: re-placing the car destroys
-    /// the cage along with it.
+    /// this along with it.
     /// </para>
     /// Menu: RootsDance > Build Car Cabin Collider.
     /// </remarks>
@@ -35,22 +41,28 @@ namespace RootsDance.EditorTools
         private const string k_CarName = "CarRustyOpenDoor";
         private const string k_CageName = "CabinCollision";
 
-        // Cabin box, in metres from the car's pivot on world axes.
-        private const float k_Left = -0.70f;    // driver's side; the open side, so only an extent
-        private const float k_Right = 0.72f;    // passenger's side
-        private const float k_Rear = -1.02f;    // towards the boot
-        private const float k_Front = 0.91f;    // towards the windscreen
+        // Body shell, from the pivot on world axes. The open doors hang outside this: they are
+        // sheet metal the player is welcome to walk through.
+        private const float k_BodyLeft = -0.91f;    // driver's side
+        private const float k_BodyRight = 0.90f;    // passenger's side
+        private const float k_BodyRear = -2.13f;    // tail
+        private const float k_BodyFront = 2.17f;    // nose
 
-        /// <summary>Wall thickness. Thin enough not to eat the cabin, thick enough not to tunnel.</summary>
+        // Where the cabin begins and ends along the same axis: everything forward of the front is
+        // engine bay, everything behind the rear is boot, and both are filled in solid.
+        private const float k_CabinRear = -1.02f;
+        private const float k_CabinFront = 0.91f;
+
+        /// <summary>Flank thickness. Thin enough not to eat the cabin, thick enough not to tunnel.</summary>
         private const float k_Thickness = 0.12f;
 
         /// <summary>
-        /// How far the walls rise above the car's floor. Taller than the wreck, so the player cannot
-        /// step over a wall where the roof has rusted through.
+        /// How far the collision rises above the car's floor. Taller than the wreck itself, so the
+        /// player can neither step over a flank nor stand on the bonnet.
         /// </summary>
         private const float k_Height = 1.8f;
 
-        /// <summary>Floor of the cage, from the pivot. The car is levelled onto the ground at its pivot.</summary>
+        /// <summary>Floor of the collision, from the pivot. The car is levelled onto the ground there.</summary>
         private const float k_Floor = -0.02f;
 
         [MenuItem("RootsDance/Build Car Cabin Collider")]
@@ -71,8 +83,8 @@ namespace RootsDance.EditorTools
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
 
-            Debug.Log($"CarCabinColliderBuilder: {cage.GetComponents<BoxCollider>().Length} walls on "
-                + $"{k_CageName}; the driver's side is the way out.");
+            Debug.Log($"CarCabinColliderBuilder: {cage.GetComponents<BoxCollider>().Length} boxes on "
+                + $"{k_CageName}; the driver's flank is the only way through.");
         }
 
         private static GameObject Rebuild(GameObject car)
@@ -88,41 +100,52 @@ namespace RootsDance.EditorTools
             cage.layer = car.layer;
             cage.transform.SetParent(car.transform, false);
 
-            // Square to the world, not to the car: the cabin was measured on world axes and the
+            // Square to the world, not to the car: the shell was measured on world axes and the
             // placer parks the wreck square to them, so a rotation here would only skew the boxes.
             cage.transform.SetPositionAndRotation(car.transform.position, Quaternion.identity);
 
+            // And unscaled. The wreck imports at 1.377, so every box below would come out 38 per
+            // cent oversized on inherited scale — enough to close the doorway the player leaves by.
+            // The compensation is uniform, so it cannot skew the boxes the way a non-uniform one
+            // would on a child this heavily rotated.
+            Vector3 scale = car.transform.lossyScale;
+
+            if (!Mathf.Approximately(scale.x, scale.y) || !Mathf.Approximately(scale.y, scale.z))
+            {
+                Debug.LogWarning($"CarCabinColliderBuilder: '{car.name}' is scaled non-uniformly "
+                    + $"({scale:F3}); the collision boxes will be skewed.", car);
+            }
+
+            cage.transform.localScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
+
             float centreY = k_Floor + k_Height * 0.5f;
-            float width = k_Right - k_Left;
-            float length = k_Front - k_Rear;
+            float bodyWidth = k_BodyRight - k_BodyLeft;
+            float bodyCentreX = (k_BodyLeft + k_BodyRight) * 0.5f;
 
-            // Front and rear: the windscreen and the rear bench. Overlapped by half a wall at each
-            // end so the corners have no seam for a capsule to squeeze through.
-            AddWall(cage, new Vector3((k_Left + k_Right) * 0.5f, centreY, k_Front),
-                new Vector3(width + k_Thickness, k_Height, k_Thickness));
-            AddWall(cage, new Vector3((k_Left + k_Right) * 0.5f, centreY, k_Rear),
-                new Vector3(width + k_Thickness, k_Height, k_Thickness));
+            // Engine bay and boot, filled solid. These also close the cabin off fore and aft, so
+            // the player cannot walk out through the windscreen or the rear bench.
+            AddBox(cage, new Vector3(bodyCentreX, centreY, (k_CabinFront + k_BodyFront) * 0.5f),
+                new Vector3(bodyWidth, k_Height, k_BodyFront - k_CabinFront));
+            AddBox(cage, new Vector3(bodyCentreX, centreY, (k_BodyRear + k_CabinRear) * 0.5f),
+                new Vector3(bodyWidth, k_Height, k_CabinRear - k_BodyRear));
 
-            // Passenger's side: shut, even though that door hangs open on the model.
-            AddWall(cage, new Vector3(k_Right, centreY, (k_Rear + k_Front) * 0.5f),
-                new Vector3(k_Thickness, k_Height, length + k_Thickness));
+            // Passenger's flank along the cabin; the two blocks above already cover the rest of it.
+            AddBox(cage, new Vector3(k_BodyRight - k_Thickness * 0.5f, centreY,
+                    (k_CabinRear + k_CabinFront) * 0.5f),
+                new Vector3(k_Thickness, k_Height, k_CabinFront - k_CabinRear));
 
-            // Driver's side: no wall at all. The cabin is 1.4 m across and 1.9 m long and the
-            // player's capsule is a metre wide, so a doorway with a stub of wall at either end
-            // would leave gaps narrower than the player and wedge them in the seat. Leaving the
-            // whole side open is the same thing in play — that side has one open door and three
-            // walls elsewhere — without the pathological case.
+            // Driver's flank: nothing. See the class remarks.
 
             GameObjectUtility.SetStaticEditorFlags(cage, StaticEditorFlags.BatchingStatic);
 
             return cage;
         }
 
-        private static void AddWall(GameObject cage, Vector3 centre, Vector3 size)
+        private static void AddBox(GameObject cage, Vector3 centre, Vector3 size)
         {
-            BoxCollider wall = cage.AddComponent<BoxCollider>();
-            wall.center = centre;
-            wall.size = size;
+            BoxCollider box = cage.AddComponent<BoxCollider>();
+            box.center = centre;
+            box.size = size;
         }
 
         private static GameObject Find(Scene scene, string name)
