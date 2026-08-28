@@ -52,6 +52,7 @@ Material:
     - _CornerPower: 2
     - _CornerRadius: 0.18
     - _FrameNoise: 0.25
+    - _GlassOnly: 1
     - _GlassShadowStrength: 0.6
     - _GlassShadowWidth: 0.075
     - _HalfHeight: 0.37
@@ -71,9 +72,10 @@ Material:
     - _ShellMean: 0.026
     - _ShellTexStrength: 0.85
     - _ShellTiling: 2.5
-    - _SmudgeMean: 0.08
-    - _SmudgeStrength: 0.35
-    - _SmudgeTiling: 1.2
+    - _SmudgeCenterClear: 0.35
+    - _SmudgeMean: 0.22
+    - _SmudgeStrength: 0.22
+    - _SmudgeTiling: 0.7
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0

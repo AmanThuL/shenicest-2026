@@ -48,6 +48,11 @@ Shader "RootsDance/UI/HelmetVisor"
         _RimTopBrightness ("Rim Brightness Top", Range(0, 2)) = 0.45
         _RimBottomBrightness ("Rim Brightness Bottom", Range(0, 2)) = 1.15
 
+        // At 1 the shell, the rim band and the rim shadow are all gone and the quad is glass edge
+        // to edge — the faceplate reads as one continuous sheet. The smudges then spread evenly
+        // instead of hugging a seal that is no longer there.
+        _GlassOnly ("Glass Edge To Edge", Range(0, 1)) = 0
+
         _GlassShadowWidth ("Glass Shadow Width (UV)", Range(0, 0.3)) = 0.075
         _GlassShadowStrength ("Glass Shadow Strength", Range(0, 1)) = 0.6
         _FrameNoise ("Frame Wear Noise", Range(0, 1)) = 0.25
@@ -67,6 +72,10 @@ Shader "RootsDance/UI/HelmetVisor"
         _SmudgeTiling ("Smudge Tiling", Range(0.2, 4)) = 1.2
         _SmudgeStrength ("Glass Smudge Strength", Range(0, 1)) = 0.35
         _SmudgeMean ("Smudge Map Scale (linear)", Range(0.005, 1)) = 0.08
+
+        // Only meaningful edge to edge: how much of the middle of the view stays clean. Measured
+        // in the same aspect-corrected units as the opening, where the corner sits at about 1.02.
+        _SmudgeCenterClear ("Smudge Centre Clear Radius", Range(0, 1)) = 0.35
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -158,6 +167,7 @@ Shader "RootsDance/UI/HelmetVisor"
             float _RimTopBrightness;
             float _RimBottomBrightness;
 
+            float _GlassOnly;
             float _GlassShadowWidth;
             float _GlassShadowStrength;
             float _FrameNoise;
@@ -175,6 +185,7 @@ Shader "RootsDance/UI/HelmetVisor"
             float _SmudgeTiling;
             float _SmudgeStrength;
             float _SmudgeMean;
+            float _SmudgeCenterClear;
 
             Varyings Vert(Attributes input)
             {
@@ -245,12 +256,15 @@ Shader "RootsDance/UI/HelmetVisor"
                 float shadowPixels = max(_GlassShadowWidth / gradient, 1.0);
                 float rimPixels = max(_RimWidth / gradient, 1.0);
 
+                float glassOnly = saturate(_GlassOnly);
+
                 // Inside the opening: only the frame's soft shadow, fading to fully clear glass.
                 float glassShadow = _GlassShadowStrength * saturate(1.0 + pixels / shadowPixels);
                 glassShadow *= glassShadow; // quadratic falloff hugs the rim instead of hazing the view
+                glassShadow *= 1.0 - glassOnly;
 
                 // Frame coverage turns on across one pixel at the boundary and stays on outside.
-                float frameMask = saturate(pixels + 0.5);
+                float frameMask = saturate(pixels + 0.5) * (1.0 - glassOnly);
 
                 // Rim band sits just outside the boundary; lit from above, so the chin catches more.
                 float rimMask = frameMask * saturate(1.0 - (pixels - rimPixels) / max(rimPixels, 1.0));
@@ -291,10 +305,22 @@ Shader "RootsDance/UI/HelmetVisor"
                 // shadow band, gone by mid-glass — grime lives where the glass meets the seal. The
                 // map is sparse bright wisps on black; dividing by its bright-end scale keeps the
                 // wisps and drops the noise floor.
-                float smudge = saturate(dot(tex2D(_SmudgeTex, input.uv * _SmudgeTiling).rgb,
+                // Aspect-corrected like the shell grain: a fingerprint stretched 16:9 stops
+                // reading as a fingerprint and starts reading as printed pattern.
+                float smudge = saturate(dot(tex2D(_SmudgeTex,
+                    input.uv * _SmudgeTiling * float2(1.778, 1.0)).rgb,
                     float3(0.299, 0.587, 0.114)) / max(_SmudgeMean, 1e-3));
-                float smudgeMask = saturate(1.0 + pixels / max(shadowPixels * 2.2, 1.0))
-                    * (1.0 - frameMask);
+
+                // Edge to edge there is no seal for grime to collect against, and a flat mask
+                // spreads the map over the whole view — which reads as patterned glass rather than
+                // as dirt. Grime gathers instead where the wearer neither wipes nor looks: away
+                // from the centre of the field of view.
+                float2 fromCentre = (input.uv - 0.5) * float2(1.778, 1.0);
+                float periphery = saturate((length(fromCentre) - _SmudgeCenterClear)
+                    / max(1.02 - _SmudgeCenterClear, 1e-3));
+
+                float smudgeMask = lerp(saturate(1.0 + pixels / max(shadowPixels * 2.2, 1.0)),
+                    periphery, glassOnly) * (1.0 - frameMask);
                 float smudgeAmount = smudge * _SmudgeStrength * smudgeMask * smudgeMask;
                 colour = lerp(colour, float3(0.62, 0.67, 0.70), saturate(smudgeAmount * 2.0));
                 alpha = saturate(alpha + smudgeAmount);

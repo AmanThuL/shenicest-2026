@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HelmetHudCurve
   m_EditorClassIdentifier: CurvedUIUtility::CurvedUIUtility.CurvedUISettingsObject
   Settings:
-    Curve: {x: 0.05, y: 0.12, z: 0}
-    Pull: {x: 0, y: 0, z: 0}
+    Curve: {x: 0.1, y: 0.3, z: 0}
+    Pull: {x: 0, y: -30, z: 0}
     Scale: {x: 0.97, y: 0.97, z: 1}
     Offset: {x: 0, y: 0, z: 0}

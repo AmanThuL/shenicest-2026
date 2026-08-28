@@ -82,7 +82,11 @@ namespace RootsDance.Editor.Tools
             visorRoot.offsetMin = Vector2.zero;
             visorRoot.offsetMax = Vector2.zero;
 
-            BuildVisorFrame(visorRoot, visorMaterial);
+            // The faceplate is one continuous sheet now — no shell, no metal rim. The glass quad
+            // itself stays: it carries the smudges and the tint. With the rim gone, the only thing
+            // left selling "you are looking through a curved visor" is the curvature of the
+            // readouts, which makes the curve load-bearing rather than decorative.
+            BuildVisorGlass(visorRoot, visorMaterial);
             BuildSampleReadouts(visorRoot);
             WireHudView(canvasGo, visorRoot);
 
@@ -178,6 +182,14 @@ namespace RootsDance.Editor.Tools
                 material.SetFloat("_ShapeBlend", 1f);
             }
 
+            // Edge to edge: the helmet shell and its metal rim are no longer drawn, so the visor is
+            // one sheet of glass. Set unconditionally rather than only-if-empty — this is the
+            // current design of the faceplate, not a slot left open for dressing.
+            if (material.HasProperty("_GlassOnly"))
+            {
+                material.SetFloat("_GlassOnly", 1f);
+            }
+
             EditorUtility.SetDirty(material);
 
             return material;
@@ -252,12 +264,21 @@ namespace RootsDance.Editor.Tools
         }
 
         /// <summary>
-        /// The frame is a plain Image, not a curved one: it is the physical shell around the glass,
-        /// so it must stay put while the on-glass text curves in front of it.
+        /// The glass is a plain Image, not a curved one: the shader works in screen UV across a
+        /// four-vertex quad, so curving it would only shear those corners and drag the whole effect
+        /// off-screen. The curvature belongs to the readouts drawn on it.
         /// </summary>
-        private static void BuildVisorFrame(Transform parent, Material material)
+        private static void BuildVisorGlass(Transform parent, Material material)
         {
-            GameObject go = new GameObject("VisorFrame", typeof(RectTransform), typeof(Image));
+            // An earlier build called this object VisorFrame, back when it drew a shell as well.
+            Transform legacy = parent.Find("VisorFrame");
+
+            if (legacy != null)
+            {
+                Object.DestroyImmediate(legacy.gameObject);
+            }
+
+            GameObject go = new GameObject("VisorGlass", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
 
             RectTransform rect = (RectTransform)go.transform;
