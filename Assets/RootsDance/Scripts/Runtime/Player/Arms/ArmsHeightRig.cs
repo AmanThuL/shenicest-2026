@@ -12,6 +12,13 @@ namespace RootsDance.Player.Arms
     /// arms sit relative to the eye (framing, taste, per-clip camera-bone correction); this one
     /// decides how high the whole body is. Adding them is fine, conflating them is not.
     /// </para>
+    /// <para>
+    /// It reports a height rather than writing a transform. It used to drive its own object wedged
+    /// between the head and the arms, which cost more than it was worth: the framing tools take the
+    /// arms' parent to mean "the head", so that extra object silently became the head — the view
+    /// bob was wired to it and moved the arms instead of the camera, and every per-clip correction
+    /// was measured against the wrong frame. One transform, one owner.
+    /// </para>
     /// </summary>
     [DisallowMultipleComponent]
     public class ArmsHeightRig : MonoBehaviour
@@ -34,11 +41,18 @@ namespace RootsDance.Player.Arms
         private float m_elapsed;
         private float m_duration;
         private bool m_isBlending;
+        private float m_currentDrop;
 
         /// <summary>Anchor height for a body lying on the ground.</summary>
         public float GroundLocalY => m_standingLocalY - (m_playerHeight - m_groundOffset);
 
         public float StandingLocalY => m_standingLocalY;
+
+        /// <summary>
+        /// How far below the standing baseline the body is right now, in metres. Zero standing,
+        /// negative prone. <see cref="ArmsViewOffset"/> adds this to the pose it writes.
+        /// </summary>
+        public float CurrentDrop => m_currentDrop;
 
         /// <summary>Anchor height an action of this class is authored against.</summary>
         public float Resolve(ArmsHeightBase heightBase)
@@ -55,8 +69,8 @@ namespace RootsDance.Player.Arms
         {
             if (heightBase == ArmsHeightBase.GroundToStanding)
             {
-                m_from = GroundLocalY;
-                m_to = m_standingLocalY;
+                m_from = GroundLocalY - m_standingLocalY;
+                m_to = 0f;
                 m_elapsed = 0f;
                 m_duration = Mathf.Max(duration, 0.0001f);
                 m_isBlending = true;
@@ -64,7 +78,7 @@ namespace RootsDance.Player.Arms
             }
 
             m_isBlending = false;
-            SetLocalY(Resolve(heightBase));
+            m_currentDrop = Resolve(heightBase) - m_standingLocalY;
         }
 
         private void Update()
@@ -76,25 +90,12 @@ namespace RootsDance.Player.Arms
 
             m_elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(m_elapsed / m_duration);
-            SetLocalY(Mathf.LerpUnclamped(m_from, m_to, m_riseCurve.Evaluate(t)));
+            m_currentDrop = Mathf.LerpUnclamped(m_from, m_to, m_riseCurve.Evaluate(t));
 
             if (t >= 1f)
             {
                 m_isBlending = false;
             }
-        }
-
-        private void SetLocalY(float y)
-        {
-            Vector3 p = transform.localPosition;
-
-            if (Mathf.Approximately(p.y, y))
-            {
-                return;
-            }
-
-            p.y = y;
-            transform.localPosition = p;
         }
 
         /// <summary>Captures the current height as the standing baseline.</summary>

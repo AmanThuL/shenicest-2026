@@ -50,20 +50,40 @@ namespace RootsDance.Tests.EditMode.Player
         }
 
         [Test]
-        public void Begin_Ground_SnapsTheAnchorDown()
+        public void CurrentDrop_BeforeAnyAction_IsZero()
         {
-            m_rig.Begin(ArmsHeightBase.Ground, 0f);
-
-            Assert.AreEqual(m_rig.GroundLocalY, m_object.transform.localPosition.y, 1e-4f);
+            // Standing is the resting state, so an un-driven rig must contribute nothing. It used
+            // to seed itself from a transform, which meant a rig whose baseline was edited after
+            // construction reported a metre and a half of drop it had never been asked for.
+            Assert.AreEqual(0f, m_rig.CurrentDrop, 1e-4f);
         }
 
         [Test]
-        public void Begin_Standing_SnapsTheAnchorBackUp()
+        public void Begin_Ground_DropsByTheHeightLost()
+        {
+            m_rig.Begin(ArmsHeightBase.Ground, 0f);
+
+            Assert.AreEqual(-(1.75f - 0.35f), m_rig.CurrentDrop, 1e-4f);
+        }
+
+        [Test]
+        public void Begin_Standing_ReturnsToZeroDrop()
         {
             m_rig.Begin(ArmsHeightBase.Ground, 0f);
             m_rig.Begin(ArmsHeightBase.Standing, 0f);
 
-            Assert.AreEqual(1.6f, m_object.transform.localPosition.y, 1e-4f);
+            Assert.AreEqual(0f, m_rig.CurrentDrop, 1e-4f);
+        }
+
+        [Test]
+        public void CurrentDrop_IsIndependentOfTheStandingBaseline()
+        {
+            // The rig reports a displacement, not a position: moving the baseline must not change
+            // how far a prone body sits below it, because the view offset adds the two together.
+            SerializedFieldSetter.Set(m_rig, "m_standingLocalY", -4.2f);
+            m_rig.Begin(ArmsHeightBase.Ground, 0f);
+
+            Assert.AreEqual(-(1.75f - 0.35f), m_rig.CurrentDrop, 1e-4f);
         }
 
         [Test]
@@ -74,7 +94,7 @@ namespace RootsDance.Tests.EditMode.Player
             m_rig.Begin(ArmsHeightBase.Standing, 0f);
             m_rig.Begin(ArmsHeightBase.GroundToStanding, 2f);
 
-            Assert.AreEqual(1.6f, m_object.transform.localPosition.y, 1e-4f,
+            Assert.AreEqual(0f, m_rig.CurrentDrop, 1e-4f,
                 "Begin only arms the blend; Update drives it.");
             Assert.AreEqual(m_rig.GroundLocalY, m_rig.Resolve(ArmsHeightBase.Ground), 1e-4f);
         }

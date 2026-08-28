@@ -42,12 +42,14 @@ namespace RootsDance.Player
         [SerializeField] private Transform m_viewTarget;
 
         private ArmsViewOffset m_framing;
+        private RootsDance.Player.Arms.ArmsHeightRig m_height;
         private Vector3 m_viewBaseLocalPosition;
         private float m_smoothedWeight;
 
         private void Awake()
         {
             m_framing = GetComponent<ArmsViewOffset>();
+            m_height = GetComponent<RootsDance.Player.Arms.ArmsHeightRig>();
 
             if (m_viewTarget == null)
             {
@@ -90,7 +92,15 @@ namespace RootsDance.Player
             Vector3 deltaInRoot = boneInRoot - m_framing.ResolvedReferenceBonePosition;
             Vector3 deltaInView = transform.localRotation * deltaInRoot;
 
-            m_viewTarget.localPosition = m_viewBaseLocalPosition + deltaInView * m_smoothedWeight;
+            // The body's height belongs here rather than on the arms. Measuring the bone in the
+            // arms' own frame cancels any motion of the arms root exactly, so a drop applied there
+            // is invisible to this component by construction — which is why crawling used to sink
+            // the arms through the floor while the camera stayed standing. Driving the view target
+            // moves the camera and the arms together, because the arms hang off it.
+            float drop = m_height == null ? 0f : m_height.CurrentDrop;
+
+            m_viewTarget.localPosition =
+                m_viewBaseLocalPosition + deltaInView * m_smoothedWeight + Vector3.up * drop;
         }
 
         private static Transform FindDeep(Transform parent, string name)

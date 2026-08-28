@@ -8,6 +8,7 @@
         "DOTween.Modules",
         "Unity.TextMeshPro",
         "UnityEngine.UI",
+        "CurvedUIUtility",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime"
     ],

@@ -210,6 +210,8 @@ namespace RootsDance.Player
         {
             Vector3 framing = Resolve();
 
+            // No height here: the body's drop moves the view target, which the arms hang off, so
+            // adding it again would sink the arms twice as far as the camera.
             transform.localPosition = m_basePosition + m_positionOffset + framing;
             transform.localRotation = Quaternion.Euler(m_baseRotation + m_rotationOffset);
         }
