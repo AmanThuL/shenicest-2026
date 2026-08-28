@@ -56,7 +56,7 @@ namespace RootsDance.Editor.Tools
         /// <para>
         /// That measurement was taken against an isolated prefab instance, where hand.L's own scale
         /// is a clean uniform 100 (the file's unit-scale factor, same as every other bone).
-        /// <see cref="ScannerHandSocket"/> deliberately does not inherit scale from hand.L at
+        /// The hand socket deliberately does not inherit scale from hand.L at
         /// runtime — see its class summary for why — so the position here is expressed back out in
         /// real metres (the raw measured value, in hand.L's own 100×-scaled local frame, times
         /// that known 100) and consumed as a metres-and-rotation-only offset from the bone's
@@ -69,7 +69,23 @@ namespace RootsDance.Editor.Tools
         private static readonly Quaternion k_HoldRotation =
             new Quaternion(-0.163122f, -0.379590f, -0.759970f, 0.501745f);
 
-        private static readonly Vector3 k_HoldScale = new Vector3(0.670016f, 0.670016f, 0.670016f);
+        /// <summary>
+        /// Places the prop where the hand holds it and leaves the tracking to the arms wiring.
+        /// No scale is written here: the master was scaled to its in-hand size in Blender, so the
+        /// prop is 1:1 and any compensating factor in code would be a second source of truth.
+        /// </summary>
+        private static void HandSocketFor(GameObject scanner, Transform handBone)
+        {
+            if (handBone == null)
+            {
+                return;
+            }
+
+            scanner.transform.SetPositionAndRotation(
+                handBone.position + handBone.rotation * k_HoldPositionMetres,
+                handBone.rotation * k_HoldRotation);
+            scanner.transform.localScale = Vector3.one;
+        }
 
         [MenuItem("RootsDance/Build Scanner Test Rig")]
         public static void Build()
@@ -128,11 +144,11 @@ namespace RootsDance.Editor.Tools
             viewSerialized.FindProperty("m_lowerClip").objectReferenceValue = lowerClip;
             viewSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            // Parented on Arms, not on handBone: handBone's own decomposed local scale is a
-            // non-uniform baking artifact (see ScannerHandSocket's class summary), and a rigid
-            // prop parented under it the ordinary way would inherit that and render sheared. Arms
-            // itself carries a clean 1,1,1 scale, so ScannerHandSocket's world-space LateUpdate is
-            // free to supply the prop's scale independently of the bone chain underneath.
+            // Parented on Arms, not on handBone: every bone in the imported rig carries a
+            // decomposed local scale of about 100, and a rigid prop parented under one inherits it.
+            // The prop is picked up from here by RootsDance > Arms > Wire Player Arms Rig, which
+            // moves it onto an unscaled HandSocket outside the model — that is what keeps it the
+            // size it was authored at, rather than a component writing a compensating scale.
             Transform existing = arms.Find("Scanner");
 
             if (existing != null)
@@ -144,8 +160,7 @@ namespace RootsDance.Editor.Tools
             scanner.name = "Scanner";
             scanner.transform.SetParent(arms, false);
 
-            ScannerHandSocket socket = scanner.AddComponent<ScannerHandSocket>();
-            socket.Configure(handBone, k_HoldPositionMetres, k_HoldRotation, k_HoldScale);
+            HandSocketFor(scanner, handBone);
 
             ScannerInspectController controller = scanner.GetComponent<ScannerInspectController>();
             WireController(controller, view, gameplay);
