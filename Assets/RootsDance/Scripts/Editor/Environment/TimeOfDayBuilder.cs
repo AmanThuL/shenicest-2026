@@ -31,6 +31,7 @@ namespace RootsDance.Editor.Environment
         private const string k_TimeOfDayChangedPath = k_EventsFolder + "/TimeOfDayChanged.asset";
         private const string k_ProfileFolder = "Assets/RootsDance/Settings/VolumeProfiles";
         private const string k_NightProfilePath = k_ProfileFolder + "/NightProfile.asset";
+        private const string k_NightBaseProfilePath = k_ProfileFolder + "/NightBaseProfile.asset";
         private const string k_PresetFolder = "Assets/RootsDance/Data/Config/TimeOfDay";
         private const string k_DayPresetPath = k_PresetFolder + "/Day.asset";
         private const string k_NightPresetPath = k_PresetFolder + "/Night.asset";
@@ -40,6 +41,7 @@ namespace RootsDance.Editor.Environment
         private const string k_LightingRootName = "_Lighting";
         private const string k_SunName = "Sun";
         private const string k_TimeOfDayName = "TimeOfDay";
+        private const string k_TimeOfDayBaseName = "TimeOfDayBase";
 
         // ---- NightProfile seed values (design doc §2) ----------------------------------------------------
         // Only the parameters written here end up overridden. Deliberately absent: VisualEnvironment (the sky
@@ -49,19 +51,25 @@ namespace RootsDance.Editor.Environment
         /// <summary>Fixed exposure in EV100 — guideline 07 §5.2's "dark corridor / dusk" bracket.</summary>
         private const float k_NightFixedExposure = 5f;
 
-        // Second pass (playtest 2026-08-28): a readable night — silhouettes and ground visible without the
-        // torch, the torch still ~2 stops above the ambient so it reveals detail rather than just brightness.
-        private static readonly Color k_NightSkyTop = new Color(0.03f, 0.05f, 0.10f);
-        private static readonly Color k_NightSkyMiddle = new Color(0.08f, 0.11f, 0.18f);
-        private static readonly Color k_NightSkyBottom = new Color(0.06f, 0.07f, 0.09f);
+        // Third pass (playtest 2026-08-28): "a bit darker than the original overcast day, still night". The
+        // day look is Sun 12 000 lux at EV 12.5 with Gradient Sky exposure 12 over bright colours
+        // (0.55/0.72/0.60 …); at EV 5 the same colours at exposure 3.5 land the sky ≈ 1 stop under the day
+        // relationship, and the cool shift below takes another ~0.3 stop. The near-black colours of the first
+        // two passes were what made the ambient read ~4 stops darker than day.
+        private static readonly Color k_NightSkyTop = new Color(0.45f, 0.55f, 0.78f);
+        private static readonly Color k_NightSkyMiddle = new Color(0.62f, 0.70f, 0.82f);
+        private static readonly Color k_NightSkyBottom = new Color(0.55f, 0.56f, 0.58f);
         private const float k_NightSkyExposure = 3.5f;
         private const float k_NightSkyMultiplier = 1f;
 
         /// <summary>Single-scattering albedo: a cold blue haze instead of MainProfile's neutral grey.</summary>
-        private static readonly Color k_NightFogAlbedo = new Color(0.72f, 0.80f, 0.95f);
+        private static readonly Color k_NightFogAlbedo = new Color(0.85f, 0.90f, 1f);
 
         /// <summary>Forward-biased scattering so the flashlight cone reads as a beam in the fog.</summary>
-        private const float k_NightFogAnisotropy = 0.35f;
+        // Low, not high: the flashlight sits on the eye, so what the player sees of the beam is BACK-scatter.
+        // Henyey–Greenstein at 180° falls off fast with anisotropy (g 0.35 ≈ 0.36× isotropic); near-isotropic
+        // fog is what makes the cone glow like a beam in smoke.
+        private const float k_NightFogAnisotropy = 0.15f;
 
         private const float k_NightFogMultipleScattering = 1f;
 
@@ -77,18 +85,33 @@ namespace RootsDance.Editor.Environment
         /// Moonlight, in lux — a stylised bright moon (a real full moon is ~0.3 lux). At fixed EV 5 this keeps
         /// unlit ground about two stops under mid-grey: visible, clearly night; the 8 lux first pass read black.
         /// </summary>
-        private const float k_NightSunLux = 25f;
+        private const float k_NightSunLux = 33f;
 
-        private static readonly Color k_NightSunColor = new Color(0.62f, 0.72f, 1f);
+        /// <summary>Cool but not saturated: with the sky now carrying most of the ambient, a deep-blue sun
+        /// would read as tinted daylight rather than moonlight.</summary>
+        private static readonly Color k_NightSunColor = new Color(0.70f, 0.78f, 1f);
 
         /// <summary>HDRP light Volumetrics Multiplier at night: dimmed so the brighter moon does not turn the
         /// fog into a uniform grey wash that would swallow the torch beam.</summary>
-        private const float k_NightSunVolumetricMultiplier = 0.4f;
+        private const float k_NightSunVolumetricMultiplier = 0.5f;
 
         // ---- scene object values -------------------------------------------------------------------------
 
         /// <summary>Above the opening's local volumes (priorities 10–13) so night wins over every segment.</summary>
         private const float k_VolumePriority = 20f;
+
+        /// <summary>
+        /// Below the opening's local volumes (10–13) but above MainProfile (0): the night density for the open
+        /// ground, which each opening segment's own, denser authored fog still overrides inside its box.
+        /// </summary>
+        private const float k_BaseVolumePriority = 5f;
+
+        /// <summary>
+        /// Night fog attenuation distance (mean free path) beyond the opening, in metres. MainProfile's 40 m is
+        /// the day haze; 20 m is what makes the flashlight cone read as a beam in smoke on the terrace, and it
+        /// continues the opening's 8 → 22 m ramp instead of thinning out after the threshold.
+        /// </summary>
+        private const float k_NightBaseFogMeanFreePath = 20f;
 
         /// <summary>Seconds of cross-fade between two phases; only written when the component is created.</summary>
         private const float k_BlendSeconds = 2f;
@@ -154,6 +177,24 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
+        /// The tuning loop's entry: resets only the night look — NightProfile and the Night preset — to the seed
+        /// values above and leaves the Day preset and the scene alone (no scene open, no scene save), so it is
+        /// safe to run through an open Editor while Main_Environment is up. Interactive: menu below; batch or
+        /// CLI eval: <c>RootsDance.Editor.Environment.TimeOfDayBuilder.ReseedNight()</c>.
+        /// </summary>
+        [MenuItem("RootsDance/Environment/Reseed Night Look (overwrite)")]
+        public static void ReseedNight()
+        {
+            VolumeProfile nightProfile = EnsureNightProfile(overwriteTuned: true);
+            EnsureNightBaseProfile(overwriteTuned: true);
+            EnsurePreset(k_NightPresetPath, TimeOfDay.Night, nightProfile, k_NightSunLux, k_NightSunColor,
+                k_NightSunVolumetricMultiplier, overwriteTuned: true);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"{k_LogPrefix}: night look reseeded — moon {k_NightSunLux} lux, sky exposure "
+                + $"{k_NightSkyExposure}, fixed EV {k_NightFixedExposure}.");
+        }
+
+        /// <summary>
         /// Builds every asset and the scene objects, then saves both. Returns false after logging on failure.
         /// </summary>
         /// <param name="overwriteTuned">True to reset NightProfile and the presets to their seed values.</param>
@@ -170,7 +211,7 @@ namespace RootsDance.Editor.Environment
 
             EnsureChannel();
 
-            if (EnsureNightProfile(overwriteTuned) == null)
+            if (EnsureNightProfile(overwriteTuned) == null || EnsureNightBaseProfile(overwriteTuned) == null)
             {
                 return false;
             }
@@ -211,7 +252,9 @@ namespace RootsDance.Editor.Environment
 
             Transform holder = EnsureChild(lighting, k_TimeOfDayName);
             Volume volume = EnsureVolume(holder);
-            WireController(holder, volume, sun, day, night, channel);
+            VolumeProfile nightBaseProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_NightBaseProfilePath);
+            Volume baseVolume = EnsureBaseVolume(EnsureChild(holder, k_TimeOfDayBaseName), nightBaseProfile);
+            WireController(holder, volume, baseVolume, sun, day, night, channel);
 
             EditorSceneManager.MarkSceneDirty(scene);
 
@@ -299,6 +342,11 @@ namespace RootsDance.Editor.Environment
             Set(fog.anisotropy, k_NightFogAnisotropy);
             Set(fog.multipleScatteringIntensity, k_NightFogMultipleScattering);
             Set(fog.tint, Color.white);
+
+            // Gaussian only, never Reprojection: the reprojection denoiser re-uses last frame's volumetric
+            // buffer, and a beam that moves sideways with the player (strafing) is drawn again at its old
+            // position — stacked copies of the flashlight cone. MainProfile keeps Both for the day look.
+            Set(fog.denoisingMode, FogDenoisingMode.Gaussian);
         }
 
         private static T GetOrAdd<T>(VolumeProfile profile) where T : VolumeComponent
@@ -441,8 +489,63 @@ namespace RootsDance.Editor.Environment
             return volume;
         }
 
-        private static void WireController(Transform holder, Volume volume, Light sun, TimeOfDayPresetSO day,
-            TimeOfDayPresetSO night, TimeOfDayEventChannelSO channel)
+        /// <summary>
+        /// The night density Volume: profile authored here (NightBaseProfile), weight driven by the controller
+        /// in step with the main night Volume. Sits below the opening's local volumes so their denser fog wins.
+        /// </summary>
+        private static Volume EnsureBaseVolume(Transform holder, VolumeProfile nightBaseProfile)
+        {
+            holder.localPosition = Vector3.zero;
+            holder.localRotation = Quaternion.identity;
+            holder.localScale = Vector3.one;
+
+            Volume volume = holder.GetComponent<Volume>();
+
+            if (volume == null)
+            {
+                volume = holder.gameObject.AddComponent<Volume>();
+            }
+
+            volume.isGlobal = true;
+            volume.priority = k_BaseVolumePriority;
+            volume.weight = 0f;
+            volume.sharedProfile = nightBaseProfile;
+            return volume;
+        }
+
+        private static VolumeProfile EnsureNightBaseProfile(bool overwriteTuned)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_NightBaseProfilePath);
+            bool created = false;
+
+            if (profile == null)
+            {
+                TerrainSceneUtility.EnsureFolder(k_ProfileFolder);
+                profile = VolumeProfileFactory.CreateVolumeProfileAtPath(k_NightBaseProfilePath);
+                created = true;
+            }
+
+            if (profile == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: could not create '{k_NightBaseProfilePath}'.");
+                return null;
+            }
+
+            if (created || overwriteTuned)
+            {
+                // Density only. Everything else about the night look lives in NightProfile above the segments.
+                Fog fog = GetOrAdd<Fog>(profile);
+                Set(fog.meanFreePath, k_NightBaseFogMeanFreePath);
+                EditorUtility.SetDirty(profile);
+                Debug.Log($"{k_LogPrefix}: {(created ? "created" : "overwrote")} {k_NightBaseProfilePath} "
+                    + $"(fog attenuation {k_NightBaseFogMeanFreePath} m).");
+            }
+
+            return profile;
+        }
+
+        private static void WireController(Transform holder, Volume volume, Volume baseVolume, Light sun,
+            TimeOfDayPresetSO day, TimeOfDayPresetSO night, TimeOfDayEventChannelSO channel)
         {
             TimeOfDayController controller = holder.GetComponent<TimeOfDayController>();
             bool created = false;
@@ -464,6 +567,7 @@ namespace RootsDance.Editor.Environment
             presets.GetArrayElementAtIndex(1).objectReferenceValue = night;
 
             serialized.FindProperty("m_volume").objectReferenceValue = volume;
+            serialized.FindProperty("m_baseVolume").objectReferenceValue = baseVolume;
             serialized.FindProperty("m_timeOfDayChanged").objectReferenceValue = channel;
 
             if (sun != null)

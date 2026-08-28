@@ -39,8 +39,14 @@ namespace RootsDance.Environment
         [Tooltip("The level's directional Sun. Its Light Unit must be Lux — the builder guarantees it.")]
         [SerializeField] private Light m_sun;
 
+        [Tooltip("Optional second global Volume BELOW the level's local volumes (priority 5): night fog "
+            + "density for the open ground, which the opening segments' own density must still beat. Its "
+            + "profile is authored in the scene; only its weight is driven, in step with the main Volume.")]
+        [SerializeField] private Volume m_baseVolume;
+
         private HDAdditionalLightData m_sunData;
         private bool m_hasVolume;
+        private bool m_hasBaseVolume;
         private bool m_hasSun;
         private bool m_hasSunData;
 
@@ -65,6 +71,7 @@ namespace RootsDance.Environment
         private void Awake()
         {
             m_hasVolume = m_volume != null;
+            m_hasBaseVolume = m_baseVolume != null;
             m_hasSun = m_sun != null;
 
             if (m_hasSun)
@@ -236,9 +243,16 @@ namespace RootsDance.Environment
         /// </summary>
         private void ApplyBlend(float t)
         {
+            float weight = Mathf.Lerp(m_fromWeight, m_toWeight, t);
+
             if (m_hasVolume)
             {
-                m_volume.weight = Mathf.Lerp(m_fromWeight, m_toWeight, t);
+                m_volume.weight = weight;
+            }
+
+            if (m_hasBaseVolume)
+            {
+                m_baseVolume.weight = weight;
             }
 
             if (m_hasSun)

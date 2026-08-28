@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.TimeOfDayPresetSO
   m_phase: 1
   m_profile: {fileID: 11400000, guid: 00bc0523de3de4124ae60725f4762184, type: 2}
-  m_sunIntensityLux: 25
-  m_sunColor: {r: 0.62, g: 0.72, b: 1, a: 1}
-  m_sunVolumetricMultiplier: 0.4
+  m_sunIntensityLux: 33
+  m_sunColor: {r: 0.7, g: 0.78, b: 1, a: 1}
+  m_sunVolumetricMultiplier: 0.5

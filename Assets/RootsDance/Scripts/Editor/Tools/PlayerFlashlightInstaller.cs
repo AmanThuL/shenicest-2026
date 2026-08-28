@@ -58,8 +58,13 @@ namespace RootsDance.Editor.Tools
         /// <summary>Neutral-white LED torch, in kelvin.</summary>
         private const float k_ColorTemperatureKelvin = 5000f;
 
-        /// <summary>HDRP light Volumetrics Multiplier: 1, so the cone shows in the fog without blowing out.</summary>
-        private const float k_VolumetricMultiplier = 1f;
+        /// <summary>
+        /// HDRP light Volumetrics Multiplier. Above 1 on purpose: the beam should read as a cone in the fog
+        /// ("smoke"), and the direct light stays physically 2 200 lm — only the in-scatter is exaggerated. Safe
+        /// only because the Light is snapped to the camera every frame (see FlashlightController); a volumetric
+        /// light in front of the near plane blows out at any multiplier.
+        /// </summary>
+        private const float k_VolumetricMultiplier = 2.5f;
 
         /// <summary>Volumetric Shadow Dimmer 0 skips the shadow-map sample inside the fog (§5.8).</summary>
         private const float k_VolumetricShadowDimmer = 0f;
