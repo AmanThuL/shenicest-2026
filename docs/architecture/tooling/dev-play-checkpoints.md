@@ -1,6 +1,6 @@
 # Dev Play: start the game from any checkpoint
 
-Editor-only tooling for quick iteration. One click opens the Main level's scenes, enters Play, puts the Player at a
+Editor-only tooling for quick iteration. One click opens the selected checkpoint's level scenes, enters Play, puts the Player at a
 station and seeds the world state that the route would have produced by then — no boot screen, no main menu, no
 dragging two scenes into the Hierarchy. Nothing here ships: every script lives in `RootsDance.Editor`.
 
@@ -16,7 +16,7 @@ which only adds the missing defaults and never overwrites a tuned one).
 |---|---|---|
 | Where | Label | List entry; prefix with the station id (`00-09 …`) so the list sorts along the route. |
 | Where | Level | `LevelSO` whose scenes get opened (`Data/Levels/Main.asset`). |
-| Where | Anchor Name | A child of `_Anchors` in `Main_Environment` — the orange spheres `TerrainGreyboxBuilder` places (`Anchor_00-09_MainGate` …). Preferred: move the sphere, the checkpoint follows. |
+| Where | Anchor Name | A direct child of `_Anchors` in any loaded part of the checkpoint's level. Main uses the orange spheres placed by `TerrainGreyboxBuilder`; Briggs Interior keeps its four anchors in `BriggsInterior_Gameplay`. Preferred: move the anchor, then update the asset fallback position to match. |
 | Where | Position | Used when Anchor Name is empty or the anchor is missing from the scene. |
 | Where | Yaw | Facing in degrees around Y; 0 looks down +Z (the route direction). |
 | Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 1 m (the capsule is 1.5 m tall, centred on the root). |
@@ -28,6 +28,9 @@ The defaults follow the opening route: `00-01 Wake` (nothing raised) → `00-04 
 `00-05 Helmet unlock` (+ briefing started/finished, helmet removable) → `00-06 Grass belt` (+ helmet removed, entered
 grass belt) → `00-07 Grass platform`, `00-09 Main gate`, `00-10 Sign`, `00-11 Poster`, `00-16 Service entrance`
 (+ first investigation done, soil + 毯茅 recorded). Yaw is 0 everywhere — tune by eye and save the asset.
+
+Briggs Interior has four authored checkpoints under `Data/DevPlay/BriggsInterior/`. Their current anchors and fallback
+positions are documented in [02章 Briggs Interior 实验室室内设计与实现](../../design/02章BriggsInterior实验室室内设计与实现.md#11-玩家出生与-dev-play-checkpoint).
 
 ## How it applies (and why it respects the architecture)
 
