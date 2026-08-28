@@ -72,7 +72,7 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
 
 - **Licence: CC0** (public domain). Source: drillimpact, "PSX First Person Arms" on itch.io.
 - **What is used:** `arms_rig_helmat.blend` — the rigged first-person arms, its 20 actions, and the
-  512px `arms_01.png` sheet. `Arms.fbx`, `Arms_HelmetOff` and `Assets/RootsDance/Textures/Characters/arms_01.png`
+  512px `arms_01.png` sheet. `Arms.fbx`, `Arms_HelmetOff` and `Assets/RootsDance/Textures/Characters/Arms_BaseMap.png`
   all derive from it.
 - **Local additions:** a non-deforming `helmet_socket` bone under `root`, driven by a Child Of
   constraint, added so the helmet hand-off is pure skeletal animation
