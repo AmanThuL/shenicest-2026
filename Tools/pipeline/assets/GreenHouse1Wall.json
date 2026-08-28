@@ -1,0 +1,40 @@
+{
+  "asset": "GreenHouse1Wall",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/GreenHouse1/GreenHouse1.blend",
+    "object": "L-W1",
+    "licence": "In-repo source art (GAIA1 greenhouse, GREENHOUSE1 export).",
+    "note": "One of the greenhouse's repeating modules: the lower-tier window wall, which appears 7 times (L-W1/2/3, M-W1/2, R-W1/2/3 minus the ones sharing geometry). Textured once and reused. The glazing panes were deleted by hand, so this is frame only. Its UVs are SketchUp box mapping covering far more than the 0-1 square, hence uv.mode = unwrap."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "GreenHouse1=GreenHouse1Wall"
+    ],
+    "material_slots": [
+      "GreenHouse1Wall"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "texture_sets": [
+    "GreenHouse1Wall"
+  ],
+  "painter": {
+    "fills": [
+      "Metal(1.0):basecolor=Assets/RootsDance/Textures/Environment/GreenHouseMetal_BaseMap.png;normal=Assets/RootsDance/Textures/Environment/GreenHouseMetal_Normal.png;roughness=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_rough_1k.jpg"
+    ],
+    "layers": [],
+    "note": "Reuses the v8 greenhouse metal look (weathered iron-green with occasional rust). Triplanar so the tiling source stays continuous across the unwrap's islands."
+  }
+}
