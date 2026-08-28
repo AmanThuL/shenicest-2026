@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
+  m_Name: 02-01_PlantResearchLab
+  m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
+  m_label: 02-01 Plant research lab
+  m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
+  m_anchorName: Checkpoint_PlantResearchLab
+  m_position: {x: 16.621597, y: 3.4205036, z: 30.768526}
+  m_yaw: 0
+  m_snapToGround: 0
+  m_groundClearance: 0
+  m_timeOfDay: 2
+  m_flags:
+  - flow.left_start_area
+  - flow.radio_briefing_started
+  - flow.radio_briefing_finished
+  - flow.helmet_removable
+  - flow.helmet_removed
+  - flow.entered_grass_belt
+  - flow.first_investigation_done
+  m_recordedTargets: []
