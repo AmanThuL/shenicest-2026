@@ -22,6 +22,17 @@ namespace RootsDance.Editor.Tools
         private const string k_LoadLevelRequestedPath = k_EventsFolder + "/LoadLevelRequested.asset";
         private const string k_FlagRaisedPath = k_EventsFolder + "/FlagRaised.asset";
         private const string k_ReportUpdatedPath = k_EventsFolder + "/ReportUpdated.asset";
+        private const string k_TimeOfDayChangedPath = k_EventsFolder + "/TimeOfDayChanged.asset";
+
+        /// <summary>
+        /// Batch entry point (-executeMethod). In batch mode
+        /// <see cref="EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo"/> cannot show its dialog
+        /// and returns true, so the interactive <see cref="Build"/> is safe to call as-is.
+        /// </summary>
+        public static void BuildFromCommandLine()
+        {
+            Build();
+        }
 
         [MenuItem("RootsDance/Build Bootstrap Scene")]
         public static void Build()
@@ -42,6 +53,7 @@ namespace RootsDance.Editor.Tools
             EnsureChannel<LevelEventChannelSO>(k_LoadLevelRequestedPath);
             EnsureChannel<StringEventChannelSO>(k_FlagRaisedPath);
             EnsureChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath);
+            EnsureChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath);
 
             // Re-load every channel from its path immediately before wiring. Creating an asset can
             // invalidate the instance CreateAsset handed back (an import in between reloads it), and
@@ -50,13 +62,14 @@ namespace RootsDance.Editor.Tools
                 bootstrap,
                 LoadChannel<LevelEventChannelSO>(k_LoadLevelRequestedPath),
                 LoadChannel<StringEventChannelSO>(k_FlagRaisedPath),
-                LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath));
+                LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath),
+                LoadChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath));
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
-            Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 3 channel assets, "
+            Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 4 channel assets, "
                 + "UI slot created, forbidden content removed.");
         }
 
@@ -177,7 +190,8 @@ namespace RootsDance.Editor.Tools
         }
 
         private static void WireBootstrap(GameBootstrap bootstrap, LevelEventChannelSO loadLevelRequested,
-            StringEventChannelSO flagRaised, ReportUpdateEventChannelSO reportUpdated)
+            StringEventChannelSO flagRaised, ReportUpdateEventChannelSO reportUpdated,
+            TimeOfDayEventChannelSO timeOfDayChanged)
         {
             SerializedObject serialized = new SerializedObject(bootstrap);
 
@@ -186,6 +200,7 @@ namespace RootsDance.Editor.Tools
             serialized.FindProperty("m_loadLevelRequested").objectReferenceValue = loadLevelRequested;
             serialized.FindProperty("m_flagRaised").objectReferenceValue = flagRaised;
             serialized.FindProperty("m_reportUpdated").objectReferenceValue = reportUpdated;
+            serialized.FindProperty("m_timeOfDayChanged").objectReferenceValue = timeOfDayChanged;
 
             // m_startupLevel stays empty on purpose: there is no MainMenu scene yet, so Play always
             // starts from a level scene and GameBootstrap.Start adopts whatever is already open.

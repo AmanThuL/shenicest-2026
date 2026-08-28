@@ -197,6 +197,9 @@ namespace RootsDance.Editor.DevPlay
                 return;
             }
 
+            DrawTimeOfDay(state.TimeOfDay);
+            EditorGUILayout.Space();
+
             IReadOnlyList<string> flags = WorldFlagCatalog.All;
 
             for (int i = 0; i < flags.Count; i++)
@@ -224,13 +227,48 @@ namespace RootsDance.Editor.DevPlay
             EditorGUILayout.LabelField("Report entries: " + state.Report.Count);
         }
 
+        /// <summary>
+        /// Time of day is not monotonic, so unlike the flags both directions get a button; the one that
+        /// is already current is disabled because the command would be a no-op.
+        /// </summary>
+        private static void DrawTimeOfDay(TimeOfDay phase)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Time of day: " + phase);
+
+            using (new EditorGUI.DisabledScope(phase == TimeOfDay.Day))
+            {
+                if (GUILayout.Button("Day", GUILayout.Width(60f)))
+                {
+                    WorldAccess.Enqueue(new SetTimeOfDayCommand(TimeOfDay.Day), null);
+                }
+            }
+
+            using (new EditorGUI.DisabledScope(phase == TimeOfDay.Night))
+            {
+                if (GUILayout.Button("Night", GUILayout.Width(60f)))
+                {
+                    WorldAccess.Enqueue(new SetTimeOfDayCommand(TimeOfDay.Night), null);
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
         private static string DescribeCheckpoint(DevCheckpointSO checkpoint)
         {
             string where = string.IsNullOrEmpty(checkpoint.AnchorName)
                 ? checkpoint.Position.ToString("F1")
                 : checkpoint.AnchorName;
-            return where + "  ·  " + checkpoint.Flags.Count + " flags, "
+            string description = where + "  ·  " + checkpoint.Flags.Count + " flags, "
                 + checkpoint.RecordedTargets.Count + " records";
+
+            if (checkpoint.TimeOfDay != CheckpointTimeOfDay.LevelDefault)
+            {
+                description += "  ·  " + checkpoint.TimeOfDay;
+            }
+
+            return description;
         }
 
         private static string DescribeLoadedScenes()

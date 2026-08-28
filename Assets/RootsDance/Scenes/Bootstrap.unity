@@ -244,6 +244,7 @@ MonoBehaviour:
   m_loadLevelRequested: {fileID: 11400000, guid: be46edc8df9db40fab9f18c82ae804ee, type: 2}
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_reportUpdated: {fileID: 11400000, guid: be9c903e76a644c7f9eec315eda926c1, type: 2}
+  m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
   m_startupLevel: {fileID: 11400000, guid: 8498babeb86454f3eafa2b387f1f4165, type: 2}
 --- !u!4 &797071106
 Transform:

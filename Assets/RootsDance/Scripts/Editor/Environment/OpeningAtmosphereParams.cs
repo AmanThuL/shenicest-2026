@@ -39,12 +39,31 @@ namespace RootsDance.Editor.Environment
         public float Saturation;
         public Color ColorFilter;
         public float VignetteIntensity;
-        public float GrainIntensity;
         public float BloomIntensity;
-        public float PsxIntensity;
-        public int PsxPixelScale;
-        public int PsxColorLevels;
-        public float PsxDither;
+        /// <summary>The PSX post-process override, grain included (the single grain source, no Film Grain).</summary>
+        public PsxLook Psx;
+    }
+
+    /// <summary>
+    /// Every parameter of the <c>PsxPostProcess</c> Volume override. Shared by the Opening segments and the
+    /// level-wide baseline on MainProfile, so a checkpoint only has to state what differs from the baseline.
+    /// </summary>
+    [Serializable]
+    public class PsxLook
+    {
+        /// <summary>0 = pixelation/quantisation off, 1 = full PSX treatment.</summary>
+        public float Intensity;
+        public int PixelScale;
+        public int ColorLevels;
+        public float Dither;
+        /// <summary>Grain amplitude, 0..1 (1 = +/-25 % of the sRGB range in the shadows).</summary>
+        public float GrainIntensity;
+        /// <summary>Grain cell edge in virtual pixels, 1..8.</summary>
+        public int GrainSize;
+        /// <summary>Grain re-seed rate in Hz, 0 = every frame.</summary>
+        public float GrainRate;
+        /// <summary>0 = uniform grain, 1 = grain only in the blacks.</summary>
+        public float GrainShadowBias;
     }
 
     /// <summary>One local Box Volume along the route and the profile it drives.</summary>
@@ -137,6 +156,11 @@ namespace RootsDance.Editor.Environment
         public OpeningSunSettings Sun;
         /// <summary>MainProfile fog for the rest of the level (applied on overwrite only).</summary>
         public OpeningBeyondFog BeyondFog;
+        /// <summary>
+        /// MainProfile PSX override — the always-on look for the whole level; the Opening segments override it
+        /// locally. Applied on overwrite and by RootsDance > Rendering > Apply PSX Baseline.
+        /// </summary>
+        public PsxLook PsxBaseline;
         public OpeningVfxEmitter[] Emitters;
 
         public static OpeningAtmosphereParams CreateDefault()
@@ -170,8 +194,8 @@ namespace RootsDance.Editor.Environment
                         SkyBottom = new Color(0.86f, 0.82f, 0.62f), SkyDiffusion = 1.6f, SkyExposure = 12f,
                         FixedExposure = 12.3f, Contrast = 6f, Saturation = -28f,
                         ColorFilter = new Color(0.96f, 0.92f, 0.80f),
-                        VignetteIntensity = 0.34f, GrainIntensity = 0.20f, BloomIntensity = 0.04f,
-                        PsxIntensity = 1f, PsxPixelScale = 2, PsxColorLevels = 48, PsxDither = 0.25f,
+                        VignetteIntensity = 0.34f, BloomIntensity = 0.04f,
+                        Psx = PsxLookWithGrain(1f, 2, 48, 0.25f, grainIntensity: 0.22f),
                     },
                 },
                 new OpeningSegment
@@ -189,8 +213,8 @@ namespace RootsDance.Editor.Environment
                         SkyBottom = new Color(0.84f, 0.84f, 0.70f), SkyDiffusion = 1.5f, SkyExposure = 12f,
                         FixedExposure = 12.2f, Contrast = 6f, Saturation = -24f,
                         ColorFilter = new Color(0.95f, 0.94f, 0.85f),
-                        VignetteIntensity = 0.30f, GrainIntensity = 0.18f, BloomIntensity = 0.05f,
-                        PsxIntensity = 1f, PsxPixelScale = 2, PsxColorLevels = 56, PsxDither = 0.25f,
+                        VignetteIntensity = 0.30f, BloomIntensity = 0.05f,
+                        Psx = PsxLookWithGrain(1f, 2, 56, 0.25f, grainIntensity: 0.18f),
                     },
                 },
                 new OpeningSegment
@@ -208,8 +232,8 @@ namespace RootsDance.Editor.Environment
                         SkyBottom = new Color(0.68f, 0.72f, 0.64f), SkyDiffusion = 1.4f, SkyExposure = 12f,
                         FixedExposure = 12.5f, Contrast = 8f, Saturation = -20f,
                         ColorFilter = new Color(0.90f, 0.94f, 0.90f),
-                        VignetteIntensity = 0.30f, GrainIntensity = 0.18f, BloomIntensity = 0.06f,
-                        PsxIntensity = 1f, PsxPixelScale = 2, PsxColorLevels = 64, PsxDither = 0.25f,
+                        VignetteIntensity = 0.30f, BloomIntensity = 0.06f,
+                        Psx = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.18f),
                     },
                 },
                 new OpeningSegment
@@ -227,11 +251,15 @@ namespace RootsDance.Editor.Environment
                         SkyBottom = new Color(0.78f, 0.84f, 0.78f), SkyDiffusion = 1.3f, SkyExposure = 12f,
                         FixedExposure = 12.0f, Contrast = 4f, Saturation = -12f,
                         ColorFilter = new Color(0.92f, 0.98f, 0.94f),
-                        VignetteIntensity = 0.24f, GrainIntensity = 0.15f, BloomIntensity = 0.08f,
-                        PsxIntensity = 1f, PsxPixelScale = 2, PsxColorLevels = 64, PsxDither = 0.25f,
+                        VignetteIntensity = 0.24f, BloomIntensity = 0.08f,
+                        Psx = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.14f),
                     },
                 },
             };
+
+            // Level-wide PSX look: same grid and dither as the opening, the relaxed Threshold quantisation,
+            // and lighter grain than any opening segment so the checkpoints read as "worse" than the rest.
+            p.PsxBaseline = PsxLookWithGrain(1f, 2, 64, 0.25f, grainIntensity: 0.12f);
 
             p.BeyondFog = new OpeningBeyondFog
             {
@@ -273,6 +301,20 @@ namespace RootsDance.Editor.Environment
             };
 
             return p;
+        }
+
+        /// <summary>
+        /// Grain defaults every segment shares: 3x3 virtual pixels per grain cell (chunky speckle), re-seeded at
+        /// 10 Hz (the cadence of a VHS transfer rather than a per-frame hiss), 60 % biased into the shadows.
+        /// </summary>
+        private static PsxLook PsxLookWithGrain(
+            float intensity, int pixelScale, int colorLevels, float dither, float grainIntensity)
+        {
+            return new PsxLook
+            {
+                Intensity = intensity, PixelScale = pixelScale, ColorLevels = colorLevels, Dither = dither,
+                GrainIntensity = grainIntensity, GrainSize = 3, GrainRate = 10f, GrainShadowBias = 0.6f,
+            };
         }
     }
 }

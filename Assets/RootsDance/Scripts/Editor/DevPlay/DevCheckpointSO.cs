@@ -44,6 +44,10 @@ namespace RootsDance.Editor.DevPlay
         [SerializeField, EnableIf("m_snapToGround")] private float m_groundClearance = 1f;
 
         [TitleGroup("World State")]
+        [Tooltip("Time of day forced when this checkpoint is applied. Level Default leaves the level alone.")]
+        [SerializeField] private CheckpointTimeOfDay m_timeOfDay = CheckpointTimeOfDay.LevelDefault;
+
+        [TitleGroup("World State")]
         [Tooltip("Flags already raised when the Player takes control, applied in this order.")]
         [SerializeField, ValueDropdown("FlagChoices")] private string[] m_flags = new string[0];
 
@@ -58,21 +62,33 @@ namespace RootsDance.Editor.DevPlay
         public float Yaw => m_yaw;
         public bool SnapToGround => m_snapToGround;
         public float GroundClearance => m_groundClearance;
+        public CheckpointTimeOfDay TimeOfDay => m_timeOfDay;
         public IReadOnlyList<string> Flags => m_flags;
         public IReadOnlyList<InvestigationTargetSO> RecordedTargets => m_recordedTargets;
 
         /// <summary>Fills a freshly created asset. Only <see cref="DevCheckpointDefaults"/> calls this.</summary>
         public void Configure(
             string label, LevelSO level, string anchorName, Vector3 position, float yaw,
-            string[] flags, InvestigationTargetSO[] recordedTargets)
+            CheckpointTimeOfDay timeOfDay, string[] flags, InvestigationTargetSO[] recordedTargets)
         {
             m_label = label;
             m_level = level;
             m_anchorName = anchorName;
             m_position = position;
             m_yaw = yaw;
+            m_timeOfDay = timeOfDay;
             m_flags = flags ?? new string[0];
             m_recordedTargets = recordedTargets ?? new InvestigationTargetSO[0];
+        }
+
+        /// <summary>
+        /// Rewrites only the time of day on an already authored asset. Only Dev Play tooling calls this
+        /// (<see cref="DevCheckpointDefaults.SetAllTimeOfDayToNight"/>); the caller owns
+        /// <c>EditorUtility.SetDirty</c> and saving.
+        /// </summary>
+        public void SetTimeOfDay(CheckpointTimeOfDay timeOfDay)
+        {
+            m_timeOfDay = timeOfDay;
         }
 
         private static IReadOnlyList<string> FlagChoices()

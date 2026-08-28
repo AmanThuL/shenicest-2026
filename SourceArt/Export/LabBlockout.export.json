@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/LabBlockout.fbx",
-  "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v2.blend",
-  "m_blendModifiedUtc": "2026-08-27T12:41:00+00:00",
+  "m_blend": "SourceArt/Blender/GAIA1/GAIA1_v3.blend",
+  "m_blendModifiedUtc": "2026-08-27T18:51:17+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -293,5 +293,5 @@
   ],
   "m_blenderVersion": "5.2.1 LTS",
   "m_profile": "Tools/blender/profiles/static_prop.json",
-  "m_exportedUtc": "2026-08-27T13:27:01+00:00"
+  "m_exportedUtc": "2026-08-27T19:05:37+00:00"
 }

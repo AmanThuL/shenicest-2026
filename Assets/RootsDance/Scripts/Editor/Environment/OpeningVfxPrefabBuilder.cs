@@ -1,4 +1,5 @@
 using RootsDance.Editor.Terrain;
+using RootsDance.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -143,6 +144,14 @@ namespace RootsDance.Editor.Environment
                 }
 
                 ConfigureParticles(system, recipe, material);
+
+                // The nits above are authored for the day look's EV 12.5; the follower rescales the emissive
+                // to whatever fixed exposure the Volume stack asks for, so the motes survive the night.
+                if (contents.GetComponent<EmissiveExposureFollower>() == null)
+                {
+                    contents.AddComponent<EmissiveExposureFollower>();
+                }
+
                 bool saved;
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(contents, path, out saved);
 

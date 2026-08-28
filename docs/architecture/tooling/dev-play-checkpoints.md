@@ -20,6 +20,7 @@ which only adds the missing defaults and never overwrites a tuned one).
 | Where | Position | Used when Anchor Name is empty or the anchor is missing from the scene. |
 | Where | Yaw | Facing in degrees around Y; 0 looks down +Z (the route direction). |
 | Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 1 m (the capsule is 1.5 m tall, centred on the root). |
+| World State | Time of day | `Level Default` (emit nothing — the level's `TimeOfDayController` decides), `Day` or `Night`. Applied *before* the flags, as a `SetTimeOfDayCommand`, so the lighting is already right on the first frame you control. |
 | World State | Flags | `WorldFlags` ids raised before you take control, applied in order. Dropdown lists every constant in `WorldFlags.cs`. |
 | World State | Recorded Targets | `InvestigationTargetSO`s already in the official report (`AddReportEntryCommand`). |
 
@@ -39,12 +40,21 @@ grass belt) → `00-07 Grass platform`, `00-09 Main gate`, `00-10 Sign`, `00-11 
    `FirstPersonController` exist (20 s timeout, error logged), then:
    - teleports the Player: `CharacterController` disabled → `SetPositionAndRotation` → re-enabled →
      `Physics.SyncTransforms()`; Cinemachine hard-locks to the head so the camera follows;
-   - enqueues `RaiseFlagCommand` / `AddReportEntryCommand` on `GameBootstrap.Commands` — the same path trigger volumes
-     and the investigation service use (D1/D7 in `运行时架构说明书.md`). Nothing writes `WorldState` directly.
+   - enqueues `SetTimeOfDayCommand` / `RaiseFlagCommand` / `AddReportEntryCommand` on `GameBootstrap.Commands` — the
+     same path trigger volumes and the investigation service use (D1/D7 in `运行时架构说明书.md`). Nothing writes
+     `WorldState` directly.
 3. Play mode: the same button reads **Go here** and applies immediately without restarting.
 
 Flags are monotonic (D8): **Go here** can move you back along the route but never un-raises a flag. To reset state,
 stop Play and use **Play here** again. Teleporting into a `TriggerVolume` raises that volume's flag as usual.
+
+**Time of day is the carve-out.** It is a discrete world-state *value*, not a flag, and it is not monotonic: **Go
+here** on a checkpoint whose Time of day is `Day` or `Night` really does switch the world, in both directions, as
+often as you like. `Level Default` is the opt-out and stays value 0, so a checkpoint authored before this field
+existed still means "leave the level alone". Every default checkpoint is `Night`, because the whole pre-lab route
+(00-01 … 00-16) plays at night; `RootsDance > Dev Play > Set All Checkpoints To Night` rewrites the committed assets
+in place (Create Default Checkpoints never overwrites an existing one). The live section of the window shows the
+current phase with **Day** / **Night** buttons that enqueue the same command by hand.
 
 The window also shows the live world state while playing (every `WorldFlags` id with a **Raise** button, report
 entry count) — the checkpoint dropdown and this list share `WorldFlagCatalog`, so a new flag constant appears in
@@ -67,9 +77,12 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 ## Files
 
 - `Scripts/Editor/DevPlay/DevCheckpointSO.cs` — the asset (Odin `TitleGroup`s `Where` / `World State`).
+- `Scripts/Editor/DevPlay/CheckpointTimeOfDay.cs` — `LevelDefault` / `Day` / `Night`; the authoring enum, mapped onto
+  `RootsDance.Core.TimeOfDay` by `DevCheckpointSeed.TryToRuntime`.
 - `Scripts/Editor/DevPlay/DevCheckpointSeed.cs` — pure logic: commands to enqueue, position resolution.
 - `Scripts/Editor/DevPlay/WorldFlagCatalog.cs` — every `WorldFlags` constant by reflection.
 - `Scripts/Editor/DevPlay/DevPlaySession.cs` — open scenes, enter Play, apply.
 - `Scripts/Editor/DevPlay/DevPlayWindow.cs` — the window.
-- `Scripts/Editor/DevPlay/DevCheckpointDefaults.cs` — the default set.
+- `Scripts/Editor/DevPlay/DevCheckpointDefaults.cs` — the default set, plus `RootsDance > Dev Play > Set All
+  Checkpoints To Night` (`SetAllTimeOfDayToNight`, no dialogs — batch-callable via `-executeMethod`).
 - `Tests/EditMode/DevPlay/` — seed and catalog tests.

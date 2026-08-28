@@ -118,7 +118,8 @@ namespace RootsDance.Tests.EditMode.Environment
                 OpeningLook current = p.Segments[i].Look;
                 Assert.Greater(current.FogAttenuationDistance, previous.FogAttenuationDistance, "fog thins");
                 Assert.GreaterOrEqual(current.Saturation, previous.Saturation, "colour returns");
-                Assert.GreaterOrEqual(current.PsxColorLevels, previous.PsxColorLevels, "quantisation relaxes");
+                Assert.GreaterOrEqual(current.Psx.ColorLevels, previous.Psx.ColorLevels, "quantisation relaxes");
+                Assert.LessOrEqual(current.Psx.GrainIntensity, previous.Psx.GrainIntensity, "grain settles");
             }
 
             OpeningLook last = p.Segments[p.Segments.Length - 1].Look;
@@ -135,10 +136,41 @@ namespace RootsDance.Tests.EditMode.Environment
             foreach (OpeningSegment s in p.Segments)
             {
                 Assert.That(s.Look.FixedExposure, Is.InRange(12f, 13f), s.Name + " (guideline 07 §5.1 overcast)");
-                Assert.That(s.Look.PsxIntensity, Is.InRange(0f, 1f), s.Name);
                 Assert.That(s.Look.AmbientDimmer, Is.InRange(0f, 1f), s.Name);
-                Assert.Greater(s.Look.PsxPixelScale, 0, s.Name);
+                AssertPsxLookIsValid(s.Look.Psx, s.Name);
             }
+        }
+
+        [Test]
+        public void CreateDefault_PsxBaseline_IsTheFullLookWithLighterGrainThanAnySegment()
+        {
+            OpeningAtmosphereParams p = OpeningAtmosphereParams.CreateDefault();
+            Assert.IsNotNull(p.PsxBaseline, "the level needs an always-on PSX baseline");
+            AssertPsxLookIsValid(p.PsxBaseline, "PsxBaseline");
+            Assert.AreEqual(1f, p.PsxBaseline.Intensity, "the whole level reads as PSX");
+            Assert.Greater(p.PsxBaseline.GrainIntensity, 0f, "grain is always on");
+
+            foreach (OpeningSegment s in p.Segments)
+            {
+                Assert.Greater(s.Look.Psx.GrainIntensity, p.PsxBaseline.GrainIntensity,
+                    s.Name + " must be grainier than the rest of the level");
+                Assert.GreaterOrEqual(p.PsxBaseline.ColorLevels, s.Look.Psx.ColorLevels,
+                    s.Name + " must quantise at least as hard as the baseline");
+            }
+        }
+
+        /// <summary>Mirrors the Clamped*Parameter ranges declared on PsxPostProcess.</summary>
+        private static void AssertPsxLookIsValid(PsxLook psx, string name)
+        {
+            Assert.IsNotNull(psx, name);
+            Assert.That(psx.Intensity, Is.InRange(0f, 1f), name + " Intensity");
+            Assert.That(psx.PixelScale, Is.InRange(1, 8), name + " PixelScale");
+            Assert.That(psx.ColorLevels, Is.InRange(4, 256), name + " ColorLevels");
+            Assert.That(psx.Dither, Is.InRange(0f, 1f), name + " Dither");
+            Assert.That(psx.GrainIntensity, Is.InRange(0f, 1f), name + " GrainIntensity");
+            Assert.That(psx.GrainSize, Is.InRange(1, 8), name + " GrainSize");
+            Assert.That(psx.GrainRate, Is.InRange(0f, 60f), name + " GrainRate");
+            Assert.That(psx.GrainShadowBias, Is.InRange(0f, 1f), name + " GrainShadowBias");
         }
 
         [Test]

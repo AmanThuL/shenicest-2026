@@ -67,6 +67,47 @@ namespace RootsDance.Tests.EditMode.DevPlay
         }
 
         [Test]
+        public void BuildCommands_NightCheckpoint_SetsTimeOfDayFirst()
+        {
+            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
+                new[] { WorldFlags.k_LeftStartArea },
+                new[] { k_Soil },
+                CheckpointTimeOfDay.Night);
+            WorldState state = new WorldState();
+            CommandQueue queue = new CommandQueue();
+
+            foreach (IWorldCommand command in commands)
+            {
+                queue.Enqueue(command);
+            }
+
+            queue.Drain(state);
+
+            Assert.IsInstanceOf<SetTimeOfDayCommand>(commands[0]);
+            Assert.AreEqual(TimeOfDay.Night, state.TimeOfDay);
+        }
+
+        [Test]
+        public void BuildCommands_LevelDefault_EmitsNoTimeOfDayCommand()
+        {
+            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
+                new[] { WorldFlags.k_LeftStartArea },
+                new ReportEntry[0],
+                CheckpointTimeOfDay.LevelDefault);
+
+            Assert.AreEqual(1, commands.Count);
+            Assert.IsInstanceOf<RaiseFlagCommand>(commands[0]);
+        }
+
+        [Test]
+        public void TryToRuntime_LevelDefault_ReturnsFalse()
+        {
+            TimeOfDay phase;
+
+            Assert.IsFalse(DevCheckpointSeed.TryToRuntime(CheckpointTimeOfDay.LevelDefault, out phase));
+        }
+
+        [Test]
         public void ResolvePosition_GroundFound_StandsClearanceAboveGround()
         {
             Vector3 result = DevCheckpointSeed.ResolvePosition(new Vector3(3f, 99f, -7f), true, 4.2f, 1f);

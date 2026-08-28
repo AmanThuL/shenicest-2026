@@ -42,7 +42,14 @@ Shader "Hidden/RootsDance/PsxPostProcess"
     float _PixelScale;
     float _ColorLevels;
     float _DitherStrength;
+    float _GrainIntensity;
+    float _GrainSize;
+    float _GrainSeed;
+    float _GrainShadowBias;
     TEXTURE2D_X(_MainTex);
+
+    // Grain amplitude at _GrainIntensity = 1, as a fraction of the sRGB range.
+    static const float k_GrainRange = 0.25;
 
     // 4x4 Bayer matrix, row-major, values 0..15.
     static const float k_Bayer4[16] =
@@ -52,6 +59,24 @@ Shader "Hidden/RootsDance/PsxPostProcess"
          3.0, 11.0,  1.0,  9.0,
         15.0,  7.0, 13.0,  5.0
     };
+
+    // lowbias32 integer hash (Chris Wellons); good enough decorrelation for screen-space speckle.
+    uint HashUint(uint x)
+    {
+        x ^= x >> 16;
+        x *= 0x7feb352du;
+        x ^= x >> 15;
+        x *= 0x846ca68bu;
+        x ^= x >> 16;
+        return x;
+    }
+
+    // Signed white noise in [-1, 1] for one grain cell and one seed.
+    float GrainNoise(uint2 cell, uint seed)
+    {
+        uint h = HashUint(cell.x + HashUint(cell.y + HashUint(seed)));
+        return (float)(h & 0xffffu) / 65535.0 * 2.0 - 1.0;
+    }
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
@@ -80,6 +105,19 @@ Shader "Hidden/RootsDance/PsxPostProcess"
         psxColor = SRGBToLinear(saturate(quantised));
 
         float3 color = lerp(sourceColor, psxColor, _Intensity);
+
+        // 3. Grain, after quantisation so the colour steps cannot swallow it; cells follow the virtual grid.
+        if (_GrainIntensity > 0.0)
+        {
+            uint2 grainCell = uint2(floor(cell / max(_GrainSize, 1.0)));
+            float noise = GrainNoise(grainCell, (uint)max(_GrainSeed, 0.0));
+            float3 grainSrgb = LinearToSRGB(saturate(color));
+            float luma = dot(grainSrgb, float3(0.299, 0.587, 0.114));
+            float response = lerp(1.0, 1.0 - luma, _GrainShadowBias);
+            grainSrgb += noise * _GrainIntensity * k_GrainRange * response;
+            color = SRGBToLinear(saturate(grainSrgb));
+        }
+
         return float4(color, 1.0);
     }
 

@@ -86,7 +86,7 @@ Unity 侧无需任何手工步骤。
 - 不带：相对路径按 `.blend` 所在目录解析，`--output Assets/...` 会写到 `.blend` 旁边。
 - 绝对路径任何时候原样接受。
 
-**整个集合一次导出**：`--collection Architectures` 代替 `--objects`，导出该集合（含子集合）下所有带面的 MESH 物体；无面的线框重复体跳过，艺术家在大纲里取消勾选（从视图层排除）的子集合视为“不属于模型”而跳过并记入 manifest 的 `m_excludedObjects`，用眼睛图标隐藏的物体仍报错。首个使用者：实验室白模 `LabBlockout.fbx`（`GAIA1_v2.blend`，2026-08-27）。
+**整个集合一次导出**：`--collection Architectures` 代替 `--objects`，导出该集合（含子集合）下所有带面的 MESH 物体；无面的线框重复体跳过，艺术家在大纲里取消勾选（从视图层排除）的子集合视为“不属于模型”而跳过并记入 manifest 的 `m_excludedObjects`，用眼睛图标隐藏的物体仍报错。首个使用者：实验室白模 `LabBlockout.fbx`（`GAIA1_v2.blend`，2026-08-27；2026-08-28 起改自 `GAIA1_v3.blend`，同一条命令重跑即可）。
 
 **一次导多个 action**：`--actions knife_idle,jab.L` 产出 `Arms_knife_idle.fbx` / `Arms_jab.L.fbx`，各带一份 manifest，帧范围各取自对应 Action。
 
@@ -158,6 +158,16 @@ SketchUp 系导出的建筑体是**单面壳**——面没有厚度，绕序还�
 `m_doubleSidedMaterials` 开启后，`BlenderModelPostprocessor.OnPostprocessModel` 会把该模型**自己生成**的材质设成 `_DoubleSidedEnable = 1` + 法线模式 Mirror，再调 `HDMaterial.ValidateMaterial` 让 HDRP 重算 cull mode / 关键字 / `_DoubleSidedConstants`。被 `m_materials` 重定向到项目里的 `.mat` 资产**不会**被改——那是别人的资产。
 
 代价：双面材质的着色量与阴影成本更高，且零厚度几何的自阴影容易有瑕疵。资产定稿时更好的做法仍是在 Blender 里给墙做出厚度。
+
+两个 Editor 菜单：
+
+- `RootsDance/Pipeline/Reimport Pipeline Models` —— 配置在 `Assets/` 外，Unity 不会自动感知编辑，改完点这个
+- `RootsDance/Pipeline/Check Model Sources` —— 比对 manifest 里记的 `.blend` 修改时间，报出落后于源文件的模型
+
+**新增资产要登记**：在 `m_assets` 里加一条（`m_path` / `m_profile` / `m_manifest` / `m_clipName` / `m_loopTime` / `m_materials`），否则该 FBX 走 Unity 默认导入。
+
+`m_loopTime` 控制 clip 的 Loop Time：缺省或 `false` 适用于一次性动作（`Arms_HelmetOff`），首尾帧一致的循环动作（`Arms_Crawl`）填 `true`。
+
 
 两个 Editor 菜单：
 
