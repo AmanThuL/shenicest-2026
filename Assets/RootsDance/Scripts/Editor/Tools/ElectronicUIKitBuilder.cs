@@ -26,6 +26,14 @@ namespace RootsDance.EditorTools
         public const string FontFolder = "Assets/RootsDance/Fonts";
         public const string DitherShader = "RootsDance/UI/Dither";
 
+        /// <summary>
+        /// m5x7 draws on a 16 px em, Fusion Pixel on a 12 px em, so at one point size m5x7's
+        /// pixels would come out 3/4 the size of the Chinese ones on the same line. 4/3 puts both
+        /// faces on the same pixel grid — Latin caps then measure 7 grid pixels against the CJK
+        /// box's 8, which is the proportion the reference screens show.
+        /// </summary>
+        private const float k_LatinFaceScale = 4f / 3f;
+
         [MenuItem("RootsDance/Build Electronic UI Kit")]
         public static void Build()
         {
@@ -127,8 +135,8 @@ namespace RootsDance.EditorTools
             serialized.FindProperty("m_font").objectReferenceValue = EnsureFont();
             serialized.FindProperty("m_boldText").boolValue = bold;
 
-            // Sizes are measured per reference: cap heights of 20-22 px on 40 px rows put the body at
-            // 36-40 pt for VT323 (caps ≈ 0.55 em). Set explicitly so old assets migrate too.
+            // Sizes are measured per reference: cap heights of 20-22 px on 40 px rows put the body
+            // at 36-40 pt (m5x7 caps ≈ 0.58 em once scaled). Set explicitly so old assets migrate.
             serialized.FindProperty("m_microSize").floatValue = micro;
             serialized.FindProperty("m_bodySize").floatValue = body;
             serialized.FindProperty("m_displaySize").floatValue = display;
@@ -139,60 +147,127 @@ namespace RootsDance.EditorTools
         }
 
         /// <summary>
-        /// The kit's one font asset: an SDF TMP asset generated from the Fusion Pixel ttf (spec
-        /// §2C). Dynamic population, so the atlas grows with whatever the screens actually set.
-        /// Faking a mono face with LiberationSans plus an mspace tag — the old spec's approach — is
-        /// exactly the giveaway the revision bans; this asset is what replaced it.
+        /// The kit's face is a pair, wired as one TMP asset with one fallback (spec §2C): Latin
+        /// comes from m5x7 (CC0, Daniel Linssen), every CJK glyph from Fusion Pixel
+        /// (TakWolf/fusion-pixel-font, OFL-1.1). Both are dynamic, so each atlas grows with
+        /// whatever the screens actually set. Faking a mono face with LiberationSans plus an
+        /// mspace tag — the old spec's approach — is exactly the giveaway the revision bans; this
+        /// pair is what replaced it.
         /// <para>
-        /// VT323 was the original choice and has no CJK coverage at all — every Chinese character
-        /// on a kit screen rendered as a tofu box. Fusion Pixel's zh_hans variant
-        /// (TakWolf/fusion-pixel-font, OFL-1.1, <c>Assets/RootsDance/Fonts/FusionPixel-OFL.txt</c>)
-        /// is a pixel-grid mono face like VT323 but ships Latin and Simplified Chinese in the same
-        /// file, which this project's copy is heaviest on.
+        /// m5x7 is the primary asset and Fusion Pixel the fallback, never the other way round: TMP
+        /// only reaches a fallback for glyphs the primary is missing, and Fusion Pixel covers Latin
+        /// too, so putting it first would leave m5x7 unused. VT323, the first choice, had no CJK
+        /// coverage at all and rendered every Chinese character as a tofu box; its files stay in
+        /// the folder for reference and nothing in the kit points at them.
         /// </para>
         /// </summary>
         internal static TMP_FontAsset EnsureFont()
         {
-            string path = $"{FontFolder}/FusionPixel-12px SDF.asset";
-            TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
+            // Sampled at 96 (6 texels per source pixel) and 90 respectively: both are whole
+            // multiples of the face's own pixel grid, so glyph edges land on texel boundaries. The
+            // CJK atlas is the larger one — those glyphs are denser and there are far more of them.
+            TMP_FontAsset latin = EnsureFontAsset("m5x7", "m5x7.ttf", 96, 1024, k_LatinFaceScale);
 
-            if (asset != null)
+            if (latin == null)
             {
-                return asset;
-            }
-
-            Font source = AssetDatabase.LoadAssetAtPath<Font>(
-                $"{FontFolder}/FusionPixel-12px-Zh_Hans.ttf");
-
-            if (source == null)
-            {
-                Debug.LogError($"{FontFolder}/FusionPixel-12px-Zh_Hans.ttf missing — cannot build "
-                    + "the kit font.");
                 return null;
             }
 
-            // Larger atlas than VT323 needed: CJK glyphs are denser and there are far more of them
-            // once a screen mixes English and Chinese labels.
-            asset = TMP_FontAsset.CreateFontAsset(source, 90, 9, GlyphRenderMode.SDFAA, 2048, 2048);
+            TMP_FontAsset cjk = EnsureFontAsset("FusionPixel-12px", "FusionPixel-12px-Zh_Hans.ttf",
+                90, 2048, 1f);
+
+            if (cjk != null)
+            {
+                SetFallback(latin, cjk);
+            }
+
+            return latin;
+        }
+
+        /// <summary>
+        /// Loads the SDF asset for one source ttf, generating it on first run, and re-applies its
+        /// face scale so assets made before the scale existed migrate on the next build.
+        /// </summary>
+        private static TMP_FontAsset EnsureFontAsset(string name, string sourceFile,
+            int samplingPointSize, int atlasSize, float faceScale)
+        {
+            string path = $"{FontFolder}/{name} SDF.asset";
+            TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
 
             if (asset == null)
             {
-                Debug.LogError("TMP_FontAsset.CreateFontAsset failed for FusionPixel-12px-Zh_Hans.ttf.");
-                return null;
+                Font source = AssetDatabase.LoadAssetAtPath<Font>($"{FontFolder}/{sourceFile}");
+
+                if (source == null)
+                {
+                    Debug.LogError($"{FontFolder}/{sourceFile} missing — cannot build the kit font.");
+                    return null;
+                }
+
+                asset = TMP_FontAsset.CreateFontAsset(source, samplingPointSize, 9,
+                    GlyphRenderMode.SDFAA, atlasSize, atlasSize);
+
+                if (asset == null)
+                {
+                    Debug.LogError($"TMP_FontAsset.CreateFontAsset failed for {sourceFile}.");
+                    return null;
+                }
+
+                asset.name = $"{name} SDF";
+                AssetDatabase.CreateAsset(asset, path);
+
+                asset.material.name = asset.name + " Material";
+                AssetDatabase.AddObjectToAsset(asset.material, asset);
+                asset.atlasTexture.name = asset.name + " Atlas";
+                AssetDatabase.AddObjectToAsset(asset.atlasTexture, asset);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(path);
+                asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
             }
 
-            asset.name = "FusionPixel-12px SDF";
-            AssetDatabase.CreateAsset(asset, path);
+            SetFaceScale(asset, faceScale);
 
-            asset.material.name = asset.name + " Material";
-            AssetDatabase.AddObjectToAsset(asset.material, asset);
-            asset.atlasTexture.name = asset.name + " Atlas";
-            AssetDatabase.AddObjectToAsset(asset.atlasTexture, asset);
+            return asset;
+        }
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.ImportAsset(path);
+        /// <summary>
+        /// Face scale is TMP's per-asset multiplier, applied to primary and fallback glyphs alike
+        /// (<c>TMP_Text</c> reads it off whichever asset the character came from), which is what
+        /// makes one point size mean the same thing in both faces. Set through
+        /// <see cref="SerializedObject"/> because <c>faceInfo</c>'s setter is internal to TMP.
+        /// </summary>
+        private static void SetFaceScale(TMP_FontAsset asset, float scale)
+        {
+            SerializedObject serialized = new SerializedObject(asset);
+            SerializedProperty property = serialized.FindProperty("m_FaceInfo.m_Scale");
 
-            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
+            if (property == null || Mathf.Approximately(property.floatValue, scale))
+            {
+                return;
+            }
+
+            property.floatValue = scale;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
+        }
+
+        /// <summary>Points one font asset's fallback table at exactly one other asset.</summary>
+        private static void SetFallback(TMP_FontAsset asset, TMP_FontAsset fallback)
+        {
+            SerializedObject serialized = new SerializedObject(asset);
+            SerializedProperty table = serialized.FindProperty("m_FallbackFontAssetTable");
+
+            if (table.arraySize == 1
+                && table.GetArrayElementAtIndex(0).objectReferenceValue == fallback)
+            {
+                return;
+            }
+
+            table.arraySize = 1;
+            table.GetArrayElementAtIndex(0).objectReferenceValue = fallback;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
         }
 
         private static Material BuildDitherMaterial()

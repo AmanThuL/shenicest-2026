@@ -23,7 +23,7 @@
    圆角只在终端族的交互件（按钮/标签页/输入框）上出现，半径小且固定，永不出现在面板和框上。
 3. 颜色全部来自**一条 6 级灰阶坡道 + 一个强调色**。强调色只用于报警，不用于装饰。
 4. 图像**一律抖动**，且抖动的颗粒明显大于像素——图像是"打印出来的"，不是"贴上去的"。
-5. 文字是**像素/打字机等宽字**（本库统一用 Fusion Pixel）。标签靠左、数值靠右；
+5. 文字是**像素/打字机等宽字**（本库统一用 m5x7 + Fusion Pixel 这一对）。标签靠左、数值靠右；
    档案族全大写，终端族允许小写正文与斜体标题。
 
 **规范的目标不是让人照着画一张图，是让人拼出一张没见过的图而它仍然对。**
@@ -109,26 +109,42 @@ Precinct 与 Violet 是 `Archive`，Phosphor 是 `Terminal`。
 
 ### 2C · 字
 
-字族是 **Fusion Pixel**（`TakWolf/fusion-pixel-font`，OFL 授权，已入库：
-`Assets/RootsDance/Fonts/FusionPixel-12px-Zh_Hans.ttf`，许可证 `FusionPixel-OFL.txt` 与
-`FusionPixel-LICENSES/` 同目录）。这是一个像素栅格等宽字——粗细不匀的方块笔画、点阵味的字形，
-与警用档案屏的字几乎一致，也能覆盖生物档案屏的加粗像素字与终端浏览器的打字机字；`zh_hans` 变体
-在同一份文件里带全套拉丁字母与简体中文，覆盖本项目大量中文正文的需要。
+字族是**两支像素字配对**，拉丁与中文各用各的，通过 TMP 的 fallback 串成一支来用：
 
-> **原先选的是 VT323。** 它只有拉丁字形——项目里任何一处中文（标题、正文、报告字段）在它手上都会
-> 渲成方块（tofu）。Fusion Pixel 的几何语言与 VT323 同族（像素栅格、不均匀笔画、无衬线直角），
-> 换字体不改变这条规范的任何其他判据，只是把覆盖范围补齐。VT323 的文件仍留在 `Assets/RootsDance/Fonts/`
-> 供参考，Kit 不再引用它。
+| 覆盖 | 字体 | 文件 | 授权 |
+|---|---|---|---|
+| 拉丁字母、数字、常用符号 | **m5x7**（Daniel Linssen） | `Assets/RootsDance/Fonts/m5x7.ttf` | CC0（`m5x7-LICENSE.txt`） |
+| 简体中文与中文标点 | **Fusion Pixel 12px zh_hans**（`TakWolf/fusion-pixel-font`） | `Assets/RootsDance/Fonts/FusionPixel-12px-Zh_Hans.ttf` | OFL-1.1（`FusionPixel-OFL.txt` 与 `FusionPixel-LICENSES/`） |
+
+两支都是像素栅格字——粗细不匀的方块笔画、点阵味的字形、无衬线直角，与警用档案屏的字几乎一致，
+也够得上生物档案屏的加粗像素字与终端浏览器的打字机字。m5x7 是专门画的 5×7 点阵拉丁字，
+Fusion Pixel 的拉丁部分是为配中文做的等宽方块——两者放在一起比，前者才是"仪器读数"的那一支；
+中文正文则只有 Fusion Pixel 拿得下来。
+
+> **主次不能颠倒。** TMP 只在主字体缺字时才去 fallback。Fusion Pixel 自带全套拉丁字母，
+> 若把它设为主字体，m5x7 一个字也轮不到。Kit 的字体资产因此是 **m5x7 为主、Fusion Pixel 作 fallback**。
+>
+> **两支字的"一个点"必须一样大。** m5x7 的字身是 16 px 的 em，Fusion Pixel 是 12 px 的 em：
+> 同一字号下 m5x7 的一个点只有中文的 3/4 大，一行中英混排会读成两种分辨率拼在一起。
+> m5x7 的 TMP Face Info `Scale` 因此设 **4/3**，两支字落回同一张像素网格——拉丁大写高 7 格、
+> 中文字身 8 格，正是参考图里的比例（折成 em：m5x7 大写高 ≈ 0.58 em）。
+> 附带的一条：两支字同时落在整数像素上的字号是 **12 的整数倍**（字号 ÷ 12 = 一个点的屏幕像素数）。
+> 24 / 36 / 48 点阵最干净；40 / 56 这类字号 SDF 会把点的边缘磨掉一点，可接受但不是最优。
 >
 > **绝不允许用普通 sans-serif 加 `mspace` 假装等宽。** 那是这套 UI 出错时最刺眼的一种错法：
 > 字间距对了，但字形是现代的、笔画是均匀的、拐角是圆的，一眼就穿帮。
 > "电子感"有一半在字形本身——像素栅格上的直角拐点和不均匀笔画。
 >
-> Unity 落地：从该 ttf 生成一个 TextMeshPro Font Asset（SDF，采样字号 ≥ 90，动态图集——CJK 字形数量
-> 大，静态烘焙不现实），所有 Kit 组件的 `TMP_Text` 只引用它。Fusion Pixel 只有一个字重；需要斜体时用
-> TMP 的假斜体（仅限终端族 `Display` 标题），不允许假粗体。
+> Unity 落地（`ElectronicUIKitBuilder.EnsureFont()` 生成并维护）：每支 ttf 生成一个 TextMeshPro
+> Font Asset，都是 SDF + 动态图集——m5x7 采样 96、图集 1024²，Fusion Pixel 采样 90、图集 2048²
+> （CJK 字形又多又密，静态烘焙不现实）；m5x7 资产的 fallback 表里放 Fusion Pixel，所有 Kit 组件的
+> `TMP_Text` 只引用 m5x7 那一支。两支字都只有一个字重；需要斜体时用 TMP 的假斜体
+> （仅限终端族 `Display` 标题），不允许假粗体。
+>
+> **VT323 是最早的选择**，只有拉丁字形——项目里任何一处中文在它手上都渲成方块（tofu）。
+> 它的文件仍留在 `Assets/RootsDance/Fonts/` 供参考，Kit 不再引用它。
 
-三档字号是**每套主题的实测值**，不是全库常量（Fusion Pixel 大写高 ≈ 0.55 em，
+三档字号是**每套主题的实测值**，不是全库常量（拉丁大写高 ≈ 0.58 em、中文字身 ≈ 0.67 em，
 从参考图量出大写高再除回去）：
 
 | 主题 | Micro | Body | Display | 依据（实测大写高） |
@@ -147,9 +163,9 @@ Precinct 与 Violet 是 `Archive`，Phosphor 是 `Terminal`。
 | 档案族 | 警用档案屏、生物档案屏 | **全大写**，无斜体 |
 | 终端族 | 终端浏览器 | 标签/按钮混排（`Home` `Block`），正文与 URL **小写**，`Display` 标题可粗斜体 |
 
-生物档案屏的字是**重磅板状像素字**，Fusion Pixel 本身没有这个重量：Violet 主题开
+生物档案屏的字是**重磅板状像素字**，两支字都没有这个重量：Violet 主题开
 `BoldText`（TMP 合成粗体）作为最近似。要完全对上还需要入库一款真正的粗像素字
-（加字体是团队决定 + 单独 commit）。警用屏的字形与 Fusion Pixel 几乎一致，不加粗。
+（加字体是团队决定 + 单独 commit）。警用屏的字形与 m5x7 几乎一致，不加粗。
 
 数据行**标签靠左 `Ink3`、数值靠右 `Ink5`**，中间是空的——不要点线引导，参考图里一条都没有。
 
@@ -360,7 +376,7 @@ Assets/RootsDance/
 ├── Prefabs/UI/ElectronicKit/     拖拽用的预制件，按 §4 分三组
 │   └── Templates/                三个骨架模板（§5B），新屏从这里抄
 ├── Data/Config/UIThemes/         ElectronicUITheme 资产，一个主题一个
-├── Fonts/                        FusionPixel-12px-Zh_Hans.ttf + OFL 许可证 + TMP Font Asset
+├── Fonts/                        m5x7.ttf 与 FusionPixel-12px-Zh_Hans.ttf + 许可证 + 两个 TMP Font Asset
 ├── Scripts/Runtime/UI/Kit/       组件脚本，命名空间 RootsDance.UI.Kit
 └── Shaders/UI/Dither.shader
 ```
@@ -407,8 +423,8 @@ Assets/RootsDance/
 - [ ] 抖动前没压对比度，图像是一片均匀花纹
 - [ ] 一屏有两张尺寸相当的主图
 - [ ] 数据行用点线引导，或数值不是右对齐
-- [ ] 字不是 Fusion Pixel（用了现代 sans/serif，或普通等宽字加 `mspace` 硬凑）
-- [ ] 字号超过三档，出现了第二个字族或假粗体，或档案族出现了小写
+- [ ] 字不是 m5x7 / Fusion Pixel 这一对（用了现代 sans/serif，或普通等宽字加 `mspace` 硬凑）
+- [ ] 字号超过三档，出现了第三支字或假粗体，或档案族出现了小写
 - [ ] 块数超过 §5D 给的上限
 
 **通过判据但看起来不对**，通常是这三处之一：骨架没从模板抄、切分不够密（屏读着"松"），
@@ -418,6 +434,13 @@ Assets/RootsDance/
 ---
 
 ## 修订记录
+
+**2026-08-28 · 拉丁字换成 m5x7，中文留给 Fusion Pixel。** 定为项目级字体规则：中文用 Fusion Pixel，
+英文用 **m5x7**（CC0，Daniel Linssen，<https://managore.itch.io/m5x7>，已入库
+`Assets/RootsDance/Fonts/m5x7.ttf`）。Fusion Pixel 的拉丁字形是为配中文做的等宽方块，
+单独读偏"补齐覆盖"；m5x7 是专门画的 5×7 点阵拉丁字，正是参考图里那种仪器读数的字形。
+落地走 TMP fallback——m5x7 为主、Fusion Pixel 为 fallback（反过来 m5x7 永远轮不到），
+m5x7 的 Face Info `Scale` 设 4/3，让两支字的一个点一样大；§2C 的其余判据不变。
 
 **2026-08-28 · 字体换为 Fusion Pixel。** VT323 只有拉丁字形——扫描仪报告屏接入后，任何一处中文
 （标题、正文、报告字段）都渲成方块。换成 `TakWolf/fusion-pixel-font`（OFL 授权）的 `zh_hans`

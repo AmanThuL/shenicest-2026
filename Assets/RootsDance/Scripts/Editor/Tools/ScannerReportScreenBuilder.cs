@@ -283,7 +283,7 @@ namespace RootsDance.EditorTools
 
         /// <summary>
         /// A paging arrow, straddling the frame's edge as the sketch draws it. The glyph is an
-        /// ASCII angle bracket rather than a triangle: Fusion Pixel has no arrow glyphs, and a faked
+        /// ASCII angle bracket rather than a triangle: neither kit face has arrow glyphs, and a faked
         /// triangle would be the one shape on the screen that is not a rectangle or a rule.
         /// </summary>
         private static Button Arrow(RectTransform parent, string glyph, float x)
