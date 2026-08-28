@@ -1,11 +1,11 @@
 {
-  "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms_StandUp.fbx",
+  "m_fbx": "Assets/RootsDance/Meshes/Characters/Arms_GrabGround.fbx",
   "m_blend": "SourceArt/Blender/ArmsRig/arms_rig_all.blend",
   "m_blendModifiedUtc": "2026-08-28T06:32:53+00:00",
-  "m_action": "stand_up",
+  "m_action": "grab_ground",
   "m_armature": "ArmsRig",
   "m_frameStart": 1,
-  "m_frameEnd": 72,
+  "m_frameEnd": 75,
   "m_fps": 30,
   "m_exportedCollection": "",
   "m_exportedObjects": [
@@ -15,5 +15,5 @@
   "m_excludedObjects": [],
   "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/fps_arms.json",
-  "m_exportedUtc": "2026-08-28T06:33:56+00:00"
+  "m_exportedUtc": "2026-08-28T06:33:53+00:00"
 }
