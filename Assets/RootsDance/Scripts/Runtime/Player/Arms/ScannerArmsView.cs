@@ -27,8 +27,12 @@ namespace RootsDance.Player.Arms
         [Tooltip("Action id that brings it back to neutral.")]
         [SerializeField] private string m_lowerActionId = "scannerLower";
 
-        [Tooltip("Renderer of the held scanner. Shown while it is up. Optional.")]
-        [SerializeField] private Renderer m_scannerRenderer;
+        [Tooltip("Root of the held scanner. Every renderer under it is hidden until the scanner is "
+            + "raised — the two-handed animations are authored with an empty left hand, so a "
+            + "scanner sitting in it during those reads as a mistake.")]
+        [SerializeField] private Transform m_scannerRoot;
+
+        private Renderer[] m_scannerRenderers;
 
         private bool m_isRaising;
         private bool m_isLowering;
@@ -50,6 +54,33 @@ namespace RootsDance.Player.Arms
             if (m_director == null)
             {
                 Log.Error("ScannerArmsView has no ArmsDirector; the scanner will not animate.", this);
+            }
+
+            // Toggling renderers rather than the object: the inspect controller and the proximity
+            // trigger live on the prop root, so deactivating it would switch off the very things
+            // that start a scan.
+            if (m_scannerRoot != null)
+            {
+                m_scannerRenderers = m_scannerRoot.GetComponentsInChildren<Renderer>(true);
+            }
+
+            SetScannerVisible(false);
+        }
+
+        /// <summary>Shows or hides the held scanner without disabling anything that drives it.</summary>
+        private void SetScannerVisible(bool visible)
+        {
+            if (m_scannerRenderers == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < m_scannerRenderers.Length; i++)
+            {
+                if (m_scannerRenderers[i] != null)
+                {
+                    m_scannerRenderers[i].enabled = visible;
+                }
             }
         }
 
@@ -76,12 +107,14 @@ namespace RootsDance.Player.Arms
                 return;
             }
 
-            if (m_scannerRenderer != null)
-            {
-                m_scannerRenderer.enabled = true;
-            }
-
+            SetScannerVisible(true);
             m_isRaising = m_director.TryPlay(m_raiseActionId);
+
+            if (!m_isRaising)
+            {
+                // Refused by the pose gate — put it away again rather than leaving it floating.
+                SetScannerVisible(false);
+            }
         }
 
         public void PlayLower()
@@ -110,11 +143,7 @@ namespace RootsDance.Player.Arms
 
             m_isLowering = false;
 
-            if (m_scannerRenderer != null)
-            {
-                m_scannerRenderer.enabled = false;
-            }
-
+            SetScannerVisible(false);
             LowerFinished?.Invoke();
         }
     }

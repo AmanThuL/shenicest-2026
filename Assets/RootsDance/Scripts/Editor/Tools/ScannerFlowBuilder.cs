@@ -117,6 +117,9 @@ namespace RootsDance.EditorTools
             SetField(view, "m_director", director);
             SetField(controller, "m_viewBehaviour", view);
 
+            // The prop the view hides and shows: the controller sits on the scanner's own root.
+            SetField(view, "m_scannerRoot", controller.transform);
+
             ScannerAnimatorView legacy = director.GetComponent<ScannerAnimatorView>();
 
             if (legacy == null)
@@ -126,14 +129,6 @@ namespace RootsDance.EditorTools
 
             // Carry the prop renderer across before the old view goes, then remove it so two
             // components cannot both answer PlayRaise.
-            SerializedProperty renderer =
-                new SerializedObject(legacy).FindProperty("m_scannerRenderer");
-
-            if (renderer != null && renderer.objectReferenceValue != null)
-            {
-                SetField(view, "m_scannerRenderer", renderer.objectReferenceValue);
-            }
-
             Undo.DestroyObjectImmediate(legacy);
             log.AppendLine("arms: removed the superseded ScannerAnimatorView");
         }
