@@ -1,0 +1,40 @@
+{
+  "asset": "GreenHouse1WinColumn",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/GreenHouse1/GreenHouse1.blend",
+    "object": "L-WINCOLUMN1",
+    "licence": "In-repo source art (GAIA1 greenhouse, GREENHOUSE1 export).",
+    "note": "GreenHouse1 module: upper-tier column; repeats 8 times. Glazing was deleted by hand; SketchUp UVs are unusable, hence uv.mode = unwrap."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "GreenHouse1=GreenHouse1WinColumn"
+    ],
+    "material_slots": [
+      "GreenHouse1WinColumn"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "texture_sets": [
+    "GreenHouse1WinColumn"
+  ],
+  "painter": {
+    "fills": [
+      "Metal(1.0):basecolor=Assets/RootsDance/Textures/Environment/GreenHouseMetal_BaseMap.png;normal=Assets/RootsDance/Textures/Environment/GreenHouseMetal_Normal.png;roughness=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_rough_1k.jpg"
+    ],
+    "layers": [],
+    "note": "Reuses the v8 greenhouse metal look (weathered iron-green with occasional rust). Triplanar so the tiling source stays continuous across the unwrap's islands."
+  }
+}
