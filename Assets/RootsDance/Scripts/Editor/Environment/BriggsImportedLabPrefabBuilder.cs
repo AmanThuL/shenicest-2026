@@ -1,0 +1,720 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.SceneManagement;
+
+namespace RootsDance.Editor.Environment
+{
+    /// <summary>
+    /// Builds project-owned Briggs laboratory prefabs from the curated artist picks and the expanded CC0
+    /// Lab Assets model set. Source FBXs remain nested model-prefab instances so a vendor mesh re-import can
+    /// be picked up by rebuilding these assets.
+    /// </summary>
+    /// <remarks>
+    /// The generated material assets are shared HDRP/Lit assets. Per-instance colour changes intentionally do
+    /// not use MaterialPropertyBlock, keeping the prefabs compatible with this project's SRP Batcher rules.
+    /// Re-running the builder overwrites the same project prefabs and material assets at stable paths.
+    /// </remarks>
+    public static class BriggsImportedLabPrefabBuilder
+    {
+        public const string k_PrefabRoot = "Assets/RootsDance/Prefabs/Environment";
+        public const string k_CentralIslandKey = "AbandonedCentralLabIsland";
+        public const string k_S7CounterKey = "AbandonedS7Counter";
+
+        private const string k_LabModelRoot = "Assets/ThirdParty/Environment/LabAssetsCC0/Models";
+        private const string k_ArtistPickRoot = "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
+        private const string k_MaterialRoot =
+            "Assets/RootsDance/Materials/Environment/BriggsInterior/ImportedLab";
+
+        private const string k_FurnitureCategory = "LabFurniture";
+        private const string k_EquipmentCategory = "LabEquipment";
+        private const string k_HeroCategory = "LabHeroProps";
+
+        // Lab Assets are authored in centimetres. The model prefab retains Unity's FBX axis conversion on
+        // its own root, while the clean wrapper supplies the centimetre-to-metre conversion.
+        private const float k_LabScale = 0.01f;
+
+        private static readonly StaticEditorFlags k_SolidStaticFlags =
+            StaticEditorFlags.OccludeeStatic
+            | StaticEditorFlags.ReflectionProbeStatic
+            | StaticEditorFlags.BatchingStatic;
+
+        private static readonly SourceSpec[] k_Sources =
+        {
+            Furniture("cabinet_cabinet"),
+            Furniture("cabinet_cabinet_two_shelves"),
+            Furniture("counter_counter"),
+            Furniture("counter_counter_2_shelves"),
+            Furniture("counter_counter_3_shelves"),
+            Furniture("counter_counter_4_shelves"),
+            Furniture("counter_counter_side_outlet"),
+            Furniture("counter_counter_sink"),
+            Furniture("counter_counter_top_outlet"),
+
+            Equipment("machine_calculator_large"),
+            Equipment("machine_calculator_small"),
+            Equipment("machine_centrifuge"),
+            Equipment("machine_centrifuge_tube"),
+            Equipment("machine_desiccator"),
+            Equipment("machine_electronic_scale"),
+            Equipment("machine_hot_plate"),
+            Equipment("machine_microscope"),
+
+            ArtistPick("Astronomical_Quintant", MaterialRole.Oxide, true),
+            ArtistPick("Chemistry_Old_Lab_Tubes", MaterialRole.Glass),
+            ArtistPick("Lab_Glassware", MaterialRole.Glass),
+            ArtistPick("PSX_Adrenaline_Syringe", MaterialRole.Metal)
+        };
+
+        private static Dictionary<string, SourceSpec> s_sourceByKey;
+
+        /// <summary>
+        /// Builds all imported lab prefabs and returns paths for the successfully generated assets. This is
+        /// the composable entry point intended for <see cref="BriggsInteriorDressingBuilder"/>.
+        /// </summary>
+        public static IReadOnlyDictionary<string, string> EnsureAll()
+        {
+            MaterialSet materials = EnsureMaterials();
+            EnsureOutputFolders();
+
+            Dictionary<string, string> builtPaths = new Dictionary<string, string>(StringComparer.Ordinal);
+            Scene preview = EditorSceneManager.NewPreviewScene();
+            int failed = 0;
+
+            try
+            {
+                for (int i = 0; i < k_Sources.Length; i++)
+                {
+                    SourceSpec source = k_Sources[i];
+
+                    if (BuildSourcePrefab(source, materials, preview))
+                    {
+                        builtPaths[source.Key] = PrefabPath(source.Key);
+                    }
+                    else
+                    {
+                        failed++;
+                    }
+                }
+
+                if (BuildCentralIsland(materials, preview))
+                {
+                    builtPaths[k_CentralIslandKey] = PrefabPath(k_CentralIslandKey);
+                }
+                else
+                {
+                    failed++;
+                }
+
+                if (BuildS7Counter(materials, preview))
+                {
+                    builtPaths[k_S7CounterKey] = PrefabPath(k_S7CounterKey);
+                }
+                else
+                {
+                    failed++;
+                }
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(preview);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"BriggsImportedLabPrefabBuilder: built {builtPaths.Count} prefabs under "
+                + $"{k_PrefabRoot} ({failed} failed).");
+            return builtPaths;
+        }
+
+        /// <summary>Asset path for a generated prefab, or null when <paramref name="key"/> is unknown.</summary>
+        public static string PrefabPath(string key)
+        {
+            if (key == k_CentralIslandKey || key == k_S7CounterKey)
+            {
+                return $"{k_PrefabRoot}/{k_FurnitureCategory}/{key}.prefab";
+            }
+
+            if (s_sourceByKey == null)
+            {
+                s_sourceByKey = BuildSourceLookup();
+            }
+
+            SourceSpec source;
+
+            if (!s_sourceByKey.TryGetValue(key, out source))
+            {
+                Debug.LogError($"BriggsImportedLabPrefabBuilder: unknown prefab key '{key}'.");
+                return null;
+            }
+
+            return $"{k_PrefabRoot}/{source.Category}/{source.Key}.prefab";
+        }
+
+        [MenuItem("RootsDance/Environment/Build Briggs Imported Lab Prefabs")]
+        public static void BuildAll()
+        {
+            EnsureAll();
+        }
+
+        private static bool BuildSourcePrefab(SourceSpec source, MaterialSet materials, Scene preview)
+        {
+            GameObject root = new GameObject(source.Key);
+            SceneManager.MoveGameObjectToScene(root, preview);
+
+            try
+            {
+                GameObject model = AddRecenteredModel(
+                    root.transform,
+                    source.ModelPath,
+                    source.Scale,
+                    source.DefaultMaterial,
+                    materials,
+                    preview);
+
+                if (model == null)
+                {
+                    return false;
+                }
+
+                Bounds bounds = LocalBounds(root.transform, root.GetComponentsInChildren<MeshRenderer>(true));
+
+                if (source.Collider == ColliderMode.Furniture)
+                {
+                    AddBoxCollider(root, bounds);
+                }
+
+                ApplyStaticFlags(root);
+                return SavePrefab(root, PrefabPath(source.Key));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static bool BuildCentralIsland(MaterialSet materials, Scene preview)
+        {
+            const int modulesPerSide = 9;
+            const float targetLength = 5.4f;
+            const float targetDepth = 2.2f;
+            const float targetHeight = 0.92f;
+
+            GameObject root = new GameObject(k_CentralIslandKey);
+            SceneManager.MoveGameObjectToScene(root, preview);
+
+            try
+            {
+                // One CC0 counter module measures approximately 0.62 x 0.77 x 0.70 m after import. Nine
+                // modules on each face are gently stretched to the requested 5.4 x 2.2 x 0.92 m envelope.
+                Vector3 moduleScale = new Vector3(0.968f, 1.324f, 1.434f) * k_LabScale;
+                float spacing = targetLength / modulesPerSide;
+                string[] variants =
+                {
+                    "counter_counter",
+                    "counter_counter_2_shelves",
+                    "counter_counter_sink",
+                    "counter_counter_3_shelves"
+                };
+
+                for (int side = 0; side < 2; side++)
+                {
+                    float z = side == 0 ? -targetDepth * 0.25f : targetDepth * 0.25f;
+                    float yaw = side == 0 ? 0f : 180f;
+
+                    for (int column = 0; column < modulesPerSide; column++)
+                    {
+                        string key = variants[(column + side) % variants.Length];
+                        string face = side == 0 ? "South" : "North";
+                        GameObject bay = new GameObject($"Island_{face}_{column + 1:00}_{key}");
+                        bay.transform.SetParent(root.transform, false);
+                        bay.transform.localPosition = new Vector3(
+                            -targetLength * 0.5f + spacing * (column + 0.5f),
+                            0f,
+                            z);
+                        bay.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+
+                        MaterialRole finish = column % 4 == 2 ? MaterialRole.Oxide : MaterialRole.Enamel;
+                        GameObject model = AddRecenteredModel(
+                            bay.transform,
+                            $"{k_LabModelRoot}/{key}.fbx",
+                            moduleScale,
+                            finish,
+                            materials,
+                            preview);
+
+                        if (model == null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                // Three broad collision bands follow the island silhouette without creating eighteen tiny
+                // seams that can catch the CharacterController.
+                float bandLength = targetLength / 3f;
+
+                for (int band = 0; band < 3; band++)
+                {
+                    BoxCollider collider = root.AddComponent<BoxCollider>();
+                    collider.center = new Vector3(-targetLength / 3f + band * bandLength, targetHeight * 0.5f, 0f);
+                    collider.size = new Vector3(bandLength - 0.04f, targetHeight, targetDepth - 0.06f);
+                }
+
+                ApplyStaticFlags(root);
+                return SavePrefab(root, PrefabPath(k_CentralIslandKey));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static bool BuildS7Counter(MaterialSet materials, Scene preview)
+        {
+            GameObject root = new GameObject(k_S7CounterKey);
+            SceneManager.MoveGameObjectToScene(root, preview);
+
+            try
+            {
+                GameObject model = AddRecenteredModel(
+                    root.transform,
+                    $"{k_LabModelRoot}/counter_counter_3_shelves.fbx",
+                    new Vector3(0.0125f, 0.0132f, 0.0125f),
+                    MaterialRole.Enamel,
+                    materials,
+                    preview);
+
+                if (model == null)
+                {
+                    return false;
+                }
+
+                Bounds bounds = LocalBounds(root.transform, root.GetComponentsInChildren<MeshRenderer>(true));
+                AddBoxCollider(root, bounds);
+                ApplyStaticFlags(root);
+                return SavePrefab(root, PrefabPath(k_S7CounterKey));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static GameObject AddRecenteredModel(
+            Transform parent,
+            string modelPath,
+            float scale,
+            MaterialRole defaultMaterial,
+            MaterialSet materials,
+            Scene preview)
+        {
+            return AddRecenteredModel(parent, modelPath, Vector3.one * scale, defaultMaterial, materials, preview);
+        }
+
+        private static GameObject AddRecenteredModel(
+            Transform parent,
+            string modelPath,
+            Vector3 scale,
+            MaterialRole defaultMaterial,
+            MaterialSet materials,
+            Scene preview)
+        {
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+
+            if (source == null)
+            {
+                Debug.LogError($"BriggsImportedLabPrefabBuilder: no model at '{modelPath}'.");
+                return null;
+            }
+
+            GameObject holder = new GameObject(Path.GetFileNameWithoutExtension(modelPath) + "_Model");
+            holder.transform.SetParent(parent, false);
+            holder.transform.localScale = scale;
+
+            GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(source, preview);
+
+            if (model == null)
+            {
+                Debug.LogError($"BriggsImportedLabPrefabBuilder: could not instantiate '{modelPath}'.");
+                UnityEngine.Object.DestroyImmediate(holder);
+                return null;
+            }
+
+            model.transform.SetParent(holder.transform, false);
+            RemoveSourceColliders(model);
+            ApplyMaterials(model, defaultMaterial, materials);
+
+            MeshRenderer[] renderers = holder.GetComponentsInChildren<MeshRenderer>(true);
+            Bounds bounds = LocalBounds(holder.transform, renderers);
+            model.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
+            return model;
+        }
+
+        private static void RemoveSourceColliders(GameObject model)
+        {
+            Collider[] colliders = model.GetComponentsInChildren<Collider>(true);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                UnityEngine.Object.DestroyImmediate(colliders[i]);
+            }
+        }
+
+        private static void ApplyMaterials(GameObject model, MaterialRole defaultRole, MaterialSet materials)
+        {
+            Renderer[] renderers = model.GetComponentsInChildren<Renderer>(true);
+
+            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            {
+                Renderer renderer = renderers[rendererIndex];
+                Material[] sourceMaterials = renderer.sharedMaterials;
+
+                if (sourceMaterials.Length == 0)
+                {
+                    renderer.sharedMaterial = materials.ForRole(defaultRole);
+                    renderer.shadowCastingMode = ShadowCastingMode.On;
+                    renderer.receiveShadows = true;
+                    continue;
+                }
+
+                Material[] replacements = new Material[sourceMaterials.Length];
+
+                for (int materialIndex = 0; materialIndex < sourceMaterials.Length; materialIndex++)
+                {
+                    string sourceName = sourceMaterials[materialIndex] != null
+                        ? sourceMaterials[materialIndex].name.ToLowerInvariant()
+                        : string.Empty;
+                    MaterialRole role = ResolveMaterialRole(sourceName, defaultRole);
+                    replacements[materialIndex] = materials.ForRole(role);
+                }
+
+                renderer.sharedMaterials = replacements;
+                renderer.shadowCastingMode = ShadowCastingMode.On;
+                renderer.receiveShadows = true;
+            }
+        }
+
+        private static MaterialRole ResolveMaterialRole(string sourceName, MaterialRole fallback)
+        {
+            if (sourceName.Contains("glass")
+                || sourceName.Contains("25%")
+                || sourceName.Contains("transparent"))
+            {
+                return MaterialRole.Glass;
+            }
+
+            if (sourceName.Contains("rust")
+                || sourceName.Contains("oxide")
+                || sourceName.Contains("wood"))
+            {
+                return MaterialRole.Oxide;
+            }
+
+            if (sourceName.Contains("metal") || sourceName.Contains("steel"))
+            {
+                return MaterialRole.Metal;
+            }
+
+            return fallback;
+        }
+
+        private static MaterialSet EnsureMaterials()
+        {
+            EnsureFolder(k_MaterialRoot);
+            Shader lit = Shader.Find("HDRP/Lit");
+
+            if (lit == null)
+            {
+                throw new InvalidOperationException("HDRP/Lit shader was not found for Briggs imported lab prefabs.");
+            }
+
+            Material enamel = EnsureOpaqueMaterial(
+                lit,
+                "ImportedLab_AgedEnamel",
+                new Color(0.27f, 0.34f, 0.32f, 1f),
+                0.04f,
+                0.2f);
+            Material metal = EnsureOpaqueMaterial(
+                lit,
+                "ImportedLab_DarkMetal",
+                new Color(0.14f, 0.18f, 0.17f, 1f),
+                0.42f,
+                0.24f);
+            Material oxide = EnsureOpaqueMaterial(
+                lit,
+                "ImportedLab_Oxide",
+                new Color(0.34f, 0.23f, 0.14f, 1f),
+                0.15f,
+                0.14f);
+            Material glass = EnsureGlassMaterial(lit);
+            return new MaterialSet(enamel, metal, oxide, glass);
+        }
+
+        private static Material EnsureOpaqueMaterial(
+            Shader lit,
+            string name,
+            Color color,
+            float metallic,
+            float smoothness)
+        {
+            Material material = EnsureMaterialAsset(lit, name);
+            HDMaterial.SetSurfaceType(material, false);
+            material.SetColor("_BaseColor", color);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.enableInstancing = true;
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material EnsureGlassMaterial(Shader lit)
+        {
+            Material material = EnsureMaterialAsset(lit, "ImportedLab_DirtyGlass");
+            HDMaterial.SetSurfaceType(material, true);
+            material.SetColor("_BaseColor", new Color(0.28f, 0.43f, 0.37f, 0.34f));
+            material.SetFloat("_Metallic", 0f);
+            material.SetFloat("_Smoothness", 0.62f);
+            material.SetFloat("_BlendMode", 0f);
+            material.SetFloat("_TransparentZWrite", 0f);
+            material.enableInstancing = true;
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static Material EnsureMaterialAsset(Shader lit, string name)
+        {
+            string path = $"{k_MaterialRoot}/{name}.mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (material == null)
+            {
+                material = new Material(lit) { name = name };
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != lit)
+            {
+                material.shader = lit;
+            }
+
+            return material;
+        }
+
+        private static void AddBoxCollider(GameObject root, Bounds bounds)
+        {
+            BoxCollider collider = root.AddComponent<BoxCollider>();
+            collider.center = bounds.center;
+            collider.size = bounds.size;
+        }
+
+        private static Bounds LocalBounds(Transform root, MeshRenderer[] renderers)
+        {
+            Bounds local = new Bounds(Vector3.zero, Vector3.zero);
+            bool started = false;
+
+            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            {
+                MeshFilter filter = renderers[rendererIndex].GetComponent<MeshFilter>();
+
+                if (filter == null || filter.sharedMesh == null)
+                {
+                    continue;
+                }
+
+                Bounds meshBounds = filter.sharedMesh.bounds;
+                Vector3 min = meshBounds.min;
+                Vector3 max = meshBounds.max;
+
+                for (int corner = 0; corner < 8; corner++)
+                {
+                    Vector3 meshPoint = new Vector3(
+                        (corner & 1) == 0 ? min.x : max.x,
+                        (corner & 2) == 0 ? min.y : max.y,
+                        (corner & 4) == 0 ? min.z : max.z);
+                    Vector3 localPoint = root.InverseTransformPoint(filter.transform.TransformPoint(meshPoint));
+
+                    if (started)
+                    {
+                        local.Encapsulate(localPoint);
+                    }
+                    else
+                    {
+                        local = new Bounds(localPoint, Vector3.zero);
+                        started = true;
+                    }
+                }
+            }
+
+            return local;
+        }
+
+        private static void ApplyStaticFlags(GameObject root)
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                GameObjectUtility.SetStaticEditorFlags(transforms[i].gameObject, k_SolidStaticFlags);
+            }
+        }
+
+        private static bool SavePrefab(GameObject root, string path)
+        {
+            bool saved;
+            PrefabUtility.SaveAsPrefabAsset(root, path, out saved);
+
+            if (!saved)
+            {
+                Debug.LogError($"BriggsImportedLabPrefabBuilder: failed to save '{path}'.");
+            }
+
+            return saved;
+        }
+
+        private static void EnsureOutputFolders()
+        {
+            EnsureFolder(k_PrefabRoot);
+            EnsureFolder($"{k_PrefabRoot}/{k_FurnitureCategory}");
+            EnsureFolder($"{k_PrefabRoot}/{k_EquipmentCategory}");
+            EnsureFolder($"{k_PrefabRoot}/{k_HeroCategory}");
+        }
+
+        private static void EnsureFolder(string path)
+        {
+            if (AssetDatabase.IsValidFolder(path))
+            {
+                return;
+            }
+
+            string parent = Path.GetDirectoryName(path).Replace('\\', '/');
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, Path.GetFileName(path));
+        }
+
+        private static Dictionary<string, SourceSpec> BuildSourceLookup()
+        {
+            Dictionary<string, SourceSpec> lookup =
+                new Dictionary<string, SourceSpec>(k_Sources.Length, StringComparer.Ordinal);
+
+            for (int i = 0; i < k_Sources.Length; i++)
+            {
+                lookup.Add(k_Sources[i].Key, k_Sources[i]);
+            }
+
+            return lookup;
+        }
+
+        private static SourceSpec Furniture(string key)
+        {
+            return new SourceSpec(
+                key,
+                $"{k_LabModelRoot}/{key}.fbx",
+                k_FurnitureCategory,
+                k_LabScale,
+                ColliderMode.Furniture,
+                MaterialRole.Enamel);
+        }
+
+        private static SourceSpec Equipment(string key)
+        {
+            return new SourceSpec(
+                key,
+                $"{k_LabModelRoot}/{key}.fbx",
+                k_EquipmentCategory,
+                k_LabScale,
+                ColliderMode.None,
+                MaterialRole.Metal);
+        }
+
+        private static SourceSpec ArtistPick(string key, MaterialRole material, bool hasFloorCollider = false)
+        {
+            return new SourceSpec(
+                key,
+                $"{k_ArtistPickRoot}/{key}.fbx",
+                k_HeroCategory,
+                1f,
+                hasFloorCollider ? ColliderMode.Furniture : ColliderMode.None,
+                material);
+        }
+
+        private enum ColliderMode
+        {
+            None,
+            Furniture
+        }
+
+        private enum MaterialRole
+        {
+            Enamel,
+            Metal,
+            Oxide,
+            Glass
+        }
+
+        private readonly struct SourceSpec
+        {
+            public readonly string Key;
+            public readonly string ModelPath;
+            public readonly string Category;
+            public readonly float Scale;
+            public readonly ColliderMode Collider;
+            public readonly MaterialRole DefaultMaterial;
+
+            public SourceSpec(
+                string key,
+                string modelPath,
+                string category,
+                float scale,
+                ColliderMode collider,
+                MaterialRole defaultMaterial)
+            {
+                Key = key;
+                ModelPath = modelPath;
+                Category = category;
+                Scale = scale;
+                Collider = collider;
+                DefaultMaterial = defaultMaterial;
+            }
+        }
+
+        private readonly struct MaterialSet
+        {
+            private readonly Material m_Enamel;
+            private readonly Material m_Metal;
+            private readonly Material m_Oxide;
+            private readonly Material m_Glass;
+
+            public MaterialSet(Material enamel, Material metal, Material oxide, Material glass)
+            {
+                m_Enamel = enamel;
+                m_Metal = metal;
+                m_Oxide = oxide;
+                m_Glass = glass;
+            }
+
+            public Material ForRole(MaterialRole role)
+            {
+                switch (role)
+                {
+                    case MaterialRole.Enamel:
+                        return m_Enamel;
+                    case MaterialRole.Metal:
+                        return m_Metal;
+                    case MaterialRole.Oxide:
+                        return m_Oxide;
+                    case MaterialRole.Glass:
+                        return m_Glass;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(role), role, null);
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # 02章 Briggs Interior 实验室室内设计与实现
 
-> 状态：首轮环境布景已实现并通过 Unity 验证，2026-08-28
+> 状态：第二轮废弃实验室家具与桌面器材重布置已实现并通过 Unity 验证，2026-08-29
 >
 > 目标场景：`BriggsInterior_Environment` 与 `BriggsInterior_Gameplay`
 >
@@ -29,13 +29,16 @@
 - 实施建议：可直接照表布景、加 Collider、布灯和制作特效。
 - 待确认项：策划案互相冲突或缺少定义的内容，不能由场景美术自行补成事实。
 
-### 1.1 本轮 Unity 实现快照
+### 1.1 Unity 实现快照
 
-本轮在 `feat/briggs-interior-environment` worktree 中完成了可重复执行的首轮环境实现：
+`feat/briggs-interior-environment` worktree 已完成可重复执行的首轮环境实现，并在第二轮按美术反馈替换家具：
 
 - `Prefab World Builder` 下建立 `LabFurniture`、`CampEvidence`、`LabArchives`、`LabEcology` 和 `LabDebris` 五组 Palette。
-- 共放置 160 个 Prefab 实例，包括 18 个家具模块、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
-- 中央实验岛使用六段柜台，东侧建立 S7 根须工作台，西侧建立 S9 档案区，西北放置破损培养设备，东北放置旧设备组。
+- 首轮共放置 160 个 Prefab 实例，包括家具、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
+- 第二轮重建后共 121 个 PWB prefab 实例。数量下降来自合并中央六柜台、移除阻塞北环路的服务台和清理重复器材，不是减少地面生态或桌面叙事密度。
+- 第二轮保留全部 `BI_Overgrowth_*`、`BI_Moss_*` 与既有地面生态坐标，只重做家具和台面层。
+- 原先六段双排黑柜改为约 `2.2 × 5.4 × 0.92 m` 的一体废弃实验岛。岛台由 CC0 同系列 sink、open shelves、outlet counter 组合，统一使用旧青灰烤漆、锈褐边缘和污渍台面材质。
+- 东侧 S7 工作台原位替换而不移动根须与植物；西侧档案区增加原创公告板；东北角增加由黄铜象限仪 Mesh 改造的旧式光学标定仪。
 - 小件与软植物通过项目内 `_NoCollision` Prefab Variant 关闭 Collider，不在场景实例上制造 Collider override。
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
 - 从本地 CC0 Lab Assets 增补显微镜、烧杯、过滤瓶、分液漏斗、酒精灯、铁架台、环架、坩埚、针筒、蒸发皿、药匙和折叠实验服。
@@ -43,7 +46,8 @@
 - 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门和破顶藤蔓。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
 - 全局 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册。
-- 第四轮 `Jelly_Mushroom` 与 `Astronomical quintant` 没有进入本轮实现。现有素材已经足够完成首轮层级和路线，避免为低优先级英雄物件增加导入与署名工作。
+- 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
+- 截图中的 `Abandoned Lab Equipment`、`Mad Scientist Lab`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 本地没有可用源包；本轮只借构图，用项目原创低模 CRT、公告板和破表替代。`Chemical Lab Fallout 4` 与 Black Mesa 衍生素材不进入发布工程。
 
 完整重建入口为 Unity 菜单 `RootsDance/Environment/Build Complete Briggs Interior`，命令行入口为
 `RootsDance.Editor.Environment.BriggsInteriorEnvironmentBuildPipeline.BuildFromCommandLine`。生成器只重建各 Palette `PIN` 下以
@@ -248,8 +252,9 @@ Prefab World Builder
 
 建议范围：`X -3.2 至 3.4`，`Z -2.6 至 4.0`。
 
-中央桌是整个房间的主视觉锚点。推荐用 2 至 3 个同系列 counter 组合出 5.0 至 5.8 m 长、2.0 至 2.4 m 宽的岛台，
-而不是缩放一个过大的现代工作台。
+中央桌是整个房间的主视觉锚点。第二轮用一个 PWB 项目 prefab 组合 2 至 3 个同系列旧 counter，最终外廓约
+`2.2 m × 5.4 m × 0.92 m`，场景中心 `(0.10, 0, 0.10)`。柜门缺口、开放搁架、sink 和 outlet 打破现代模块化整洁感，
+但桌面连续、不可通行的中缝不再外露。
 
 环路要求：
 
@@ -275,10 +280,13 @@ Prefab World Builder
 - `heating_equipment_forceps.prefab`
 - `heating_equipment_thermometer.prefab`
 
-优先导入家具和机器：
+第二轮已导入并制作项目 prefab：
 
-- CC0 `counter_counter.fbx`、`counter_counter_2_shelves.fbx`、`counter_counter_3_shelves.fbx`。
-- CC0 `machine_microscope.fbx`、`machine_centrifuge.fbx`、`machine_hot_plate.fbx`。
+- CC0 全套 counter 变体、两个 cabinet、centrifuge、desiccator、hot plate、electronic scale 和 calculator。
+- CC BY `Chemistry_Old_Lab_Tubes.fbx`、`Lab_Glassware.fbx` 和 `PSX_Adrenaline_Syringe.fbx`。
+
+桌面按语义而不是平均铺满：东侧 S8A 是秤、显微镜、培养皿和旧试管架；西侧 S8B 是离心机、过滤器皿、玻璃器皿和热板。
+器材允许小角度错位、互相遮挡和局部空缺，但必须通过 Renderer bounds 贴合 `Y 0.94` 的工作面，禁止悬空。所有桌面版本无行走 Collider。
 
 ### 5.5 东北废弃设备区
 
@@ -291,6 +299,7 @@ Prefab World Builder
 - 一台报废落地机器贴东墙，旁边放碎砖、空柜和一小簇 Ivy。
 - 只用一个中型体块和一个低矮残骸堆，不要堆满。
 - 不侵入北墙正中心的圆形门预留区。
+- 完整象限仪只取 Mesh 和轮廓语义，以氧化黄铜和旧灰绿材质重做为光学标定仪，目标 footprint 不超过 `1.2 × 0.8 m`，中心约 `(5.65, 0, 4.15)`，不保留博物馆金色陈列感。
 
 推荐候选：
 
@@ -309,6 +318,7 @@ Prefab World Builder
 - 大体量根须从东墙和地面裂缝进入，构成 S6 入室后的第一视觉引导。
 - S7 Checkpoint 周围保留半径 1.2 m 的无 prop 落地区。
 - 根须可穿越的细枝不加 Collider。承担视觉封路的主根另用 1 至 2 个 CapsuleCollider。
+- `PSX Adrenaline Syringe` 作为废弃取样注射器放在工作台前半，使用脏灰绿 Tint；保留普通/变异培养皿、clamp、gloves、safety glasses 和 microscope，把重复漏斗、坩埚、铁架台迁到中央岛。
 
 直接可用：
 
@@ -430,6 +440,23 @@ BoxCollider 或少量 compound boxes，不要直接加 MeshCollider。
 Sketchfab 下载包多数是 CC BY。使用前必须核对作者、源页面、许可版本并进入最终署名清单。
 `Chemical Lab Fallout 4` 和 `Black Mesa Lab Props` 有明确第三方作品来源风险，不进入发布构建。
 
+第二轮截图素材核对结果：
+
+| 截图目标 | 本地状态 | 本轮处理 |
+|---|---|---|
+| 化学旧桌、废弃 Lab Equipment | 参考包不可发布或未下载 | 用 CC0 counters、centrifuge、scale、CRT 原创组合复现破损密度 |
+| Mad Scientist Lab | metadata-only | 借玻璃器皿高低错落构图，不导入模型 |
+| Conspiracy Papers X-Lab | metadata-only | 用项目原创公告板、现有 clipboard/binder/纸片变体替代 |
+| Old Lab Tubes | 已下载，CC BY 4.0 | 导入并放在中央 S8A |
+| PSX Adrenaline Syringe | 已下载，CC BY 4.0 | 导入并放在 S7 |
+| Astronomical quintant | 已下载，CC BY 4.0 | 改材质并作为东北旧光学标定仪 |
+| Lab Glassware | 已下载，CC BY 4.0 | 只取 2 至 3 件的组团观感，放在 S8B |
+| PSX Vintage Wall Clocks | 本地无 source zip | 自制破损低模时钟，不从截图抠图 |
+
+四个 CC BY 模型的转换后 FBX 与原始 metadata 位于
+`Assets/ThirdParty/Environment/BriggsArtistPicks/`。Unity 场景只引用 `Assets/RootsDance/Prefabs/Environment/` 下的项目 prefab，
+不直接散放第三方 FBX。
+
 ### 6.4 第四轮增量模型核对
 
 核对来源：
@@ -442,7 +469,7 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 | 模型 | 结论 | 用法 | 不建议做法 |
 |---|---|---|---|
 | `Jelly_Mushroom` | 条件性采用，P2 生态英雄物件 | 拆出一个或两个蘑菇组，放入西北破损培养罐或破顶光下的生态入侵岛 | 原样整组摆在主路线、替代 S2 荧光藻、做成高亮蓝色任务指引 |
-| `Astronomical quintant` | 低优先级可选拆件 | 抽取支架、刻度弧、镜筒和调节轮，重组为旧式光学标定设备，放在档案区或中央桌边缘 | 把完整博物馆天文仪器当成实验室主设备，抢夺植物和菌丝叙事焦点 |
+| `Astronomical quintant` | 本轮采用 | 以纯 Mesh 和新材质重做旧式光学标定设备，放在东北旧设备区 | 把博物馆金色材质原样保留，或侵入圆门净空 |
 | `Fairy tale mushroom` | 不使用 | 仅有 metadata | 作者关闭下载，官方 metadata 未给出许可且带 `noai` 标签 |
 | `Glowing Mushrooms` | 不使用 | 仅有 metadata | 作者关闭下载，不能从截图或预览反向取得模型或贴图 |
 | `Lichen (Usnea antarctica)` | 不使用 | 用户已明确排除 | 不从废纸篓恢复，也不重新加入候选清单 |
