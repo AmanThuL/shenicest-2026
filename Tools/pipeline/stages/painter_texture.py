@@ -602,6 +602,23 @@ CHANNELS = {
 }
 
 
+def _procedural(query):
+    '''Find a procedural (an .sbsar generator) by its shelf name.'''
+    for shelf in ("starter_assets", "your_assets", "allegorithmic"):
+        try:
+            hits = R.search("u:procedural s:%s" % shelf)
+        except Exception:
+            continue
+        for hit in hits:
+            try:
+                rid = hit.identifier()
+            except Exception:
+                continue
+            if rid.name.lower().rsplit("/", 1)[-1] == query.lower():
+                return rid
+    return None
+
+
 def _mask(query):
     '''Find a smart mask by its shelf name.
 
@@ -672,17 +689,27 @@ for ts in TS.all_texture_sets():
             entry["channels"].append(channel)
 
         if mask_query:
-            rid = _mask(mask_query)
+            # "~name" asks for a procedural rather than a smart mask: a tiling
+            # surface has no mesh maps worth reading, so the AO- and
+            # curvature-driven smart masks there degrade to full coverage.
+            procedural = mask_query.startswith("~")
+            rid = (_procedural(mask_query[1:]) if procedural
+                   else _mask(mask_query))
             if rid is None:
                 entry["status"] = "mask-not-found"
+            elif procedural:
+                fill.add_mask(L.MaskBackground.Black)
+                effect = L.insert_fill(
+                    L.InsertPosition.inside_node(fill, L.NodeStack.Mask))
+                effect.set_source(None, rid)
             else:
                 fill.add_mask(L.MaskBackground.Black)
                 L.insert_smart_mask(
                     L.InsertPosition.inside_node(fill, L.NodeStack.Mask), rid)
-                # only promote to ok-masked when the channels themselves landed,
-                # otherwise a broken layer reports as a healthy masked one
-                if entry["status"] == "ok":
-                    entry["status"] = "ok-masked"
+            # only promote to ok-masked when the channels themselves landed,
+            # otherwise a broken layer reports as a healthy masked one
+            if rid is not None and entry["status"] == "ok":
+                entry["status"] = "ok-masked"
         if entry["status"].startswith("ok") and not entry["channels"]:
             entry["status"] = "no-channels-applied"
         out.append(entry)
