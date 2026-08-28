@@ -119,7 +119,7 @@
     {
       "m_name": "static_architecture_v7",
       "m_bakeAxisConversion": true,
-      "m_globalScale": 0.5183,
+      "m_globalScale": 0.6045,
       "m_useFileScale": true,
       "m_importBlendShapes": false,
       "m_importVisibility": false,
@@ -143,7 +143,7 @@
     {
       "m_name": "static_greenhouse_v7",
       "m_bakeAxisConversion": true,
-      "m_globalScale": 0.255,
+      "m_globalScale": 0.6045,
       "m_useFileScale": true,
       "m_importBlendShapes": false,
       "m_importVisibility": false,
