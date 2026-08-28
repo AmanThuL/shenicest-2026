@@ -48,9 +48,9 @@ RootsDance_Windows_v0.1.0_20260828_fb56640-dev.zip
 | `Base` | The constant `RootsDance` (`Tools/build/naming.py: BASE_NAME`). **Not** `productName` — see Open follow-ups. |
 | `Platform` | Derived from the profile name's prefix: `macOS-*` → `macOS`, `Windows-*` → `Windows`. |
 | `Version` | `bundleVersion`, parsed read-only from `ProjectSettings/ProjectSettings.asset` (currently `0.1.0`). The script never writes this file. |
-| `YYYYMMDD` | Local date at package time, not at build time — a `--package-only` run stamps today even if the build is older. |
+| `YYYYMMDD` | Local date, snapshotted once in `main()` **before** the Unity build runs, not after it finishes. A `--package-only` run (no build phase) stamps today regardless of how old the build itself is. |
 | `shortsha` | `git rev-parse --short HEAD` (7 characters). |
-| `-dirty` | Appended when `git status --porcelain` is non-empty at package time. |
+| `-dirty` | Appended when `git status --porcelain` is non-empty, snapshotted at that same point — before the build, not after. Doing it early rather than at package time is deliberate: Unity's own re-serialization of project files during a build could otherwise tag a zip `-dirty` for a build that actually came from a clean commit. |
 | `-dev` | Appended when `--dev` was passed. |
 
 The convention is implemented in exactly one place — `Tools/build/naming.py`, pure functions, no
@@ -59,7 +59,10 @@ there is no second copy of the convention to drift out of sync.
 
 Two builds made on the same day from the same clean commit produce the same zip name. The script
 treats that as a feature: it refuses to silently overwrite an existing zip and exits `1` naming
-the file, unless `--force` is passed.
+the file, unless `--force` is passed. That check runs right after the plan is resolved, before the
+(possibly 10–25 minute) Unity build starts — not after — since two same-day builds from the same
+commit is the normal pattern and failing only at packaging time would burn a full build for
+nothing.
 
 ## Zip layout
 
@@ -69,18 +72,39 @@ scatters files into whatever directory it was unzipped into:
 ```
 RootsDance_macOS_v0.1.0_20260828_fb56640/
 ├── RootsDance.app
-├── build-info.json      # version, commit, dirty flag, date, profile, Unity version, host
+├── build-info.json      # product, version, commit, dirty, development, profile, platform, unityVersion, builtAt
 └── README.txt           # how to run it, including the Gatekeeper quarantine workaround
 ```
 
 Packaging stages into `Builds/.staging/<stem>/` first, writes `build-info.json` and `README.txt`
 into it, archives, then removes the staging directory — on success and on failure, so
-`Builds/.staging/` never lingers between runs.
+`Builds/.staging/` never lingers between runs. `build-info.json` carries `product, version, commit,
+dirty, development, profile, platform, unityVersion, builtAt` — the date and the `-dirty` flag are
+both computed once in `main()`, before the Unity build runs, not at package time: Unity's own
+re-serialization of project files during a build could otherwise tag a zip `-dirty` for a build
+that was actually made from a clean commit.
 
 **Why not Python's `zipfile` on macOS:** it silently drops the symlinks and executable bits inside
 a `.app` bundle, and the unzipped app fails to launch. macOS packaging shells out to
 `ditto -c -k --sequesterRsrc --keepParent` instead. Windows output is a plain folder with no
 symlinks, so `zipfile` with `ZIP_DEFLATED` is used there.
+
+**What's excluded, and why.** Every build directory also contains two folders Unity's IL2CPP
+backend writes next to the player itself: `<ProductName>_BackUpThisFolder_ButDontShipItWithYourGame`
+(an incremental-build cache) and `<ProductName>_BurstDebugInformation_DoNotShip` (Burst's native
+debug symbols). Their own folder names say not to ship them, so `stageable_entries()` in
+`Tools/build/build.py` drops both by suffix match before staging (the prefix varies with
+`productName`, so matching is by suffix, not exact name) — the run prints a
+`skip: <name> (Unity debug sidecar, not shipped)` line for each one it drops. This is the entire
+reason the zip is roughly 40% the size of `Builds/<PROFILE>/` on disk — the verified macOS-Release
+build was 960.9 MB unstaged, 398.6 MB zipped.
+
+**Symbolication warning:** `_BurstDebugInformation_DoNotShip` holds the native/IL2CPP debug symbols
+needed to symbolicate a crash report from a build you've shared. It is never copied into the zip,
+and it only ever exists in `Builds/<PROFILE>/` — which the next `build.py` run deletes
+(`shutil.rmtree(build_dir, ...)` at the top of a non-`--package-only` run in `main()`). Copy that
+folder out of `Builds/<PROFILE>/` before running `build.py` again if you might need to symbolicate a
+crash from this specific build later.
 
 ## One-time setup
 
@@ -91,10 +115,15 @@ player settings in the table below to `NamedBuildTarget.Standalone`. It is idemp
 existing profile asset is loaded and updated in place rather than duplicated, so re-running it
 after a settings change is the way to re-apply that change.
 
-Both profiles set `overrideGlobalScenes = false`, so both inherit the one scene list curated in
+On a machine with no macOS Build Support module installed (e.g. a Windows-only teammate), the
+generator logs a warning and skips baking ARM64 architecture onto `macOS-Release.asset` instead of
+throwing — `Windows-Release.asset` and the global player settings are still created/applied. Run
+the menu item again on a Mac (or once this machine has the module) to finish the macOS profile.
+
+Both profiles set `overrideGlobalScenes = false`, so both inherit whatever is enabled in
 `ProjectSettings/EditorBuildSettings.asset` instead of keeping a second copy that can drift out of
-sync with it (currently `Bootstrap`, `Main_Environment`, `Main_Gameplay` — see Open follow-ups for
-what that means for `develop` today).
+sync with it — `build.py` prints that list at preflight. See Open follow-ups for what is enabled
+there today.
 
 There are **no separate `-Dev` profile assets** — see "Why the scripting backend is global" below
 for why, and the "Dev builds" row of the settings table for what changes instead.
@@ -128,8 +157,9 @@ heartbeat and the log path up front — with an explicit warning that a first IL
 ## Profile and player settings
 
 Applied **globally** for `NamedBuildTarget.Standalone` by the generator — not per profile — for
-the reason in the next section. They land in `ProjectSettings/ProjectSettings.asset` and are
-committed once, in their own `chore(settings):` commit, separately from this doc and the code.
+the reason in the next section, with one exception: target architecture, which cannot be global
+(see below). The global settings land in `ProjectSettings/ProjectSettings.asset` and are committed
+once, in their own `chore(settings):` commit, separately from this doc and the code.
 
 | Setting | Value | Source / reason |
 |---|---|---|
@@ -138,10 +168,24 @@ committed once, in their own `chore(settings):` commit, separately from this doc
 | C++ Compiler Configuration | `Il2CppCompilerConfiguration.Release` | `Master` costs far more build time than it returns for a jam-scale project. |
 | Managed Stripping Level | **Minimal** | The IL2CPP default and "least likely to cause unexpected runtime behavior" — Odin Inspector and the Input System are both reflection-driven and a more aggressive level can strip code they need at runtime. `Low` is **marked for future deprecation** in the 6.3 docs and must never be used. Source: `docs/reference/scripting/manual-managed-code-stripping-configure.md`. |
 | Compression Method | `CompressWithLz4HC` for release, `CompressWithLz4` for `--dev` (set via `BuildOptions` in `BuildScript.cs` at build time, not baked into the profile asset) | LZ4HC is "slower to build but produces better results for release builds"; the Standalone default is no compression at all. `--dev` trades some of that ratio back for faster iteration builds. Source: `docs/reference/testing-tooling/manual-build-profiles-reference.md`. |
-| Target architecture | Apple Silicon (ARM64) only | Halves IL2CPP build time and size versus a universal binary. Intel Macs cannot run the result — Rosetta does not translate ARM64→Intel. **[project decision]** |
 | Graphics API | Metal only, Auto Graphics API off | Avoids generating shader variants for graphics APIs this project never ships against. |
 | Development Build / Script Debugging / Autoconnect Profiler / Deep Profiling | Off | Set per build via `BuildOptions`, not baked into the profile — see below. |
-| Diagnostic Data | Disabled | The project is not linked to Unity Cloud. |
+
+### Target architecture: baked into the macOS profile asset, not global
+
+**Apple Silicon (ARM64) only.** Halves IL2CPP build time and size versus a universal binary; Intel
+Macs cannot run the result — Rosetta does not translate ARM64→Intel. **[project decision]**
+
+This setting is deliberately **not** in the global table above and does **not** land in
+`ProjectSettings/ProjectSettings.asset`. `BuildScript.cs` builds via
+`BuildPlayerWithProfileOptions.buildProfile`, and a profile build reads architecture from the
+*profile asset's own* platform settings — it ignores the deprecated, machine-local
+`UserBuildSettings.architecture` global entirely. So `BuildProfileGenerator`'s
+`SetMacProfileArchitectureArm64` writes `m_Architecture: 1` directly onto `macOS-Release.asset`
+itself, via reflection onto `platformBuildProfile.architecture` (internal-only in 6.3). Setting the
+global instead — the natural first thing to try — silently produces a universal binary; this
+mechanism is precisely the fix for that bug. To verify architecture, check `m_Architecture` in the
+profile asset, not Player Settings.
 
 ### Dev builds (`--dev`)
 
@@ -181,6 +225,8 @@ minutes of an IL2CPP build. Each one exits `1` and names its own fix:
 | The Editor is already running for this project | Close it — a batch build cannot share the project with an open Editor (the same rule as guideline 08 / `CLAUDE.local.md`). |
 | No usable Unity binary found | Pass `--unity PATH`, or set `$UNITY_EDITOR`; the script otherwise tries the direct-install path, then the Hub path, for the version pinned in `ProjectVersion.txt`. |
 | `xcodebuild` not found on `PATH` (`shutil.which("xcodebuild")`) on a macOS IL2CPP profile | Install full Xcode from the App Store or developer.apple.com — the Command Line Tools alone are not enough: `xcode-select -p` succeeds with just CLT installed, but IL2CPP's C++ toolchain needs the full `Xcode.app` (the CLT bundle doesn't ship it). Then run `xcode-select --install` if prompted. |
+| No scenes are enabled in `EditorBuildSettings.asset` | Enable at least one in **File > Build Profiles > Scene List** (Bootstrap first). |
+| A zip of that exact name already exists in the output directory | Checked in `main()` right after the plan is resolved, before the (possibly 10–25 minute) Unity build starts — not after. Pass `--force` to overwrite, or remove the existing zip. |
 
 ## Exit codes
 
@@ -209,11 +255,16 @@ xattr -dr com.apple.quarantine RootsDance.app
   error. Fix the compile errors first (Console, or the log file) — see guideline 08's
   [compile-check-without-tests note](../../guidelines/08-testing-tooling.md#from-the-command-line-humans-and-agents)
   (sourced from `manual-safemode.md`).
-- **A non-zero exit does not always mean the build failed.** `-executeMethod` can report "Timeout
-  after 300 seconds while waiting async operations to finish" and exit non-zero *after* the
-  player has already been written successfully — the timeout is Unity's batch-mode shutdown
-  logic, not the build step. Check `Builds/<Profile>/` and the build log for a genuine
-  `BuildResult.Succeeded` before treating exit code `2` as a real failure.
+- **A non-zero exit does not always mean the build failed — but the mere existence of the `.app`
+  bundle doesn't prove it succeeded either.** `-executeMethod` can report "Timeout after 300
+  seconds while waiting async operations to finish" and exit non-zero *after* the player has
+  already been written successfully — the timeout is Unity's batch-mode shutdown logic, not the
+  build step. Unity also creates the `.app` skeleton *before* the IL2CPP/link stages run, so a
+  StrictMode or IL2CPP failure late in the build can leave a `.app` on disk that will not launch.
+  `build.py` handles both: on a non-zero exit it greps the log for `BuildScript.cs`'s own
+  `[BuildScript] <profile>: result=Succeeded` marker (`build_succeeded()` in `build.py`) rather
+  than trusting the exit code or `os.path.exists()` alone. If you are diagnosing a build by hand,
+  do the same — look for that exact line in `Logs/build-<profile>.log`.
 
 ## Open follow-ups
 
@@ -225,20 +276,33 @@ xattr -dr com.apple.quarantine RootsDance.app
 - **The Windows path is untested.** It needs a Windows machine: this Mac has only
   `MacStandaloneSupport` installed, no Windows Playback Engine module. Windows IL2CPP additionally
   requires Visual Studio 2019+ with the C++ build tools and Windows SDK 10.0.19041.0+ (source:
-  `docs/reference/unity6-release/manual-system-requirements.md`).
-- **`develop` currently ships two PlayerTest scenes.** `ProjectSettings/EditorBuildSettings.asset`
-  has the `PlayerTest_Environment` / `PlayerTest_Gameplay` scenes enabled alongside `Bootstrap` and
-  `Main_*`. Because both profiles inherit that global scene list, every build made from `develop`
-  today includes them, until someone disables them in **File > Build Profiles > Scene List**.
+  `docs/reference/unity6-release/manual-system-requirements.md`). Two things in `build.py` itself
+  are also macOS-path-only today: `resolve_unity()`'s candidate paths are both
+  `/Applications/Unity/...`, and `module_installed()` derives the `PlaybackEngines` folder from a
+  `Unity.app/Contents/MacOS/Unity` layout that a Windows install does not have. A Windows host
+  currently fails the module-installed check regardless of what is actually installed — pass
+  `--unity PATH` to skip `resolve_unity()`, but `module_installed()` still needs a real fix before
+  a Windows preflight can pass on its own. Separately, the committed `Windows-Release.asset` has a
+  null platform-settings object (`rid: -2`, vs. macOS's real `rid`) because the Windows module was
+  absent on the machine that generated it — whoever first builds Windows must re-run
+  `RootsDance > Build > Create Default Build Profiles` there and commit the re-serialized asset.
+- **`develop` currently ships six enabled scenes**, not just `Bootstrap` + `Main_*`:
+  `ProjectSettings/EditorBuildSettings.asset` has `Bootstrap`, `PlayerTest_Environment`,
+  `PlayerTest_Gameplay`, `Main_Environment`, `Main_Gameplay` and `MainMenu` all enabled. Because
+  both profiles inherit that global scene list, every build made from `develop` today includes all
+  six, until someone disables the ones that shouldn't ship in **File > Build Profiles > Scene
+  List**. (The scene list itself is a content decision, not something this doc governs.)
 
 ## Files
 
 - `Assets/RootsDance/Scripts/Editor/Build/BuildProfileGenerator.cs` — creates/updates the two
-  profile assets and applies the global player settings; menu item
+  profile assets, applies the global player settings, and bakes ARM64 architecture directly onto
+  the macOS profile asset (see "Target architecture" above); menu item
   `RootsDance > Build > Create Default Build Profiles`.
 - `Assets/RootsDance/Scripts/Editor/Build/BuildScript.cs` — the `-executeMethod` entry point,
   `BuildFromCommandLine`, reading `-rdProfile` / `-rdOutput` / `-rdDev`.
 - `Tools/build/naming.py` — the naming convention, pure logic, no side effects.
 - `Tools/build/build.py` — the CLI: preflight, build, package, report.
-- `Tools/build/test_naming.py` — `unittest` coverage for `naming.py` (`python3 -m unittest
-  discover -s Tools/build`).
+- `Tools/build/test_naming.py` — `unittest` coverage (`python3 -m unittest discover -s
+  Tools/build`) for `naming.py` plus the pure/stubbable helpers in `build.py`: `git_state`,
+  `editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`.
