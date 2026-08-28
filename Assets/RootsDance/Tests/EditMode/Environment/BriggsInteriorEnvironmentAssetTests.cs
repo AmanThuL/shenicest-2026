@@ -30,6 +30,22 @@ namespace RootsDance.Tests.EditMode.Environment
             "BrokenIncubator",
         };
 
+        private static readonly string[] k_ImportedClutterNames =
+        {
+            "machine_microscope",
+            "bottle_glassware_beaker_large",
+            "bottle_glassware_filtering_flask_large",
+            "funnel_seperatory_funnel",
+            "heating_equipment_bunsen_burner",
+            "heating_equipment_iron_stand",
+            "heating_equipment_ring_stand",
+            "heating_equipment_crucible",
+            "syringe_syringe",
+            "dish_evaporating_dish",
+            "misc_scoopula",
+            "ppe_lab_gown_folded",
+        };
+
         [Test]
         public void BriggsEnvironmentScene_ContainsPwbDressingAndGlobalVolume()
         {
@@ -42,7 +58,7 @@ namespace RootsDance.Tests.EditMode.Environment
             StringAssert.Contains("m_Name: LabDebris", yaml);
             StringAssert.Contains("m_Name: Global Volume", yaml);
             StringAssert.Contains("m_IsGlobal: 1", yaml);
-            Assert.AreEqual(62, CountOccurrences(yaml, "value: BI_") + CountOccurrences(yaml, "m_Name: BI_"));
+            Assert.AreEqual(160, CountOccurrences(yaml, "value: BI_") + CountOccurrences(yaml, "m_Name: BI_"));
         }
 
         [Test]
@@ -79,6 +95,33 @@ namespace RootsDance.Tests.EditMode.Environment
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 Assert.IsTrue(prefab != null, path);
                 Assert.IsTrue(prefab.GetComponent<BoxCollider>() != null, path + " needs one root BoxCollider");
+            }
+        }
+
+        [Test]
+        public void BriggsClutterAndMossPrefabs_ExistWithoutWalkingColliders()
+        {
+            const string props = "Assets/RootsDance/Prefabs/Environment/Props/";
+
+            for (int i = 0; i < k_ImportedClutterNames.Length; i++)
+            {
+                string path = props + k_ImportedClutterNames[i] + ".prefab";
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsTrue(prefab != null, path);
+                Assert.AreEqual(0, prefab.GetComponentsInChildren<Collider>(true).Length, path);
+            }
+
+            string[] mossPaths =
+            {
+                "Assets/RootsDance/Prefabs/Environment/LabEcology/MossPatch.prefab",
+                "Assets/RootsDance/Prefabs/Environment/LabEcology/MossCarpet.prefab",
+            };
+
+            for (int i = 0; i < mossPaths.Length; i++)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(mossPaths[i]);
+                Assert.IsTrue(prefab != null, mossPaths[i]);
+                Assert.AreEqual(0, prefab.GetComponentsInChildren<Collider>(true).Length, mossPaths[i]);
             }
         }
 

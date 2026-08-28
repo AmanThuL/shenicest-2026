@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Editor.Environment
@@ -22,6 +24,7 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
         private const string k_PrefabRoot = "Assets/RootsDance/Prefabs/Environment";
         private const string k_FurnitureFolder = k_PrefabRoot + "/LabFurniture";
+        private const string k_EcologyFolder = k_PrefabRoot + "/LabEcology";
         private const string k_DressingVariantFolder = k_PrefabRoot + "/LabDressingVariants";
         private const string k_OwnedPrefix = "BI_";
         private const string k_PwbRootName = "Prefab World Builder";
@@ -39,6 +42,8 @@ namespace RootsDance.Editor.Environment
         private const string k_TallCabinetPrefabPath = k_FurnitureFolder + "/TallCabinet.prefab";
         private const string k_EquipmentBankPrefabPath = k_FurnitureFolder + "/EquipmentBank.prefab";
         private const string k_BrokenIncubatorPrefabPath = k_FurnitureFolder + "/BrokenIncubator.prefab";
+        private const string k_MossPatchPrefabPath = k_EcologyFolder + "/MossPatch.prefab";
+        private const string k_MossCarpetPrefabPath = k_EcologyFolder + "/MossCarpet.prefab";
 
         private const string k_MaterialRoot = "Assets/RootsDance/Materials/Environment";
         private const string k_MetalDarkMaterialPath = k_MaterialRoot + "/Metal_Dark.mat";
@@ -46,10 +51,17 @@ namespace RootsDance.Editor.Environment
         private const string k_ConcreteMaterialPath = k_MaterialRoot + "/Concrete_Pale.mat";
         private const string k_LabPaletteMaterialPath = k_MaterialRoot + "/Lab_Palette.mat";
         private const string k_LabGlassMaterialPath = k_MaterialRoot + "/Lab_Glass.mat";
+        private const string k_BriggsMaterialRoot = k_MaterialRoot + "/BriggsInterior";
+        private const string k_DustyEquipmentMaterialPath = k_BriggsMaterialRoot + "/LabEquipment_Dusty.mat";
+        private const string k_OxideEquipmentMaterialPath = k_BriggsMaterialRoot + "/LabEquipment_Oxide.mat";
+        private const string k_MossDarkMaterialPath = k_BriggsMaterialRoot + "/LabMoss_Dark.mat";
+        private const string k_MossMidMaterialPath = k_BriggsMaterialRoot + "/LabMoss_Mid.mat";
 
         private const string k_PropsRoot = k_PrefabRoot + "/Props";
         private const string k_VegetationRoot = k_PrefabRoot + "/Vegetation";
         private const string k_RocksRoot = k_PrefabRoot + "/Rocks";
+        private const string k_ThirdPartyLabModelRoot =
+            "Assets/ThirdParty/Environment/LabAssetsCC0/Models";
 
         private static readonly Vector3[] k_CheckpointPositions =
         {
@@ -95,7 +107,7 @@ namespace RootsDance.Editor.Environment
                     "BriggsInteriorDressingBuilder requires the loaded BriggsInterior_Environment scene.");
             }
 
-            EnsureGeneratedFurniturePrefabs();
+            EnsureGeneratedDressingPrefabs();
             Placement[] placements = CreatePlacements();
             ValidatePlacements(placements);
             Dictionary<string, string> variants = EnsureColliderlessVariants(placements);
@@ -124,6 +136,8 @@ namespace RootsDance.Editor.Environment
             AddNorthEastEquipment(placements);
             AddEcologyIslands(placements);
             AddDebris(placements);
+            AddDenseLabClutter(placements);
+            AddGroundOvergrowth(placements);
 
             return placements.ToArray();
         }
@@ -478,9 +492,174 @@ namespace RootsDance.Editor.Environment
                 0.25f));
         }
 
+        private static void AddDenseLabClutter(List<Placement> placements)
+        {
+            const float counterTop = 0.94f;
+            const float archiveTop = 0.83f;
+
+            placements.Add(LooseEvidence("BI_Clutter_Central_Microscope", "machine_microscope",
+                new Vector3(-0.72f, counterTop, -2.32f), new Vector3(0f, 24f, 0f), 0.75f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Beaker_01", "bottle_glassware_beaker_large",
+                new Vector3(-0.25f, counterTop, -2.12f), new Vector3(0f, -18f, 0f), 0.75f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_FilterFlask", "bottle_glassware_filtering_flask_large",
+                new Vector3(0.25f, counterTop, -2.32f), new Vector3(0f, 42f, 0f), 0.7f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_SeparatoryFunnel", "funnel_seperatory_funnel",
+                new Vector3(0.7f, counterTop, -2.05f), new Vector3(0f, -26f, 0f), 0.72f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_IronStand", "heating_equipment_iron_stand",
+                new Vector3(-0.65f, counterTop, -1.35f), new Vector3(0f, 11f, 0f), 0.72f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_RingStand", "heating_equipment_ring_stand",
+                new Vector3(-0.15f, counterTop, -1.55f), new Vector3(0f, -34f, 0f), 0.68f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Burner", "heating_equipment_bunsen_burner",
+                new Vector3(0.3f, counterTop, -1.35f), new Vector3(0f, 17f, 0f), 0.78f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Crucible", "heating_equipment_crucible",
+                new Vector3(0.7f, counterTop, -1.55f), new Vector3(0f, 51f, 0f), 0.75f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Syringe", "syringe_syringe",
+                new Vector3(-0.75f, counterTop, -0.65f), new Vector3(4f, 36f, 78f), 0.8f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_EvaporatingDish", "dish_evaporating_dish",
+                new Vector3(-0.3f, counterTop, -0.55f), new Vector3(0f, -12f, 0f), 0.78f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Scoopula", "misc_scoopula",
+                new Vector3(0.15f, counterTop, -0.72f), new Vector3(2f, 74f, 6f), 0.75f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Gown", "ppe_lab_gown_folded",
+                new Vector3(0.65f, counterTop, -0.58f), new Vector3(0f, -21f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_Central_TestTube", "bottle_glassware_test_tube_small",
+                new Vector3(-0.7f, counterTop, 0.08f), new Vector3(0f, 31f, 0f), 0.88f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Vial", "bottle_glassware_vial_medium",
+                new Vector3(-0.3f, counterTop, -0.05f), new Vector3(0f, -28f, 0f), 0.82f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Dropper", "bottle_dropper",
+                new Vector3(0.1f, counterTop, 0.12f), new Vector3(6f, 48f, 74f), 0.82f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_TippedReagent", "bottle_glassware_reagent_bottle_medium",
+                new Vector3(0.55f, counterTop, -0.08f), new Vector3(0f, 16f, 82f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Petri", "dish_petridish",
+                new Vector3(-0.7f, counterTop, 0.72f), new Vector3(0f, 13f, 0f), 0.82f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_WatchGlass", "dish_watch_glass",
+                new Vector3(-0.25f, counterTop, 0.62f), new Vector3(0f, -46f, 0f), 0.76f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Forceps", "heating_equipment_forceps",
+                new Vector3(0.2f, counterTop, 0.78f), new Vector3(2f, 62f, 5f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Thermometer", "heating_equipment_thermometer",
+                new Vector3(0.7f, counterTop, 0.62f), new Vector3(0f, 102f, 7f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Clamp", "clamp_tube_clamp",
+                new Vector3(-0.65f, counterTop, 1.32f), new Vector3(0f, -13f, 0f), 0.75f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_WashBottle", "misc_wash_bottle",
+                new Vector3(-0.2f, counterTop, 1.48f), new Vector3(0f, 34f, 0f), 0.78f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_TippedPlastic", "bottle_plastic_bottle_medium",
+                new Vector3(0.25f, counterTop, 1.3f), new Vector3(3f, -16f, 76f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Rack", "bottle_test_tube_rack",
+                new Vector3(0.68f, counterTop, 1.48f), new Vector3(0f, -38f, 0f), 0.78f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Scale", "misc_scale",
+                new Vector3(-0.5f, counterTop, 2.15f), new Vector3(0f, 19f, 0f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_SafetyGlasses", "ppe_safety_glasses",
+                new Vector3(0.05f, counterTop, 2.25f), new Vector3(0f, -62f, 0f), 0.68f));
+            placements.Add(LooseEvidence("BI_Clutter_Central_Beaker_02", "bottle_glassware_beaker_large",
+                new Vector3(0.58f, counterTop, 2.12f), new Vector3(0f, 41f, 0f), 0.65f, true));
+
+            placements.Add(LooseEvidence("BI_Clutter_S7_Microscope", "machine_microscope",
+                new Vector3(7.08f, counterTop, -1.55f), new Vector3(0f, 66f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_Funnel", "funnel_seperatory_funnel",
+                new Vector3(7.45f, counterTop, -1.42f), new Vector3(0f, -19f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_Beaker", "bottle_glassware_beaker_large",
+                new Vector3(7.68f, counterTop, -1.12f), new Vector3(0f, 12f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_Syringe", "syringe_syringe",
+                new Vector3(7.1f, counterTop, -0.84f), new Vector3(4f, 24f, 80f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_Crucible", "heating_equipment_crucible",
+                new Vector3(7.55f, counterTop, -0.75f), new Vector3(0f, -42f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_RingStand", "heating_equipment_ring_stand",
+                new Vector3(7.18f, counterTop, -0.25f), new Vector3(0f, 18f, 0f), 0.56f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S7_WashBottle", "misc_wash_bottle",
+                new Vector3(7.62f, counterTop, -0.28f), new Vector3(0f, -11f, 0f), 0.62f));
+
+            placements.Add(LooseEvidence("BI_Clutter_NW_Microscope", "machine_microscope",
+                new Vector3(-5.75f, counterTop, 3.25f), new Vector3(0f, -22f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NW_Beaker", "bottle_glassware_beaker_large",
+                new Vector3(-5.42f, counterTop, 2.82f), new Vector3(0f, 16f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NW_FilterFlask", "bottle_glassware_filtering_flask_large",
+                new Vector3(-5.02f, counterTop, 2.82f), new Vector3(0f, -39f, 0f), 0.58f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NW_Burner", "heating_equipment_bunsen_burner",
+                new Vector3(-4.68f, counterTop, 2.95f), new Vector3(0f, 27f, 0f), 0.65f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NW_EvaporatingDish", "dish_evaporating_dish",
+                new Vector3(-4.38f, counterTop, 3.28f), new Vector3(0f, -18f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NW_Gown", "ppe_lab_gown_folded",
+                new Vector3(-5.55f, counterTop, 2.98f), new Vector3(0f, 38f, 0f), 0.55f, true));
+
+            placements.Add(LooseEvidence("BI_Clutter_NE_IronStand", "heating_equipment_iron_stand",
+                new Vector3(5.05f, counterTop, 3.05f), new Vector3(0f, 14f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NE_Reagent", "bottle_glassware_reagent_bottle_medium",
+                new Vector3(5.45f, counterTop, 3.55f), new Vector3(0f, -18f, 0f), 0.72f));
+            placements.Add(LooseEvidence("BI_Clutter_NE_Microscope", "machine_microscope",
+                new Vector3(5.92f, counterTop, 3f), new Vector3(0f, 32f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NE_Scoopula", "misc_scoopula",
+                new Vector3(6.28f, counterTop, 3.55f), new Vector3(3f, 88f, 4f), 0.68f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NE_Syringe", "syringe_syringe",
+                new Vector3(6.52f, counterTop, 3.2f), new Vector3(2f, -28f, 78f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_Clutter_NE_Crucible", "heating_equipment_crucible",
+                new Vector3(6.25f, counterTop, 2.95f), new Vector3(0f, 25f, 0f), 0.6f, true));
+
+            placements.Add(LooseEvidence("BI_Clutter_S9_Gown", "ppe_lab_gown_folded",
+                new Vector3(-6.28f, archiveTop, -1.88f), new Vector3(0f, 84f, 0f), 0.55f, true));
+            placements.Add(LooseEvidence("BI_Clutter_S9_SafetyGlasses", "ppe_safety_glasses",
+                new Vector3(-6.12f, archiveTop, -2.78f), new Vector3(0f, -31f, 0f), 0.62f));
+            placements.Add(LooseEvidence("BI_Clutter_S9_Syringe", "syringe_syringe",
+                new Vector3(-6.43f, archiveTop, -2.24f), new Vector3(3f, 68f, 76f), 0.58f, true));
+        }
+
+        private static void AddGroundOvergrowth(List<Placement> placements)
+        {
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_01", "M3D_grass_patch_1", new Vector3(-8.55f, 0f, -5.75f), 18f, 0.58f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_02", "M3D_grass_patch_3", new Vector3(-8.1f, 0f, -4.65f), 147f, 0.52f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_03", "M3D_grass_patch_5", new Vector3(-7.05f, 0f, -5.9f), 274f, 0.48f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_04", "M3D_grass_patch_8", new Vector3(-8.55f, 0f, -3.55f), 63f, 0.44f));
+            placements.Add(Ecology("BI_Overgrowth_West_Ivy_01", "M3D_ivy_2", new Vector3(-8.45f, 0f, -1.75f), 188f, 0.5f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_05", "M3D_grass_patch_6", new Vector3(-8.5f, 0f, 0.75f), 26f, 0.48f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_06", "M3D_grass_patch_1", new Vector3(-8.25f, 0f, 1.85f), 211f, 0.46f));
+            placements.Add(Ecology("BI_Overgrowth_West_Grass_07", "M3D_grass_patch_4", new Vector3(-6.65f, 0f, 2.2f), 102f, 0.4f));
+            placements.Add(Ecology("BI_Overgrowth_NorthWest_Grass_01", "M3D_grass_patch_7", new Vector3(-5.75f, 0f, 5.92f), 317f, 0.56f));
+            placements.Add(Ecology("BI_Overgrowth_NorthWest_Ivy_01", "M3D_ivy_4", new Vector3(-3.7f, 0f, 6.05f), 79f, 0.52f));
+
+            placements.Add(Ecology("BI_Overgrowth_East_Grass_01", "M3D_grass_patch_2", new Vector3(8.55f, 0f, -5.85f), 34f, 0.55f));
+            placements.Add(Ecology("BI_Overgrowth_East_Grass_02", "M3D_grass_patch_5", new Vector3(7.65f, 0f, -5.72f), 172f, 0.5f));
+            placements.Add(Ecology("BI_Overgrowth_East_Grass_03", "M3D_grass_patch_8", new Vector3(8.5f, 0f, -4.45f), 247f, 0.48f));
+            placements.Add(Ecology("BI_Overgrowth_East_Ivy_01", "M3D_ivy_2", new Vector3(8.5f, 0f, -1.78f), 94f, 0.52f));
+            placements.Add(Ecology("BI_Overgrowth_East_Grass_04", "M3D_grass_patch_3", new Vector3(8.55f, 0f, 0.72f), 16f, 0.46f));
+            placements.Add(Ecology("BI_Overgrowth_East_Grass_05", "M3D_grass_patch_6", new Vector3(7.72f, 0f, 1.72f), 201f, 0.43f));
+            placements.Add(Ecology("BI_Overgrowth_NorthEast_Grass_01", "M3D_grass_patch_1", new Vector3(7.78f, 0f, 5.9f), 128f, 0.52f));
+            placements.Add(Ecology("BI_Overgrowth_NorthEast_Ivy_01", "M3D_ivy_3", new Vector3(6.2f, 0f, 6.05f), 289f, 0.48f));
+            placements.Add(Ecology("BI_Overgrowth_NorthEast_Grass_02", "M3D_grass_patch_4", new Vector3(4.25f, 0f, 5.95f), 57f, 0.4f));
+
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_01", "M3D_grass_patch_7", new Vector3(-2.85f, 0f, -4.85f), 228f, 0.34f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_02", "M3D_grass_patch_2", new Vector3(-2.9f, 0f, 2.85f), 41f, 0.32f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_03", "M3D_grass_patch_6", new Vector3(2.85f, 0f, 2.9f), 163f, 0.3f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_04", "M3D_grass_patch_3", new Vector3(4.25f, 0f, 1.05f), 302f, 0.3f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_05", "M3D_grass_patch_5", new Vector3(-3.45f, 0f, 4.1f), 87f, 0.32f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_06", "M3D_grass_patch_1", new Vector3(1.2f, 0f, -4.2f), 212f, 0.28f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_07", "M3D_grass_patch_8", new Vector3(4.8f, 0f, -4.8f), 37f, 0.3f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_08", "M3D_grass_patch_4", new Vector3(-4.7f, 0f, -4.3f), 151f, 0.32f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_09", "M3D_grass_patch_7", new Vector3(-3.2f, 0f, -2.4f), 276f, 0.28f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_10", "M3D_grass_patch_2", new Vector3(-2.5f, 0f, 0.8f), 64f, 0.26f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_11", "M3D_grass_patch_6", new Vector3(2.5f, 0f, -2f), 186f, 0.28f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_12", "M3D_grass_patch_3", new Vector3(3.8f, 0f, 0.2f), 329f, 0.27f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_13", "M3D_grass_patch_5", new Vector3(4.6f, 0f, 2.3f), 93f, 0.3f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_14", "M3D_grass_patch_1", new Vector3(-4.4f, 0f, 2.2f), 238f, 0.29f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_15", "M3D_grass_patch_8", new Vector3(-5.5f, 0f, 1f), 14f, 0.3f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_16", "M3D_grass_patch_4", new Vector3(1.5f, 0f, 3.4f), 174f, 0.27f));
+            placements.Add(Ecology("BI_Overgrowth_Crack_Grass_17", "M3D_grass_patch_7", new Vector3(-1.2f, 0f, 3.5f), 301f, 0.25f));
+
+            placements.Add(EcologyPrefab("BI_Moss_West_Carpet_01", k_MossCarpetPrefabPath, new Vector3(-7.7f, 0f, -4.95f), 22f, 0.9f));
+            placements.Add(EcologyPrefab("BI_Moss_West_Patch_01", k_MossPatchPrefabPath, new Vector3(-8.05f, 0f, -2.65f), 141f, 0.82f));
+            placements.Add(EcologyPrefab("BI_Moss_West_Patch_02", k_MossPatchPrefabPath, new Vector3(-7.5f, 0f, 0.35f), 263f, 0.7f));
+            placements.Add(EcologyPrefab("BI_Moss_NorthWest_Carpet", k_MossCarpetPrefabPath, new Vector3(-6.85f, 0f, 5.45f), 76f, 1.05f));
+            placements.Add(EcologyPrefab("BI_Moss_NorthWest_Patch", k_MossPatchPrefabPath, new Vector3(-4.25f, 0f, 5.55f), 181f, 0.88f));
+            placements.Add(EcologyPrefab("BI_Moss_East_Carpet_01", k_MossCarpetPrefabPath, new Vector3(8f, 0f, -4.95f), 318f, 0.86f));
+            placements.Add(EcologyPrefab("BI_Moss_East_Patch_01", k_MossPatchPrefabPath, new Vector3(8.05f, 0f, -0.75f), 34f, 0.78f));
+            placements.Add(EcologyPrefab("BI_Moss_East_Patch_02", k_MossPatchPrefabPath, new Vector3(7.75f, 0f, 2.45f), 117f, 0.76f));
+            placements.Add(EcologyPrefab("BI_Moss_NorthEast_Carpet", k_MossCarpetPrefabPath, new Vector3(6.95f, 0f, 5.35f), 251f, 0.95f));
+            placements.Add(EcologyPrefab("BI_Moss_Central_Patch_01", k_MossPatchPrefabPath, new Vector3(-2.4f, 0f, -3.65f), 69f, 0.58f));
+            placements.Add(EcologyPrefab("BI_Moss_Central_Patch_02", k_MossPatchPrefabPath, new Vector3(2.35f, 0f, -2.35f), 192f, 0.55f));
+            placements.Add(EcologyPrefab("BI_Moss_Central_Patch_03", k_MossPatchPrefabPath, new Vector3(-2.25f, 0f, 1.25f), 302f, 0.52f));
+            placements.Add(EcologyPrefab("BI_Moss_Central_Patch_04", k_MossPatchPrefabPath, new Vector3(2.35f, 0f, 1.65f), 13f, 0.5f));
+        }
+
         private static Placement Furniture(string name, string path, Vector3 position, float yaw)
         {
-            return new Placement(name, k_LabFurniturePalette, path, position, yaw, 1f, false);
+            return new Placement(name, k_LabFurniturePalette, path, position, yaw, 1f, false, false);
         }
 
         private static Placement Evidence(string name, string key, Vector3 position, float yaw, float scale = 1f)
@@ -492,6 +671,7 @@ namespace RootsDance.Editor.Environment
                 position,
                 yaw,
                 scale,
+                true,
                 true);
         }
 
@@ -504,6 +684,44 @@ namespace RootsDance.Editor.Environment
                 position,
                 yaw,
                 scale,
+                true,
+                true);
+        }
+
+        private static Placement LooseEvidence(
+            string name,
+            string key,
+            Vector3 position,
+            Vector3 euler,
+            float scale = 1f,
+            bool imported = false)
+        {
+            return new Placement(
+                name,
+                k_CampEvidencePalette,
+                $"{k_PropsRoot}/{key}.prefab",
+                position,
+                euler,
+                scale * (imported ? 1.25f : 1f),
+                !imported,
+                true);
+        }
+
+        private static Placement EcologyPrefab(
+            string name,
+            string path,
+            Vector3 position,
+            float yaw,
+            float scale)
+        {
+            return new Placement(
+                name,
+                k_LabEcologyPalette,
+                path,
+                position,
+                yaw,
+                scale,
+                false,
                 true);
         }
 
@@ -517,6 +735,7 @@ namespace RootsDance.Editor.Environment
                 position,
                 yaw,
                 scale,
+                true,
                 true);
         }
 
@@ -529,6 +748,7 @@ namespace RootsDance.Editor.Environment
                 position,
                 yaw,
                 scale,
+                true,
                 true);
         }
 
@@ -544,8 +764,54 @@ namespace RootsDance.Editor.Environment
             instance.name = placement.Name;
             instance.transform.SetLocalPositionAndRotation(
                 placement.Position,
-                Quaternion.Euler(0f, placement.Yaw, 0f));
+                Quaternion.Euler(placement.Euler));
             instance.transform.localScale = prefab.transform.localScale * placement.Scale;
+
+            if (placement.SnapToSurface)
+            {
+                SnapRendererBottomToSurface(instance, ResolveSurfaceY(placement.Position.y));
+            }
+        }
+
+        private static float ResolveSurfaceY(float authoredY)
+        {
+            if (authoredY < 0.2f)
+            {
+                return 0f;
+            }
+
+            if (authoredY > 0.95f)
+            {
+                return 0.94f;
+            }
+
+            if (authoredY > 0.8f && authoredY < 0.9f)
+            {
+                return 0.83f;
+            }
+
+            return authoredY;
+        }
+
+        private static void SnapRendererBottomToSurface(GameObject instance, float surfaceY)
+        {
+            Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+
+            if (renderers.Length == 0)
+            {
+                throw new InvalidOperationException("Cannot surface-snap a prefab with no renderers: " + instance.name);
+            }
+
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            Vector3 position = instance.transform.position;
+            position.y += surfaceY - bounds.min.y + 0.002f;
+            instance.transform.position = position;
         }
 
         private static Dictionary<string, GameObject> LoadPrefabs(
@@ -774,9 +1040,10 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        private static void EnsureGeneratedFurniturePrefabs()
+        private static void EnsureGeneratedDressingPrefabs()
         {
             EnsureFolder(k_FurnitureFolder);
+            EnsureFolder(k_EcologyFolder);
             FurnitureMaterials materials = LoadFurnitureMaterials();
             Scene preview = EditorSceneManager.NewPreviewScene();
 
@@ -788,6 +1055,9 @@ namespace RootsDance.Editor.Environment
                 BuildTallCabinetPrefab(preview, materials);
                 BuildEquipmentBankPrefab(preview, materials);
                 BuildBrokenIncubatorPrefab(preview, materials);
+                BuildMossPatchPrefab(preview, materials);
+                BuildMossCarpetPrefab(preview, materials);
+                BuildImportedLabPropPrefabs(preview, materials);
             }
             finally
             {
@@ -948,6 +1218,134 @@ namespace RootsDance.Editor.Environment
             }
         }
 
+        private static void BuildMossPatchPrefab(Scene preview, FurnitureMaterials materials)
+        {
+            GameObject root = CreatePrefabRoot("MossPatch", preview);
+
+            try
+            {
+                AddSphere(root.transform, "MossLobe_01", new Vector3(-0.28f, 0f, 0.02f),
+                    new Vector3(0.72f, 0.018f, 0.48f), materials.MossDark);
+                AddSphere(root.transform, "MossLobe_02", new Vector3(0.2f, 0.001f, -0.08f),
+                    new Vector3(0.68f, 0.02f, 0.5f), materials.MossMid);
+                AddSphere(root.transform, "MossLobe_03", new Vector3(0.05f, 0.002f, 0.22f),
+                    new Vector3(0.58f, 0.016f, 0.4f), materials.MossDark);
+                AddSphere(root.transform, "MossLobe_04", new Vector3(-0.42f, 0.002f, -0.22f),
+                    new Vector3(0.38f, 0.014f, 0.28f), materials.MossMid);
+                AddSphere(root.transform, "MossLobe_05", new Vector3(0.46f, 0.002f, 0.18f),
+                    new Vector3(0.34f, 0.015f, 0.3f), materials.MossDark);
+                SavePrefab(root, k_MossPatchPrefabPath);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static void BuildMossCarpetPrefab(Scene preview, FurnitureMaterials materials)
+        {
+            GameObject root = CreatePrefabRoot("MossCarpet", preview);
+
+            try
+            {
+                AddSphere(root.transform, "MossLobe_01", new Vector3(-0.65f, 0f, -0.15f),
+                    new Vector3(0.95f, 0.02f, 0.62f), materials.MossDark);
+                AddSphere(root.transform, "MossLobe_02", new Vector3(0.05f, 0.001f, -0.25f),
+                    new Vector3(1.05f, 0.018f, 0.58f), materials.MossMid);
+                AddSphere(root.transform, "MossLobe_03", new Vector3(0.72f, 0.002f, -0.06f),
+                    new Vector3(0.82f, 0.022f, 0.55f), materials.MossDark);
+                AddSphere(root.transform, "MossLobe_04", new Vector3(-0.35f, 0.003f, 0.3f),
+                    new Vector3(0.88f, 0.018f, 0.5f), materials.MossMid);
+                AddSphere(root.transform, "MossLobe_05", new Vector3(0.38f, 0.001f, 0.32f),
+                    new Vector3(0.92f, 0.02f, 0.48f), materials.MossDark);
+                AddSphere(root.transform, "MossLobe_06", new Vector3(-0.96f, 0.002f, 0.18f),
+                    new Vector3(0.42f, 0.015f, 0.34f), materials.MossMid);
+                AddSphere(root.transform, "MossLobe_07", new Vector3(1.05f, 0.002f, 0.22f),
+                    new Vector3(0.46f, 0.014f, 0.3f), materials.MossMid);
+                SavePrefab(root, k_MossCarpetPrefabPath);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static void BuildImportedLabPropPrefabs(Scene preview, FurnitureMaterials materials)
+        {
+            string[] dustyProps =
+            {
+                "machine_microscope",
+                "bottle_glassware_beaker_large",
+                "bottle_glassware_filtering_flask_large",
+                "funnel_seperatory_funnel",
+                "heating_equipment_iron_stand",
+                "heating_equipment_ring_stand",
+                "syringe_syringe",
+                "dish_evaporating_dish",
+                "misc_scoopula",
+                "ppe_lab_gown_folded",
+            };
+
+            for (int i = 0; i < dustyProps.Length; i++)
+            {
+                BuildImportedLabPropPrefab(preview, dustyProps[i], materials.EquipmentDusty);
+            }
+
+            BuildImportedLabPropPrefab(preview, "heating_equipment_bunsen_burner", materials.EquipmentOxide);
+            BuildImportedLabPropPrefab(preview, "heating_equipment_crucible", materials.EquipmentOxide);
+        }
+
+        private static void BuildImportedLabPropPrefab(Scene preview, string key, Material material)
+        {
+            string modelPath = $"{k_ThirdPartyLabModelRoot}/{key}.fbx";
+            string prefabPath = $"{k_PropsRoot}/{key}.prefab";
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+
+            if (source == null)
+            {
+                throw new System.IO.FileNotFoundException("Imported Briggs lab model is missing: " + modelPath);
+            }
+
+            GameObject root = CreatePrefabRoot(key, preview);
+
+            try
+            {
+                root.transform.localScale = Vector3.one * 0.01f;
+                GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(source, preview);
+                model.name = key + "_Mesh";
+                model.transform.SetParent(root.transform, false);
+                model.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.Euler(-90f, 0f, 0f));
+                model.transform.localScale = Vector3.one;
+
+                Collider[] colliders = model.GetComponentsInChildren<Collider>(true);
+
+                for (int i = 0; i < colliders.Length; i++)
+                {
+                    UnityEngine.Object.DestroyImmediate(colliders[i]);
+                }
+
+                Renderer[] renderers = model.GetComponentsInChildren<Renderer>(true);
+
+                for (int i = 0; i < renderers.Length; i++)
+                {
+                    Material[] assigned = new Material[renderers[i].sharedMaterials.Length];
+
+                    for (int materialIndex = 0; materialIndex < assigned.Length; materialIndex++)
+                    {
+                        assigned[materialIndex] = material;
+                    }
+
+                    renderers[i].sharedMaterials = assigned;
+                }
+
+                SavePrefab(root, prefabPath);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
         private static GameObject CreatePrefabRoot(string name, Scene preview)
         {
             GameObject root = new GameObject(name);
@@ -993,6 +1391,23 @@ namespace RootsDance.Editor.Environment
             part.GetComponent<MeshRenderer>().sharedMaterial = material;
         }
 
+        private static void AddSphere(
+            Transform parent,
+            string name,
+            Vector3 position,
+            Vector3 scale,
+            Material material)
+        {
+            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            part.name = name;
+            SceneManager.MoveGameObjectToScene(part, parent.gameObject.scene);
+            part.transform.SetParent(parent, false);
+            part.transform.SetLocalPositionAndRotation(position, Quaternion.identity);
+            part.transform.localScale = scale;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
+            part.GetComponent<MeshRenderer>().sharedMaterial = material;
+        }
+
         private static void AddRootBoxCollider(GameObject root, Vector3 center, Vector3 size)
         {
             BoxCollider collider = root.AddComponent<BoxCollider>();
@@ -1024,12 +1439,91 @@ namespace RootsDance.Editor.Environment
 
         private static FurnitureMaterials LoadFurnitureMaterials()
         {
+            Material metalDark = LoadMaterial(k_MetalDarkMaterialPath);
+            Material metalRust = LoadMaterial(k_MetalRustMaterialPath);
+            Material concrete = LoadMaterial(k_ConcreteMaterialPath);
+            Material labPalette = LoadMaterial(k_LabPaletteMaterialPath);
+            Material glass = LoadMaterial(k_LabGlassMaterialPath);
+
             return new FurnitureMaterials(
-                LoadMaterial(k_MetalDarkMaterialPath),
-                LoadMaterial(k_MetalRustMaterialPath),
-                LoadMaterial(k_ConcreteMaterialPath),
-                LoadMaterial(k_LabPaletteMaterialPath),
-                LoadMaterial(k_LabGlassMaterialPath));
+                metalDark,
+                metalRust,
+                concrete,
+                labPalette,
+                glass,
+                EnsureTintedMaterial(
+                    k_DustyEquipmentMaterialPath,
+                    labPalette,
+                    new Color(0.44f, 0.50f, 0.43f, 1f),
+                    0.18f,
+                    false),
+                EnsureTintedMaterial(
+                    k_OxideEquipmentMaterialPath,
+                    metalRust,
+                    new Color(0.46f, 0.31f, 0.19f, 1f),
+                    0.12f,
+                    false),
+                EnsureTintedMaterial(
+                    k_MossDarkMaterialPath,
+                    null,
+                    new Color(0.17f, 0.28f, 0.14f, 1f),
+                    0.08f,
+                    true),
+                EnsureTintedMaterial(
+                    k_MossMidMaterialPath,
+                    null,
+                    new Color(0.26f, 0.4f, 0.2f, 1f),
+                    0.1f,
+                    true));
+        }
+
+        private static Material EnsureTintedMaterial(
+            string path,
+            Material source,
+            Color tint,
+            float smoothness,
+            bool doubleSided)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (material == null)
+            {
+                EnsureFolder(System.IO.Path.GetDirectoryName(path).Replace('\\', '/'));
+                Shader shader = source != null ? source.shader : Shader.Find("HDRP/Lit");
+
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("HDRP/Lit shader was not found for Briggs dressing.");
+                }
+
+                material = source != null ? new Material(source) : new Material(shader);
+                material.name = System.IO.Path.GetFileNameWithoutExtension(path);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else if (source != null)
+            {
+                material.CopyPropertiesFromMaterial(source);
+                material.shader = source.shader;
+            }
+
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", tint);
+            }
+
+            if (material.HasProperty("_Smoothness"))
+            {
+                material.SetFloat("_Smoothness", smoothness);
+            }
+
+            if (material.HasProperty("_DoubleSidedEnable"))
+            {
+                material.SetFloat("_DoubleSidedEnable", doubleSided ? 1f : 0f);
+            }
+
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Material LoadMaterial(string path)
@@ -1073,14 +1567,26 @@ namespace RootsDance.Editor.Environment
 
         private sealed class FurnitureMaterials
         {
-            public FurnitureMaterials(Material metalDark, Material metalRust, Material concrete, Material labPalette,
-                Material glass)
+            public FurnitureMaterials(
+                Material metalDark,
+                Material metalRust,
+                Material concrete,
+                Material labPalette,
+                Material glass,
+                Material equipmentDusty,
+                Material equipmentOxide,
+                Material mossDark,
+                Material mossMid)
             {
                 MetalDark = metalDark;
                 MetalRust = metalRust;
                 Concrete = concrete;
                 LabPalette = labPalette;
                 Glass = glass;
+                EquipmentDusty = equipmentDusty;
+                EquipmentOxide = equipmentOxide;
+                MossDark = mossDark;
+                MossMid = mossMid;
             }
 
             public Material MetalDark { get; }
@@ -1088,6 +1594,10 @@ namespace RootsDance.Editor.Environment
             public Material Concrete { get; }
             public Material LabPalette { get; }
             public Material Glass { get; }
+            public Material EquipmentDusty { get; }
+            public Material EquipmentOxide { get; }
+            public Material MossDark { get; }
+            public Material MossMid { get; }
         }
 
         private struct Placement
@@ -1099,24 +1609,48 @@ namespace RootsDance.Editor.Environment
                 Vector3 position,
                 float yaw,
                 float scale,
-                bool disableColliders)
+                bool disableColliders,
+                bool snapToSurface)
+                : this(
+                    name,
+                    palette,
+                    prefabPath,
+                    position,
+                    new Vector3(0f, yaw, 0f),
+                    scale,
+                    disableColliders,
+                    snapToSurface)
+            {
+            }
+
+            public Placement(
+                string name,
+                string palette,
+                string prefabPath,
+                Vector3 position,
+                Vector3 euler,
+                float scale,
+                bool disableColliders,
+                bool snapToSurface)
             {
                 Name = name;
                 Palette = palette;
                 PrefabPath = prefabPath;
                 Position = position;
-                Yaw = yaw;
+                Euler = euler;
                 Scale = scale;
                 DisableColliders = disableColliders;
+                SnapToSurface = snapToSurface;
             }
 
             public string Name;
             public string Palette;
             public string PrefabPath;
             public Vector3 Position;
-            public float Yaw;
+            public Vector3 Euler;
             public float Scale;
             public bool DisableColliders;
+            public bool SnapToSurface;
         }
     }
 }

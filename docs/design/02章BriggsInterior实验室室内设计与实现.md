@@ -34,9 +34,11 @@
 本轮在 `feat/briggs-interior-environment` worktree 中完成了可重复执行的首轮环境实现：
 
 - `Prefab World Builder` 下建立 `LabFurniture`、`CampEvidence`、`LabArchives`、`LabEcology` 和 `LabDebris` 五组 Palette。
-- 共放置 62 个 Prefab 实例，包括 18 个家具模块、25 个实验和档案小件、15 个植物与根系、4 个边缘苔藓岩块。
+- 共放置 160 个 Prefab 实例，包括 18 个家具模块、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
 - 中央实验岛使用六段柜台，东侧建立 S7 根须工作台，西侧建立 S9 档案区，西北放置破损培养设备，东北放置旧设备组。
 - 小件与软植物通过项目内 `_NoCollision` Prefab Variant 关闭 Collider，不在场景实例上制造 Collider override。
+- 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
+- 从本地 CC0 Lab Assets 增补显微镜、烧杯、过滤瓶、分液漏斗、酒精灯、铁架台、环架、坩埚、针筒、蒸发皿、药匙和折叠实验服。
 - 北墙中央 `abs(X) < 2.75` 且 `Z > 4.4` 的圆门预留区不放任何本轮 props。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
 - 全局 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册。
@@ -229,7 +231,7 @@ Prefab World Builder
 
 - 高书架贴西墙，不能突出到主环路。
 - 书桌长边南北向或略朝中央旋转 10 至 15 度，让玩家从中央桌西侧能看见纸张反光。
-- 桌面放 binder、clipboard、放大镜、两三张植物草图和报废终端。不要把每种小件都塞上去。
+- 桌面放 binder、clipboard、放大镜、实验服和散落针筒，密度高于其他区域，但保留少量可读空隙和明确的档案焦点。
 - 隐藏夹层放在桌体东侧或南侧，必须由手电照射后才显示调查轮廓。
 - 纸张与小件默认无行走阻挡。若现有 prefab 自带 BoxCollider，作为纯布景副本时可在实例上禁用。
 
