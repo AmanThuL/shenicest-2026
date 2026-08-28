@@ -387,16 +387,15 @@ namespace RootsDance.Editor.Environment
                     GapChance = 0.28f, PanelLean = 15f, PostLean = 11f, Seed = 1106,
                 },
 
-                // Lab terrace: a broken divider between the two v3 buildings. It starts in the inner corner
-                // where the SW wing's south side meets the annex's NE wall and runs ESE across the forecourt,
-                // stopping ~9 m short of the trail so the route passes its broken end; a short stub closes the
-                // north side between the hall's north corner and the wing's NW corner, dying on the terrace's
-                // NW slope.
-                Ring("Lab_Divider_South", 1121, 0.36f,
-                    new Vector2(-11.9f, 124.6f), new Vector2(-2.5f, 120.4f), new Vector2(6.2f, 115.3f),
-                    new Vector2(15.4f, 110.4f)),
-                Ring("Lab_Divider_North", 1122, 0.3f,
-                    new Vector2(-27.6f, 128.1f), new Vector2(-30.8f, 130.6f), new Vector2(-34.1f, 133.4f)),
+                // Lab terrace: a broken divider between the detached vault block (east, its open arch facing
+                // the gate) and the joined hall + hub complex. It starts in the inner corner where the SW
+                // wing's south side meets the annex's NE wall, runs ESE under the wing and the hub's south
+                // flank, then turns north through the 6 m corridor between the hub's east vertex and the
+                // block's roof edge, dying 4 m short of the NE wing. The gate-to-vault approach stays open.
+                Ring("Lab_Divider", 1121, 0.36f,
+                    new Vector2(-11.5f, 124.3f), new Vector2(-3f, 119.5f), new Vector2(6f, 123.5f),
+                    new Vector2(12.5f, 129f), new Vector2(13.2f, 138f), new Vector2(15f, 146f),
+                    new Vector2(18.5f, 152f)),
             };
         }
 
