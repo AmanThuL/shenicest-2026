@@ -1,0 +1,186 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "86f23935367b4a1f9647c8a20e03d716",
+      "name": "Cultural Heritage & History",
+      "slug": "cultural-heritage-history",
+      "uri": "https://api.sketchfab.com/v3/categories/86f23935367b4a1f9647c8a20e03d716",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/bb22d75450272105e64c47756c323f1f-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/86f23935367b4a1f9647c8a20e03d716/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/86f23935367b4a1f9647c8a20e03d716/800x450.png"
+        }
+      ]
+    },
+    {
+      "uid": "17d20ca7b35243d4a45171838b50704c",
+      "name": "Science & Technology",
+      "slug": "science-technology",
+      "uri": "https://api.sketchfab.com/v3/categories/17d20ca7b35243d4a45171838b50704c",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/86b1bae49e0ed3f43b2d59b26700234e-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 6,
+  "createdAt": "2023-03-16T08:22:26.184652",
+  "embedUrl": "https://sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/embed",
+  "faceCount": 263280,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 437,
+  "name": "Astronomical quintant",
+  "publishedAt": "2023-03-21T14:38:16.331973",
+  "soundCount": 0,
+  "staffpickedAt": "2023-03-28T07:34:49.141936",
+  "tags": [
+    {
+      "name": "astronomy",
+      "slug": "astronomy",
+      "uri": "https://api.sketchfab.com/v3/tags/astronomy"
+    },
+    {
+      "name": "science",
+      "slug": "science",
+      "uri": "https://api.sketchfab.com/v3/tags/science"
+    },
+    {
+      "name": "nature",
+      "slug": "nature",
+      "uri": "https://api.sketchfab.com/v3/tags/nature"
+    },
+    {
+      "name": "technique",
+      "slug": "technique",
+      "uri": "https://api.sketchfab.com/v3/tags/technique"
+    },
+    {
+      "name": "jagiellonian-university",
+      "slug": "jagiellonian-university",
+      "uri": "https://api.sketchfab.com/v3/tags/jagiellonian-university"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "68af0abbbb7e4d9cb7845bfd0080e415",
+        "width": 1920,
+        "height": 1080,
+        "size": 355237,
+        "url": "https://media.sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/thumbnails/efa79e7041234e1a97efc864c2957f89/9af60019c1ac4755b66c5eecc8701f73.jpeg"
+      },
+      {
+        "uid": "b58b7fbd74bb405f8ad961e13bfa6e6c",
+        "width": 1024,
+        "height": 576,
+        "size": 86181,
+        "url": "https://media.sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/thumbnails/efa79e7041234e1a97efc864c2957f89/c9fef90628fd4cf08e8d482fa1b547b7.jpeg"
+      },
+      {
+        "uid": "74d2d97618f5449db0cc1033c15612bc",
+        "width": 720,
+        "height": 405,
+        "size": 41311,
+        "url": "https://media.sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/thumbnails/efa79e7041234e1a97efc864c2957f89/0ae78d9ad8784a6088c784d969826089.jpeg"
+      },
+      {
+        "uid": "c81b4643e1a2476bafe84652c94da5cd",
+        "width": 256,
+        "height": 144,
+        "size": 6407,
+        "url": "https://media.sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/thumbnails/efa79e7041234e1a97efc864c2957f89/de550fad4d454fc99cc1b8b1ae88cd06.jpeg"
+      },
+      {
+        "uid": "0c82d014816c4e05b6c4e4ddf753c8dc",
+        "width": 64,
+        "height": 36,
+        "size": 1283,
+        "url": "https://media.sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/thumbnails/efa79e7041234e1a97efc864c2957f89/b933283d081f457ca4c68f12bcf344ec.jpeg"
+      }
+    ]
+  },
+  "uid": "4b8e17593bd5457aaa958a85c1e5440d",
+  "uri": "https://api.sketchfab.com/v3/models/4b8e17593bd5457aaa958a85c1e5440d",
+  "user": {
+    "uid": "e9db551b564149808335556d521a9f51",
+    "username": "WirtualneMuzeaMalopolski",
+    "displayName": "Virtual Museums of Małopolska",
+    "account": "prem",
+    "profileUrl": "https://sketchfab.com/WirtualneMuzeaMalopolski",
+    "avatar": {
+      "uid": "6772453d4ea945d08b21b3696e88d0e0",
+      "uri": "https://api.sketchfab.com/v3/avatars/6772453d4ea945d08b21b3696e88d0e0",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 651,
+          "url": "https://media.sketchfab.com/avatars/6772453d4ea945d08b21b3696e88d0e0/f7f5399c862b4aff9bfbd9c13fc08703.png"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 985,
+          "url": "https://media.sketchfab.com/avatars/6772453d4ea945d08b21b3696e88d0e0/2e6dedc7cf124a16af68b4a950f43801.png"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 2081,
+          "url": "https://media.sketchfab.com/avatars/6772453d4ea945d08b21b3696e88d0e0/a48f1c84ccbb47b4941ef6fd868f1988.png"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 2331,
+          "url": "https://media.sketchfab.com/avatars/6772453d4ea945d08b21b3696e88d0e0/652370d8a90449debbdbd3248df895da.png"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/e9db551b564149808335556d521a9f51"
+  },
+  "vertexCount": 131721,
+  "viewCount": 8887,
+  "viewerUrl": "https://sketchfab.com/3d-models/astronomical-quintant-4b8e17593bd5457aaa958a85c1e5440d",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "Astronomical quintant\n\nJoseph von Utzschneider – artist / maker\nJoseph Liebherr – artist / maker\n\n1st half of the 19th century, Munich, Germany\nJagiellonian University Museum, Collegium Maius\n\nThis item is an observational astronomical instrument used to determine the altitude of celestial bodies above the horizon. It consists of a frame restricted by two radiuses and an arc with a scale, an observation telescope, and a mirror system. The arc of the quintant is the fifth part of a circle, hence its name, analogous to quadrants, sextants, and octants (based on the fourth, sixth, and eighth parts of a circle, respectively).\n\nFor more images and further information, visit: https://muzea.malopolska.pl/en/objects-list/2779\n\nInventory number: 4103; 103/V\n\nLocalisation of the physical object: Archaeological Museum in Kraków\n\nDigitalisation: Regional Digitalisation Lab, Małopolska Institute of Culture in Kraków, Poland; “Virtual Museums of Małopolska” Project",
+  "price": null,
+  "downloadCount": 2711,
+  "editorUrl": "https://sketchfab.com/models/4b8e17593bd5457aaa958a85c1e5440d/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2023-03-21T14:40:42.251460",
+  "pbrType": "metalness",
+  "textureCount": 10,
+  "materialCount": 3
+}
