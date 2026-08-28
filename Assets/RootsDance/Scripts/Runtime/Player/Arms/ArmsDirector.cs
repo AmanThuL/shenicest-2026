@@ -161,6 +161,22 @@ namespace RootsDance.Player.Arms
         {
             int layer = action.Layer;
 
+            // A two-armed action owns both arms, so any single-arm layer still holding one of them
+            // has to let go. Without this a masked layer that ended on a held pose — the carry
+            // loop is the obvious one, it never finishes on its own — keeps overriding its arm,
+            // and a two-handed animation plays with only the other arm moving.
+            if (action.Scope == ArmsScope.Both)
+            {
+                for (int other = 1; other < k_LayerCount; other++)
+                {
+                    if (m_targetWeight[other] > 0f)
+                    {
+                        SetLayerTarget(other, 0f, action.FadeIn);
+                        m_playback[other].m_isRunning = false;
+                    }
+                }
+            }
+
             m_animator.SetFloat(m_speedParam[layer], action.Speed);
             m_animator.CrossFadeInFixedTime(
                 Animator.StringToHash(action.StateName), action.FadeIn, layer, 0f);
