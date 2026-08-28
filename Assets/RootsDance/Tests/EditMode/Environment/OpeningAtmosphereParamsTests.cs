@@ -142,13 +142,18 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void CreateDefault_PsxBaseline_IsTheFullLookWithLighterGrainThanAnySegment()
+        public void CreateDefault_PsxBaseline_UsesPsxModeWithConfiguredGrainFallback()
         {
             OpeningAtmosphereParams p = OpeningAtmosphereParams.CreateDefault();
             Assert.IsNotNull(p.PsxBaseline, "the level needs an always-on PSX baseline");
             AssertPsxLookIsValid(p.PsxBaseline, "PsxBaseline");
             Assert.AreEqual(1f, p.PsxBaseline.Intensity, "the whole level reads as PSX");
-            Assert.Greater(p.PsxBaseline.GrainIntensity, 0f, "grain is always on");
+            Assert.IsFalse(p.PsxBaseline.GrainMode, "PSX and grain must not stack");
+            Assert.AreEqual(4, p.PsxBaseline.PixelScale, "1080p should resolve to a chunky 480x270 grid");
+            Assert.AreEqual(32, p.PsxBaseline.ColorLevels, "32 steps per channel approximate 15-bit colour");
+            Assert.AreEqual(0.6f, p.PsxBaseline.Dither, "ordered dither must remain visible after quantisation");
+            Assert.Greater(p.PsxBaseline.InterlaceStrength, 0f, "interlacing is always on");
+            Assert.Greater(p.PsxBaseline.GrainIntensity, 0f, "grain fallback remains configured");
 
             foreach (OpeningSegment s in p.Segments)
             {
@@ -167,6 +172,8 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(psx.PixelScale, Is.InRange(1, 8), name + " PixelScale");
             Assert.That(psx.ColorLevels, Is.InRange(4, 256), name + " ColorLevels");
             Assert.That(psx.Dither, Is.InRange(0f, 1f), name + " Dither");
+            Assert.That(psx.InterlaceStrength, Is.InRange(0f, 1f), name + " InterlaceStrength");
+            Assert.That(psx.InterlaceSize, Is.InRange(1, 8), name + " InterlaceSize");
             Assert.That(psx.GrainIntensity, Is.InRange(0f, 1f), name + " GrainIntensity");
             Assert.That(psx.GrainSize, Is.InRange(1, 8), name + " GrainSize");
             Assert.That(psx.GrainRate, Is.InRange(0f, 60f), name + " GrainRate");
