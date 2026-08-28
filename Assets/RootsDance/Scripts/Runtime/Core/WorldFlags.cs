@@ -28,6 +28,32 @@ namespace RootsDance.Core
         /// <summary>First investigation of any kind completed (node 00-07).</summary>
         public const string k_FirstInvestigationDone = "flow.first_investigation_done";
 
+        // ---- Chapter 02: the corridor and the greenhouse ----------------------------------------
+
+        /// <summary>The underground root network has been read through the floor window (02-02).</summary>
+        public const string k_SawUndergroundNetwork = "flow.saw_underground_network";
+
+        /// <summary>The flower sprite has been met and spoken to (02-04).</summary>
+        public const string k_MetFlowerSprite = "flow.met_flower_sprite";
+
+        /// <summary>The sprite has said the station belonged to someone — the first "her" (02-04).</summary>
+        public const string k_HeardAboutHer = "flow.heard_about_her";
+
+        /// <summary>The player has entered the greenhouse proper (02-08).</summary>
+        public const string k_EnteredGreenhouse = "flow.entered_greenhouse";
+
+        /// <summary>The staff photograph on the observation deck has been read (02-10).</summary>
+        public const string k_SawStaffPhotograph = "flow.saw_staff_photograph";
+
+        /// <summary>Core Cultivation was started — a wrong answer (02-12).</summary>
+        public const string k_CirculationCore = "flow.circulation_core";
+
+        /// <summary>Standard Ring was started — the other wrong answer (02-12).</summary>
+        public const string k_CirculationRing = "flow.circulation_ring";
+
+        /// <summary>Outer Boundary was started — the ecology's actual state (02-12).</summary>
+        public const string k_CirculationOuter = "flow.circulation_outer";
+
         /// <summary>The player confirmed that the research facility's main entrance is blocked (node 00-09).</summary>
         public const string k_MainEntranceBlocked = "flow.main_entrance_blocked";
 
