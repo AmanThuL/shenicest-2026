@@ -31,7 +31,7 @@ MonoBehaviour:
   m_insetUnits: 16
   m_cornerUnits: 4
   m_interactiveRadiusUnits: 1.5
-  m_font: {fileID: 11400000, guid: 9d11a371f29554782b0d2cf73ce393c5, type: 2}
+  m_font: {fileID: 11400000, guid: 388e257190ff6482baf5d077f9c5a970, type: 2}
   m_boldText: 0
   m_microSize: 16
   m_bodySize: 24

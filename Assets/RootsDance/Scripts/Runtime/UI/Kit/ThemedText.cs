@@ -8,9 +8,10 @@ namespace RootsDance.UI.Kit
     /// <para>
     /// Case is a family rule, not a per-label choice: Archive screens are all caps, Terminal screens
     /// keep the authored string. The label defers to the theme by default and only overrides for the
-    /// rare string that must not follow its family. The face is always the theme's — VT323, a real
-    /// pixel mono font. There is no monospacing fakery here any more: imposing a fixed advance on a
-    /// proportional face was the old spec's approach, and it is exactly the giveaway §2C now bans.
+    /// rare string that must not follow its family. The face is always the theme's — m5x7 for
+    /// Latin, Fusion Pixel behind it for CJK, both real pixel faces. There is no monospacing fakery
+    /// here any more: imposing a fixed advance on a proportional face was the old spec's approach,
+    /// and it is exactly the giveaway §2C now bans.
     /// </para>
     /// </summary>
     [ExecuteAlways]
@@ -27,8 +28,8 @@ namespace RootsDance.UI.Kit
         [Tooltip("Family defers to the theme: Archive upper-cases, Terminal keeps the string. Spec §2C.")]
         [SerializeField] private KitCase m_case = KitCase.Family;
 
-        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — Fusion Pixel has one " +
-            "weight and no italic cut, and the spec allows faking the slant but never the weight.")]
+        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — both kit faces have " +
+            "one weight and no italic cut, and the spec allows faking the slant but never the weight.")]
         [SerializeField] private bool m_italic;
 
         private ElectronicUITheme m_theme;
