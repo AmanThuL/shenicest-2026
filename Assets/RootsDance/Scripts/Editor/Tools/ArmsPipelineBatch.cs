@@ -33,6 +33,68 @@ namespace RootsDance.EditorTools
         }
 
         /// <summary>
+        /// Opens the player-test scenes, runs the three builders in order, and measures the held
+        /// scanner. The measurement is the point: a prop parented inside the imported arms sits
+        /// under bones with a decomposed scale of about 100, so "is it the right size in the hand"
+        /// is the one question a batch log can answer that reading the code cannot.
+        /// </summary>
+        public static void WireAndMeasure()
+        {
+            const string environment =
+                "Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Environment.unity";
+            const string gameplay =
+                "Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Gameplay.unity";
+
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                environment, UnityEditor.SceneManagement.OpenSceneMode.Single);
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                gameplay, UnityEditor.SceneManagement.OpenSceneMode.Additive);
+
+            ArmsRigWiringBuilder.Wire();
+            ScannerFlowBuilder.Build();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("HELD PROP MEASUREMENT");
+
+            foreach (var socket in Object.FindObjectsByType<RootsDance.Player.Arms.HandSocket>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                sb.Append("  socket ").Append(socket.name)
+                    .Append(" parentLossy=")
+                    .Append(socket.transform.parent == null
+                        ? "root" : socket.transform.parent.lossyScale.ToString("F3"))
+                    .Append(" lossy=").AppendLine(socket.transform.lossyScale.ToString("F3"));
+
+                foreach (Transform child in socket.transform)
+                {
+                    Bounds bounds = new Bounds();
+                    bool has = false;
+
+                    foreach (Renderer renderer in child.GetComponentsInChildren<Renderer>(true))
+                    {
+                        if (!has)
+                        {
+                            bounds = renderer.bounds;
+                            has = true;
+                        }
+                        else
+                        {
+                            bounds.Encapsulate(renderer.bounds);
+                        }
+                    }
+
+                    sb.Append("    held: ").Append(child.name)
+                        .Append(" localScale=").Append(child.localScale.ToString("F4"))
+                        .Append(" lossyScale=").Append(child.lossyScale.ToString("F4"))
+                        .Append(" worldSize=").AppendLine(has ? bounds.size.ToString("F4") : "no renderers");
+                }
+            }
+
+            sb.AppendLine("Expected: the scanner about 0.22 m tall, lossy scale about 1.");
+            Debug.Log(sb.ToString());
+        }
+
+        /// <summary>
         /// Prints what the pipeline actually produced — clip lengths, layers, masks and every
         /// action's wiring — so a batch log is enough to tell whether the rebuild is sound.
         /// </summary>

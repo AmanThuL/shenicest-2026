@@ -86,6 +86,10 @@ namespace RootsDance.EditorTools
             SetObjectField(console, "m_actions", set);
 
             WireHelmet(arms, director, right, log);
+
+            // Must run before the strip: the old socket component is where the grip offsets live,
+            // and it is about to be removed.
+            AdoptHeldProps(left, right, log);
             int stripped = StripSuperseded(log);
 
             log.Append("stripped ").Append(stripped).AppendLine(" superseded component(s)");
@@ -190,6 +194,77 @@ namespace RootsDance.EditorTools
             }
         }
 
+        /// <summary>
+        /// Moves whatever the old socket component was carrying onto the new socket, and this is
+        /// the step that actually fixes the oversized prop.
+        /// <para>
+        /// The prop used to sit <em>inside</em> the imported arms hierarchy, where every bone
+        /// carries a decomposed local scale of about 100. The old component hid that by writing a
+        /// compensating 0.67 into the prop's local scale every late update. Removing it without
+        /// moving the prop would leave the prop parented to a bone at lossy scale 100 with a stale
+        /// local scale — which is exactly a prop roughly a hundred times too big. So the prop is
+        /// reparented to the socket, which lives outside the model and is unscaled, and its local
+        /// scale is reset to one. Its real size is its own prefab's business.
+        /// </para>
+        /// </summary>
+        private static void AdoptHeldProps(HandSocket left, HandSocket right, StringBuilder log)
+        {
+            foreach (Component component
+                in Object.FindObjectsByType<Component>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (component == null || component.GetType().Name != "ScannerHandSocket")
+                {
+                    continue;
+                }
+
+                SerializedObject old = new SerializedObject(component);
+                SerializedProperty bone = old.FindProperty("m_handBone");
+                SerializedProperty offset = old.FindProperty("m_holdPositionOffset");
+                SerializedProperty rotation = old.FindProperty("m_holdRotationOffset");
+
+                // The scanner is held in the left hand; that is what the old socket tracked.
+                HandSocket socket = left != null ? left : right;
+
+                if (socket == null)
+                {
+                    log.AppendLine("prop: no socket to adopt onto");
+                    continue;
+                }
+
+                if (bone != null && bone.objectReferenceValue is Transform handBone)
+                {
+                    socket.Configure(
+                        socket.Hand,
+                        handBone,
+                        offset == null ? Vector3.zero : offset.vector3Value,
+                        rotation == null ? Quaternion.identity : rotation.quaternionValue);
+                    EditorUtility.SetDirty(socket);
+                }
+
+                Transform prop = component.transform;
+                Vector3 wasLossy = prop.lossyScale;
+
+                Undo.SetTransformParent(prop, socket.transform, "Wire Player Arms Rig");
+                prop.localPosition = Vector3.zero;
+                prop.localRotation = Quaternion.identity;
+                prop.localScale = Vector3.one;
+
+                CarriedItem carried = prop.GetComponent<CarriedItem>();
+
+                if (carried == null)
+                {
+                    carried = Undo.AddComponent<CarriedItem>(prop.gameObject);
+                }
+
+                SetObjectField(carried, "m_hand", (int)socket.Hand);
+
+                log.Append("prop: ").Append(prop.name)
+                    .Append(" adopted onto ").Append(socket.name)
+                    .Append(" — world scale was ").Append(wasLossy.ToString("F3"))
+                    .Append(", now ").AppendLine(prop.lossyScale.ToString("F3"));
+            }
+        }
+
         /// <summary>Removes the components the director makes redundant, wherever they sit.</summary>
         private static int StripSuperseded(StringBuilder log)
         {
@@ -263,6 +338,20 @@ namespace RootsDance.EditorTools
             }
 
             property.objectReferenceValue = value;
+            so.ApplyModifiedProperties();
+        }
+
+        private static void SetObjectField(Object target, string field, int value)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty property = so.FindProperty(field);
+
+            if (property == null)
+            {
+                return;
+            }
+
+            property.enumValueIndex = value;
             so.ApplyModifiedProperties();
         }
 
