@@ -118,6 +118,7 @@ GameObject:
   - component: {fileID: 1171756524664913336}
   - component: {fileID: 1633556529951712519}
   - component: {fileID: 8163118375396427749}
+  - component: {fileID: 6841962975302966709}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -269,6 +270,21 @@ MonoBehaviour:
   m_autoOnAtNight: 1
   m_fadeSeconds: 0.15
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
+--- !u!114 &6841962975302966709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a0b8899ffea841deafe2d50fe1a65c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.FlashlightBeamBroadcaster
+  m_light: {fileID: 3238816247033891326}
+  m_controller: {fileID: 8163118375396427749}
+  m_coneMarginDegrees: 4
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0

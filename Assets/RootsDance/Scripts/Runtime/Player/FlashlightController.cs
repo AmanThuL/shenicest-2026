@@ -42,6 +42,14 @@ namespace RootsDance.Player
         private bool m_hasLight;
         private bool m_isSeeded;
 
+        /// <summary>
+        /// How far the beam has faded up, 0 while it is off and 1 at the authored intensity.
+        /// <see cref="FlashlightBeamBroadcaster"/> publishes this so surfaces that react to the
+        /// beam fade with it instead of popping on at the first frame of the fade.
+        /// </summary>
+        public float BeamStrength =>
+            m_hasLight && m_fullIntensity > 0f ? m_light.intensity / m_fullIntensity : 0f;
+
         private void Awake()
         {
             m_input = GetComponent<PlayerInputReader>();

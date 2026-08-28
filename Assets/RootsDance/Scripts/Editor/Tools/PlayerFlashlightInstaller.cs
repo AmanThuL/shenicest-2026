@@ -12,9 +12,10 @@ namespace RootsDance.Editor.Tools
 {
     /// <summary>
     /// Installs the first-person flashlight: the <c>Player/Flashlight</c> input action, the Spot light on
-    /// <c>Head/Flashlight</c> in Player.prefab, and the FlashlightController on the prefab root wired to that
-    /// light and to the TimeOfDayChanged channel. Idempotent — every step is an "ensure", so a re-run never
-    /// duplicates the action, the child or the component. Menu: RootsDance > Player > Install Flashlight.
+    /// <c>Head/Flashlight</c> in Player.prefab, and the FlashlightController plus
+    /// FlashlightBeamBroadcaster on the prefab root, wired to that light and to the TimeOfDayChanged
+    /// channel. Idempotent — every step is an "ensure", so a re-run never duplicates the action, the
+    /// child or the component. Menu: RootsDance > Player > Install Flashlight.
     /// </summary>
     public static class PlayerFlashlightInstaller
     {
@@ -235,6 +236,21 @@ namespace RootsDance.Editor.Tools
                 serialized.FindProperty("m_timeOfDayChanged").objectReferenceValue = channel;
                 serialized.ApplyModifiedProperties();
 
+                // The broadcaster is part of the flashlight, not a separate feature: anything in the
+                // world that reacts to being lit reads the globals it publishes, and a Player without
+                // it leaves every fluorescent surface dark with no error to explain why.
+                FlashlightBeamBroadcaster broadcaster = contents.GetComponent<FlashlightBeamBroadcaster>();
+
+                if (broadcaster == null)
+                {
+                    broadcaster = contents.AddComponent<FlashlightBeamBroadcaster>();
+                }
+
+                SerializedObject beam = new SerializedObject(broadcaster);
+                beam.FindProperty("m_light").objectReferenceValue = light;
+                beam.FindProperty("m_controller").objectReferenceValue = controller;
+                beam.ApplyModifiedProperties();
+
                 bool saved;
                 PrefabUtility.SaveAsPrefabAsset(contents, k_PlayerPrefabPath, out saved);
 
@@ -246,8 +262,8 @@ namespace RootsDance.Editor.Tools
 
                 AssetDatabase.SaveAssets();
                 Debug.Log($"{k_LogPrefix}: '{k_HeadName}/{k_FlashlightName}' spot ({k_IntensityLumen} lm, "
-                    + $"{k_SpotAngle}° cone, {k_Range} m) and FlashlightController are wired on "
-                    + $"{k_PlayerPrefabPath}.");
+                    + $"{k_SpotAngle}° cone, {k_Range} m), FlashlightController and "
+                    + $"FlashlightBeamBroadcaster are wired on {k_PlayerPrefabPath}.");
                 return true;
             }
             finally
