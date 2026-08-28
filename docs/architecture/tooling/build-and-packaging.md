@@ -265,6 +265,24 @@ xattr -dr com.apple.quarantine RootsDance.app
   `[BuildScript] <profile>: result=Succeeded` marker (`build_succeeded()` in `build.py`) rather
   than trusting the exit code or `os.path.exists()` alone. If you are diagnosing a build by hand,
   do the same — look for that exact line in `Logs/build-<profile>.log`.
+- **An Editor that was already open when you pulled will overwrite `ProjectSettings.asset` with
+  its stale in-memory copy.** Unity loads Player Settings once, at project open; it does not
+  re-read the file when git changes it underneath. The next thing that saves — any
+  `AssetDatabase.SaveAssets()`, or just quitting the Editor — writes the *old* values back and
+  silently reverts the merged ones. Observed on 2026-08-28: pulling this system into an Editor
+  that had been open since before the merge wiped the IL2CPP backend, the compiler
+  configuration, `Minimal` stripping and the Metal-only graphics API in one save, leaving builds
+  quietly back on Mono defaults. **After pulling a change that touches `ProjectSettings.asset`,
+  either restart the Editor or re-run `RootsDance > Build > Create Default Build Profiles`** —
+  the generator is idempotent and re-applies every value. Then check
+  `git diff ProjectSettings/ProjectSettings.asset` before committing.
+- **`AssetDatabase.SaveAssets()` flushes every dirty asset in the project, not just the profiles.**
+  Running the generator in a session where TVE materials are dirty writes ~37 unrelated `.mat`
+  files. They are not yours to commit: `git restore Assets/RootsDance/Materials/Environment/`
+  afterwards, and stage `ProjectSettings/` explicitly.
+- **Every batch build re-serializes three assets** — the VT323 SDF font, `DefaultVolumeProfile`
+  and `HDRenderPipelineGlobalSettings`. Restore them after a build, or the *next* build sees a
+  dirty tree and tags its zip `-dirty`.
 
 ## Open follow-ups
 
