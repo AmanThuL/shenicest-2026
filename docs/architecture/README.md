@@ -58,6 +58,7 @@ docs/architecture/
 | [Blender → Unity 导出管线](tooling/Blender到Unity导出管线.md) | 模型/绑定/动画管线：通用导出器 + JSON profile + 每资产参数、不走 `.blend` 原生导入的理由、约束不需预先 bake、手持道具的 socket 挂接，以及 D14/D15/D16 的 Unity 侧实测结果（**D15 不达标，待技术美术定**）。 |
 | [贴图管线](tooling/贴图管线.md) | Blender → Substance Painter → Unity 的贴图管线：目录与命名约定、九段流程与机器校验、预设、Painter 远程脚本协议与 API 探针、Unity 导入设置自动化、版本控制策略（**材质创作与贴花尚未实现**）。 |
 | [Dev Play：从检查点开始玩](tooling/dev-play-checkpoints.md) | Editor 专用：一键打开 Main 场景、进 Play、把玩家传送到站点并通过命令队列补齐世界状态（flag / 报告条目）；Play 中可跳到其他检查点；检查点是 `Data/DevPlay/` 下的 `DevCheckpointSO`（英文）。 |
+| [构建与打包](tooling/build-and-packaging.md) | `Tools/build/build.py`：preflight 检查 + 无头 Unity 构建 + 打包成按提交号命名的 zip；命名约定、zip 结构、profile 与玩家设置对照表（含出处）、Gatekeeper 隔离说明（英文；**Windows 路径未经实测**）。 |
 
 ## 历史资料
 
