@@ -72,9 +72,9 @@ Material:
     - _ShellMean: 0.026
     - _ShellTexStrength: 0.85
     - _ShellTiling: 2.5
-    - _SmudgeCenterClear: 0.35
     - _SmudgeMean: 0.22
-    - _SmudgeStrength: 0.45
+    - _SmudgeSpread: 0.12
+    - _SmudgeStrength: 0.4
     - _SmudgeTiling: 0.7
     - _Stencil: 0
     - _StencilComp: 8
