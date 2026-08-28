@@ -16,6 +16,7 @@ namespace RootsDance.Player
         private const string k_SprintAction = "Player/Sprint";
         private const string k_InteractAction = "Player/Interact";
         private const string k_FlashlightAction = "Player/Flashlight";
+        private const string k_FlipAction = "Player/Attack";
 
         private InputAction m_move;
         private InputAction m_look;
@@ -23,6 +24,7 @@ namespace RootsDance.Player
         private InputAction m_sprint;
         private InputAction m_interact;
         private InputAction m_flashlight;
+        private InputAction m_flip;
 
         public Vector2 MoveInput => m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
 
@@ -39,6 +41,13 @@ namespace RootsDance.Player
         /// <summary>True on the frame the flashlight button went down. Read from Update only.</summary>
         public bool FlashlightPressedThisFrame => m_flashlight != null && m_flashlight.WasPressedThisFrame();
 
+        /// <summary>
+        /// True on the frame the primary button went down. Read from Update only. Named for what it
+        /// does rather than for the action it comes from: the project-wide asset ships an "Attack"
+        /// action and this game has nothing to attack, so it is the turn-the-page button.
+        /// </summary>
+        public bool FlipPressedThisFrame => m_flip != null && m_flip.WasPressedThisFrame();
+
         private void Awake()
         {
             m_move = Resolve(k_MoveAction);
@@ -47,6 +56,7 @@ namespace RootsDance.Player
             m_sprint = Resolve(k_SprintAction);
             m_interact = Resolve(k_InteractAction);
             m_flashlight = Resolve(k_FlashlightAction);
+            m_flip = Resolve(k_FlipAction);
         }
 
         private void OnEnable()
@@ -59,6 +69,7 @@ namespace RootsDance.Player
             Enable(m_sprint);
             Enable(m_interact);
             Enable(m_flashlight);
+            Enable(m_flip);
         }
 
         private InputAction Resolve(string actionPath)
