@@ -49,10 +49,12 @@ namespace RootsDance.Editor.Environment
         /// <summary>Fixed exposure in EV100 — guideline 07 §5.2's "dark corridor / dusk" bracket.</summary>
         private const float k_NightFixedExposure = 5f;
 
-        private static readonly Color k_NightSkyTop = new Color(0.02f, 0.03f, 0.06f);
-        private static readonly Color k_NightSkyMiddle = new Color(0.05f, 0.07f, 0.12f);
-        private static readonly Color k_NightSkyBottom = new Color(0.04f, 0.045f, 0.06f);
-        private const float k_NightSkyExposure = 2f;
+        // Second pass (playtest 2026-08-28): a readable night — silhouettes and ground visible without the
+        // torch, the torch still ~2 stops above the ambient so it reveals detail rather than just brightness.
+        private static readonly Color k_NightSkyTop = new Color(0.03f, 0.05f, 0.10f);
+        private static readonly Color k_NightSkyMiddle = new Color(0.08f, 0.11f, 0.18f);
+        private static readonly Color k_NightSkyBottom = new Color(0.06f, 0.07f, 0.09f);
+        private const float k_NightSkyExposure = 3.5f;
         private const float k_NightSkyMultiplier = 1f;
 
         /// <summary>Single-scattering albedo: a cold blue haze instead of MainProfile's neutral grey.</summary>
@@ -71,14 +73,17 @@ namespace RootsDance.Editor.Environment
         private static readonly Color k_DayFallbackSunColor = new Color(1f, 0.96f, 0.88f);
         private const float k_DaySunVolumetricMultiplier = 1f;
 
-        /// <summary>Moonlight, in lux — three decades below the overcast sun, hence the log-space blend.</summary>
-        private const float k_NightSunLux = 8f;
+        /// <summary>
+        /// Moonlight, in lux — a stylised bright moon (a real full moon is ~0.3 lux). At fixed EV 5 this keeps
+        /// unlit ground about two stops under mid-grey: visible, clearly night; the 8 lux first pass read black.
+        /// </summary>
+        private const float k_NightSunLux = 25f;
 
         private static readonly Color k_NightSunColor = new Color(0.62f, 0.72f, 1f);
 
-        /// <summary>HDRP light Volumetrics Multiplier at night: half, so the moon does not light the fog
-        /// like a sun.</summary>
-        private const float k_NightSunVolumetricMultiplier = 0.5f;
+        /// <summary>HDRP light Volumetrics Multiplier at night: dimmed so the brighter moon does not turn the
+        /// fog into a uniform grey wash that would swallow the torch beam.</summary>
+        private const float k_NightSunVolumetricMultiplier = 0.4f;
 
         // ---- scene object values -------------------------------------------------------------------------
 

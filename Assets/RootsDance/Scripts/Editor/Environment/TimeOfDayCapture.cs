@@ -60,6 +60,17 @@ namespace RootsDance.Editor.Environment
             }
         }
 
+        /// <summary>
+        /// Batch tuning loop in one Editor session: reset NightProfile and the presets to the seed values in
+        /// TimeOfDayBuilder, then capture.
+        /// <c>-executeMethod RootsDance.Editor.Environment.TimeOfDayCapture.RebuildAndCaptureFromCommandLine</c>.
+        /// </summary>
+        public static void RebuildAndCaptureFromCommandLine()
+        {
+            TimeOfDayBuilder.RebuildFromCommandLine();
+            CaptureFromCommandLine();
+        }
+
         /// <summary>Renders every checkpoint into <paramref name="outputFolder"/>. Returns false after logging.</summary>
         public static bool Capture(string outputFolder)
         {
