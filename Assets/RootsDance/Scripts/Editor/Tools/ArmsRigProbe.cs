@@ -80,9 +80,16 @@ namespace RootsDance.EditorTools
             sb.Append("  height anchors  : ").Append(anchors)
                 .AppendLine(anchors == 0 ? "  (removed)" : "  (STILL PRESENT)");
 
-            ArmsHeightRig rig = Field<ArmsHeightRig>(offset, "m_height");
-            sb.Append("  offset.m_height : ")
-                .AppendLine(rig == null ? "NOT WIRED" : Path(rig.transform) + "   drop=" + rig.CurrentDrop.ToString("F3"));
+            ArmsHeightRig rig = offset.GetComponent<ArmsHeightRig>();
+            sb.Append("  height rig      : ")
+                .AppendLine(rig == null ? "MISSING" : Path(rig.transform) + "   drop=" + rig.CurrentDrop.ToString("F3"));
+
+            // Which transform the drop lands on is the whole of the crawl bug: on the arms it is
+            // invisible to the camera, on the view target it moves both.
+            CameraBoneViewBob dropOwner = offset.GetComponent<CameraBoneViewBob>();
+            sb.Append("  drop applied to : ").AppendLine(dropOwner == null
+                ? "nothing — no CameraBoneViewBob"
+                : "the view target, by CameraBoneViewBob");
             sb.Append("  rig on the arms : ").AppendLine(
                 rig != null && rig.transform == arms ? "yes" : "NO — it should live on the arms");
 

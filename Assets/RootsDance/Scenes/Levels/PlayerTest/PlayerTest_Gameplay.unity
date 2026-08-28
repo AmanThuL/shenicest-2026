@@ -1028,19 +1028,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.00006696414
+      value: 0.00006696455
       objectReference: {fileID: 0}
     - target: {fileID: 9143252287289867373, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0006000001
+      value: -0.00059999974
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2286,7 +2286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsHeightRig
   m_standingLocalY: 0
-  m_playerHeight: 1.75
+  m_playerHeight: 0.98
   m_groundOffset: 0.35
   m_riseCurve:
     serializedVersion: 2
