@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace RootsDance.Editor.Pipeline
 {
@@ -26,6 +28,19 @@ namespace RootsDance.Editor.Pipeline
     /// </remarks>
     public class BlenderModelPostprocessor : AssetPostprocessor
     {
+        private static readonly int k_DoubleSidedEnable = Shader.PropertyToID("_DoubleSidedEnable");
+
+        private static readonly int k_DoubleSidedNormalMode =
+            Shader.PropertyToID("_DoubleSidedNormalMode");
+
+        /// <summary>
+        /// HDRP's <c>DoubleSidedNormalMode.Mirror</c>. The enum is internal to
+        /// <c>com.unity.render-pipelines.high-definition</c>
+        /// (<c>Runtime/Material/MaterialExtension.cs</c>, <c>Flip, Mirror, None</c>), so the value
+        /// has to be written out here.
+        /// </summary>
+        private const float k_DoubleSidedNormalModeMirror = 1f;
+
         /// <summary>The entry for the asset being imported, or null when it is not ours.</summary>
         private ModelImportProfiles.AssetEntry FindEntry(out ModelImportProfiles profiles)
         {
@@ -121,6 +136,77 @@ namespace RootsDance.Editor.Pipeline
             importer.AddRemap(
                 new AssetImporter.SourceAssetIdentifier(typeof(Material), remap.Source),
                 material);
+        }
+
+        /// <summary>
+        /// Runs after the importer has built the materials, which is the only point where the
+        /// generated HDRP materials exist and can still be edited as part of this import.
+        /// </summary>
+        private void OnPostprocessModel(GameObject root)
+        {
+            ModelImportProfiles.AssetEntry entry = FindEntry(out ModelImportProfiles profiles);
+
+            if (entry == null)
+            {
+                return;
+            }
+
+            ModelImportProfiles.Profile profile = profiles.FindProfile(entry.ProfileName);
+
+            if (profile == null || !profile.DoubleSidedMaterials)
+            {
+                return;
+            }
+
+            HashSet<Material> visited = new HashSet<Material>();
+
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                foreach (Material material in renderer.sharedMaterials)
+                {
+                    if (material == null || !visited.Add(material))
+                    {
+                        continue;
+                    }
+
+                    MakeDoubleSided(material);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Turns one generated material double-sided. Mirror is the right normal mode here: the
+        /// source shells wind inconsistently, so a backface's normal is as likely to be the correct
+        /// one as the frontface's, and mirroring lights both sides plausibly. Flip would invert the
+        /// half that was already facing the right way.
+        /// </summary>
+        private void MakeDoubleSided(Material material)
+        {
+            // A material the model does not own — a remapped project asset — belongs to whoever
+            // authored it. Editing it here would silently change every other model using it.
+            string materialPath = AssetDatabase.GetAssetPath(material);
+
+            if (!string.IsNullOrEmpty(materialPath) && materialPath != assetPath)
+            {
+                return;
+            }
+
+            // Anything outside the HDRP Lit family has no such property; leave it untouched rather
+            // than guessing at another shader's render state.
+            if (!material.HasProperty(k_DoubleSidedEnable))
+            {
+                Debug.LogWarning($"{assetPath}: material '{material.name}' uses shader "
+                    + $"'{material.shader.name}', which has no _DoubleSidedEnable. It stays "
+                    + "single-sided, so backfaces will still be culled.");
+                return;
+            }
+
+            material.SetFloat(k_DoubleSidedEnable, 1f);
+            material.SetFloat(k_DoubleSidedNormalMode, k_DoubleSidedNormalModeMirror);
+
+            // HDRP derives cull mode, keywords, render queue and _DoubleSidedConstants from those
+            // two values. Setting them without validating leaves the material visually unchanged.
+            HDMaterial.ValidateMaterial(material);
         }
 
         private void OnPreprocessAnimation()

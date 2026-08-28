@@ -145,7 +145,19 @@ FBX 导出器勾了 Baked Animation 后，会把约束求解后的姿态逐帧�
 - **Animation** — `importAnimation` 开、压缩 `Off`、clip 命名 `Arms_HelmetOff`
 - **Materials** — `External` + `BasedOnMaterialName` + `Everywhere`，材质重定向到 `Assets/RootsDance/Materials/`，避免 Unity 在 mesh 旁边另建 `Materials/`
 
-`static_blockout` profile（实验室白模）：同 `static_prop`，但 `m_globalScale = 0.4`（V2 建筑比例决策见 [全章节地形与场景空间设计方案](../../design/全章节地形与场景空间设计方案.md) §0 第 8 条）、`m_addCollider` 开（白模是可走的灰盒几何）、`m_materialImportMode = None`（白色默认材质）。
+`static_blockout` profile（实验室白模）：同 `static_prop`，但 `m_globalScale = 0.4`（V2 建筑比例决策见 [全章节地形与场景空间设计方案](../../design/全章节地形与场景空间设计方案.md) §0 第 8 条）、`m_addCollider` 开（白模是可走的灰盒几何）、`m_materialImportMode = ImportViaMaterialDescription` + `m_materialLocation = InPrefab`（材质随 FBX 内嵌，不在 mesh 旁边另建 `Materials/`）、`m_doubleSidedMaterials` 开（见 §8.2）。
+
+### 8.2 `m_doubleSidedMaterials`：建筑白模必须双面
+
+SketchUp 系导出的建筑体是**单面壳**——面没有厚度，绕序还不统一。Blender 材质默认 `use_backface_culling = False`，两面都画，所以在 Blender 里墙是实的；Unity 默认剔除背面，于是站在房间里有一半墙直接消失，看起来像“墙透明了”。
+
+实测（`GAIA1_v4.blend` 的 `Lab`，2026-08-28）：95 个 mesh **全部**是开放壳（各有 10–12 条边界边），从室内视点看背向的墙面占总面积 **59.9%**；同一相机在 Unity 里渲染，按原样导入时画面 **52.3%** 是空的，只把材质改成双面后降到 10.5%（剩下的是 `Lab` 里本来就没有的地板）。把三个 `Translucent_Glass_*` 材质强制改成不透明后这 10.5% 不变——**透明材质不是原因，背面剔除才是**。
+
+**这件事只能在 Unity 侧解决**：单面片能否两面可见是渲染状态，不是网格数据；FBX 不携带双面标志，Blender 的 `use_backface_culling` 导不出去。Blender 侧唯一的等价做法是给墙加实体厚度（Solidify），那是改美术资产。
+
+`m_doubleSidedMaterials` 开启后，`BlenderModelPostprocessor.OnPostprocessModel` 会把该模型**自己生成**的材质设成 `_DoubleSidedEnable = 1` + 法线模式 Mirror，再调 `HDMaterial.ValidateMaterial` 让 HDRP 重算 cull mode / 关键字 / `_DoubleSidedConstants`。被 `m_materials` 重定向到项目里的 `.mat` 资产**不会**被改——那是别人的资产。
+
+代价：双面材质的着色量与阴影成本更高，且零厚度几何的自阴影容易有瑕疵。资产定稿时更好的做法仍是在 Blender 里给墙做出厚度。
 
 两个 Editor 菜单：
 

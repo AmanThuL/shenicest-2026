@@ -288,6 +288,12 @@
       ]
     },
     {
+      "m_path": "Assets/RootsDance/Meshes/Environment/LabBlockout_V4.fbx",
+      "m_profile": "static_blockout",
+      "m_manifest": "SourceArt/Export/LabBlockout_V4.export.json",
+      "m_materials": []
+    },
+    {
       "m_path": "Assets/RootsDance/Meshes/Environment/LabBlockout.fbx",
       "m_profile": "static_blockout",
       "m_manifest": "SourceArt/Export/LabBlockout.export.json",
