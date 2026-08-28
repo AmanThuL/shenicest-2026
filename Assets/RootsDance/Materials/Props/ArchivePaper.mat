@@ -39,6 +39,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 67b83d039fe4a4cf887dc193eb70c5de, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _WarpTex:
+        m_Texture: {fileID: 2800000, guid: 4f2b38b7ea8fc41d5b954a64c3a18e3c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AmbientWrap: 0.55
@@ -54,7 +58,7 @@ Material:
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
     - _UseUIAlphaClip: 0
-    - _WarpStrength: 0.005
+    - _WarpStrength: 0.004
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _LightDirection: {r: -0.4, g: 0.55, b: 0.73, a: 0}

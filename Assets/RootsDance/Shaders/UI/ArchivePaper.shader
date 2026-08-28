@@ -25,7 +25,8 @@ Shader "RootsDance/UI/ArchivePaper"
         [PerRendererData] _MainTex ("Composed Page", 2D) = "white" {}
         _Color ("Tint", Color) = (1, 1, 1, 1)
 
-        _FoldTex ("Fold Field (R height, GB gradient, A shoulder)", 2D) = "grey" {}
+        _FoldTex ("Fold Field (R crease, GB panel tilt, A shoulder)", 2D) = "grey" {}
+        _WarpTex ("Warp Field (RG shear across each crease)", 2D) = "grey" {}
 
         _PaperLight ("Paper Light", Color) = (1, 1, 1, 1)
         _LightDirection ("Light Direction (page space)", Vector) = (-0.4, 0.55, 0.73, 0)
@@ -110,6 +111,7 @@ Shader "RootsDance/UI/ArchivePaper"
             float4 _ClipRect;
 
             sampler2D _FoldTex;
+            sampler2D _WarpTex;
             fixed4 _PaperLight;
             float4 _LightDirection;
             float _WarpStrength;
@@ -135,13 +137,16 @@ Shader "RootsDance/UI/ArchivePaper"
             {
                 float4 fold = tex2D(_FoldTex, IN.texcoord);
 
-                // The slope of the *bend*, not of the crushed line at the bottom of it. It varies
-                // smoothly across the whole two millimetres the sheet was curved over, which is
-                // the region where ink on real folded paper is actually displaced.
+                // How each panel leans. This shades the sheet — but it is deliberately NOT what
+                // moves the writing: a panel's tilt is constant across the whole panel, so warping
+                // by it slides every glyph on that panel together and deforms none of them.
                 float2 slope = fold.gb * 2.0 - 1.0;
 
-                // Fold the page, not just the paper.
-                float2 folded = IN.texcoord - slope * _WarpStrength;
+                // What actually bends the letters. A step across each crease, so anything lying
+                // over one is sheared: the sheet turns through its whole dihedral inside about a
+                // millimetre, and seen flat-on the writing there is squeezed and offset.
+                float2 shear = tex2D(_WarpTex, IN.texcoord).rg * 2.0 - 1.0;
+                float2 folded = IN.texcoord - shear * _WarpStrength;
 
                 half4 page = (tex2D(_MainTex, folded) + _TextureSampleAdd) * IN.color;
 

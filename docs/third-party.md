@@ -151,3 +151,14 @@ the only derived data lives under `Assets/RootsDance/`.
 - **Usage:** colour + emissive maps of the generated opening-atmosphere particle materials
   (`Assets/RootsDance/VFX/VFX_ContaminationMotes.mat`, `VFX_AnomalousSpores.mat`, written by
   `OpeningVfxPrefabBuilder`); see [07](guidelines/07-rendering-hdrp.md) §6 for the opening volumes.
+
+## ambientCG — Paper001（旧档案纸张扫描）
+
+- **路径**：`Assets/ThirdParty/Textures/AmbientCG/`（`Color` / `NormalGL` / `Roughness`，2048²，可平铺）
+- **来源**：<https://ambientcg.com/view?id=Paper001>，取自 `Paper001_2K-JPG.zip`，2026-08-29 下载
+- **授权**：**CC0 1.0（公有领域）** —— 可商用，无需署名
+- **用途**：作为**源素材**被 `ArchivePaperTextureBaker` 读取，合成进
+  `Assets/RootsDance/Textures/Props/ArchivePaper_*`。按 AGENTS.md 规定**不在原地修改**。
+- **为什么引入**：纸面原本整张是 Perlin 噪声，无论频率怎么调都读成一团棕雾 ——
+  真实纸纤维是各个尺度都有结构的照片纹理，带限噪声没有。做旧（污渍、霉斑、撕边）仍然是程序生成的，
+  只是现在叠在一张真实扫描上，而不是替代它。

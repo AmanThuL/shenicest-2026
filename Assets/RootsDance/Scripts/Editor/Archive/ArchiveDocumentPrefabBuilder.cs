@@ -361,6 +361,7 @@ namespace RootsDance.Editor.Archive
             }
 
             material.SetTexture("_FoldTex", ArchivePaperTextureBaker.LoadFoldField());
+            material.SetTexture("_WarpTex", ArchivePaperTextureBaker.LoadWarpField());
             material.SetColor("_PaperLight", Color.white);
             material.SetVector("_LightDirection", new Vector4(-0.40f, 0.55f, 0.73f, 0f));
 
@@ -371,7 +372,10 @@ namespace RootsDance.Editor.Archive
             // tenths of a millimetre — about three pixels at this page size. Ten times that does
             // not read as a stronger fold, it reads as the text being torn in half: at 17 px the
             // displacement was wider than the strokes themselves and the writing came apart.
-            material.SetFloat("_WarpStrength", 0.005f);
+            // The shear either side of a crease, in UV. About seven pixels at this page size,
+            // reached over the millimetre the sheet rolls through — so a glyph lying across a fold
+            // is visibly bent rather than merely moved.
+            material.SetFloat("_WarpStrength", 0.004f);
             material.SetFloat("_CreaseDarken", 0.7f);
 
             // This now shades the sheet's panels, not a band around a line. A panel leaning three

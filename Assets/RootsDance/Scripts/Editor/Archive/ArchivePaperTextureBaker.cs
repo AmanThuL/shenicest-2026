@@ -26,8 +26,21 @@ namespace RootsDance.Editor.Archive
         private const string k_LogPrefix = "ArchivePaperTextureBaker";
         private const string k_Folder = "Assets/RootsDance/Textures/Props";
 
+        /// <summary>
+        /// The scanned sheet the paper is built on. CC0 from ambientCG — see the LICENSE beside it.
+        /// <para>
+        /// Everything here used to be Perlin noise, and it read as brown fog no matter how the
+        /// frequencies were tuned: real paper fibre is a photographic texture with structure at
+        /// every scale, and band-limited noise has none. The ageing below — the staining, the
+        /// foxing, the torn edge — is still generated, but it is now laid over a real scan instead
+        /// of standing in for one.
+        /// </para>
+        /// </summary>
+        private const string k_ScanPath = "Assets/ThirdParty/Textures/AmbientCG/Paper001_Color.jpg";
+
         public const string k_PaperBasePath = k_Folder + "/ArchivePaper_BaseMap.png";
         public const string k_FoldPath = k_Folder + "/ArchiveFold_Mask.png";
+        public const string k_WarpPath = k_Folder + "/ArchiveWarp_Mask.png";
         public const string k_DustPath = k_Folder + "/ArchiveDust_BaseMap.png";
         public const string k_WashPath = k_Folder + "/ArchiveWash_BaseMap.png";
         public const string k_PinPath = k_Folder + "/ArchivePin_BaseMap.png";
@@ -75,6 +88,7 @@ namespace RootsDance.Editor.Archive
             Write(k_ClipPath, BakeClip());
             Write(k_CornerPath, BakeCorner());
             Write(k_FoldPath, BakeFoldField());
+            Write(k_WarpPath, BakeWarpField());
             AssetDatabase.Refresh();
         }
 
@@ -86,6 +100,12 @@ namespace RootsDance.Editor.Archive
         /// moves the writing as well as darkening the sheet.
         /// </summary>
         public static Texture2D LoadFoldField() => LoadOrBake(k_FoldPath);
+
+        /// <summary>
+        /// How far the page's content is dragged sideways at each point, in RG. See
+        /// <see cref="BakeWarpField"/> — this is the field that actually bends the writing.
+        /// </summary>
+        public static Texture2D LoadWarpField() => LoadOrBake(k_WarpPath);
 
         public static Texture2D LoadDust() => LoadOrBake(k_DustPath);
 
@@ -123,6 +143,13 @@ namespace RootsDance.Editor.Archive
         /// </summary>
         private static void BakePaperSet()
         {
+            Texture2D scan = LoadSource(k_ScanPath);
+
+            if (scan == null)
+            {
+                return;
+            }
+
             int count = k_PaperWidth * k_PaperHeight;
             Color32[] basePixels = new Color32[count];
             float[] alpha = new float[count];
@@ -144,12 +171,11 @@ namespace RootsDance.Editor.Archive
                     int index = y * k_PaperWidth + x;
                     float u = (float)x / (k_PaperWidth - 1);
 
-                    // Paper fibre is a fine tooth, near the limit of what the texture can hold,
-                    // and it is *directional*: the sheet has a grain, and the fibres lie along it.
-                    // A round, low-frequency noise here is what made the paper read as brown fog.
-                    float grain = Fbm(u * 760f + fibreOffset.x, v * 120f + fibreOffset.y, 2);
-                    float tooth = Fbm(u * 430f + fibreOffset.y, v * 430f + fibreOffset.x, 3);
-                    float fibre = grain * 0.62f + tooth * 0.38f;
+                    // The real sheet's fibre, tiled twice so the weave is not obviously repeated
+                    // at this size. This is the texture; everything else here is ageing laid over
+                    // it. Sampled point-wise rather than filtered — it is already at 2K and the
+                    // page is baked at 2048, so there is nothing to filter away.
+                    float fibre = scan.GetPixelBilinear(u * 2f, v * 2.4f).g;
                     float blotch = Fbm(u * 3.2f + blotchOffset.x, v * 3.2f + blotchOffset.y, 4);
                     float edge = EdgeFalloff(u, v, 0.26f);
 
@@ -158,8 +184,10 @@ namespace RootsDance.Editor.Archive
                     // which is not what an old sheet looks like.
                     float soak = Mathf.Clamp01(blotch * 1.25f - 0.42f + (1f - edge) * 0.22f);
 
+                    // The scan is near-white newsprint; the stock colour tints it to aged cream and
+                    // the fibre carries the detail.
                     Color color = Color.Lerp(stock, stain, soak * 0.62f);
-                    color *= 0.90f + fibre * 0.20f;
+                    color *= 0.55f + fibre * 0.62f;
 
                     // Foxing: the rust-brown specks an old sheet grows where it was damp.
                     // Foxing spots have edges. Threshold them tightly or they smear into the
@@ -194,6 +222,7 @@ namespace RootsDance.Editor.Archive
             }
 
             Write(k_PaperBasePath, ToTexture(basePixels, k_PaperWidth, k_PaperHeight));
+            Object.DestroyImmediate(scan);
         }
 
         // ---- Fold geometry, derived in docs/architecture/systems/纸张折痕研究.md -------------
@@ -443,6 +472,82 @@ namespace RootsDance.Editor.Archive
                     * Ramp(acrossMillimetres - (0.520f * 160f + CreaseOffset(v, 521)));
 
             return height;
+        }
+
+        /// <summary>
+        /// How far the writing is dragged across the page here, in RG, as a fraction of the
+        /// largest such drag.
+        /// <para>
+        /// This is a <b>third</b> field, and it has to be, because neither of the other two can
+        /// bend a letter. The panel tilt is constant across a whole panel, so warping by it slides
+        /// every glyph on that panel by the same amount and not one of them changes shape — which
+        /// is exactly the complaint. Only a <em>gradient</em> of displacement deforms a letterform,
+        /// and a flat panel has none.
+        /// </para>
+        /// <para>
+        /// What does have one is the crease itself. There the sheet rolls through its whole
+        /// dihedral within about a millimetre, so seen flat-on the paper is sharply foreshortened
+        /// across that millimetre and everything printed there is squeezed. Integrated across the
+        /// fold that is a smooth <b>step</b> in displacement — content on one side offset against
+        /// the other, with the transition over the width of the roll. A glyph lying across it is
+        /// sheared, and a line of text breaks and steps, which is what folded documents do.
+        /// </para>
+        /// </summary>
+        private static Texture2D BakeWarpField()
+        {
+            int width = k_PaperWidth;
+            int height = k_PaperHeight;
+            Color32[] pixels = new Color32[width * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                float v = (float)y / (height - 1);
+
+                for (int x = 0; x < width; x++)
+                {
+                    float u = (float)x / (width - 1);
+                    float acrossMillimetres = u * 160f;
+                    float downMillimetres = v * 192f;
+
+                    // The two folds that run across the sheet shear it up and down.
+                    float shiftV = Step(
+                            downMillimetres - (0.415f * 192f + CreaseOffset(u, 311)),
+                            CreasePressure(u, 311))
+                        + Step(downMillimetres - (0.735f * 192f + CreaseOffset(u, 733)),
+                            0.75f * CreasePressure(u, 733));
+
+                    // The one that runs down it shears the writing left and right.
+                    float shiftU = Step(
+                        acrossMillimetres - (0.520f * 160f + CreaseOffset(v, 521)),
+                        CreasePressure(v, 521));
+
+                    pixels[y * width + x] = new Color(
+                        Mathf.Clamp01(shiftU / k_WarpNormalise * 0.5f + 0.5f),
+                        Mathf.Clamp01(shiftV / k_WarpNormalise * 0.5f + 0.5f),
+                        0f,
+                        1f);
+                }
+            }
+
+            return ToTexture(pixels, width, height);
+        }
+
+        /// <summary>Largest total shift any point sees, so the field fits in 0..1 without clipping.</summary>
+        private const float k_WarpNormalise = 1.9f;
+
+        /// <summary>
+        /// How wide the roll at a crease is, in millimetres — the distance over which the sheet
+        /// turns through its dihedral, and therefore over which the writing is sheared.
+        /// </summary>
+        private const float k_RollMillimetres = 0.55f;
+
+        /// <summary>
+        /// A smooth step across a fold: content one side of it is offset against the other, and the
+        /// change happens over the width of the roll.
+        /// </summary>
+        private static float Step(float millimetres, float amount)
+        {
+            return amount * (float)System.Math.Tanh(millimetres / k_RollMillimetres);
         }
 
         /// <summary>
@@ -718,6 +823,35 @@ namespace RootsDance.Editor.Archive
             }
 
             return ToTexture(pixels, k_FoldSize, k_FoldSize);
+        }
+
+        /// <summary>
+        /// Reads a source texture straight off disk. The texture pipeline imports everything
+        /// non-readable, and asking the importer for readability back is undone by the reimport
+        /// that request triggers, so the file is decoded here instead.
+        /// </summary>
+        private static Texture2D LoadSource(string path)
+        {
+            if (!File.Exists(path))
+            {
+                Debug.LogError($"[{k_LogPrefix}] {path} is missing. It is a CC0 scan from "
+                    + "ambientCG; see the LICENSE beside it for where to get it again.");
+                return null;
+            }
+
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+
+            if (texture.LoadImage(File.ReadAllBytes(path), false))
+            {
+                texture.wrapMode = TextureWrapMode.Repeat;
+
+                return texture;
+            }
+
+            Debug.LogError($"[{k_LogPrefix}] {path} could not be decoded.");
+            Object.DestroyImmediate(texture);
+
+            return null;
         }
 
         /// <summary>
