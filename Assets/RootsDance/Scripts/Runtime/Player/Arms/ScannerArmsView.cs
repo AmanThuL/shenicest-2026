@@ -56,6 +56,14 @@ namespace RootsDance.Player.Arms
                 Log.Error("ScannerArmsView has no ArmsDirector; the scanner will not animate.", this);
             }
 
+            // Falls back to the left hand socket when nothing is wired. Hiding the scanner is not
+            // a nicety — the two-handed clips are authored with an empty left hand — so it must not
+            // depend on someone having run a scene builder first.
+            if (m_scannerRoot == null)
+            {
+                m_scannerRoot = FindLeftHandSocket();
+            }
+
             // Toggling renderers rather than the object: the inspect controller and the proximity
             // trigger live on the prop root, so deactivating it would switch off the very things
             // that start a scan.
@@ -63,8 +71,28 @@ namespace RootsDance.Player.Arms
             {
                 m_scannerRenderers = m_scannerRoot.GetComponentsInChildren<Renderer>(true);
             }
+            else
+            {
+                Log.Warning("ScannerArmsView found no scanner to hide; it will stay visible "
+                    + "through the two-handed animations.", this);
+            }
 
             SetScannerVisible(false);
+        }
+
+        /// <summary>The socket the scanner rides, found by side so no wiring step is required.</summary>
+        private static Transform FindLeftHandSocket()
+        {
+            foreach (HandSocket socket in FindObjectsByType<HandSocket>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (socket.Hand == HandSide.Left)
+                {
+                    return socket.transform;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Shows or hides the held scanner without disabling anything that drives it.</summary>
