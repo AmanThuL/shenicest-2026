@@ -108,13 +108,25 @@ MonoBehaviour:
     m_Value: 1
   pixelScale:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
   colorLevels:
     m_OverrideState: 1
-    m_Value: 32
+    m_Value: 64
   ditherStrength:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.25
+  grainIntensity:
+    m_OverrideState: 1
+    m_Value: 0.14
+  grainSize:
+    m_OverrideState: 1
+    m_Value: 1
+  grainRate:
+    m_OverrideState: 1
+    m_Value: 15
+  grainShadowBias:
+    m_OverrideState: 1
+    m_Value: 0.6
 --- !u!114 &-4997549217626003644
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -259,7 +271,6 @@ MonoBehaviour:
   - {fileID: -8633895415783054532}
   - {fileID: -2614177730281712468}
   - {fileID: -4997549217626003644}
-  - {fileID: 5283751810288608540}
   - {fileID: -6108409769484448756}
 --- !u!114 &1612165092726537030
 MonoBehaviour:
@@ -412,31 +423,6 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
---- !u!114 &5283751810288608540
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a6b00fcf518bb94a90b408492e07b44, type: 3}
-  m_Name: FilmGrain
-  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.FilmGrain
-  active: 1
-  type:
-    m_OverrideState: 1
-    m_Value: 0
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0.25
-  response:
-    m_OverrideState: 1
-    m_Value: 0.8
-  texture:
-    m_OverrideState: 0
-    m_Value: {fileID: 0}
 --- !u!114 &7882894600219635476
 MonoBehaviour:
   m_ObjectHideFlags: 3
