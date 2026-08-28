@@ -32,9 +32,18 @@
   ],
   "painter": {
     "fills": [
-      "Metal(1.0):basecolor=Assets/RootsDance/Textures/Environment/GreenHouseMetal_BaseMap.png;normal=Assets/RootsDance/Textures/Environment/GreenHouseMetal_Normal.png;roughness=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_rough_1k.jpg"
+      "SteelBase(0.6,1.0):basecolor=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Roughness.jpg",
+      "Oxidation(0.18,0.75):basecolor=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_diff_2k.jpg;normal=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_rough_2k.jpg|Surface Rust",
+      "EdgeRust(0.45,0.45):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;normal=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Edge Rust",
+      "RustRunoff(0.35,0.35):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Rust Drips",
+      "GrimeStreak(0,0.5):basecolor=#241F1A;roughness=0.8|Water Drips",
+      "LimeDeposit(0,0.4):basecolor=#C3BDAE;roughness=0.9|Dirt Leak Dry",
+      "DampRecess(0,0.25):basecolor=#1E1C19;roughness=0.55|Moisture",
+      "MossTop(0.22,0.12):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|Moss From Top",
+      "Lichen(0.3,0.06):basecolor=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_diff_2k.jpg;normal=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_rough_2k.jpg|Moss",
+      "EdgeWear(0,0.22):basecolor=#9AA0A3;roughness=0.35;metallic=1.0|Edges Scratched"
     ],
     "layers": [],
-    "note": "Reuses the v8 greenhouse metal look (weathered iron-green with occasional rust). Triplanar so the tiling source stays continuous across the unwrap's islands."
+    "note": "Layered per docs/architecture/废弃温室材质研究.md, dialled per docs/architecture/废墟风化分层策略.md tier 1: the pattern belongs to the module, the position-driven amount is tier 2 in the shader."
   }
 }
