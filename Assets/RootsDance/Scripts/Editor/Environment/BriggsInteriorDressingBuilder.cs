@@ -993,12 +993,42 @@ namespace RootsDance.Editor.Environment
                 {
                     Transform child = pin.GetChild(i);
 
-                    if (child.name.StartsWith(k_OwnedPrefix, StringComparison.Ordinal))
+                    if (IsOwnedInstance(child))
                     {
                         UnityEngine.Object.DestroyImmediate(child.gameObject);
                     }
                 }
             }
+        }
+
+        private static bool IsOwnedInstance(Transform child)
+        {
+            if (child.name.StartsWith(k_OwnedPrefix, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            PropertyModification[] modifications =
+                PrefabUtility.GetPropertyModifications(child.gameObject);
+
+            if (modifications == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < modifications.Length; i++)
+            {
+                PropertyModification modification = modifications[i];
+
+                if (modification.propertyPath == "m_Name"
+                    && modification.value != null
+                    && modification.value.StartsWith(k_OwnedPrefix, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ValidatePlacements(Placement[] placements)
