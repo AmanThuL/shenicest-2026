@@ -466,6 +466,25 @@
       "m_profile": "static_garage",
       "m_manifest": "SourceArt/Export/Garage/IvyHanging.export.json",
       "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GreenHouse.fbx",
+      "m_profile": "static_environment",
+      "m_manifest": "SourceArt/Export/GreenHouse.export.json",
+      "m_materials": [
+        {
+          "m_source": "GH_Metal",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseMetal.mat"
+        },
+        {
+          "m_source": "GH_Glass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseGlass.mat"
+        },
+        {
+          "m_source": "GH_StainedGlass",
+          "m_asset": "Assets/RootsDance/Materials/Environment/GreenHouse/GreenHouseStained.mat"
+        }
+      ]
     }
   ]
 }
