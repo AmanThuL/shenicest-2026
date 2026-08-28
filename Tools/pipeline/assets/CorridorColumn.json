@@ -1,0 +1,40 @@
+{
+  "asset": "CorridorColumn",
+  "category": "Environment",
+  "preset": "realistic_prop",
+  "source": {
+    "blend": "SourceArt/Blender/GAIA1/GAIA1_v6.blend",
+    "object": "Mesh1005 COLUMN1_10 Group36 Group35 Group27 Group26 Gro_a3e6345",
+    "licence": "In-repo source art (GAIA1 corridor geometry).",
+    "note": "One of the 6 distinct shapes in the Corridor collection; this one repeats 16 times. Textured once and reused across its instances -- a unique bake of the whole corridor is 26,028 m2, which is ~6 px/m at 1024 against the preset's 512 px/m target. Source slots are SketchUp defaults (FrontColor carries every face, BackColor none), hence drop_empty_slots + rename_slots."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "FrontColor=CorridorColumn"
+    ],
+    "material_slots": [
+      "CorridorColumn"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "texture_sets": [
+    "CorridorColumn"
+  ],
+  "painter": {
+    "fills": [
+      "Rust:basecolor=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_diff_1k.jpg;normal=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_nor_gl_1k.jpg;roughness=SourceArt/Reference/Corridor/rust_coarse_01/rust_coarse_01_rough_1k.jpg"
+    ],
+    "layers": [],
+    "note": "Colour comes from CC0 image maps: shelf smart materials insert structure but contribute no colour in a legacy colour-managed project."
+  }
+}
