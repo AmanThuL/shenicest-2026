@@ -16,12 +16,12 @@ MonoBehaviour:
   m_stateName: Crawl
   m_clip: {fileID: -623603649343465320, guid: 7f3c83090d22047bbb430157a566d863, type: 3}
   m_scope: 0
-  m_loop: 1
+  m_loop: 0
   m_requiredPoseEnforced: 0
   m_requiredPose: 3
   m_resultPose: 3
   m_chainToId: 
-  m_holdAfterFinish: 0
+  m_holdAfterFinish: 1
   m_heightBase: 1
   m_handEvents: []
   m_speed: 1

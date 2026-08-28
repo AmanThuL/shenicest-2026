@@ -62,7 +62,7 @@ namespace RootsDance.Editor.Tools
         /// </summary>
         public static void Refresh(Transform arms)
         {
-            Transform head = arms.parent;
+            Transform head = ResolveHead(arms);
 
             if (head == null)
             {
@@ -303,6 +303,29 @@ namespace RootsDance.Editor.Tools
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// The transform the camera actually follows.
+        /// <para>
+        /// Not simply the arms' parent any more. A height anchor sits between the head and the arms
+        /// so the crawl baseline can lower the rig without moving the view, and taking the parent
+        /// blindly wired the view bob to that anchor — which moves the arms, not the camera, so the
+        /// animated head bone stopped reaching the view entirely. Anything carrying an
+        /// <see cref="ArmsHeightRig"/> is scaffolding between the two and is skipped.
+        /// </para>
+        /// </summary>
+        private static Transform ResolveHead(Transform arms)
+        {
+            Transform candidate = arms.parent;
+
+            while (candidate != null
+                && candidate.GetComponent<RootsDance.Player.Arms.ArmsHeightRig>() != null)
+            {
+                candidate = candidate.parent;
+            }
+
+            return candidate;
         }
 
         private static void WireViewBob(Transform arms, Transform head, Transform cameraBone)
