@@ -39,7 +39,10 @@ namespace RootsDance.Dialogue
         [SerializeField] private MonoBehaviour m_viewBehaviour;
 
         [Header("Input")]
-        [Tooltip("Optional. With it, the interact button skips ahead to the next line.")]
+        [Tooltip("Optional. With it, the interact button skips ahead to the next line. Leave empty "
+            + "and it is found once at Start — which is the normal case, because the runner lives "
+            + "in the bootstrap scene next to the screen it drives, and the player is in a level "
+            + "scene where no serialized reference can reach.")]
         [SerializeField] private PlayerInputReader m_input;
 
         [Header("Reading speed")]
@@ -68,6 +71,16 @@ namespace RootsDance.Dialogue
             if (m_viewBehaviour != null && m_view == null)
             {
                 Log.Error($"'{m_viewBehaviour.GetType().Name}' does not implement IDialogueView.", this);
+            }
+        }
+
+        private void Start()
+        {
+            // Once, at startup, and only when a scene could not wire it: skipping a line is a
+            // convenience, so a missing reader costs the skip and nothing else.
+            if (m_input == null)
+            {
+                m_input = FindFirstObjectByType<PlayerInputReader>();
             }
         }
 

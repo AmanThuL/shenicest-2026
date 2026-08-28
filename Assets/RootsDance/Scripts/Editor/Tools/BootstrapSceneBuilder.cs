@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using RootsDance.App;
 using RootsDance.Audio;
+using RootsDance.Dialogue;
 using RootsDance.Events;
 
 namespace RootsDance.Editor.Tools
@@ -27,6 +28,7 @@ namespace RootsDance.Editor.Tools
         private const string k_TimeOfDayChangedPath = k_EventsFolder + "/TimeOfDayChanged.asset";
         private const string k_AudioCueRequestedPath = k_EventsFolder + "/AudioCueRequested.asset";
         private const string k_MusicRequestedPath = k_EventsFolder + "/MusicRequested.asset";
+        private const string k_DialogueRequestedPath = k_EventsFolder + "/DialogueRequested.asset";
         private const string k_MonologuePath = k_EventsFolder + "/Monologue.asset";
         private const string k_NoticePath = k_EventsFolder + "/Notice.asset";
         private const string k_InvestigationResultPath = k_EventsFolder + "/InvestigationResult.asset";
@@ -63,6 +65,7 @@ namespace RootsDance.Editor.Tools
             EnsureChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath);
             EnsureChannel<AudioCueEventChannelSO>(k_AudioCueRequestedPath);
             EnsureChannel<AudioCueEventChannelSO>(k_MusicRequestedPath);
+            EnsureChannel<DialogueEventChannelSO>(k_DialogueRequestedPath);
 
             // Re-load every channel from its path immediately before wiring. Creating an asset can
             // invalidate the instance CreateAsset handed back (an import in between reloads it), and
@@ -75,13 +78,15 @@ namespace RootsDance.Editor.Tools
                 LoadChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath));
 
             EnsureAudio(bootstrap);
+            EnsureDialogue(bootstrap, scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
             Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 4 channel assets, "
-                + "audio directors and listeners wired, UI slot created, forbidden content removed.");
+                + "audio directors and listeners wired, dialogue screen and runner wired, UI slot "
+                + "created, forbidden content removed.");
         }
 
         /// <summary>
@@ -278,6 +283,87 @@ namespace RootsDance.Editor.Tools
             {
                 property.GetArrayElementAtIndex(i).objectReferenceValue = entries[i];
             }
+        }
+
+        /// <summary>
+        /// The dialogue runner, and the screen it drives, both in the bootstrap scene.
+        /// <para>
+        /// The runner belongs here rather than on the player, and the reason is a serialized
+        /// reference: it has to reach the <c>DialoguePresenter</c>, the screen lives in the UI slot
+        /// of this scene, and the player lives in a level scene. Put the runner on the player and
+        /// that reference cannot be made at all. What the runner loses by not being on the player —
+        /// the input reader it uses to let the interact button skip a line — it finds by itself at
+        /// Start, and losing it would only cost the skip.
+        /// </para>
+        /// </summary>
+        private static void EnsureDialogue(GameBootstrap bootstrap, Scene scene)
+        {
+            DialoguePresenter presenter = FindPresenter(scene);
+
+            if (presenter == null)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/RootsDance/Prefabs/UI/DialogueScreen.prefab");
+
+                if (prefab == null)
+                {
+                    Debug.LogWarning("No DialogueScreen prefab; run RootsDance/UI/Build Dialogue "
+                        + "Screen, then this item again. The runner is wired without a view, which "
+                        + "runs conversations silently.");
+                }
+                else
+                {
+                    GameObject uiRoot = FindUiRoot(scene);
+                    GameObject screen = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+
+                    if (uiRoot != null)
+                    {
+                        screen.transform.SetParent(uiRoot.transform, false);
+                    }
+
+                    presenter = screen.GetComponentInChildren<DialoguePresenter>(true);
+                }
+            }
+
+            DialogueRunner runner = Ensure<DialogueRunner>(bootstrap.gameObject);
+
+            SerializedObject serialized = new SerializedObject(runner);
+            serialized.FindProperty("m_playRequested").objectReferenceValue =
+                LoadChannel<DialogueEventChannelSO>(k_DialogueRequestedPath);
+            serialized.FindProperty("m_viewBehaviour").objectReferenceValue = presenter;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static DialoguePresenter FindPresenter(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                DialoguePresenter presenter = roots[i].GetComponentInChildren<DialoguePresenter>(true);
+
+                if (presenter != null)
+                {
+                    return presenter;
+                }
+            }
+
+            return null;
+        }
+
+        private static GameObject FindUiRoot(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                if (roots[i].name == "UI")
+                {
+                    return roots[i];
+                }
+            }
+
+            return null;
         }
 
         private static void WireBootstrap(GameBootstrap bootstrap, LevelEventChannelSO loadLevelRequested,
