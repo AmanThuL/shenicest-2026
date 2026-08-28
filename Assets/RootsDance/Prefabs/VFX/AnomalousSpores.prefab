@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3523997077719499229}
   - component: {fileID: 4080873012031239703}
   - component: {fileID: 105216490515699341}
+  - component: {fileID: 346743252564532171}
   m_Layer: 0
   m_Name: AnomalousSpores
   m_TagString: Untagged
@@ -4854,3 +4855,16 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &346743252564532171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2722847257610617184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 955cd61722e254bb2a05096a4894daa2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.EmissiveExposureFollower
+  m_authoredEv100: 12.5
