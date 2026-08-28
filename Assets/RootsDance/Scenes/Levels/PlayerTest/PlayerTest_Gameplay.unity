@@ -308,7 +308,7 @@ PrefabInstance:
     - target: {fileID: 1633556529951712519, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_viewBehaviour
       value: 
-      objectReference: {fileID: 2142566749}
+      objectReference: {fileID: 2142566750}
     - target: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_Name
       value: Player
@@ -358,7 +358,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 6146614410336275913, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2142566742}
+      addedObject: {fileID: 655647915}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
 --- !u!4 &532922590 stripped
@@ -366,6 +366,84 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6146614410336275913, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 532922589}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &532922591 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6772109266663148318, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 532922589}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &655647914
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 655647915}
+  - component: {fileID: 655647916}
+  m_Layer: 0
+  m_Name: ArmsHeightAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &655647915
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655647914}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2142566742}
+  - {fileID: 1930970565}
+  m_Father: {fileID: 532922590}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &655647916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655647914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaf105a2f30134f9e81c8eaa1a15ad56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsHeightRig
+  m_standingLocalY: 0
+  m_playerHeight: 1.75
+  m_groundOffset: 0.35
+  m_riseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &774214760
 GameObject:
   m_ObjectHideFlags: 0
@@ -681,6 +759,57 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1167135934}
   m_CullTransparentMesh: 1
+--- !u!1 &1255309274
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1255309276}
+  - component: {fileID: 1255309275}
+  m_Layer: 0
+  m_Name: HandSocket_L
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1255309275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255309274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3507d76ec5984aed962e1c2655c1236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HandSocket
+  m_hand: 0
+  m_handBone: {fileID: 799207741}
+  m_holdPositionOffset: {x: -0.0188, y: 0.0502, z: -0.0093}
+  m_holdRotationOffset: {x: -0.163122, y: -0.37959, z: -0.75997, w: 0.501745}
+  m_pending: {fileID: 0}
+--- !u!4 &1255309276
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255309274}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1560259173}
+  - {fileID: 1825274592}
+  m_Father: {fileID: 1930970565}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1330617811
 GameObject:
   m_ObjectHideFlags: 0
@@ -861,7 +990,7 @@ PrefabInstance:
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_viewBehaviour
       value: 
-      objectReference: {fileID: 2142566752}
+      objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_suspendedWhileReading.Array.size
       value: 2
@@ -1027,6 +1156,7 @@ GameObject:
   - component: {fileID: 1441623355}
   - component: {fileID: 1441623357}
   - component: {fileID: 1441623356}
+  - component: {fileID: 1441623358}
   m_Layer: 0
   m_Name: InteractPrompt
   m_TagString: Untagged
@@ -1153,18 +1283,65 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1441623354}
   m_CullTransparentMesh: 1
+--- !u!114 &1441623358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441623354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6038c0bda04bf43ec9ef349ff1bf388e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.InteractionPromptPresenter
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_label: {fileID: 1441623356}
+  m_border: {fileID: 0}
+  m_flashColor: {r: 1, g: 1, b: 1, a: 1}
+  m_motion:
+    m_stepSeconds: 0.06666667
+    m_flashSteps: 2
+    m_writeChunkSize: 4
+    m_jitterSteps: 4
+    m_rasterHoldSteps: 6
+    m_reconstructSteps: 12
+    m_reconstructStartCoverage: 0.4
+    m_scatterSeed: 20260827
+    m_populateSteps: 10
+    m_floodHoldSteps: 1
 --- !u!1001 &1560259172
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2142566742}
+    m_TransformParent: {fileID: 1255309276}
     m_Modifications:
+    - target: {fileID: 866913195655054211, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 866913195655054211, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 5012766181196461562, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 5012766181196461562, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_input
       value: 
       objectReference: {fileID: 1083632117}
+    - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_scanEffect
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_viewBehaviour
       value: 
@@ -1181,9 +1358,29 @@ PrefabInstance:
       propertyPath: 'm_suspendedWhileReading.Array.data[1]'
       value: 
       objectReference: {fileID: 1083632121}
+    - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 6113694028289250715, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_Name
       value: Scanner
+      objectReference: {fileID: 0}
+    - target: {fileID: 6351342564120320848, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 6351342564120320848, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 6423945743867661146, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 6887100039838813985, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1225,13 +1422,36 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8209678007366858224, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 8209678007366858224, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 9014528102066385887, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4278519562
+      objectReference: {fileID: 0}
+    - target: {fileID: 9014528102066385887, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 9119392412311243009, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6113694028289250715, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1560259175}
+      addedObject: {fileID: 1560259177}
+    - targetCorrespondingSourceObject: {fileID: 6113694028289250715, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1560259176}
   m_SourcePrefab: {fileID: 100100000, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
 --- !u!4 &1560259173 stripped
 Transform:
@@ -1243,7 +1463,18 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6113694028289250715, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
   m_PrefabInstance: {fileID: 1560259172}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1560259175
+--- !u!114 &1560259175 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
+  m_PrefabInstance: {fileID: 1560259172}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560259174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81a0e4d3e60e949bab6f6abd7628dbad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerInspectController
+--- !u!114 &1560259176
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1252,13 +1483,117 @@ MonoBehaviour:
   m_GameObject: {fileID: 1560259174}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 930b57f4dfe7f4957b4d2b57fd002cfd, type: 3}
+  m_Script: {fileID: 11500000, guid: 7a347fe9e1cbd466b813141a45a8b346, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerHandSocket
-  m_handBone: {fileID: 799207741}
-  m_holdPositionOffset: {x: -0.0188, y: 0.0502, z: -0.0093}
-  m_holdRotationOffset: {x: -0.163122, y: -0.37959, z: -0.75997, w: 0.501745}
-  m_holdWorldScale: {x: 0.670016, y: 0.670016, z: 0.670016}
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerProximityTrigger
+  m_controller: {fileID: 1560259175}
+  m_player: {fileID: 532922591}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 3
+  m_key: 24
+  m_promptFormat: "[J] \u626B\u63CF {0}"
+--- !u!114 &1560259177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560259174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bda148ee19a04be4880585145c788af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.CarriedItem
+  m_hand: 0
+  m_gripPosition: {x: 0, y: 0, z: 0}
+  m_gripRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_body: {fileID: 0}
+  m_colliders: []
+--- !u!4 &1673498220 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7058526930015942891, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+  m_PrefabInstance: {fileID: 2142566741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1768404970
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1768404972}
+  - component: {fileID: 1768404971}
+  m_Layer: 0
+  m_Name: HandSocket_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1768404971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768404970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3507d76ec5984aed962e1c2655c1236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HandSocket
+  m_hand: 1
+  m_handBone: {fileID: 1673498220}
+  m_holdPositionOffset: {x: 0, y: 0, z: 0}
+  m_holdRotationOffset: {x: 0, y: 0, z: 0, w: 1}
+  m_pending: {fileID: 0}
+--- !u!4 &1768404972
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768404970}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1930970565}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1825274591
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1825274592}
+  m_Layer: 0
+  m_Name: ScanEmitter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1825274592
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1825274591}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1255309276}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1834691126
 GameObject:
   m_ObjectHideFlags: 0
@@ -1362,13 +1697,46 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!1 &1930970564
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1930970565}
+  m_Layer: 0
+  m_Name: HandSockets
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1930970565
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930970564}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1255309276}
+  - {fileID: 1768404972}
+  m_Father: {fileID: 655647915}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2142566741
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 532922590}
+    m_TransformParent: {fileID: 655647915}
     m_Modifications:
     - target: {fileID: -9179598051596037706, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1440,7 +1808,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.y
@@ -1448,7 +1816,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -2173,9 +2541,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1560259173}
     - targetCorrespondingSourceObject: {fileID: -1929121296308206474, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1367143467}
@@ -2185,19 +2550,19 @@ PrefabInstance:
       addedObject: {fileID: 2142566749}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2142566748}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 2142566747}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2142566746}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2142566750}
+      addedObject: {fileID: 2142566751}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2142566751}
+      addedObject: {fileID: 2142566753}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2142566750}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2142566752}
@@ -2277,20 +2642,6 @@ MonoBehaviour:
   m_basePosition: {x: -0.011151342, y: -1.8193104, z: -0.3613224}
   m_baseRotation: {x: -0, y: 180, z: 0}
   m_bindBonePosition: {x: -0.01115131, y: 1.8193104, z: -0.36132205}
---- !u!114 &2142566748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142566745}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16bd3480ede594399809a2504f2cfda8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetDebugTrigger
-  m_viewBehaviour: {fileID: 2142566749}
-  m_key: 22
 --- !u!114 &2142566749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2316,15 +2667,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 2142566745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 986492aab8452414eb3a28d6ce6fe633, type: 3}
+  m_Script: {fileID: 11500000, guid: cc899942443b54b5eb13ac69120a3234, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.ArmsClipDebugTrigger
-  m_bindings:
-  - m_key: 33
-    m_stateName: StandUp
-  - m_key: 30
-    m_stateName: KeypadPoke
-  m_idleState: HelmetOff
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HelmetArmsView
+  m_director: {fileID: 2142566751}
+  m_actionId: helmetOff
+  m_riggedHelmet: {fileID: 2142566743}
+  m_rightSocket: {fileID: 1768404971}
+  m_helmetItem: {fileID: 0}
 --- !u!114 &2142566751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2334,12 +2684,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 2142566745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a765f91af632c4697a7f2bbd16b071a3, type: 3}
+  m_Script: {fileID: 11500000, guid: 995704f8944f84abe8e6a6e84599d6bd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.CrawlDebugTrigger
-  m_key: 17
-  m_crawlState: Crawl
-  m_idleState: HelmetOff
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsDirector
+  m_actions: {fileID: 11400000, guid: fb7b76d35c7074739b827d38ed65815b, type: 2}
+  m_leftSocket: {fileID: 1255309275}
+  m_rightSocket: {fileID: 1768404971}
+  m_heightRig: {fileID: 655647916}
+  m_verbose: 0
 --- !u!114 &2142566752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2349,16 +2701,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 2142566745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7eace28852219423c8713a31c2fa70db, type: 3}
+  m_Script: {fileID: 11500000, guid: 850c9a46d4d2248fd8be7780a63765f8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerAnimatorView
-  m_raiseState: ScannerRaise
-  m_lowerState: ScannerLower
-  m_raiseClip: {fileID: -623603649343465320, guid: 8562907ba117c425ab851ef147034070, type: 3}
-  m_lowerClip: {fileID: -623603649343465320, guid: 9b0c5f95d0eb4432193c973c7c6ff9ab, type: 3}
-  m_layer: 0
-  m_playbackSpeed: 1
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ScannerArmsView
+  m_director: {fileID: 2142566751}
+  m_raiseActionId: scannerRaise
+  m_lowerActionId: scannerLower
   m_scannerRenderer: {fileID: 0}
+--- !u!114 &2142566753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142566745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d689884322b984814b4d59dd703f5bde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsDebugConsole
+  m_director: {fileID: 2142566751}
+  m_actions: {fileID: 11400000, guid: fb7b76d35c7074739b827d38ed65815b, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
