@@ -149,11 +149,16 @@ namespace RootsDance.Editor.Tools
             // The prop is picked up from here by RootsDance > Arms > Wire Player Arms Rig, which
             // moves it onto an unscaled HandSocket outside the model — that is what keeps it the
             // size it was authored at, rather than a component writing a compensating scale.
-            Transform existing = arms.Find("Scanner");
-
-            if (existing != null)
+            // Recursive on purpose: an earlier run may have left the prop parented far down the
+            // bone chain, and a direct-child search would miss it and leave a second scanner in
+            // the scene — one of them hanging off a bone rather than the socket.
+            foreach (Transform child in arms.GetComponentsInChildren<Transform>(true))
             {
-                Object.DestroyImmediate(existing.gameObject);
+                if (child != arms && child.name == "Scanner")
+                {
+                    Object.DestroyImmediate(child.gameObject);
+                    break;
+                }
             }
 
             GameObject scanner = (GameObject)PrefabUtility.InstantiatePrefab(scannerPrefab, gameplay);

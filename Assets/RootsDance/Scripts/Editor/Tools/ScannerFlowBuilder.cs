@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.SceneManagement;
 
 namespace RootsDance.EditorTools
 {
@@ -47,6 +48,10 @@ namespace RootsDance.EditorTools
                 return;
             }
 
+            // Before anything takes a reference: dedupe can destroy a controller, and a stale
+            // reference to a destroyed object throws further down.
+            DedupeScanners(log);
+
             ScannerInspectController controller =
                 Object.FindFirstObjectByType<ScannerInspectController>(FindObjectsInactive.Include);
 
@@ -57,7 +62,16 @@ namespace RootsDance.EditorTools
                 return;
             }
 
+            // Built into the controller's own scene, not whichever scene happens to be active:
+            // a serialized reference that crosses scenes is silently dropped when Unity saves, so
+            // the beam would come back null at runtime and the scan stage would be skipped.
             GameObject root = EnsureChild(null, k_FlowRoot, log);
+
+            if (root.scene != controller.gameObject.scene)
+            {
+                SceneManager.MoveGameObjectToScene(root, controller.gameObject.scene);
+                log.Append("flow root moved into ").AppendLine(controller.gameObject.scene.name);
+            }
             Transform player = FindPlayer();
 
             ScannerScanEffect effect = EnsureEffect(root, layer, log);
@@ -375,18 +389,59 @@ namespace RootsDance.EditorTools
         }
 
         /// <summary>
+        /// Keeps one scanner, and keeps it on the socket.
+        /// <para>
+        /// The test rig builder parents a fresh prop under the arms and clears the old one with a
+        /// direct-child search, which misses a prop nested down on <c>hand.L</c>. That left two
+        /// scanners in the scene: one adopted onto the unscaled socket, and one still hanging off
+        /// the bone. Before the export pipeline was fixed the bone reported a lossy scale near 100,
+        /// so the stray one rendered about a hundred times too large — and measuring the adopted
+        /// one reported everything fine.
+        /// </para>
+        /// </summary>
+        private static void DedupeScanners(StringBuilder log)
+        {
+            ScannerInspectController[] scanners = Object.FindObjectsByType<ScannerInspectController>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            if (scanners.Length <= 1)
+            {
+                return;
+            }
+
+            ScannerInspectController keep = null;
+
+            foreach (ScannerInspectController candidate in scanners)
+            {
+                if (candidate.GetComponentInParent<HandSocket>() != null)
+                {
+                    keep = candidate;
+                    break;
+                }
+            }
+
+            keep = keep != null ? keep : scanners[0];
+
+            foreach (ScannerInspectController extra in scanners)
+            {
+                if (extra == keep)
+                {
+                    continue;
+                }
+
+                log.Append("scanner: removed a duplicate parented to ")
+                    .AppendLine(extra.transform.parent == null ? "<root>" : extra.transform.parent.name);
+                Undo.DestroyObjectImmediate(extra.gameObject);
+            }
+        }
+
+        /// <summary>
         /// Makes the hint visible. The HUD already carries an InteractPrompt label, but nothing was
         /// driving it — without a presenter the channel fires into nowhere and the prompt reads
         /// whatever was last typed into the prefab.
         /// </summary>
         private static void EnsurePromptPresenter(ScannerProximityTrigger trigger, StringBuilder log)
         {
-            if (Object.FindFirstObjectByType<InteractionPromptPresenter>(FindObjectsInactive.Include) != null)
-            {
-                log.AppendLine("hint: a prompt presenter is already in the scene");
-                return;
-            }
-
             TextMeshProUGUI label = null;
 
             foreach (TextMeshProUGUI candidate
@@ -405,8 +460,34 @@ namespace RootsDance.EditorTools
                 return;
             }
 
-            var presenter = Undo.AddComponent<InteractionPromptPresenter>(label.gameObject);
+            // On the label's parent, never on the label itself: the presenter hides the prompt by
+            // deactivating the label's GameObject, so living there would switch itself off on the
+            // first empty prompt and never hear another event again.
+            GameObject host = label.transform.parent != null
+                ? label.transform.parent.gameObject
+                : label.gameObject;
+
+            InteractionPromptPresenter existing =
+                Object.FindFirstObjectByType<InteractionPromptPresenter>(FindObjectsInactive.Include);
+
+            if (existing != null && existing.gameObject == host)
+            {
+                log.AppendLine("hint: presenter already on the right object");
+                SetField(existing, "m_label", label);
+                return;
+            }
+
+            if (existing != null)
+            {
+                log.Append("hint: moved the presenter off ").AppendLine(existing.gameObject.name);
+                Undo.DestroyObjectImmediate(existing);
+            }
+
+            var presenter = Undo.AddComponent<InteractionPromptPresenter>(host);
             SetField(presenter, "m_label", label);
+
+            // The label may have been left switched off by the presenter that used to live on it.
+            label.gameObject.SetActive(true);
 
             SerializedProperty channel =
                 new SerializedObject(trigger).FindProperty("m_promptChanged");

@@ -17,6 +17,7 @@ namespace RootsDance.Scanner
     /// Distance is measured to the target's aim point, so a large object can put its aim point
     /// where the player actually approaches from.
     /// </summary>
+    [DisallowMultipleComponent]
     public class ScannerProximityTrigger : MonoBehaviour
     {
         [Header("Wiring")]
