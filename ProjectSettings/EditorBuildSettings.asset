@@ -8,10 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/RootsDance/Scenes/Bootstrap.unity
     guid: bc04c81ba12ce4071a48396ccf3943b6
-  - enabled: 1
+  - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Environment.unity
     guid: 25a498b83a7cf446692f5a77356314e1
-  - enabled: 1
+  - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/PlayerTest/PlayerTest_Gameplay.unity
     guid: d2ad0ae3f32d04aea9821f27dc8888c4
   - enabled: 1
@@ -20,13 +20,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity
     guid: 7fe9ea91681084c77b49ed39168833a4
-  - enabled: 1
+  - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity
     guid: 0ec12772141794c39a36cd8a87ec0068
-  - enabled: 1
+  - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity
     guid: dacd1627fc88f41209531c384d1fe4e0
-  - enabled: 1
+  - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity
     guid: 6c2ccb4747c7745dc8bf310ba1b64d66
   m_configObjects:
