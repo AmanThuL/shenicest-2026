@@ -72,6 +72,11 @@ namespace RootsDance.Editor.Audio
             new CueSpec("AMB_Greenhouse", AudioRouting.k_SfxGroup, true, 0.4f, 40f, 0f),
             new CueSpec("AMB_UndergroundNetwork", AudioRouting.k_SfxGroup, true, 1f, 8f, 0f),
 
+            // Flat, not positioned: the protagonist's own breathing is not somewhere in the room.
+            // Played by an always-on AmbienceZone on the player that a CueSequence switches on —
+            // a loop needs a source that owns it, and that component already is one.
+            new CueSpec("AMB_PanicBreath", AudioRouting.k_SfxGroup, true, 0f, 20f, 0f),
+
             // Music — flat by definition, and driven by the MusicDirector.
             new CueSpec("MUS_GreenhouseReveal", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f),
             new CueSpec("MUS_EndingBloom", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f)
