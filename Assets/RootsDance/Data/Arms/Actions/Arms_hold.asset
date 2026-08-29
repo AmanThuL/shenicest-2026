@@ -17,8 +17,6 @@ MonoBehaviour:
   m_clip: {fileID: -623603649343465320, guid: 8b66423ce512a465a903aca12c3fdb3c, type: 3}
   m_scope: 2
   m_loop: 1
-  m_requiredPoseEnforced: 0
-  m_requiredPose: 1
   m_resultPose: 1
   m_chainToId: 
   m_holdAfterFinish: 0
