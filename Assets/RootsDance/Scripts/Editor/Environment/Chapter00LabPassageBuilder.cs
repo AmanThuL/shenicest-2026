@@ -36,6 +36,9 @@ namespace RootsDance.Editor.Environment
         private static readonly Vector3 k_VolumePosition = new Vector3(30.95f, 9f, 104.1f);
         private static readonly Quaternion k_VolumeRotation = Quaternion.Euler(0f, 2.9f, 0f);
         private static readonly Vector3 k_VolumeSize = new Vector3(4.2f, 4.6f, 12f);
+        private static readonly Vector3 k_FogLocalPosition = new Vector3(-0.77f, 0.85f, 1.1f);
+        private static readonly Vector3 k_FogSize = new Vector3(1.95f, 1.89f, 11.7f);
+        private const float k_FogBlendDistance = 0.1f;
 
         [MenuItem(k_MenuPath)]
         public static void ApplyToLoadedScene()
@@ -211,10 +214,10 @@ namespace RootsDance.Editor.Environment
             }
 
             collider.isTrigger = true;
-            EnsureOcclusionFog(holder, collider);
+            EnsureOcclusionFog(holder);
         }
 
-        private static void EnsureOcclusionFog(Transform parent, BoxCollider volumeBounds)
+        private static void EnsureOcclusionFog(Transform parent)
         {
             Transform holder = parent.Find(k_FogName);
 
@@ -224,7 +227,7 @@ namespace RootsDance.Editor.Environment
                 holder.SetParent(parent, false);
             }
 
-            holder.localPosition = volumeBounds.center;
+            holder.localPosition = k_FogLocalPosition;
             holder.localRotation = Quaternion.identity;
             holder.localScale = Vector3.one;
             LocalVolumetricFog fog = holder.GetComponent<LocalVolumetricFog>();
@@ -238,10 +241,13 @@ namespace RootsDance.Editor.Environment
                 new LocalVolumetricFogArtistParameters(new Color(0.05f, 0.08f, 0.06f), 0.8f, 0.55f);
             parameters.blendingMode = LocalVolumetricFogBlendingMode.Additive;
             parameters.priority = 20;
-            parameters.size = volumeBounds.size;
+            parameters.size = k_FogSize;
             parameters.scaleMode = LocalVolumetricFogScaleMode.ScaleInvariant;
-            parameters.positiveFade = new Vector3(0.08f, 0.08f, 0.08f);
-            parameters.negativeFade = new Vector3(0.08f, 0.08f, 0.08f);
+            parameters.positiveFade = new Vector3(
+                k_FogBlendDistance / k_FogSize.x,
+                k_FogBlendDistance / k_FogSize.y,
+                k_FogBlendDistance / k_FogSize.z);
+            parameters.negativeFade = parameters.positiveFade;
             parameters.distanceFadeStart = 60f;
             parameters.distanceFadeEnd = 80f;
             parameters.falloffMode = LocalVolumetricFogFalloffMode.Exponential;
