@@ -19,6 +19,8 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_LeftStartArea,
                     WorldFlags.k_RadioBriefingStarted,
                     WorldFlags.k_RadioBriefingFinished,
+                    WorldFlags.k_RadioSignalFading,
+                    WorldFlags.k_RadioSignalLost,
                     WorldFlags.k_HelmetRemovable,
                     WorldFlags.k_HelmetRemoved,
                     WorldFlags.k_EnteredGrassBelt,
@@ -30,6 +32,7 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_FineVeinedVineScanned,
                     WorldFlags.k_VineGrowthDirectionObserved,
                     WorldFlags.k_MaintenanceEntranceRevealed,
+                    WorldFlags.k_EnteredMaintenanceTunnel,
 
                     // Chapter 02.
                     WorldFlags.k_SawUndergroundNetwork,
