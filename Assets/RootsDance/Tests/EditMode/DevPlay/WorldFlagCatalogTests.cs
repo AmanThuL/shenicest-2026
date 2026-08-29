@@ -42,6 +42,11 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     // The chase.
                     WorldFlags.k_ChaseStarted,
                     WorldFlags.k_ChaseEscaped,
+
+                    // Chapter 01: the lab corridor.
+                    WorldFlags.k_FlashlightRecovered,
+                    WorldFlags.k_AlgaeScanned,
+                    WorldFlags.k_FlashlightPowered,
                 },
                 all);
         }
