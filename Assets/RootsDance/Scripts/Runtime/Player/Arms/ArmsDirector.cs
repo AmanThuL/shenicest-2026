@@ -317,8 +317,13 @@ namespace RootsDance.Player.Arms
                         SetLayerTarget(layer, 0f, action.FadeOut);
                     }
                 }
-                else if (chain == null || chain.Layer != 0)
+                else if (chain == null)
                 {
+                    // Only when nothing was chained. Falling back to neutral *because* the chain
+                    // is on a masked layer destroys it: neutral is a Both-scope action, and Begin
+                    // gives both arms to those - zeroing every masked layer and resetting the pose
+                    // that the chain just set. Taking the helmet off chains to the one-handed hold,
+                    // so that path put the arms straight back to the pose they started from.
                     ReturnToNeutral();
                 }
             }
