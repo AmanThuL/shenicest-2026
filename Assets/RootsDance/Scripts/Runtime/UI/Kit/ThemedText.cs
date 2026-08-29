@@ -8,11 +8,10 @@ namespace RootsDance.UI.Kit
     /// <para>
     /// Case is a family rule, not a per-label choice: Archive screens are all caps, Terminal screens
     /// keep the authored string. The label defers to the theme by default and only overrides for the
-    /// rare string that must not follow its family. The face is always the theme's — Fusion Pixel,
-    /// a real pixel face that carries both Latin and CJK, so a screen written in Chinese needs no
-    /// fallback and no second atlas. There is no monospacing fakery here any more: imposing a fixed
-    /// advance on a proportional face was the old spec's approach, and it is exactly the giveaway
-    /// §2C now bans.
+    /// rare string that must not follow its family. The face is always the theme's — m5x7 for
+    /// Latin, Fusion Pixel behind it for CJK, both real pixel faces. There is no monospacing fakery
+    /// here any more: imposing a fixed advance on a proportional face was the old spec's approach,
+    /// and it is exactly the giveaway §2C now bans.
     /// </para>
     /// </summary>
     [ExecuteAlways]
@@ -29,11 +28,13 @@ namespace RootsDance.UI.Kit
         [Tooltip("Family defers to the theme: Archive upper-cases, Terminal keeps the string. Spec §2C.")]
         [SerializeField] private KitCase m_case = KitCase.Family;
 
-        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — Fusion Pixel has one " +
-            "weight and no italic cut, and the spec allows faking the slant but never the weight.")]
+        [Tooltip("TMP synthetic italic. Terminal-family Display titles only — both kit faces have " +
+            "one weight and no italic cut, and the spec allows faking the slant but never the weight.")]
         [SerializeField] private bool m_italic;
 
         private ElectronicUITheme m_theme;
+        private ElectronicUIRoot m_root;
+        private bool m_hasRoot;
 
         /// <summary>Ramp slot this label paints from. KitDataRow flips it to drive its alarm state.</summary>
         public KitInk Ink
@@ -108,10 +109,32 @@ namespace RootsDance.UI.Kit
 
             label.fontStyle = style;
 
-            if (m_theme.Font != null)
+            TMP_FontAsset face = ResolveFace();
+
+            if (face != null)
             {
-                label.font = m_theme.Font;
+                label.font = face;
             }
+        }
+
+        /// <summary>
+        /// The face this label prints in: its screen's override when it has one, the theme's
+        /// otherwise. The screen is asked rather than the theme because the reason to differ is a
+        /// property of the screen — a diegetic panel written in Chinese cannot go through a
+        /// fallback font, since the fallback draws on its own material and the panel's material is
+        /// the only one that renders at its scale.
+        /// </summary>
+        private TMP_FontAsset ResolveFace()
+        {
+            if (!m_hasRoot)
+            {
+                m_root = GetComponentInParent<ElectronicUIRoot>(true);
+                m_hasRoot = true;
+            }
+
+            TMP_FontAsset over = m_root == null ? null : m_root.FontOverride;
+
+            return over != null ? over : m_theme.Font;
         }
     }
 }

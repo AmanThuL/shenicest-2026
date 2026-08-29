@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace RootsDance.UI.Kit
@@ -15,6 +16,16 @@ namespace RootsDance.UI.Kit
     public class ElectronicUIRoot : MonoBehaviour
     {
         [SerializeField] private ElectronicUITheme m_theme;
+
+        [Tooltip("Face for this screen only, in place of the theme's. Empty = the theme's face. "
+            + "For a screen written in Chinese: the kit's face carries Latin, and TextMeshPro "
+            + "reaches a CJK glyph through a fallback font — a second atlas on a second material "
+            + "that a diegetic screen's own material never reaches. One face that carries both "
+            + "settles it for that screen without moving the kit off its own.")]
+        [SerializeField] private TMP_FontAsset m_fontOverride;
+
+        /// <summary>The face this screen prints in, or null to use the theme's. See the tooltip.</summary>
+        public TMP_FontAsset FontOverride => m_fontOverride;
 
         public ElectronicUITheme Theme
         {

@@ -3737,6 +3737,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.Kit.ElectronicUIRoot
   m_theme: {fileID: 11400000, guid: c3c8f14128d5142579937ff63cfcd5ca, type: 2}
+  m_fontOverride: {fileID: 11400000, guid: 9d11a371f29554782b0d2cf73ce393c5, type: 2}
 --- !u!114 &1958670249775961767
 MonoBehaviour:
   m_ObjectHideFlags: 0
