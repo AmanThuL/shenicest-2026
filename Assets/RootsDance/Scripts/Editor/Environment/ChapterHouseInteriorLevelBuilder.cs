@@ -8,6 +8,7 @@ using RootsDance.Editor.DevPlay;
 using RootsDance.Investigation;
 using Unity.Cinemachine;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -64,6 +65,20 @@ namespace RootsDance.Editor.Environment
         private const string k_TextureFolder = "Assets/RootsDance/Textures/Environment/ChapterHouse";
         private const string k_VolumeProfilePath =
             "Assets/RootsDance/Settings/VolumeProfiles/MainProfile.asset";
+
+        /// <summary>
+        /// The procedural mycelium filling the undercroft — the gap between the cloth landscape
+        /// and the underside of the hall floor. Grown by
+        /// <c>Tools/blender/generate_mycelium.py</c>, which writes its vertices in this level's
+        /// own world space and clips them out of the floor slab and the catwalk.
+        /// </summary>
+        private const string k_MyceliumModelPath =
+            "Assets/RootsDance/Meshes/Environment/ChapterHouse/MyceliumUndercroft.fbx";
+        private const string k_MyceliumName = "MyceliumUndercroft";
+        private const string k_MyceliumGuttationPart = "Mycelium_Guttation";
+        private const string k_AnimationFolder = "Assets/RootsDance/Animations/Environment";
+        private const string k_MyceliumControllerPath =
+            k_AnimationFolder + "/MyceliumUndercroft.controller";
 
         private const string k_NaveAnchor = "Checkpoint_ChapterHouseNave";
         private const string k_GalleryAnchor = "Checkpoint_ChapterHouseBridge";
@@ -482,6 +497,7 @@ namespace RootsDance.Editor.Environment
             ApplyMaterials(building, materials);
             CreateCollision(building);
             SetStatic(building);
+            CreateMycelium(building, scene);
 
             Bounds floor = PartBounds(building, k_FloorPart);
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
@@ -490,6 +506,164 @@ namespace RootsDance.Editor.Environment
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_ChapterHouseInteriorEnvironment);
             return bounds;
+        }
+
+        /// <summary>
+        /// Places the mycelium in the undercroft and starts its breath looping.
+        ///
+        /// The generator already worked in this level's world space, so the instance only has to
+        /// repeat whatever transform <see cref="GroundModel"/> gave the building. Copying that
+        /// transform rather than writing the offset down keeps the two in register the next time
+        /// the blockout is re-exported and the building is re-grounded.
+        ///
+        /// It is deliberately not marked static: the breath is a blend-shape animation, so these
+        /// are SkinnedMeshRenderers and static batching would freeze them.
+        /// </summary>
+        private static void CreateMycelium(GameObject building, Scene scene)
+        {
+            GameObject mycelium = InstantiateModel(
+                k_MyceliumModelPath, k_MyceliumName, building.transform.parent, scene);
+
+            mycelium.transform.SetLocalPositionAndRotation(
+                building.transform.localPosition, building.transform.localRotation);
+            mycelium.transform.localScale = building.transform.localScale;
+
+            Material hyphae = EnsureMyceliumMaterial(
+                "Hyphae", new Color(0.84f, 0.82f, 0.74f), 0.25f);
+            Material guttation = EnsureMyceliumMaterial(
+                "Guttation", new Color(0.93f, 0.96f, 0.98f), 0.95f);
+
+            Renderer[] renderers = mycelium.GetComponentsInChildren<Renderer>(true);
+
+            if (renderers.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "The mycelium model has no renderers: " + k_MyceliumModelPath);
+            }
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material material = renderers[i].gameObject.name == k_MyceliumGuttationPart
+                    ? guttation
+                    : hyphae;
+                Material[] slots = renderers[i].sharedMaterials;
+
+                for (int slot = 0; slot < slots.Length; slot++)
+                {
+                    slots[slot] = material;
+                }
+
+                renderers[i].sharedMaterials = slots;
+            }
+
+            EnsureMyceliumAnimator(mycelium);
+        }
+
+        /// <summary>
+        /// The mycelium carries no baked textures — it is lit geometry, so its two surfaces are
+        /// described by parameters. Single-sided on purpose: every filament is a closed, capped
+        /// tube, so the back faces are never seen and double-siding would only cost fill rate.
+        /// </summary>
+        private static Material EnsureMyceliumMaterial(string name, Color colour, float smoothness)
+        {
+            string path = $"{k_MaterialFolder}/Mycelium_{name}.mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool isNew = material == null;
+
+            if (isNew)
+            {
+                Shader lit = Shader.Find("HDRP/Lit");
+
+                if (lit == null)
+                {
+                    throw new InvalidOperationException("HDRP/Lit shader was not found.");
+                }
+
+                material = new Material(lit);
+            }
+
+            material.SetColor("_BaseColor", colour);
+            material.SetFloat("_Smoothness", smoothness);
+            material.SetFloat("_Metallic", 0f);
+            material.enableInstancing = true;
+
+            HDMaterial.ValidateMaterial(material);
+
+            if (isNew)
+            {
+                EnsureFolder(k_MaterialFolder);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else
+            {
+                EditorUtility.SetDirty(material);
+            }
+
+            return material;
+        }
+
+        /// <summary>
+        /// Drives the imported breath clip. The clip is authored as one seamless 96-frame cycle
+        /// and imported with loop time on, so a single default state is the whole controller.
+        /// </summary>
+        private static void EnsureMyceliumAnimator(GameObject mycelium)
+        {
+            AnimationClip clip = LoadMyceliumClip();
+            EnsureFolder(k_AnimationFolder);
+
+            AnimatorController controller =
+                AssetDatabase.LoadAssetAtPath<AnimatorController>(k_MyceliumControllerPath);
+
+            if (controller == null)
+            {
+                controller = AnimatorController.CreateAnimatorControllerAtPathWithClip(
+                    k_MyceliumControllerPath, clip);
+            }
+            else
+            {
+                AnimatorStateMachine machine = controller.layers[0].stateMachine;
+
+                if (machine.defaultState == null)
+                {
+                    machine.defaultState = machine.AddState(clip.name);
+                }
+
+                machine.defaultState.motion = clip;
+                EditorUtility.SetDirty(controller);
+            }
+
+            Animator animator = mycelium.GetComponent<Animator>();
+
+            if (animator == null)
+            {
+                animator = mycelium.AddComponent<Animator>();
+            }
+
+            animator.runtimeAnimatorController = controller;
+            animator.applyRootMotion = false;
+            // Blend-shape skinning costs the same whether or not anyone is looking, and the
+            // undercroft is sealed: stop it entirely when nothing renders it.
+            animator.cullingMode = AnimatorCullingMode.CullCompletely;
+        }
+
+        private static AnimationClip LoadMyceliumClip()
+        {
+            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(k_MyceliumModelPath);
+
+            for (int i = 0; i < assets.Length; i++)
+            {
+                AnimationClip clip = assets[i] as AnimationClip;
+
+                if (clip != null && !clip.name.StartsWith("__preview__", StringComparison.Ordinal))
+                {
+                    return clip;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "The mycelium FBX carries no animation clip. Check that it imported under the " +
+                "mycelium_breathing profile in Tools/unity/model_import_profiles.json: " +
+                k_MyceliumModelPath);
         }
 
         /// <summary>

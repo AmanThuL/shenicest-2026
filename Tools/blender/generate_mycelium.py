@@ -578,6 +578,7 @@ def get_collection(name):
     if coll is None:
         coll = bpy.data.collections.new(name)
         bpy.context.scene.collection.children.link(coll)
+
     for obj in list(coll.objects):
         bpy.data.objects.remove(obj, do_unlink=True)
     return coll
@@ -612,6 +613,11 @@ def generate(params=None):
         pinned = to_blend(np.asarray(anchors)) if anchors else np.zeros((0, 3))
         for o in made:
             add_breathing(o, pinned, p, np.random.default_rng(p["seed"] + 17))
+
+    # In background mode the view layer's object bases are synced lazily, and the FBX
+    # exporter refuses to select an object that is not in view_layer.objects yet.
+    bpy.context.view_layer.update()
+    _ = bpy.context.view_layer.layer_collection.children
 
     total = sum(len(o.data.vertices) for o in made)
     print("[mycelium] %d strands, %d objects, %d verts" % (strands, len(made), total))
