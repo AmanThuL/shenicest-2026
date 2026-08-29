@@ -1,5 +1,6 @@
 using RootsDance.Archive;
 using RootsDance.Data;
+using RootsDance.Player;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -24,6 +25,9 @@ namespace RootsDance.Editor.Archive
 
         private const string k_ScenePath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
+
+        private const string k_GameplayPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
 
         private const string k_RootName = "_Archive";
 
@@ -96,6 +100,74 @@ namespace RootsDance.Editor.Archive
 
             Debug.Log($"[{k_LogPrefix}] Wrote {k_ScenePath} with {documents.Length} document(s) on "
                 + "the archive desk. Open it additively next to BriggsInterior_Environment to move them.");
+        }
+
+        /// <summary>
+        /// Puts the read loop on the Briggs player, so the sheets in the part scene can actually be
+        /// picked up. The components land on the <c>Player</c> prefab instance as scene overrides —
+        /// Briggs is the only level with documents in it, and the playtest scene already carries its
+        /// own copy, so putting them on the prefab would give that scene two of each.
+        /// </summary>
+        [MenuItem("RootsDance/Archive/Wire Briggs Player For Reading")]
+        public static void WirePlayer()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_GameplayPath);
+            bool wasOpen = scene.IsValid() && scene.isLoaded;
+
+            if (!wasOpen)
+            {
+                scene = EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Additive);
+            }
+
+            FirstPersonController player = FindPlayer(scene);
+
+            if (player == null)
+            {
+                Debug.LogError($"[{k_LogPrefix}] No FirstPersonController in {k_GameplayPath}.");
+
+                if (!wasOpen)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+
+                return;
+            }
+
+            DocumentInspectController reader = ArchivePlaytestBuilder.SetUpReader(player);
+            ArchivePlaytestBuilder.SetUpOffer(player, reader);
+
+            // Read off what the log needs before closing: closing the scene destroys the objects,
+            // and touching one afterwards throws.
+            string playerName = player.name;
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+
+            if (!wasOpen)
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+
+            Debug.Log($"[{k_LogPrefix}] Wired the reader and the proximity offer onto "
+                + $"'{playerName}' in {k_GameplayPath}.");
+        }
+
+        /// <summary>The player in one scene, ignoring any other scene the Editor has open.</summary>
+        private static FirstPersonController FindPlayer(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                FirstPersonController player = roots[i].GetComponentInChildren<FirstPersonController>(true);
+
+                if (player != null)
+                {
+                    return player;
+                }
+            }
+
+            return null;
         }
 
         private static LayerMask AllowedLayers()

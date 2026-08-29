@@ -64,7 +64,7 @@ namespace RootsDance.Editor.Archive
         }
 
         /// <summary>Puts the read loop on the player and wires it to what it has to suspend.</summary>
-        private static DocumentInspectController SetUpReader(FirstPersonController player)
+        internal static DocumentInspectController SetUpReader(FirstPersonController player)
         {
             GameObject root = player.gameObject;
             DocumentInspectController reader = root.GetComponent<DocumentInspectController>();
@@ -127,7 +127,7 @@ namespace RootsDance.Editor.Archive
         /// than by aiming at it. Aiming does not work for a document: it lies flat, and the
         /// centre-screen ray goes over the top of it.
         /// </summary>
-        private static void SetUpOffer(FirstPersonController player, DocumentInspectController reader)
+        internal static void SetUpOffer(FirstPersonController player, DocumentInspectController reader)
         {
             GameObject root = player.gameObject;
             ArchiveProximityTrigger trigger = root.GetComponent<ArchiveProximityTrigger>();
