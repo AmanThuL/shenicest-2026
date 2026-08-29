@@ -34,8 +34,17 @@ namespace RootsDance.Editor.Archive
         /// <summary>The archive desk, from <c>BriggsInterior_Environment</c>: BI_S9_ArchiveDesk.</summary>
         private static readonly Vector3 k_DeskPosition = new Vector3(-6.25f, 0f, -2.35f);
 
-        /// <summary>Table top, in metres — the sheets lie on the desk, not on the floor.</summary>
-        private const float k_DeskHeight = 0.95f;
+        /// <summary>The desk's yaw in the room, in degrees — the sheets lie along its long axis.</summary>
+        private const float k_DeskYawDegrees = 102f;
+
+        /// <summary>
+        /// Height of the desk top, in metres: the desktop slab sits at 0.78 and is 0.1 thick
+        /// (<c>BriggsInteriorDressingBuilder.BuildArchiveDeskPrefab</c>), so its surface is 0.83.
+        /// </summary>
+        private const float k_DeskTopHeight = 0.83f;
+
+        /// <summary>How far the paper floats above the surface, in metres — enough not to z-fight.</summary>
+        private const float k_Lift = 0.012f;
 
         /// <summary>How far apart the two sheets lie on the desk, in metres.</summary>
         private const float k_Spacing = 0.34f;
@@ -76,15 +85,17 @@ namespace RootsDance.Editor.Archive
                 instance.name = $"ArchiveDocument_{documents[i].Id}";
                 instance.transform.SetParent(root.transform, false);
 
-                // Laid out along the desk's long axis, at reading height. Exact placement is the
+                // Laid out along the desk's long axis, on its surface. Exact placement is the
                 // level owner's to nudge in the Editor.
+                Quaternion desk = Quaternion.Euler(0f, k_DeskYawDegrees, 0f);
                 float across = (i - (documents.Length - 1) * 0.5f) * k_Spacing;
                 instance.transform.position = k_DeskPosition
-                    + Vector3.up * k_DeskHeight
-                    + new Vector3(across, 0f, 0f);
+                    + Vector3.up * (k_DeskTopHeight + k_Lift)
+                    + desk * new Vector3(across, 0f, 0f);
 
-                // Face up: the readable side of a page looks back along its own forward axis.
-                instance.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                // Face up: the readable side of a page looks back along its own forward axis. Its
+                // up runs along the desk's depth, so the text reads from where you stand at it.
+                instance.transform.rotation = Quaternion.LookRotation(Vector3.down, desk * Vector3.forward);
 
                 SetLayerRecursively(instance, layer);
 

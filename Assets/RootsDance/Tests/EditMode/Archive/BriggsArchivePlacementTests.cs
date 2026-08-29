@@ -1,0 +1,191 @@
+using System.Collections.Generic;
+using NUnit.Framework;
+using RootsDance.Archive;
+using RootsDance.Data;
+using RootsDance.Player;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace RootsDance.Tests.EditMode.Archive
+{
+    /// <summary>
+    /// Guards the two archive sheets in Briggs: that they are in the level, on the desk, and that
+    /// the player in that level can actually pick them up.
+    /// </summary>
+    public sealed class BriggsArchivePlacementTests
+    {
+        private const string k_ArchiveScenePath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
+        private const string k_GameplayPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
+        private const string k_LevelPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
+
+        /// <summary>Desk top (0.78 slab centre + half of a 0.1 slab) plus the anti-z-fight lift.</summary>
+        private const float k_DeskSurface = 0.842f;
+
+        private const float k_HeightTolerance = 0.02f;
+
+        [Test]
+        public void BriggsLevel_LoadsTheArchivePartScene()
+        {
+            LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelPath);
+            Assert.IsTrue(level != null, k_LevelPath + " is missing.");
+
+            SerializedProperty paths = new SerializedObject(level).FindProperty("m_scenePaths");
+            bool listed = false;
+
+            for (int i = 0; i < paths.arraySize; i++)
+            {
+                listed |= paths.GetArrayElementAtIndex(i).stringValue == k_ArchiveScenePath;
+            }
+
+            Assert.IsTrue(listed, "BriggsInterior.asset does not load the archive part scene.");
+
+            bool inBuild = false;
+            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
+
+            for (int i = 0; i < scenes.Length; i++)
+            {
+                inBuild |= scenes[i].path == k_ArchiveScenePath && scenes[i].enabled;
+            }
+
+            // Additive loads go through the build list, so a level path that is not in it loads
+            // nothing at all — and does so silently in the Editor, where the scene is open anyway.
+            Assert.IsTrue(inBuild, "The archive part scene is not an enabled build scene.");
+        }
+
+        [Test]
+        public void BriggsArchiveScene_LaysBothDocumentsFaceUpOnTheDesk()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_ArchiveScenePath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_ArchiveScenePath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                ArchiveDocumentPickup[] sheets = FindAll<ArchiveDocumentPickup>(scene);
+                Assert.AreEqual(2, sheets.Length, "Expected both sheets in the archive scene.");
+
+                LayerMask interactable = InteractableLayers();
+                string firstDocument = null;
+
+                for (int i = 0; i < sheets.Length; i++)
+                {
+                    string sheetName = sheets[i].name;
+
+                    Object document = new SerializedObject(sheets[i])
+                        .FindProperty("m_document").objectReferenceValue;
+                    Assert.IsTrue(document != null, sheetName + " has no document assigned.");
+                    Assert.AreNotEqual(firstDocument, document.name,
+                        "Both sheets show the same document.");
+                    firstDocument = document.name;
+
+                    Assert.That(sheets[i].transform.position.y,
+                        Is.EqualTo(k_DeskSurface).Within(k_HeightTolerance),
+                        sheetName + " is not lying on the desk top.");
+
+                    // The readable side looks back along the page's own forward, so a sheet flat on
+                    // a table has its forward pointing at the table.
+                    Assert.That(Vector3.Angle(sheets[i].transform.forward, Vector3.down),
+                        Is.LessThan(1f), sheetName + " is not face up.");
+
+                    Assert.AreNotEqual(0, interactable.value & (1 << sheets[i].gameObject.layer),
+                        sheetName + " is on a layer interaction ignores.");
+                }
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        [Test]
+        public void BriggsGameplayScene_GivesThePlayerTheReadLoop()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_GameplayPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                DocumentInspectController[] readers = FindAll<DocumentInspectController>(scene);
+                Assert.AreEqual(1, readers.Length, "Expected exactly one reader on the player.");
+
+                SerializedObject reader = new SerializedObject(readers[0]);
+                Assert.IsTrue(reader.FindProperty("m_holdAnchor").objectReferenceValue != null,
+                    "The reader has no hold anchor.");
+                Assert.IsTrue(reader.FindProperty("m_input").objectReferenceValue != null,
+                    "The reader has no input reader.");
+
+                // While a sheet is up it owns the mouse, so look, move and the interaction ray all
+                // have to be in the suspend list or the player walks off while reading.
+                SerializedProperty suspended = reader.FindProperty("m_suspendedWhileReading");
+                Assert.AreEqual(3, suspended.arraySize, "The suspend list is incomplete.");
+
+                ArchiveProximityTrigger[] offers = FindAll<ArchiveProximityTrigger>(scene);
+                Assert.AreEqual(1, offers.Length, "Expected exactly one proximity offer.");
+
+                SerializedObject offer = new SerializedObject(offers[0]);
+                Assert.IsTrue(offer.FindProperty("m_controller").objectReferenceValue != null,
+                    "The offer is not wired to the reader.");
+                Assert.IsTrue(offer.FindProperty("m_player").objectReferenceValue != null,
+                    "The offer has no player transform to measure from.");
+                Assert.IsTrue(offer.FindProperty("m_input").objectReferenceValue != null,
+                    "The offer has no input reader.");
+                Assert.IsTrue(offer.FindProperty("m_promptChanged").objectReferenceValue != null,
+                    "The offer has no prompt channel, so the hint never reaches the HUD.");
+
+                FirstPersonController[] players = FindAll<FirstPersonController>(scene);
+                Assert.AreEqual(1, players.Length, "Expected exactly one player.");
+                Assert.AreSame(players[0].gameObject, readers[0].gameObject,
+                    "The reader has to sit on the player it suspends.");
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        private static LayerMask InteractableLayers()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:InteractionConfigSO");
+            Assert.AreNotEqual(0, guids.Length, "No InteractionConfigSO in the project.");
+
+            InteractionConfigSO config = AssetDatabase.LoadAssetAtPath<InteractionConfigSO>(
+                AssetDatabase.GUIDToAssetPath(guids[0]));
+            Assert.IsTrue(config != null, "The interaction config failed to load.");
+
+            return config.InteractableLayers;
+        }
+
+        /// <summary>Everything of one type in a single scene, ignoring the rest of the Editor.</summary>
+        private static T[] FindAll<T>(Scene scene) where T : Component
+        {
+            List<T> found = new List<T>();
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                found.AddRange(roots[i].GetComponentsInChildren<T>(true));
+            }
+
+            return found.ToArray();
+        }
+    }
+}
