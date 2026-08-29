@@ -44,7 +44,7 @@ namespace RootsDance.EditorTools
         private const string k_OverlayName = "RuneGlow";
 
         /// <summary>One rune per poster. The mask and the material are both named after the rune.</summary>
-        internal static readonly string[] k_Runes = { "Fehu", "Raidho", "Thurisaz", "Mannaz" };
+        internal static readonly string[] k_Runes = { "Ansuz", "Raidho", "Berkana", "Dagaz" };
 
         /// <summary>
         /// How sheet-like a child has to be before it counts as a poster: its thinnest side over
@@ -104,20 +104,47 @@ namespace RootsDance.EditorTools
 
             System.Random rng = new System.Random(k_Seed);
 
+            int markedCount = 0;
+
             for (int i = 0; i < sheets.Count; i++)
             {
-                // One rune each, in order. With more sheets than runes the sequence repeats, which
-                // is the only honest thing four glyphs can do across five walls.
-                string rune = k_Runes[i % k_Runes.Length];
-                Mark(sheets[i], rune, materials[i % k_Runes.Length], rng);
+                string rune = RuneForPoster(sheets[i].name);
+
+                if (!string.IsNullOrEmpty(rune))
+                {
+                    int materialIndex = System.Array.IndexOf(k_Runes, rune);
+                    Mark(sheets[i], rune, materials[materialIndex], rng);
+                    markedCount++;
+                }
+                else
+                {
+                    RemoveMark(sheets[i]);
+                }
             }
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"CorridorPostersBuilder: marked {sheets.Count} posters under "
+            Debug.Log($"CorridorPostersBuilder: marked {markedCount} posters under "
                 + $"'{k_GroupName}', one rune each.");
+        }
+
+        private static string RuneForPoster(string posterName)
+        {
+            switch (posterName)
+            {
+                case "BandPoster":
+                    return "Ansuz";
+                case "BandPoster (1)":
+                    return "Raidho";
+                case "BandPoster (2)":
+                    return "Berkana";
+                case "BandPoster (3)":
+                    return "Dagaz";
+                default:
+                    return string.Empty;
+            }
         }
 
         /// <summary>
@@ -274,6 +301,23 @@ namespace RootsDance.EditorTools
             GameObjectUtility.SetStaticEditorFlags(overlay, 0);
 
             Debug.Log($"[{poster.name}] marked {rune}, roll {roll:F1} deg, face sign {faceSign:F0}.");
+        }
+
+        private static void RemoveMark(Transform poster)
+        {
+            MeshFilter filter = poster.GetComponentInChildren<MeshFilter>();
+
+            if (filter == null)
+            {
+                return;
+            }
+
+            Transform existing = filter.transform.Find(k_OverlayName);
+
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing.gameObject);
+            }
         }
 
         /// <summary>How closely one of a transform's local axes lines up with world up, 0..1.</summary>

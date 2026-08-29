@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw one poster rune per coverage mask for RootsDance/Environment/FluorescentReveal.
 
-Placeholder art: the glyphs are Fehu, Raidho, Thurisaz and Mannaz. Each one is drawn as
+The glyphs are Ansuz, Raidho, Berkana and Dagaz: the keypad's intended password. Each is drawn as
 straight strokes on black in its own square file, because each one hangs on its own poster
 in the lab corridor - a player who finds one mark has found one, not a set.
 
@@ -22,14 +22,15 @@ GLYPH_HEIGHT = 0.72             # glyph height as a fraction of the image height
 
 # Each glyph is a list of (x0, y0, x1, y1) segments in its own box: x right, y up, y in 0..1.
 GLYPHS = {
-    # Fehu: stave with two arms slanting up to the right.
-    "Fehu": [(0, 0, 0, 1), (0, 0.72, 0.50, 0.98), (0, 0.42, 0.50, 0.68)],
+    # Ansuz: stave with two descending arms on its right side.
+    "Ansuz": [(0, 0, 0, 1), (0, 0.82, 0.52, 0.58), (0, 0.52, 0.52, 0.28)],
     # Raidho: stave, a closed head, and a leg kicking down to the right.
     "Raidho": [(0, 0, 0, 1), (0, 1, 0.45, 0.80), (0.45, 0.80, 0, 0.60), (0, 0.60, 0.48, 0)],
-    # Thurisaz: stave with a thorn on its right flank.
-    "Thurisaz": [(0, 0, 0, 1), (0, 0.75, 0.45, 0.50), (0.45, 0.50, 0, 0.25)],
-    # Mannaz: two staves bridged by a cross.
-    "Mannaz": [(0, 0, 0, 1), (0.62, 0, 0.62, 1), (0, 1, 0.62, 0.45), (0.62, 1, 0, 0.45)],
+    # Berkana: stave with two angular bowls opening to the right.
+    "Berkana": [(0, 0, 0, 1), (0, 1, 0.48, 0.75), (0.48, 0.75, 0, 0.50),
+                (0, 0.50, 0.48, 0.25), (0.48, 0.25, 0, 0)],
+    # Dagaz: two staves joined diagonally into the day/hourglass rune.
+    "Dagaz": [(0, 0, 0, 1), (0.62, 0, 0.62, 1), (0, 1, 0.62, 0), (0, 0, 0.62, 1)],
 }
 
 OUT_DIR = "Assets/RootsDance/Textures/Environment"
@@ -46,7 +47,7 @@ def draw(segments):
     baseline = (side + glyph_h) / 2.0       # y of the glyph's bottom edge, in pixels
 
     # The glyphs are narrow and none of them is the same width, so each is centred on its own
-    # span rather than on a shared cell - otherwise Mannaz sits left of Thurisaz on the wall.
+    # span rather than on a shared cell; this keeps all four password clues visually aligned.
     span = max(max(s[0], s[2]) for s in segments)
     left = (side - span * glyph_h) / 2.0
 

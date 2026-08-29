@@ -39,7 +39,8 @@ namespace RootsDance.Editor.Tools
             "Assets/RootsDance/Materials/Environment/Garage";
         private const string k_GarageTextureFolder =
             "Assets/RootsDance/Textures/Environment/Garage";
-        private const string k_LabEntranceAnchor = "Checkpoint_LaboratoryEntrance";
+        private const string k_LegacyLabEntranceAssetPath =
+            k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset";
         private const string k_PlantResearchLabAnchor = "Checkpoint_PlantResearchLab";
         private const string k_SampleStorageAnchor = "Checkpoint_SampleStorage";
         private const string k_GreenhouseAnchor = "Checkpoint_Greenhouse";
@@ -61,12 +62,8 @@ namespace RootsDance.Editor.Tools
         private static readonly Vector3 k_LabTargetCenter =
             new Vector3(0f, k_LabHeight * 0.5f, 0f);
 
-        private static readonly Vector3 k_LabEntrancePosition =
-            new Vector3(k_CorridorCenterX, 1f, k_SouthWallZ - k_CorridorLength + 1.3f);
-
         private static readonly CheckpointPlacement[] k_CheckpointPlacements =
         {
-            new CheckpointPlacement(k_LabEntranceAnchor, k_LabEntrancePosition, 0f),
             new CheckpointPlacement(k_PlantResearchLabAnchor, new Vector3(3f, 1f, -5.5f), 0f),
             new CheckpointPlacement(k_SampleStorageAnchor, new Vector3(-4.1f, 1f, -0.7f), 90f),
             new CheckpointPlacement(k_GreenhouseAnchor, new Vector3(6.8f, 1f, -3.2f), 180f),
@@ -606,7 +603,7 @@ namespace RootsDance.Editor.Tools
                     Quaternion.Euler(0f, placement.Yaw, 0f));
             }
 
-            CheckpointPlacement entrancePlacement = placements[k_LabEntranceAnchor];
+            CheckpointPlacement entrancePlacement = placements[k_PlantResearchLabAnchor];
 
             GameObject spawnPoint = new GameObject("PlayerSpawn");
             spawnPoint.transform.SetParent(spawns, false);
@@ -690,6 +687,8 @@ namespace RootsDance.Editor.Tools
             LevelSO level,
             IReadOnlyDictionary<string, CheckpointPlacement> placements)
         {
+            DeleteLegacyCheckpointAsset();
+
             string[] completedExteriorFlags =
             {
                 WorldFlags.k_LeftStartArea,
@@ -701,13 +700,6 @@ namespace RootsDance.Editor.Tools
                 WorldFlags.k_FirstInvestigationDone,
             };
 
-            CreateCheckpoint(
-                k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset",
-                "02-01 Laboratory entrance",
-                level,
-                k_LabEntranceAnchor,
-                placements[k_LabEntranceAnchor],
-                completedExteriorFlags);
             CreateCheckpoint(
                 k_CheckpointFolder + "/02-01_PlantResearchLab.asset",
                 "02-01 Plant research lab",
@@ -729,6 +721,20 @@ namespace RootsDance.Editor.Tools
                 k_GreenhouseAnchor,
                 placements[k_GreenhouseAnchor],
                 completedExteriorFlags);
+        }
+
+        private static void DeleteLegacyCheckpointAsset()
+        {
+            if (AssetDatabase.LoadMainAssetAtPath(k_LegacyLabEntranceAssetPath) == null)
+            {
+                return;
+            }
+
+            if (!AssetDatabase.DeleteAsset(k_LegacyLabEntranceAssetPath))
+            {
+                throw new System.IO.IOException(
+                    "Could not delete the legacy Briggs checkpoint: " + k_LegacyLabEntranceAssetPath);
+            }
         }
 
         private static void CreateCheckpoint(
