@@ -66,7 +66,7 @@ namespace RootsDance.EditorTools
         private const string k_FlowerRoot = "Flowers";
 
         /// <summary>How many stems to plant. The clumps carry the coverage; these carry silhouette.</summary>
-        private const int k_FlowerCount = 48;
+        private const int k_FlowerCount = 110;
 
         /// <summary>Minimum metres between stems, so they read as clumps and not as a lawn.</summary>
         private const float k_FlowerSpacing = 0.85f;
