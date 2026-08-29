@@ -1,0 +1,38 @@
+{
+  "asset": "GreenHouse1GlassStained",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/_TilingJigs/GreenHouse1GlassStainedPlane.blend",
+    "object": "GreenHouse1GlassStained",
+    "licence": "Mosaic generated in-repo (seeded Voronoi); other sources CC0.",
+    "note": "The stained rows of the lower arches. Palette avoids green on purpose: the building is already green-dominant (moss, paint), so the coloured glass carries amber, red, cobalt and violet."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": false,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "material_slots": [
+      "GreenHouse1GlassStained"
+    ]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": [
+    "GreenHouse1GlassStained"
+  ],
+  "painter": {
+    "fills": [
+      "StainedBase(0,1.0):basecolor=SourceArt/Reference/Weathering/StainedGlassMosaic/stained_mosaic_2k.png;roughness=0.16;opacity=0.82;metallic=0.0",
+      "DustFilm(0,0.35):basecolor=#9A968B;roughness=0.55;opacity=0.62|~grunge_dust_spread",
+      "RainStreak(0,0.40):basecolor=#8C908A;roughness=0.22;opacity=0.48|~grunge_leaks",
+      "MineralSpots(0,0.30):basecolor=#C9C5B3;roughness=0.68;opacity=0.68|~grunge_stains_hollow",
+      "MildewSpots(0,0.22):basecolor=#4A4438;roughness=0.72;opacity=0.66|~grunge_spots_dirty"
+    ],
+    "layers": [],
+    "note": "Stained glazing: mosaic base under the same contamination stack as the other states, dialled down so the colour reads."
+  }
+}
