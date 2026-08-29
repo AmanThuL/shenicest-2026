@@ -70,19 +70,28 @@ for obj in sorted(col.objects, key=lambda o: o.name):
     verts = np.empty((len(mesh.vertices), 3))
     mesh.vertices.foreach_get("co", verts.ravel())
     world = verts @ mw[:3, :3].T + mw[:3, 3]
+    half = (fv @ normal).ptp() / 2
 
     bm = bmesh.new(); bm.from_mesh(mesh)
     bm.faces.ensure_lookup_table()
     made = skipped = 0
     for k in best_missing:
         src = real[k]
-        target = centres[src] + 2 * (best_mid - lat[src]) * across
-        # only where daylight reaches: no iron between outside and the plane
-        origin = Vector(target + normal * (half + 0.5))
-        if tree.ray_cast(origin, Vector(-normal), half + 0.5 - 0.004)[0] is not None:
+        loop = list(mesh.polygons[src].vertices)
+        # Sample the whole pane, not just its centre. A small pane's centroid
+        # often lands right behind a glazing bar, and a single ray there
+        # called the opening solid and dropped the pane -- which is what left
+        # one square of the upper band's row unglazed while its twin was fine.
+        probes = [centres[src]] + [world[vi] for vi in loop]
+        probes = [p + 2 * (best_mid - float(p @ across)) * across for p in probes]
+        reach = half + 0.5
+        open_samples = sum(
+            1 for p in probes
+            if tree.ray_cast(Vector(p + normal * reach), Vector(-normal),
+                             reach - 0.004)[0] is None)
+        if open_samples == 0:
             skipped += 1
             continue
-        loop = list(mesh.polygons[src].vertices)
         new_verts = []
         for vi in loop:
             p = world[vi]
@@ -97,9 +106,37 @@ for obj in sorted(col.objects, key=lambda o: o.name):
                 bm.verts.remove(v)
     bm.to_mesh(mesh); bm.free()
     mesh.update()
+
+    # Drop the leftovers that sit on top of a pane that already has a twin.
+    # The source glazes some openings twice at slightly different sizes, and
+    # only one of the pair is mirrored, so the duplicate is the whole reason
+    # a square reads solid on one side of the arch and glazed on the other.
+    n2 = len(mesh.polygons)
+    c2 = np.empty((n2, 3)); mesh.polygons.foreach_get("center", c2.ravel())
+    c2 = c2 @ mw[:3, :3].T + mw[:3, 3]
+    a2 = np.empty(n2); mesh.polygons.foreach_get("area", a2)
+    lat2 = c2 @ across
+    mirror = c2 + np.outer(2 * (best_mid - lat2), across)
+    twinned = np.linalg.norm(c2[None, :, :] - mirror[:, None, :], axis=2).min(1) <= TOL
+    duplicates = []
+    for i in range(n2):
+        if twinned[i] or a2[i] <= MIN_AREA:
+            continue
+        near = np.linalg.norm(c2 - c2[i], axis=1)
+        near[i] = 1e9
+        if np.any((near < 0.06) & twinned & (a2 > MIN_AREA)):
+            duplicates.append(i)
+    if duplicates:
+        bm = bmesh.new(); bm.from_mesh(mesh)
+        bm.faces.ensure_lookup_table()
+        bmesh.ops.delete(bm, geom=[bm.faces[i] for i in duplicates], context='FACES')
+        bm.to_mesh(bm_mesh := mesh); bm.free()
+        mesh.update()
+
     added_total += made
-    print("### %-14s panes=%3d  mirrored in %2d  skipped behind iron %2d"
-          % (obj.name, len(real), made, skipped))
+    print("### %-14s panes=%3d  mirrored in %2d  skipped behind iron %2d  "
+          "duplicates dropped %2d"
+          % (obj.name, len(real), made, skipped, len(duplicates)))
 
 print("### total panes added by mirroring: %d" % added_total)
 bpy.ops.wm.save_mainfile()
