@@ -15,15 +15,19 @@ for o in objs:
         a,b=find(e.vertices[0]),find(e.vertices[1])
         if a!=b: par[a]=b
     comp[o.name]=[find(i) for i in range(n)]
+# 基准必须取**没上修改器的原网格**, 不能用 snap(0)。
+# 帧 0 的 sin(2pi*phase) 不为零, 拿帧 0 当静止 = 拿一个随机姿势当基准,
+# 连配对都会跟着变, 两个版本之间根本没法比。gap.py 里早写了这条, 这里当初漏了。
+REST={o.name:[v.co.copy() for v in o.data.vertices] for o in objs}
 def snap(fr):
     sc.frame_set(fr); dg=bpy.context.evaluated_depsgraph_get(); out={}
     for o in objs:
         ev=o.evaluated_get(dg); me=ev.to_mesh()
         out[o.name]=[v.co.copy() for v in me.vertices]; ev.to_mesh_clear()
     return out
-S0=snap(0); pairs={}
+pairs={}
 for o in objs:
-    vs=S0[o.name]; c=comp[o.name]
+    vs=REST[o.name]; c=comp[o.name]
     if len(set(c))<2: continue
     kd=KDTree(len(vs))
     for i,w in enumerate(vs): kd.insert(w,i)
