@@ -145,7 +145,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a140ff1f033dd4dd684c6c2741214b50, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.73
+      value: 0.64
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a140ff1f033dd4dd684c6c2741214b50, type: 3}
       propertyPath: m_LocalPosition.z
@@ -210,31 +210,31 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.77
+      value: -5.107229
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.45
+      value: 17.81
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -13.19
+      value: 1.964379
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.8372917
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.5467564
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -242,7 +242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -66.29
       objectReference: {fileID: 0}
     - target: {fileID: 2113696066172397813, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -251,6 +251,10 @@ PrefabInstance:
     - target: {fileID: 7662838012737577562, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
       propertyPath: m_Name
       value: CirculationTerminal
+      objectReference: {fileID: 0}
+    - target: {fileID: 7971818731161533757, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
