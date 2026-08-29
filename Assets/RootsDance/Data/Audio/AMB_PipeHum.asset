@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: AMB_PipeHum
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: cc872b11af763483ba03a33cc0744aaf, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0

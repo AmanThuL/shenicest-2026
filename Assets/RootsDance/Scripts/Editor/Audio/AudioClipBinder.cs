@@ -122,7 +122,38 @@ namespace RootsDance.Editor.Audio
             new ClipBinding("SFX_PlantPower", k_SfxFolder, "Plant_Power_01.ogg"),
             new ClipBinding("SFX_RelicChime", k_SfxFolder, "Relic_Chime_01.mp3"),
             new ClipBinding("SFX_FlowerVoice", k_SfxFolder, "Flower_Chirp_01.ogg"),
-            new ClipBinding("SFX_CreatureCall", k_SfxFolder, "Creature_Call_01.ogg")
+            new ClipBinding("SFX_CreatureCall", k_SfxFolder, "Creature_Call_01.ogg"),
+
+            // ---- The beds the audition library had no candidate for ----------------------------
+            // Synthesized by Tools/audio/generate_beds.py: a bed has to loop, and every looping
+            // candidate in the library is a one-shot with a seam in it. Placeholders with the right
+            // length and spectrum — replacing one is dropping a file with the same name.
+            new ClipBinding("AMB_RadioStatic", k_AmbienceFolder, "Radio_Static_Loop.wav"),
+            new ClipBinding("AMB_PipeHum", k_AmbienceFolder, "Pipe_Hum_Loop.wav"),
+            new ClipBinding("AMB_VentFan", k_AmbienceFolder, "Vent_Fan_Loop.wav"),
+            new ClipBinding("AMB_MaintenanceTunnel", k_AmbienceFolder, "Maintenance_Tunnel_Loop.wav"),
+            new ClipBinding("AMB_Corridor", k_AmbienceFolder, "Corridor_Loop.wav"),
+            new ClipBinding("AMB_Greenhouse", k_AmbienceFolder, "Greenhouse_Loop.wav"),
+            new ClipBinding("AMB_UndergroundNetwork", k_AmbienceFolder, "Underground_Network_Loop.wav"),
+            new ClipBinding("AMB_ScanLoop", k_AmbienceFolder, "Scan_Loop.wav"),
+            new ClipBinding("AMB_PlantOnStructure", k_AmbienceFolder, "Plant_On_Structure_Loop.wav"),
+
+            // Water, also synthesized: nothing in the library is water. Three drips because a drip
+            // repeats on its own and one sample would read as a machine.
+            new ClipBinding("SFX_WaterDrip", k_SfxFolder,
+                "Water_Drip_01.wav", "Water_Drip_02.wav", "Water_Drip_03.wav"),
+            new ClipBinding("SFX_WaterTrickle", k_SfxFolder, "Water_Trickle_01.wav"),
+
+            // ---- The props, from the pack the door came out of ---------------------------------
+            new ClipBinding("SFX_MetalCreak", k_SfxFolder,
+                "Metal_Creak_01.ogg", "Metal_Creak_02.ogg", "Metal_Creak_03.ogg"),
+            new ClipBinding("SFX_VineDrag", k_SfxFolder, "Vine_Drag_01.ogg", "Vine_Drag_02.ogg"),
+            new ClipBinding("SFX_FoliageRustle", k_SfxFolder,
+                "Foliage_Rustle_01.ogg", "Foliage_Rustle_02.ogg"),
+            new ClipBinding("SFX_StartleMovement", k_SfxFolder,
+                "Startle_Movement_01.ogg", "Startle_Movement_02.ogg"),
+            new ClipBinding("SFX_HelmetOn", k_SfxFolder, "Helmet_On_01.ogg"),
+            new ClipBinding("SFX_HelmetOff", k_SfxFolder, "Helmet_Off_01.ogg")
         };
 
         [MenuItem("RootsDance/Audio/Bind Audio Clips")]

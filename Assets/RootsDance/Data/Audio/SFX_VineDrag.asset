@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: SFX_VineDrag
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 427cbbac2df754b3892a47722946add5, type: 3}
+  - {fileID: 8300000, guid: 433f247bb4ba245eab4bb6860f5fdcc3, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0

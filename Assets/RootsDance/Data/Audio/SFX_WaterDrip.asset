@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: SFX_WaterDrip
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 5eb2264c697384526a751b3984f80fa3, type: 3}
+  - {fileID: 8300000, guid: 2d955a0156cd9493b94780ab9791ada0, type: 3}
+  - {fileID: 8300000, guid: 30dd6089c6ac04b9ea93d644f4499946, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0

@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: SFX_MetalCreak
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 118fb61d5cd36498fabf01c97a46b079, type: 3}
+  - {fileID: 8300000, guid: 1f80c7e6731fb41c4abf93beb32c4172, type: 3}
+  - {fileID: 8300000, guid: c4aa90e4e3710435787ce0a42a99610b, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0
