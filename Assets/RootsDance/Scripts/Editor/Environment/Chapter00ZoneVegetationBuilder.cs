@@ -148,7 +148,11 @@ namespace RootsDance.Editor.Environment
                 {
                     if (material.HasProperty("_EmissiveColor")) material.SetColor("_EmissiveColor", color);
                     if (material.HasProperty("_EmissiveIntensityValue"))
-                        material.SetFloat("_EmissiveIntensityValue", .3f);
+                        material.SetFloat("_EmissiveIntensityValue", .12f);
+                    if (material.name.StartsWith("Scan_", StringComparison.Ordinal))
+                        DisableAnomalousMotion(material);
+                    else
+                        ConfigureAnomalousMotion(material);
                 }
                 EditorUtility.SetDirty(material);
                 changed++;
@@ -504,6 +508,8 @@ namespace RootsDance.Editor.Environment
             string safeName = Sanitize(source.name);
             string path = $"{k_TintFolder}/{safeName}_{shortGuid}_{tint}.mat";
             Material variant = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool sourceUsesMotion = source.HasProperty("_MotionIntensityValue")
+                && source.GetFloat("_MotionIntensityValue") > .001f;
 
             if (variant == null)
             {
@@ -523,11 +529,13 @@ namespace RootsDance.Editor.Environment
             if (variant.HasProperty("_Color")) variant.SetColor("_Color", color);
             if (IsAnomalousTint(tint))
             {
-                // A small self-lit contribution keeps the five C families readable through the authored fog
+                // A small self-lit contribution keeps both mutation shades readable through the authored fog
                 // and dark source albedo without turning the band into a neon/bloom effect.
                 if (variant.HasProperty("_EmissiveColor")) variant.SetColor("_EmissiveColor", color);
                 if (variant.HasProperty("_EmissiveIntensityValue"))
-                    variant.SetFloat("_EmissiveIntensityValue", .3f);
+                    variant.SetFloat("_EmissiveIntensityValue", .12f);
+                if (sourceUsesMotion) ConfigureAnomalousMotion(variant);
+                else DisableAnomalousMotion(variant);
             }
             variant.enableInstancing = true;
             EditorUtility.SetDirty(variant);
@@ -544,7 +552,8 @@ namespace RootsDance.Editor.Environment
                 case Chapter00VegetationTint.SilverGreyGreen: return new Color(1.15f, 1.45f, 1.32f, 1f);
                 case Chapter00VegetationTint.CoolCyanGreen: return new Color(.50f, 1.55f, 1.35f, 1f);
                 case Chapter00VegetationTint.MutedViolet: return new Color(1.35f, .80f, 1.55f, 1f);
-                case Chapter00VegetationTint.FadedPink: return new Color(1.55f, .90f, 1.10f, 1f);
+                // FadedPink is the warm stone-pink sampled from the art-direction reference rock.
+                case Chapter00VegetationTint.FadedPink: return new Color(1.42f, .78f, .92f, 1f);
                 case Chapter00VegetationTint.CoolYellowGreen: return new Color(1.50f, 1.40f, .50f, 1f);
                 case Chapter00VegetationTint.StableGreen: return new Color(.38f, .48f, .34f, 1f);
                 case Chapter00VegetationTint.FacilityGreen: return new Color(.32f, .43f, .34f, 1f);
@@ -559,6 +568,50 @@ namespace RootsDance.Editor.Environment
                 || tint == Chapter00VegetationTint.MutedViolet
                 || tint == Chapter00VegetationTint.FadedPink
                 || tint == Chapter00VegetationTint.CoolYellowGreen;
+        }
+
+        private static void ConfigureAnomalousMotion(Material material)
+        {
+            // TVE source materials default to 5/5/10 speed with phase 0, making a dense field pulse in lockstep.
+            // Per-material deterministic variation breaks that synchrony without creating unstable scene data.
+            float primary = StableUnit(material.name, 2166136261u);
+            float secondary = StableUnit(material.name, 2246822519u);
+            SetFloatIfPresent(material, "_MotionIntensityValue", Mathf.Lerp(.30f, .42f, primary));
+            SetFloatIfPresent(material, "_MotionBaseIntensityValue", Mathf.Lerp(.20f, .32f, secondary));
+            SetFloatIfPresent(material, "_MotionBaseSpeedValue", Mathf.Lerp(.42f, .68f, primary));
+            SetFloatIfPresent(material, "_MotionBasePhaseValue", primary);
+            SetFloatIfPresent(material, "_MotionBaseNoiseValue", .82f);
+            SetFloatIfPresent(material, "_MotionSmallIntensityValue", Mathf.Lerp(.12f, .24f, primary));
+            SetFloatIfPresent(material, "_MotionSmallSpeedValue", Mathf.Lerp(.75f, 1.15f, secondary));
+            SetFloatIfPresent(material, "_MotionSmallPhaseValue", secondary);
+            SetFloatIfPresent(material, "_MotionSmallNoiseValue", .88f);
+            SetFloatIfPresent(material, "_MotionSmallPushValue", .35f);
+            SetFloatIfPresent(material, "_MotionTinyIntensityValue", Mathf.Lerp(.04f, .10f, secondary));
+            SetFloatIfPresent(material, "_MotionTinySpeedValue", Mathf.Lerp(1.20f, 1.80f, primary));
+        }
+
+        private static void DisableAnomalousMotion(Material material)
+        {
+            // Tinting roots and rocks must not accidentally turn their originally static TVE material into foliage.
+            SetFloatIfPresent(material, "_MotionIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionBaseIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionSmallIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionTinyIntensityValue", 0f);
+        }
+
+        private static void SetFloatIfPresent(Material material, string property, float value)
+        {
+            if (material.HasProperty(property)) material.SetFloat(property, value);
+        }
+
+        private static float StableUnit(string value, uint seed)
+        {
+            unchecked
+            {
+                uint hash = seed;
+                for (int i = 0; i < value.Length; i++) hash = (hash ^ value[i]) * 16777619u;
+                return (hash & 0x00FFFFFFu) / 16777215f;
+            }
         }
 
         private static bool TryParseTintSuffix(string name, out Chapter00VegetationTint tint)

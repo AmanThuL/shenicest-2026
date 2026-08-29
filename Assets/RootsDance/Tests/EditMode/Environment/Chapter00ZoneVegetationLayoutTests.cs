@@ -44,7 +44,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void CCarpet_UsesThirtyToFortyFivePercentOverlapAndNewPatchVariants()
+        public void CCarpet_UsesReducedOverlapAndNewPatchVariants()
         {
             Chapter00VegetationLayerSpec c = FindLayer(
                 Chapter00ZoneVegetationParams.CreateDefault(),
@@ -52,7 +52,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Chapter00VegetationRole.WalkThroughGroundCover,
                 0);
 
-            Assert.That(c.FootprintOverlap, Is.InRange(.30f, .45f));
+            Assert.That(c.FootprintOverlap, Is.InRange(.25f, .32f));
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_viridian");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_violet");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_rose");
@@ -145,7 +145,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void CCarpet_CrossesRouteAndUsesAllFiveColourClusters()
+        public void CCarpet_CrossesRouteAndUsesBothMutationShades()
         {
             Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
             // Validate the complete authored C envelope, but generate only its carpet layer. The compact
@@ -174,13 +174,10 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsTrue(routeCovered);
             CollectionAssert.AreEquivalent(new[]
             {
-                Chapter00VegetationTint.SilverGreyGreen,
-                Chapter00VegetationTint.CoolCyanGreen,
                 Chapter00VegetationTint.MutedViolet,
                 Chapter00VegetationTint.FadedPink,
-                Chapter00VegetationTint.CoolYellowGreen,
             }, colours);
-            Assert.AreEqual(5, colours.Count);
+            Assert.AreEqual(2, colours.Count);
         }
 
         [Test]
