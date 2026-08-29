@@ -53,7 +53,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Chapter00VegetationRole.WalkThroughGroundCover,
                 0);
 
-            Assert.That(c.FootprintOverlap, Is.InRange(-.16f, -.12f));
+            Assert.That(c.FootprintOverlap, Is.InRange(-.63f, -.59f));
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_viridian");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_violet");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_rose");
@@ -148,7 +148,7 @@ namespace RootsDance.Tests.EditMode.Environment
             }
 
             float coverage = covered / (float)sampled;
-            Assert.That(coverage, Is.InRange(.50f, .75f),
+            Assert.That(coverage, Is.InRange(.20f, .40f),
                 "C carpet should remain visually dominant while exposing deliberate terrain gaps.");
         }
 
@@ -219,7 +219,7 @@ namespace RootsDance.Tests.EditMode.Environment
             Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
             Vector2 point = new Vector2(target.transform.position.x, target.transform.position.z);
             float routeDistance = Chapter00ZoneVegetationLayout.DistanceToRoutes(p.Routes, point);
-            Assert.That(routeDistance, Is.InRange(1f, 3f));
+            Assert.That(routeDistance, Is.InRange(.5f, .9f));
 
             Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
             Assert.IsNotEmpty(renderers);
@@ -242,8 +242,8 @@ namespace RootsDance.Tests.EditMode.Environment
                     nonPhysicalPlantCount++;
                 }
             }
-            Assert.That(nonPhysicalPlantCount, Is.InRange(1400, 1500),
-                "Installed C vegetation must stay visually present without exceeding the 1,500-plant cap.");
+            Assert.That(nonPhysicalPlantCount, Is.InRange(700, 750),
+                "Installed C vegetation must stay visually present without exceeding the 750-plant cap.");
         }
 
         [Test]

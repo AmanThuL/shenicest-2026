@@ -32,7 +32,7 @@ namespace RootsDance.Editor.Environment
             + "Niwl_Plants_General_dd47fbc3_MutedViolet.mat";
         private const string k_TanmaoTargetPath =
             "Assets/RootsDance/Data/Investigation/BOT-FL-041_Tanmao.asset";
-        private static readonly Vector2 s_HeroPosition = new Vector2(-13.54f, 39.71f);
+        private static readonly Vector2 s_HeroPosition = new Vector2(-12.64f, 39.29f);
 
         [MenuItem(k_Menu)]
         public static void Build()
