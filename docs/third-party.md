@@ -259,7 +259,7 @@ the only derived data lives under `Assets/RootsDance/`.
   片段与 cue 的对照表在 `AudioClipBinder.k_Bindings` 与
   [音频管线](architecture/systems/音频管线.md) §9。
 - **Scott Buckley —— CC BY 4.0**（<https://www.scottbuckley.com.au/library/>）。入库曲目：
-  Signal To Noise（无旋律版）、Convergence、Phase Shift、Permafrost、Memories Of Stone、
+  Machina、Convergence、Phase Shift、Permafrost、Memories Of Stone、
   Incantation、Eyes In The Void、Hour Of The Witch。
   **署名是发布条件**，制作人员表里每首都要出现一行：
   `'<曲名>' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au`

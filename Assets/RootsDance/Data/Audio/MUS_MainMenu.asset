@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MUS_MainMenu
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
   m_clips:
-  - {fileID: 8300000, guid: 450b05bc75fed4c86a3dae17ecfaa235, type: 3}
+  - {fileID: 8300000, guid: 802c7b75739474260af3f7e0073c3254, type: 3}
   m_outputGroup: {fileID: 7254828753142777459, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0

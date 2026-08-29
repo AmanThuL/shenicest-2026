@@ -67,7 +67,7 @@ namespace RootsDance.Editor.Audio
             // ---- Music -------------------------------------------------------------------------
             // Every track is a selection. MUS_Credits deliberately shares the reveal's track: the
             // audition picked Convergence for both, and two cues pointing at one file costs nothing.
-            new ClipBinding("MUS_MainMenu", k_MusicFolder, "SignalToNoise_NoMelody.mp3"),
+            new ClipBinding("MUS_MainMenu", k_MusicFolder, "Machina.mp3"),
             new ClipBinding("MUS_GreenhouseReveal", k_MusicFolder, "Convergence.mp3"),
             new ClipBinding("MUS_Exploration", k_MusicFolder, "PhaseShift.mp3"),
             new ClipBinding("MUS_Contamination", k_MusicFolder, "Permafrost.mp3"),
