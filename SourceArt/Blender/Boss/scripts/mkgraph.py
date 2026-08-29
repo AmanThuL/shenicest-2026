@@ -241,16 +241,41 @@ edge("n_sbase", 0, "b_SurfaceDescription.BaseColor", 0)
 edge("n_snorm", 0, "b_SurfaceDescription.NormalTS", 0)
 edge("n_smooth", 0, "b_SurfaceDescription.Smoothness", 0)
 
-# ================= Target =================
-add("subtarget", "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget", ver=2,
-    m_WorkflowMode=1, m_NormalDropOffSpace=0, m_ClearCoat=False,
-    m_BlendModePreserveSpecular=True)
-add("target", "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget", ver=1,
-    m_Datas=[], m_ActiveSubTarget=ref("subtarget"), m_AllowMaterialOverride=False,
-    m_SurfaceType=0, m_ZTestMode=4, m_ZWriteControl=0, m_AlphaMode=0, m_RenderFace=2,
-    m_AlphaClip=False, m_CastShadows=True, m_ReceiveShadows=True, m_DisableTint=False,
-    m_AdditionalMotionVectorMode=0, m_AlembicMotionVectors=False,
-    m_SupportsLODCrossFade=False, m_CustomEditorGUI="", m_SupportVFX=False)
+# ================= Target (HDRP) =================
+# 这个工程只装了 HDRP(high-definition 17.3), 唯一的管线资产是 HDRP_Desktop。
+# 上一版这里写的是 UniversalTarget —— URP 目标的图在 HDRP 里没有可用通道,
+# 材质直接回退成品红错误着色器。因为 Boss 当时还没进任何场景, 没人看见。
+# 字段布局照抄 HDRP 包自带的不透明模板 (Lit.shadergraph / diffuse.shadergraph)。
+add("hd_system", "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
+    m_MaterialNeedsUpdateHash=0, m_SurfaceType=0, m_RenderingPass=1, m_BlendMode=0,
+    m_ZTest=4, m_ZWrite=False, m_TransparentCullMode=2, m_OpaqueCullMode=2,
+    m_SortPriority=0, m_AlphaTest=False, m_TransparentDepthPrepass=False,
+    m_TransparentDepthPostpass=False, m_SupportLodCrossFade=False, m_DoubleSidedMode=0,
+    m_DOTSInstancing=False, m_CustomVelocity=False, m_Tessellation=False,
+    m_TessellationMode=0, m_TessellationFactorMinDistance=20.0,
+    m_TessellationFactorMaxDistance=50.0, m_TessellationFactorTriangleSize=100.0,
+    m_TessellationShapeFactor=0.75, m_TessellationBackFaceCullEpsilon=-0.25,
+    m_TessellationMaxDisplacement=0.009999999776482582, m_DebugSymbols=False,
+    m_Version=2, inspectorFoldoutMask=0)
+add("hd_builtin", "UnityEditor.Rendering.HighDefinition.ShaderGraph.BuiltinData",
+    m_Distortion=False, m_DistortionMode=0, m_DistortionDepthTest=True,
+    m_AddPrecomputedVelocity=False, m_TransparentWritesMotionVec=False,
+    m_DepthOffset=False, m_ConservativeDepthOffset=False, m_TransparencyFog=True,
+    m_AlphaTestShadow=False, m_BackThenFrontRendering=False,
+    m_TransparentDepthPrepass=False, m_TransparentDepthPostpass=False,
+    m_TransparentPerPixelSorting=False, m_SupportLodCrossFade=False)
+add("hd_lit", "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDLitData",
+    m_RayTracing=False, m_MaterialType=0, m_MaterialTypeMask=2, m_RefractionModel=0,
+    m_SSSTransmission=True, m_EnergyConservingSpecular=True, m_ClearCoat=False)
+add("hd_lighting", "UnityEditor.Rendering.HighDefinition.ShaderGraph.LightingData",
+    m_NormalDropOffSpace=0, m_BlendPreserveSpecular=True, m_ReceiveDecals=True,
+    m_ReceiveSSR=True, m_ReceiveSSRTransparent=False, m_SpecularAA=False,
+    m_SpecularOcclusionMode=0, m_OverrideBakedGI=False)
+add("subtarget", "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDLitSubTarget")
+add("target", "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDTarget",
+    m_ActiveSubTarget=ref("subtarget"),
+    m_Datas=[ref("hd_builtin"), ref("hd_system"), ref("hd_lit"), ref("hd_lighting")],
+    m_CustomEditorGUI="", m_SupportVFX=False, m_SupportLineRendering=False)
 
 add("category", "UnityEditor.ShaderGraph.CategoryData", m_Name="",
     m_ChildObjectList=[ref(p) for p in PROPS])
