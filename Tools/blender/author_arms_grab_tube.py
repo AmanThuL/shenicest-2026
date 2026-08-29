@@ -27,6 +27,8 @@ from mathutils import Matrix, Quaternion, Vector
 ARMATURE = "ArmsRig"
 SOURCE_ACTION = "grab_ground"
 ACTION = "grab_ground_tube"
+HOLD_ACTION = "hold_tube"          # the right-arm loop the sampling flow parks in
+HOLD_TEMPLATE = "drop"             # single-hand clips carry exactly this channel set
 
 TUBE_FBX = "/Users/yawen/Downloads/source/Tube.fbx"
 TUBE_OBJECT = "tube_dummy"
@@ -290,6 +292,41 @@ def stand_tube_up(arm, action, scene, floor):
           % (worst, min(elbow_x), max(elbow_x), inboard * 1000.0, SOURCE_ACTION))
 
 
+def build_hold(arm, source, bones, scene):
+    """A 2-frame right-arm loop holding the tube, taken value-exact off `source`'s last frame.
+
+    Same relationship `hold` has to `grab_ground`. It is a loop state, not "the last frame of
+    the clip left playing" -- see the contract: nothing may hold a pose by freezing the
+    Animator. Its only exit is the scanner flow, so it never has to match `hold`.
+    """
+    last = int(source.frame_range[1])
+    arm.animation_data.action = source
+    scene.frame_set(last)
+    bpy.context.view_layer.update()
+    pose = read_pose(arm, bones)
+
+    existing = bpy.data.actions.get(HOLD_ACTION)
+    if existing is not None:
+        bpy.data.actions.remove(existing)
+    action = bpy.data.actions.new(HOLD_ACTION)
+    action.use_fake_user = True
+    arm.animation_data.action = action
+    for frame in (1, 2):
+        scene.frame_set(frame)
+        write_pose(arm, pose)
+        key_pose(arm, bones, frame)
+
+    reference = {(fc.data_path, fc.array_index): fc.evaluate(last) for fc in source.fcurves}
+    worst = 0.0
+    for fcurve in action.fcurves:
+        key = (fcurve.data_path, fcurve.array_index)
+        worst = max(worst, abs(fcurve.evaluate(1) - reference[key]),
+                    abs(fcurve.evaluate(2) - reference[key]))
+    print("%s: %d fcurves, frames 1-2, seam vs %s f%d: max delta %g"
+          % (HOLD_ACTION, len(action.fcurves), source.name, last, worst))
+    return action
+
+
 def parse_args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     p = argparse.ArgumentParser(description="Build the tube variant of grab_ground.")
@@ -325,6 +362,16 @@ def write_pose(arm, pose):
             pb.rotation_quaternion = v["rot"]
         else:
             pb.rotation_euler = v["rot"]
+
+
+def key_pose(arm, bones, frame):
+    for name in bones:
+        pb = arm.pose.bones[name]
+        pb.keyframe_insert("location", frame=frame, group=name)
+        pb.keyframe_insert("scale", frame=frame, group=name)
+        pb.keyframe_insert(
+            "rotation_quaternion" if pb.rotation_mode == "QUATERNION" else "rotation_euler",
+            frame=frame, group=name)
 
 
 def import_tube(arm):
@@ -446,6 +493,13 @@ def main():
     print("hand-shape channels rewritten: %d over %d bones" % (touched, len(shape_bones)))
     untouched = sum(1 for fc in action.fcurves if (fc.data_path, fc.array_index) not in targets)
     print("channels left identical to %s: %d" % (SOURCE_ACTION, untouched))
+
+    template = bpy.data.actions.get(HOLD_TEMPLATE)
+    if template is None:
+        print("error: channel template Action not found: %s" % HOLD_TEMPLATE)
+        sys.exit(1)
+    right_arm = sorted({fc.data_path.split('"')[1] for fc in template.fcurves})
+    build_hold(arm, action, right_arm, scene)
 
     if UPRIGHT_TUBE:
         floor = source_elbow(arm, source, scene)
