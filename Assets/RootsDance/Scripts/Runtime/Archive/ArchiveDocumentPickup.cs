@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Core.Commands;
@@ -15,6 +16,9 @@ namespace RootsDance.Archive
     [DisallowMultipleComponent]
     public class ArchiveDocumentPickup : MonoBehaviour, IInteractable
     {
+        private static readonly List<ArchiveDocumentPickup> s_active =
+            new List<ArchiveDocumentPickup>();
+
         [SerializeField] private ArchiveDocumentSO m_document;
 
         [Tooltip("The transform that travels to the player's face. Empty = this object's own.")]
@@ -38,6 +42,15 @@ namespace RootsDance.Archive
         private IInteractableView m_view;
         private bool m_isHeld;
         private bool m_hasBeenRead;
+
+        /// <summary>
+        /// Every enabled sheet, in registration order, so a proximity offer can find the nearest
+        /// one without searching the scene each frame (guideline 05). Do not hold across frames.
+        /// </summary>
+        public static IReadOnlyList<ArchiveDocumentPickup> Active => s_active;
+
+        /// <summary>Name shown in the hint while this sheet is the nearest one in reach.</summary>
+        public string DisplayName => m_document == null ? "文件" : m_document.Title;
 
         /// <summary>The transform the read loop moves. Never null after Awake.</summary>
         public Transform Sheet => m_sheet;
@@ -122,6 +135,19 @@ namespace RootsDance.Archive
             {
                 m_view.SetInvestigated(false);
             }
+        }
+
+        private void OnEnable()
+        {
+            if (!s_active.Contains(this))
+            {
+                s_active.Add(this);
+            }
+        }
+
+        private void OnDisable()
+        {
+            s_active.Remove(this);
         }
 
         public void Interact(GameObject interactor)

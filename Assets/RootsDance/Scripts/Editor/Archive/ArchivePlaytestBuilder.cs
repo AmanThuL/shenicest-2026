@@ -1,5 +1,6 @@
 using RootsDance.Archive;
 using RootsDance.Data;
+using RootsDance.Events;
 using RootsDance.Interaction;
 using RootsDance.Player;
 using UnityEditor;
@@ -26,6 +27,9 @@ namespace RootsDance.Editor.Archive
         /// <summary>How far in front of the player the sheets are laid, in metres.</summary>
         private const float k_Reach = 1.4f;
 
+        /// <summary>Height the sheets are laid at, in metres — about a desk.</summary>
+        private const float k_DeskHeight = 0.9f;
+
         [MenuItem("RootsDance/Archive/Set Up Playtest In Open Scene")]
         public static void SetUp()
         {
@@ -49,13 +53,14 @@ namespace RootsDance.Editor.Archive
             }
 
             DocumentInspectController reader = SetUpReader(player);
+            SetUpOffer(player, reader);
             int placed = PlaceSheets(prefab, player.transform);
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
             Debug.Log($"[{k_LogPrefix}] Ready: {placed} sheet(s) in front of the player, reader on "
-                + $"'{reader.name}'. The scene is NOT saved. Press Play, walk up to a sheet and "
-                + "press the interact key.", reader);
+                + $"'{reader.name}'. The scene is NOT saved. Press Play, walk towards a sheet — the "
+                + "hint appears when you are in range — and press E.", reader);
         }
 
         /// <summary>Puts the read loop on the player and wires it to what it has to suspend.</summary>
@@ -117,6 +122,37 @@ namespace RootsDance.Editor.Archive
             return reader;
         }
 
+        /// <summary>
+        /// Puts the proximity offer on the player, so a sheet is offered by walking near it rather
+        /// than by aiming at it. Aiming does not work for a document: it lies flat, and the
+        /// centre-screen ray goes over the top of it.
+        /// </summary>
+        private static void SetUpOffer(FirstPersonController player, DocumentInspectController reader)
+        {
+            GameObject root = player.gameObject;
+            ArchiveProximityTrigger trigger = root.GetComponent<ArchiveProximityTrigger>();
+
+            if (trigger == null)
+            {
+                trigger = root.AddComponent<ArchiveProximityTrigger>();
+            }
+
+            SerializedObject serialized = new SerializedObject(trigger);
+            serialized.FindProperty("m_controller").objectReferenceValue = reader;
+            serialized.FindProperty("m_player").objectReferenceValue = FindHead(root.transform);
+            serialized.FindProperty("m_input").objectReferenceValue =
+                root.GetComponentInChildren<PlayerInputReader>(true);
+            serialized.FindProperty("m_promptChanged").objectReferenceValue = FindPromptChannel();
+            serialized.ApplyModifiedProperties();
+        }
+
+        /// <summary>The channel the HUD listens on for interaction hints.</summary>
+        private static StringEventChannelSO FindPromptChannel()
+        {
+            return AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(
+                "Assets/RootsDance/Data/Events/InteractionPrompt.asset");
+        }
+
         /// <summary>The transform the camera follows, or the player itself when there is no head.</summary>
         private static Transform FindHead(Transform root)
         {
@@ -144,11 +180,12 @@ namespace RootsDance.Editor.Archive
                 GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
                 instance.name = $"ArchiveDocument_{documents[i].Id}";
 
-                // Spread them along the player's right so both are reachable from one spot, lying
-                // face up a little above the floor so the ray meets them rather than the ground.
-                Vector3 across = player.right * ((i - (documents.Length - 1) * 0.5f) * 0.28f);
+                // Spread along the player's right so several are reachable from one spot, and set
+                // at about desk height: a sheet at ankle level is fine for a proximity offer but
+                // impossible to look at, and it was invisible to the centre-screen ray entirely.
+                Vector3 across = player.right * ((i - (documents.Length - 1) * 0.5f) * 0.34f);
                 instance.transform.position = player.position + player.forward * k_Reach
-                    + across + Vector3.up * 0.05f;
+                    + across + Vector3.up * k_DeskHeight;
 
                 // Face up: the readable side of a page looks back along its own forward axis.
                 instance.transform.rotation = Quaternion.LookRotation(Vector3.down, player.forward);
