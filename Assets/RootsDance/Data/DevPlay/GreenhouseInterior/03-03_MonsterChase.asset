@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
   m_label: 03-03 Monster Chase
   m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
-  m_anchorName: Checkpoint_CentralGreenhouse
-  m_position: {x: 0, y: 1, z: 0}
+  m_anchorName: Checkpoint_ChaseStart
+  m_position: {x: 0, y: 1.05, z: 2}
   m_yaw: 0
   m_snapToGround: 0
   m_groundLayers:

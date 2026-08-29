@@ -161,21 +161,6 @@ MonoBehaviour:
   - m_name: Anchor_00-11_ResearchFacilityPoster
     m_specPosition: {x: 23, y: 0, z: 97.8}
     m_useSpecHeight: 0
-  - m_name: Anchor_00-12_AshleafVine
-    m_specPosition: {x: 33.8, y: 0, z: 97.5}
-    m_useSpecHeight: 0
-  - m_name: Anchor_00-13_FineVeinedVine
-    m_specPosition: {x: 35.8, y: 0, z: 100.8}
-    m_useSpecHeight: 0
-  - m_name: Anchor_00-14_VineGrowthDirection
-    m_specPosition: {x: 36.4, y: 0, z: 104}
-    m_useSpecHeight: 0
-  - m_name: Anchor_00-15_ClearAshleafVine
-    m_specPosition: {x: 37, y: 7.8, z: 106}
-    m_useSpecHeight: 1
-  - m_name: Anchor_00-16_MaintenanceEntrance
-    m_specPosition: {x: 37, y: 7.8, z: 106}
-    m_useSpecHeight: 1
   m_layers:
   - m_name: AshDry
     m_albedo: {fileID: 2800000, guid: 4e6440fa0e08e40c5abaef64cb1fb018, type: 3}

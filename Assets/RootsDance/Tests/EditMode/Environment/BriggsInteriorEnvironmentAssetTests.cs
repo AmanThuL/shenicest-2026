@@ -1,6 +1,8 @@
 using System.IO;
 using NUnit.Framework;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Editor.Environment;
+using RootsDance.Environment;
 using RootsDance.Rendering;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -34,6 +36,8 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
         private const string k_ArtistMetadataFolder =
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Attribution";
+        private const string k_ChemicalTableTexturePath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/ChemicalLabTable/verh_stola_albedo.jpg";
         private const string k_ArtistPrefabFolder =
             "Assets/RootsDance/Prefabs/Environment/LabHeroProps";
         private const string k_DressingVariantFolder =
@@ -53,11 +57,11 @@ namespace RootsDance.Tests.EditMode.Environment
         {
             "BI_CentralIsland_Abandoned",
             "BI_NE_OpticalCalibrator",
-            "BI_S8A_ChemistryOldLabTubes",
-            "BI_S8B_LabGlassware",
+            "BI_CentralSet_Glassware_Main",
+            "BI_CentralSet_OldTubes",
+            "BI_CentralSet_IronStand_A",
             "BI_S7_SamplingSyringe",
             "BI_S9_NoticeBoard",
-            "BI_S9_BrokenClock",
         };
 
         private static readonly string[] k_ArtistPickNames =
@@ -273,6 +277,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform geometry = FindRoot(environment, "_Geometry");
                 Transform props = FindRoot(environment, "_Props");
                 Transform interactables = FindRoot(gameplay, "_Interactables");
+                Transform cameras = FindRoot(gameplay, "_Cameras");
                 Transform roundWall = FindDescendant(geometry, "Briggs_Wall_North_RoundExit");
                 Transform woodenDoor = props.Find("BriggsClosedEntranceDoor");
                 Transform automaticDoor = interactables.Find("BriggsAutomaticExitDoor");
@@ -297,6 +302,32 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.AreEqual(k_DoorPrefabPath,
                     PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(automaticDoor.gameObject));
                 Assert.IsTrue(automaticDoor.GetComponent("AutomaticSlidingDoor") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneInlay_Outer") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneGlow_Outer") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneActivationLight") != null);
+                Assert.IsTrue(automaticDoor.Find(
+                    "DoorLeaf_Left/RuneInlay_Inner_LeftRoot/RuneInlay_Inner_Left") != null);
+                Assert.IsTrue(automaticDoor.Find(
+                    "DoorLeaf_Right/RuneInlay_Inner_RightRoot/RuneInlay_Inner_Right") != null);
+
+                for (int band = 0; band < BriggsCorridorGateRuneBuilder.InnerBandCount; band++)
+                {
+                    Assert.IsTrue(automaticDoor.Find(
+                        $"DoorLeaf_Left/RuneInlay_Inner_LeftRoot/RuneGlow_Inner_{band:00}_Left") != null);
+                    Assert.IsTrue(automaticDoor.Find(
+                        $"DoorLeaf_Right/RuneInlay_Inner_RightRoot/RuneGlow_Inner_{band:00}_Right") != null);
+                }
+
+                AutomaticSlidingDoor doorController = automaticDoor.GetComponent<AutomaticSlidingDoor>();
+                GateFullscreenShake screenShake = FindDescendant(cameras, "FirstPersonCamera")
+                    .GetComponent<GateFullscreenShake>();
+                Assert.IsTrue(screenShake != null, "The Briggs camera needs the gate full-screen shake driver.");
+                Assert.AreEqual(1, doorController.ActivationStarted.GetPersistentEventCount());
+                Assert.AreSame(screenShake, doorController.ActivationStarted.GetPersistentTarget(0));
+                Assert.AreEqual("Play", doorController.ActivationStarted.GetPersistentMethodName(0));
+                Assert.AreEqual(1, doorController.OpeningFinished.GetPersistentEventCount());
+                Assert.AreSame(screenShake, doorController.OpeningFinished.GetPersistentTarget(0));
+                Assert.AreEqual("Stop", doorController.OpeningFinished.GetPersistentMethodName(0));
             }
             finally
             {
@@ -485,6 +516,60 @@ namespace RootsDance.Tests.EditMode.Environment
             GameObject island = AssetDatabase.LoadAssetAtPath<GameObject>(islandPath);
             Assert.AreEqual(3, island.GetComponents<BoxCollider>().Length,
                 islandPath + " must retain the three seamless collision bands authored by the builder.");
+
+            GameObject islandInstance = PrefabUtility.InstantiatePrefab(island) as GameObject;
+
+            try
+            {
+                Assert.IsTrue(islandInstance != null, islandPath + " must instantiate for bounds validation.");
+                Transform deskHolder = islandInstance.transform.Find("ChemicalLab_AbandonedTable_Model");
+                Assert.IsTrue(deskHolder != null,
+                    islandPath + " must use the artist-selected ruined chemical table.");
+                MeshRenderer deskRenderer = deskHolder.GetComponentInChildren<MeshRenderer>(true);
+                Assert.IsTrue(deskRenderer != null, islandPath + " must retain the imported desk mesh.");
+                Assert.That(deskRenderer.bounds.size.x, Is.EqualTo(5.2f).Within(0.02f));
+                Assert.That(deskRenderer.bounds.size.z, Is.EqualTo(2f).Within(0.02f));
+                Assert.That(deskRenderer.bounds.size.y, Is.InRange(1.25f, 1.5f),
+                    islandPath + " must retain the faucet above its 0.92 m worktop. Actual: "
+                    + deskRenderer.bounds.size);
+
+                bool foundWorktopTexture = false;
+
+                for (int materialIndex = 0; materialIndex < deskRenderer.sharedMaterials.Length; materialIndex++)
+                {
+                    Material material = deskRenderer.sharedMaterials[materialIndex];
+
+                    if (material != null
+                        && AssetDatabase.GetAssetPath(material.GetTexture("_BaseColorMap"))
+                        == k_ChemicalTableTexturePath)
+                    {
+                        foundWorktopTexture = true;
+                        break;
+                    }
+                }
+
+                Assert.IsTrue(foundWorktopTexture,
+                    islandPath + " must retain the ruined worktop base-color map.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(islandInstance);
+            }
+        }
+
+        [Test]
+        public void BriggsChemicalTable_ImportsAsStaticAttributedSource()
+        {
+            string modelPath = k_ArtistModelFolder + "/ChemicalLab_AbandonedTable.fbx";
+            string metadataPath = k_ArtistMetadataFolder + "/Chemical_Lab_Fallout_4.metadata.json";
+            ModelImporter importer = AssetImporter.GetAtPath(modelPath) as ModelImporter;
+
+            Assert.IsTrue(importer != null, modelPath);
+            Assert.IsFalse(importer.addCollider, modelPath + " must not generate FBX colliders.");
+            Assert.IsFalse(importer.importAnimation, modelPath + " is a static environment asset.");
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<TextAsset>(metadataPath) != null, metadataPath);
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<Texture2D>(k_ChemicalTableTexturePath) != null,
+                k_ChemicalTableTexturePath);
         }
 
         [Test]
@@ -695,5 +780,6 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsFalse(colliders[i].enabled, path + " has an enabled collider at " + colliders[i].name);
             }
         }
+
     }
 }

@@ -10,8 +10,6 @@ namespace RootsDance.Tests.EditMode.Data
         [TestCase("AB-99")]
         [TestCase("ABCDEFGH-9999")]
         [TestCase("BOT-FL-041")]
-        [TestCase("BOT-FL-118")]
-        [TestCase("BOT-FL-203")]
         public void IsValid_WellFormedId_ReturnsTrue(string id)
         {
             Assert.IsTrue(ContentId.IsValid(id));

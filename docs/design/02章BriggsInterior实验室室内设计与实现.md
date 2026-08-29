@@ -1,6 +1,6 @@
 # 02章 Briggs Interior 实验室室内设计与实现
 
-> 状态：第二轮废弃实验室家具与桌面器材重布置已实现并通过 Unity 验证，2026-08-29
+> 状态：中央废弃化学桌、蒸馏器材组、移除墙钟与东北象限仪调整已实现，2026-08-29
 >
 > 目标场景：`BriggsInterior_Environment` 与 `BriggsInterior_Gameplay`
 >
@@ -48,7 +48,12 @@
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
   但不再穿墙或在室外形成难以辨认的轮廓。
-- 原先六段双排黑柜改为约 `2.2 × 5.4 × 0.92 m` 的一体废弃实验岛。岛台由 CC0 同系列 sink、open shelves、outlet counter 组合，统一使用旧青灰烤漆、锈褐边缘和污渍台面材质。
+- 中央岛保持约 `2.0 × 5.2 × 0.92 m` 的碰撞和通行外廓，但视觉模型替换为本地 `Chemical lab (Fallout 4)`
+  包中单独抽取的破损桌壳、水槽和龙头。带标签的瓶子、急救箱与其他绑定 IP 的小件没有导入；七组原始底色贴图经 HDRP
+  材质降低饱和度和光滑度。稳定 Prefab 路径、三个连续 BoxCollider 和 PWB 父级不变，也没有触碰地面生态、屋顶或灯光。
+- 原有 S8A、S8B 与零散中央小件替换为密集但可读的蒸馏器材组，包括两组玻璃器皿、旧试管、铁架台、环架、分液漏斗、
+  过滤瓶、试管架、酒精灯和烧杯。全部以 `Y 0.94` 工作面为落点并使用无行走碰撞 variant。西侧墙钟已移除。
+- 东北角沿用现有 `BI_NE_OpticalCalibrator` 象限仪实例，中心与朝向不变，仅放大到 `1.85`，不重复生成第二台。
 - 东侧 S7 工作台原位替换而不移动根须与植物；西侧档案区增加原创公告板；东北角增加由黄铜象限仪 Mesh 改造的旧式光学标定仪。
 - 小件与软植物通过项目内 `_NoCollision` Prefab Variant 关闭 Collider，不在场景实例上制造 Collider override。
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
@@ -59,8 +64,10 @@
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
 - `006b2dc` 的 `_LabAtmosphere/Global Volume` 直接使用 `BriggsInteriorProfile`，包含暗绿色 Gradient Sky、Bloom、白平衡与
   本地 `PsxPostProcess`。该 Volume 是这一历史画面的一部分，不得改成继承 `MainProfile` 的局部 Box Volume。
-- 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
-- 截图中的 `Abandoned Lab Equipment`、`Mad Scientist Lab`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 本地没有可用源包；本轮只借构图，用项目原创低模 CRT、公告板和破表替代。`Chemical Lab Fallout 4` 与 Black Mesa 衍生素材不进入发布工程。
+- 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`
+  和抽取后的 `ChemicalLab_AbandonedTable`，并保留来源记录。化学桌源标题明确标识 Fallout 4 衍生关系，公开发布前仍需完成底层 IP 清理。
+- `Mad Scientist Lab` 本地条目不可下载且属于付费来源，因此不复制其 Mesh，只用现有许可明确的玻璃器皿组合参考其蒸馏装置构图。
+  `Abandoned Lab Equipment`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 仍没有可用源包；墙钟按本轮要求直接移除。
 
 完整重建入口为 Unity 菜单 `RootsDance/Environment/Build Complete Briggs Interior`，命令行入口为
 `RootsDance.Editor.Environment.BriggsInteriorEnvironmentBuildPipeline.BuildFromCommandLine`。生成器只重建各 Palette `PIN` 下以
@@ -267,9 +274,9 @@ Prefab World Builder
 
 建议范围：`X -3.2 至 3.4`，`Z -2.6 至 4.0`。
 
-中央桌是整个房间的主视觉锚点。第二轮用一个 PWB 项目 prefab 组合 2 至 3 个同系列旧 counter，最终外廓约
-`2.2 m × 5.4 m × 0.92 m`，场景中心 `(0.10, 0, 0.10)`。柜门缺口、开放搁架、sink 和 outlet 打破现代模块化整洁感，
-但桌面连续、不可通行的中缝不再外露。
+中央桌是整个房间的主视觉锚点。当前用一个 PWB 项目 prefab 承载抽取后的破损化学桌壳、水槽和龙头，碰撞外廓约
+`2.0 m × 5.2 m × 0.92 m`，场景中心 `(0.10, 0, 0.10)`。腐蚀侧板、破洞、水槽和不规则边缘打破现代模块化整洁感，
+但仍保留连续、无缝的角色碰撞。
 
 环路要求：
 
@@ -278,10 +285,8 @@ Prefab World Builder
 - 东南角保持更宽，确保 S6 进入后自然转向 S7。
 - 桌下不得伸出隐形 Collider。
 
-中央桌分成两个清楚工作面：
-
-- 东侧 S8A：土壤分析仪、秤、培养皿、试管架。
-- 西侧 S8B：过滤漏斗、离心试管、干涸试剂瓶和滤液容器。
+桌面改为一组有前后层次的废弃蒸馏设备：主玻璃器皿位于中部偏西，铁架与漏斗形成竖向轮廓，旧试管和较小烧杯沿长边散开。
+器材允许少量遮挡和方向偏差，但不能越出台面或悬空。
 
 直接可用小件：
 
@@ -300,8 +305,8 @@ Prefab World Builder
 - CC0 全套 counter 变体、两个 cabinet、centrifuge、desiccator、hot plate、electronic scale 和 calculator。
 - CC BY `Chemistry_Old_Lab_Tubes.fbx`、`Lab_Glassware.fbx` 和 `PSX_Adrenaline_Syringe.fbx`。
 
-桌面按语义而不是平均铺满：东侧 S8A 是秤、显微镜、培养皿和旧试管架；西侧 S8B 是离心机、过滤器皿、玻璃器皿和热板。
-器材允许小角度错位、互相遮挡和局部空缺，但必须通过 Renderer bounds 贴合 `Y 0.94` 的工作面，禁止悬空。所有桌面版本无行走 Collider。
+桌面按蒸馏流程而不是平均铺满：铁架与漏斗形成高点，过滤瓶、试管架、烧杯与酒精灯形成中低层。器材允许小角度错位、
+互相遮挡和局部空缺，但必须通过 Renderer bounds 贴合 `Y 0.94` 的工作面，禁止悬空。所有桌面版本无行走 Collider。
 
 ### 5.5 东北废弃设备区
 
@@ -314,7 +319,8 @@ Prefab World Builder
 - 一台报废落地机器贴东墙，旁边放碎砖、空柜和一小簇 Ivy。
 - 只用一个中型体块和一个低矮残骸堆，不要堆满。
 - 不侵入北墙正中心的圆形门预留区。
-- 完整象限仪只取 Mesh 和轮廓语义，以氧化黄铜和旧灰绿材质重做为光学标定仪，目标 footprint 不超过 `1.2 × 0.8 m`，中心约 `(5.65, 0, 4.15)`，不保留博物馆金色陈列感。
+- 完整象限仪只取 Mesh 和轮廓语义，以氧化黄铜和旧灰绿材质重做为光学标定仪，沿用中心 `(5.65, 0, 4.15)`
+  和朝向 `235°`，当前缩放 `1.85`。它仍位于东北空角，不侵入圆门和中央环路。
 
 推荐候选：
 
@@ -459,16 +465,17 @@ Sketchfab 下载包多数是 CC BY。使用前必须核对作者、源页面、�
 
 | 截图目标 | 本地状态 | 本轮处理 |
 |---|---|---|
-| 化学旧桌、废弃 Lab Equipment | 参考包不可发布或未下载 | 用 CC0 counters、centrifuge、scale、CRT 原创组合复现破损密度 |
+| 化学旧桌、废弃 Lab Equipment | `Chemical Lab Fallout 4` 有第三方 IP 风险；`Abandoned Lab Equipment` 未下载 | 不导入两套风险模型；改用已下载 CC BY `Kitchen and Lab` 的旧桌 Mesh，保留现有 centrifuge、scale 和器皿组 |
 | Mad Scientist Lab | metadata-only | 借玻璃器皿高低错落构图，不导入模型 |
 | Conspiracy Papers X-Lab | metadata-only | 用项目原创公告板、现有 clipboard/binder/纸片变体替代 |
 | Old Lab Tubes | 已下载，CC BY 4.0 | 导入并放在中央 S8A |
 | PSX Adrenaline Syringe | 已下载，CC BY 4.0 | 导入并放在 S7 |
 | Astronomical quintant | 已下载，CC BY 4.0 | 改材质并作为东北旧光学标定仪 |
-| Lab Glassware | 已下载，CC BY 4.0 | 只取 2 至 3 件的组团观感，放在 S8B |
+| Lab Glassware | 已下载，CC BY 4.0 | 已放在 S8B，不重复导入 |
+| Kitchen and Lab | 已下载，CC BY 4.0 | 只拆 `Kitchen_DeskBig_2`，替换中央整齐柜台岛；同时保留上传者和原作者署名链 |
 | PSX Vintage Wall Clocks | 本地无 source zip | 自制破损低模时钟，不从截图抠图 |
 
-四个 CC BY 模型的转换后 FBX 与原始 metadata 位于
+五个 CC BY 模型的转换后 FBX 与原始 metadata 位于
 `Assets/ThirdParty/Environment/BriggsArtistPicks/`。Unity 场景只引用 `Assets/RootsDance/Prefabs/Environment/` 下的项目 prefab，
 不直接散放第三方 FBX。
 

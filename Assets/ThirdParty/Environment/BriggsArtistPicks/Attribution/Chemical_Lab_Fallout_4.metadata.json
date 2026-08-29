@@ -1,0 +1,240 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "f825c721edb541dbbc8cd210123616c7",
+      "name": "Architecture",
+      "slug": "architecture",
+      "uri": "https://api.sketchfab.com/v3/categories/f825c721edb541dbbc8cd210123616c7",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/0d6c3fa023a12c3d7aa493c542afd1b8-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/f825c721edb541dbbc8cd210123616c7/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/f825c721edb541dbbc8cd210123616c7/800x450.png"
+        }
+      ]
+    },
+    {
+      "uid": "d7cebaeca8604ebab1480e413404b679",
+      "name": "Electronics & Gadgets",
+      "slug": "electronics-gadgets",
+      "uri": "https://api.sketchfab.com/v3/categories/d7cebaeca8604ebab1480e413404b679",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/336c224334b7e53e277d236a8355e90a-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/d7cebaeca8604ebab1480e413404b679/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/d7cebaeca8604ebab1480e413404b679/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 1,
+  "createdAt": "2016-06-03T07:59:16.809561",
+  "embedUrl": "https://sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/embed",
+  "faceCount": 802294,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 46,
+  "name": "Chemical lab (Fallout 4)",
+  "publishedAt": "2016-06-03T11:36:58.407746",
+  "soundCount": 0,
+  "staffpickedAt": null,
+  "tags": [
+    {
+      "name": "games",
+      "slug": "games",
+      "uri": "https://api.sketchfab.com/v3/tags/games"
+    },
+    {
+      "name": "interactive",
+      "slug": "interactive",
+      "uri": "https://api.sketchfab.com/v3/tags/interactive"
+    },
+    {
+      "name": "laboratory",
+      "slug": "laboratory",
+      "uri": "https://api.sketchfab.com/v3/tags/laboratory"
+    },
+    {
+      "name": "chemical",
+      "slug": "chemical",
+      "uri": "https://api.sketchfab.com/v3/tags/chemical"
+    },
+    {
+      "name": "flash",
+      "slug": "flash",
+      "uri": "https://api.sketchfab.com/v3/tags/flash"
+    },
+    {
+      "name": "graphic",
+      "slug": "graphic",
+      "uri": "https://api.sketchfab.com/v3/tags/graphic"
+    },
+    {
+      "name": "fallout4",
+      "slug": "fallout4",
+      "uri": "https://api.sketchfab.com/v3/tags/fallout4"
+    },
+    {
+      "name": "game",
+      "slug": "game",
+      "uri": "https://api.sketchfab.com/v3/tags/game"
+    },
+    {
+      "name": "3d",
+      "slug": "3d",
+      "uri": "https://api.sketchfab.com/v3/tags/3d"
+    },
+    {
+      "name": "art",
+      "slug": "art",
+      "uri": "https://api.sketchfab.com/v3/tags/art"
+    },
+    {
+      "name": "digital",
+      "slug": "digital",
+      "uri": "https://api.sketchfab.com/v3/tags/digital"
+    },
+    {
+      "name": "highpoly",
+      "slug": "highpoly",
+      "uri": "https://api.sketchfab.com/v3/tags/highpoly"
+    },
+    {
+      "name": "environment",
+      "slug": "environment",
+      "uri": "https://api.sketchfab.com/v3/tags/environment"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "96273b152531479fb35548b0461be8ae",
+        "width": 50,
+        "height": 50,
+        "size": 1185,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/50x50.jpeg"
+      },
+      {
+        "uid": "1f8acacd4b8943049bf220999e4aba70",
+        "width": 100,
+        "height": 100,
+        "size": 2783,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/100x100.jpeg"
+      },
+      {
+        "uid": "b52c1ad65ddd4b8a9940f151906b5999",
+        "width": 200,
+        "height": 200,
+        "size": 7766,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/200x200.jpeg"
+      },
+      {
+        "uid": "396ca99160af4a37a1516a4a7c038369",
+        "width": 448,
+        "height": 252,
+        "size": 16897,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/448x252.jpeg"
+      },
+      {
+        "uid": "2f7d55a0c5ae43c397a79d6bbfb26bf8",
+        "width": 640,
+        "height": 360,
+        "size": 31855,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/640x360.jpeg"
+      },
+      {
+        "uid": "6ed4dadc8f9849c7a4859772bc3c7619",
+        "width": 864,
+        "height": 486,
+        "size": 55875,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/864x486.jpeg"
+      },
+      {
+        "uid": "b975a221a06e4df2ad4fcf243bba2e24",
+        "width": 1024,
+        "height": 576,
+        "size": 76714,
+        "url": "https://media.sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/thumbnails/7e07226c0ef5442393e80f85f59c3015/1024x576.jpeg"
+      }
+    ]
+  },
+  "uid": "c5b0d9196de34c2881c8c225cfb14a92",
+  "uri": "https://api.sketchfab.com/v3/models/c5b0d9196de34c2881c8c225cfb14a92",
+  "user": {
+    "uid": "51bb5db09bda488fb1734663f4b5660d",
+    "username": "Domender",
+    "displayName": "Vitaliy Kovalchuk",
+    "account": "basic",
+    "profileUrl": "https://sketchfab.com/Domender",
+    "avatar": {
+      "uid": "d2c44666dd514b59bb03576f9406662d",
+      "uri": "https://api.sketchfab.com/v3/avatars/d2c44666dd514b59bb03576f9406662d",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 783,
+          "url": "https://media.sketchfab.com/avatars/d2c44666dd514b59bb03576f9406662d/3c2e875950c84314b1c0e95c7e7e16ad.jpeg"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 1236,
+          "url": "https://media.sketchfab.com/avatars/d2c44666dd514b59bb03576f9406662d/8ccfc59f866a4f67b99483891e8bf7eb.jpeg"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 3167,
+          "url": "https://media.sketchfab.com/avatars/d2c44666dd514b59bb03576f9406662d/61b5386e56c04721bfd237a265c1a7e7.jpeg"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 3765,
+          "url": "https://media.sketchfab.com/avatars/d2c44666dd514b59bb03576f9406662d/761bd8f287ae48e7bd1707ce5488bf3e.jpeg"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/51bb5db09bda488fb1734663f4b5660d"
+  },
+  "vertexCount": 455273,
+  "viewCount": 1843,
+  "viewerUrl": "https://sketchfab.com/3d-models/chemical-lab-fallout-4-c5b0d9196de34c2881c8c225cfb14a92",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "It projects of the game Fallout 4 titled chemical laboratory.Texturing in \"Substance Painter\" and \"Adobe Photoshop\",modeling in \"3Ds Max\"",
+  "price": null,
+  "downloadCount": 66,
+  "editorUrl": "https://sketchfab.com/models/c5b0d9196de34c2881c8c225cfb14a92/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2026-05-16T12:11:45.433192",
+  "pbrType": null,
+  "textureCount": null,
+  "materialCount": 22
+}

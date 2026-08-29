@@ -132,7 +132,6 @@ namespace RootsDance.Editor.Audio
             new CueSpec("AMB_ContaminationWind", AudioRouting.k_SfxGroup, true, 0.2f, 60f, 0f),
             new CueSpec("AMB_LowContamination", AudioRouting.k_SfxGroup, true, 0.2f, 60f, 0f),
             new CueSpec("AMB_FacilityExterior", AudioRouting.k_SfxGroup, true, 0.3f, 40f, 0f),
-            new CueSpec("AMB_MaintenanceTunnel", AudioRouting.k_SfxGroup, true, 0.3f, 30f, 0f),
 
             // Footsteps. Flat: they are emitted at the player, which is where the listener already
             // is, so panning them buys nothing and risks a step sounding off to one side. The
@@ -147,13 +146,9 @@ namespace RootsDance.Editor.Audio
             new CueSpec("SFX_ToolLower", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
             new CueSpec("AMB_ScanLoop", AudioRouting.k_SfxGroup, true, 0f, 20f, 0f),
 
-            // The facility from outside (nodes 00-08 to 00-15) and the duct behind it (00-16).
+            // The facility exterior from nodes 00-08 through 00-11.
             new CueSpec("AMB_PlantOnStructure", AudioRouting.k_SfxGroup, true, 1f, 18f, 0f),
-            new CueSpec("AMB_VentFan", AudioRouting.k_SfxGroup, true, 1f, 22f, 0f),
             new CueSpec("SFX_MetalCreak", AudioRouting.k_SfxGroup, false, 1f, 25f, 0.4f),
-            new CueSpec("SFX_VineDrag", AudioRouting.k_SfxGroup, false, 1f, 14f, 0f),
-            new CueSpec("SFX_WaterDrip", AudioRouting.k_SfxGroup, false, 1f, 10f, 0.3f),
-            new CueSpec("AMB_PipeHum", AudioRouting.k_SfxGroup, true, 0.5f, 20f, 0f),
 
             // ---- The tracks the audition picked ------------------------------------------------
 

@@ -3,10 +3,12 @@ using RootsDance.App;
 using RootsDance.Cameras;
 using RootsDance.Chase;
 using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Player;
 using RootsDance.World;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,8 +31,11 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
 
         private const string k_MonsterPrefabPath = "Assets/RootsDance/Prefabs/Characters/ChaseMonster.prefab";
-        private const string k_RootedFbxPath = "Assets/RootsDance/Meshes/Characters/Boss_Blockout_Rooted.fbx";
-        private const string k_UprootedFbxPath = "Assets/RootsDance/Meshes/Characters/Boss_Blockout_Uprooted.fbx";
+        private const string k_BossFbxPath = "Assets/RootsDance/Meshes/Characters/Boss.fbx";
+        private const string k_BossClipName = "Boss_Chase";
+        private const string k_BossControllerPath =
+            "Assets/RootsDance/Animations/Boss/Boss.controller";
+        private const string k_EnemyConfigPath = "Assets/RootsDance/Data/Config/EnemyConfig.asset";
 
         private const string k_FlagChannelPath = "Assets/RootsDance/Data/Events/FlagRaised.asset";
         private const string k_LevelChannelPath = "Assets/RootsDance/Data/Events/LoadLevelRequested.asset";
@@ -41,16 +46,32 @@ namespace RootsDance.Editor.Environment
         private const string k_CheckpointPath =
             "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-03_MonsterChase.asset";
 
-        // Greenhouse leg: the chase checkpoint stands the player at the central greenhouse anchor
-        // (0, 1, 0) facing +Z (yaw 0), so the birth happens right in front of them; the escape
-        // turns round and runs -Z, out through the entrance the player came in by (anchor
-        // (0, 1.05, -10)) where the portal waits.
-        private static readonly Vector3 k_GreenhouseMonsterSpawn = new Vector3(0f, 0f, 3.5f);
+        // Greenhouse leg. The chase gets its own anchor rather than borrowing 03-02's
+        // Checkpoint_CentralGreenhouse: Dev Play ignores a checkpoint's Position entirely once its
+        // anchor resolves, so sharing an anchor meant 03-03 started the player in exactly the spot
+        // 03-02 does, with no room to run. The player stands at (0, 1.05, 2) facing +Z, the boss
+        // tears out of the north beds ahead of them, and the escape turns round and runs -Z out
+        // through the entrance they came in by (anchor (0, 1.05, -10)), where the portal waits:
+        // a 14 m run rather than the old 12, and all of it inside the lit hall (z within +/-7).
+        //
+        // The birth distance is the number that decides whether a chase happens at all. The boss
+        // holds a Desired Gap of 9 m and slows to a stop inside it, so a birth 3.5 m from the
+        // player left it standing still through the whole reveal AND the first shoulder check —
+        // the player looked back at a statue. At 6 m it is moving within a stride of the turn.
+        private const string k_ChaseStartAnchorName = "Checkpoint_ChaseStart";
+        private static readonly Vector3 k_ChaseStartAnchor = new Vector3(0f, 1.05f, 2f);
+        private static readonly Vector3 k_GreenhouseMonsterSpawn = new Vector3(0f, 0f, 8f);
         private const float k_GreenhouseMonsterYaw = 180f;
         private static readonly Vector3 k_GreenhousePortal = new Vector3(0f, 1.6f, -12f);
         private static readonly Vector3 k_GreenhousePortalSize = new Vector3(6f, 3.2f, 1.2f);
-        private static readonly Vector3 k_ChaseCheckpointPosition = new Vector3(0f, 1f, 0f);
+        private static readonly Vector3 k_ChaseCheckpointPosition = new Vector3(0f, 1.05f, 2f);
         private const float k_ChaseCheckpointYaw = 0f;
+
+        // Shoulder checks, in seconds from the start of each leg. The greenhouse leg is over in
+        // about five seconds (1.1 s birth, a beat to turn, 14 m at the 4.4 m/s sprint), so the old
+        // second check at 10 s fired into an unloaded scene and was never seen.
+        private static readonly float[] k_GreenhouseLookBacks = { 2.6f, 4.4f };
+        private static readonly float[] k_MainLookBacks = { 2.5f, 10f };
 
         // Forest leg: resume in the maintenance-entrance pit (design anchor (+52, +4, 108)) facing
         // back along the chapter-00 route; the boss re-emerges up-slope behind the player, and the
@@ -116,40 +137,91 @@ namespace RootsDance.Editor.Environment
                 + "03-03 checkpoint. Play it from RootsDance > Dev Play > Window.");
         }
 
-        /// <summary>The boss prefab: both blockout bodies under one ChaseMonster. Kept if it exists.</summary>
-        private static GameObject EnsureMonsterPrefab()
+        /// <summary>
+        /// The pursuit tuning asset. Created with the values the prefab used to carry inline, so
+        /// re-running this on an existing project changes no behaviour; kept untouched if present,
+        /// because after the first run this file is the designer's to edit.
+        /// </summary>
+        private static EnemyConfigSO EnsureEnemyConfig()
         {
-            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(k_MonsterPrefabPath);
+            EnemyConfigSO existing = AssetDatabase.LoadAssetAtPath<EnemyConfigSO>(k_EnemyConfigPath);
 
             if (existing != null)
             {
                 return existing;
             }
 
-            GameObject rootedModel = LoadRequired<GameObject>(k_RootedFbxPath);
-            GameObject uprootedModel = LoadRequired<GameObject>(k_UprootedFbxPath);
+            EnemyConfigSO config = ScriptableObject.CreateInstance<EnemyConfigSO>();
+            AssetDatabase.CreateAsset(config, k_EnemyConfigPath);
+            return config;
+        }
 
+        /// <summary>
+        /// A controller that just loops the boss's chase cycle. Speed is driven from code — the
+        /// clip is retimed by how fast the thing is actually travelling — so there is no state
+        /// machine here and nothing to parameterise.
+        /// </summary>
+        private static RuntimeAnimatorController EnsureBossController()
+        {
+            RuntimeAnimatorController existing =
+                AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(k_BossControllerPath);
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            AnimationClip clip = null;
+
+            foreach (UnityEngine.Object asset in AssetDatabase.LoadAllAssetsAtPath(k_BossFbxPath))
+            {
+                AnimationClip candidate = asset as AnimationClip;
+
+                if (candidate != null && candidate.name == k_BossClipName)
+                {
+                    clip = candidate;
+                    break;
+                }
+            }
+
+            if (clip == null)
+            {
+                throw new InvalidOperationException(
+                    k_BossFbxPath + " has no '" + k_BossClipName + "' clip to drive the boss.");
+            }
+
+            EnsureFolder(k_BossControllerPath);
+            return AnimatorController.CreateAnimatorControllerAtPathWithClip(k_BossControllerPath, clip);
+        }
+
+        /// <summary>
+        /// The boss prefab: the authored Boss mesh under one ChaseMonster, animated by its chase
+        /// cycle. Rebuilt when it is missing, and re-pointed at the config and controller when it
+        /// already exists, so an older prefab built from the blockout bodies is migrated in place.
+        /// </summary>
+        private static GameObject EnsureMonsterPrefab()
+        {
+            EnemyConfigSO config = EnsureEnemyConfig();
+            RuntimeAnimatorController controller = EnsureBossController();
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(k_MonsterPrefabPath);
+
+            if (existing != null && existing.GetComponentInChildren<SkinnedMeshRenderer>(true) != null)
+            {
+                WireMonster(existing, config, controller);
+                return existing;
+            }
+
+            GameObject bossModel = LoadRequired<GameObject>(k_BossFbxPath);
             GameObject root = new GameObject("ChaseMonster");
 
             try
             {
-                GameObject rooted = (GameObject)PrefabUtility.InstantiatePrefab(rootedModel);
-                rooted.name = "Rooted";
-                rooted.transform.SetParent(root.transform, false);
+                GameObject body = (GameObject)PrefabUtility.InstantiatePrefab(bossModel);
+                body.name = "Boss";
+                body.transform.SetParent(root.transform, false);
 
-                GameObject uprooted = (GameObject)PrefabUtility.InstantiatePrefab(uprootedModel);
-                uprooted.name = "Uprooted";
-                uprooted.transform.SetParent(root.transform, false);
-                uprooted.SetActive(false);
-
-                ChaseMonster monster = root.AddComponent<ChaseMonster>();
-
-                using (SerializedObject serialized = new SerializedObject(monster))
-                {
-                    serialized.FindProperty("m_rootedBody").objectReferenceValue = rooted;
-                    serialized.FindProperty("m_uprootedBody").objectReferenceValue = uprooted;
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
-                }
+                root.AddComponent<ChaseMonster>();
+                WireMonster(root, config, controller);
 
                 return PrefabUtility.SaveAsPrefabAsset(root, k_MonsterPrefabPath);
             }
@@ -159,13 +231,64 @@ namespace RootsDance.Editor.Environment
             }
         }
 
+        /// <summary>Points a ChaseMonster at its config and its animator, on a prefab or an instance.</summary>
+        private static void WireMonster(
+            GameObject monsterRoot, EnemyConfigSO config, RuntimeAnimatorController controller)
+        {
+            ChaseMonster monster = EnsureComponent<ChaseMonster>(monsterRoot);
+            Animator animator = monsterRoot.GetComponentInChildren<Animator>(true);
+
+            if (animator != null)
+            {
+                animator.runtimeAnimatorController = controller;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            }
+
+            using (SerializedObject serialized = new SerializedObject(monster))
+            {
+                serialized.FindProperty("m_config").objectReferenceValue = config;
+                serialized.FindProperty("m_animator").objectReferenceValue = animator;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            EditorUtility.SetDirty(monsterRoot);
+        }
+
+        /// <summary>Creates the folders an asset path needs, so CreateAsset does not fail on them.</summary>
+        private static void EnsureFolder(string assetPath)
+        {
+            string folder = System.IO.Path.GetDirectoryName(assetPath).Replace('\\', '/');
+
+            if (AssetDatabase.IsValidFolder(folder))
+            {
+                return;
+            }
+
+            string[] parts = folder.Split('/');
+            string built = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = built + "/" + parts[i];
+
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(built, parts[i]);
+                }
+
+                built = next;
+            }
+        }
+
         private static void WireGreenhouseGameplay(GameObject monsterPrefab)
         {
             Scene scene = EditorSceneManager.OpenScene(k_GreenhouseGameplayPath, OpenSceneMode.Single);
 
-            PanicViewShake shake = EnsurePanicShake(scene);
             Transform player = FindRequiredRoot(scene, "Player");
+            PanicViewShake shake = EnsurePanicShake(scene, player);
             EnsureFreeFallView(scene, player);
+            EnsureChaseStartAnchor(scene);
             Transform chaseRoot = EnsureRoot(scene, "_Chase");
 
             Transform spawn = EnsureChild(chaseRoot, "MonsterSpawn");
@@ -195,7 +318,8 @@ namespace RootsDance.Editor.Environment
 
             ChaseDirector director = EnsureComponent<ChaseDirector>(
                 EnsureChild(chaseRoot, "ChaseDirector").gameObject);
-            WireDirector(director, shake, monster, spawn, player, resumeSpawn: null, armed: portal);
+            WireDirector(director, shake, monster, spawn, player, resumeSpawn: null, armed: portal,
+                lookBackDelays: k_GreenhouseLookBacks);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -205,8 +329,8 @@ namespace RootsDance.Editor.Environment
         {
             Scene scene = EditorSceneManager.OpenScene(k_MainGameplayPath, OpenSceneMode.Single);
 
-            PanicViewShake shake = EnsurePanicShake(scene);
             Transform player = FindRequiredRoot(scene, "Player");
+            PanicViewShake shake = EnsurePanicShake(scene, player);
             EnsureFreeFallView(scene, player);
             Transform chaseRoot = EnsureRoot(scene, "_Chase");
 
@@ -238,7 +362,7 @@ namespace RootsDance.Editor.Environment
 
             ChaseDirector director = EnsureComponent<ChaseDirector>(
                 EnsureChild(chaseRoot, "ChaseDirector").gameObject);
-            WireDirector(director, shake, monster, spawn, player, resume, victory);
+            WireDirector(director, shake, monster, spawn, player, resume, victory, k_MainLookBacks);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -246,7 +370,7 @@ namespace RootsDance.Editor.Environment
 
         private static void WireDirector(
             ChaseDirector director, PanicViewShake shake, ChaseMonster monster, Transform spawn,
-            Transform player, Transform resumeSpawn, GameObject armed)
+            Transform player, Transform resumeSpawn, GameObject armed, float[] lookBackDelays)
         {
             using (SerializedObject serialized = new SerializedObject(director))
             {
@@ -261,6 +385,14 @@ namespace RootsDance.Editor.Environment
                 SerializedProperty armedList = serialized.FindProperty("m_armWhenChasing");
                 armedList.arraySize = 1;
                 armedList.GetArrayElementAtIndex(0).objectReferenceValue = armed;
+
+                SerializedProperty delays = serialized.FindProperty("m_lookBackDelays");
+                delays.arraySize = lookBackDelays.Length;
+
+                for (int i = 0; i < lookBackDelays.Length; i++)
+                {
+                    delays.GetArrayElementAtIndex(i).floatValue = lookBackDelays[i];
+                }
 
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -283,7 +415,7 @@ namespace RootsDance.Editor.Environment
             return existing.GetComponent<ChaseMonster>();
         }
 
-        private static PanicViewShake EnsurePanicShake(Scene scene)
+        private static PanicViewShake EnsurePanicShake(Scene scene, Transform player)
         {
             Transform camera = FindTransform(scene, "FirstPersonCamera");
 
@@ -306,10 +438,28 @@ namespace RootsDance.Editor.Environment
             {
                 serialized.FindProperty("m_flagRaised").objectReferenceValue =
                     LoadRequired<UnityEngine.Object>(k_FlagChannelPath);
+
+                // Without this the run cycle rides on the panic envelope alone and bobs at 2.9
+                // footfalls per second while the player stands still.
+                serialized.FindProperty("m_controller").objectReferenceValue =
+                    player.GetComponentInChildren<FirstPersonController>(true);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
             return shake;
+        }
+
+        /// <summary>
+        /// The chase's own Dev Play anchor, under the scene's <c>_Anchors</c> root. It has to be a
+        /// real anchor object: Dev Play resolves a checkpoint by anchor name and drops its Position
+        /// on the floor as soon as the name matches something.
+        /// </summary>
+        private static void EnsureChaseStartAnchor(Scene scene)
+        {
+            Transform anchors = EnsureRoot(scene, "_Anchors");
+            Transform anchor = EnsureChild(anchors, k_ChaseStartAnchorName);
+            anchor.SetPositionAndRotation(
+                k_ChaseStartAnchor, Quaternion.Euler(0f, k_ChaseCheckpointYaw, 0f));
         }
 
         /// <summary>The free-fall camera extension, wired to the scene's player controller.</summary>
@@ -354,7 +504,7 @@ namespace RootsDance.Editor.Environment
                 serialized.FindProperty("m_label").stringValue = "03-03 Monster Chase";
                 serialized.FindProperty("m_level").objectReferenceValue =
                     LoadRequired<UnityEngine.Object>(k_GreenhouseLevelPath);
-                serialized.FindProperty("m_anchorName").stringValue = "Checkpoint_CentralGreenhouse";
+                serialized.FindProperty("m_anchorName").stringValue = k_ChaseStartAnchorName;
                 serialized.FindProperty("m_position").vector3Value = k_ChaseCheckpointPosition;
                 serialized.FindProperty("m_yaw").floatValue = k_ChaseCheckpointYaw;
                 serialized.FindProperty("m_snapToGround").boolValue = false;

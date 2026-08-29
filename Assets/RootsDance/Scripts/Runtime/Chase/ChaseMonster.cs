@@ -1,3 +1,5 @@
+using RootsDance.Core;
+using RootsDance.Data;
 using UnityEngine;
 
 namespace RootsDance.Chase
@@ -12,52 +14,21 @@ namespace RootsDance.Chase
     /// Movement is a kinematic transform write with a downward probe for the ground; there is no
     /// Rigidbody to fight and nothing else owns this transform.
     /// </para>
+    /// <para>
+    /// Every tunable lives in an <see cref="EnemyConfigSO"/> asset rather than on this component,
+    /// so the pursuit is retuned without opening a scene.
+    /// </para>
     /// </summary>
     public class ChaseMonster : MonoBehaviour
     {
-        [Header("Bodies")]
-        [Tooltip("The rooted form shown while it is still tearing itself out of the planter.")]
-        [SerializeField] private GameObject m_rootedBody;
+        [Header("Config")]
+        [Tooltip("Pursuit tuning. Data/Config/EnemyConfig.asset.")]
+        [SerializeField] private EnemyConfigSO m_config;
 
-        [Tooltip("The uprooted form that runs. Swapped in when pursuit begins.")]
-        [SerializeField] private GameObject m_uprootedBody;
-
-        [Header("Pacing")]
-        [Tooltip("Metres it tries to stay behind the player. The shoulder check reads best when "
-            + "there is something to see at exactly this distance.")]
-        [Min(1f)]
-        [SerializeField] private float m_desiredGapMeters = 9f;
-
-        [Tooltip("Speed at the desired gap, in m/s. The player sprints at 4.4.")]
-        [Min(0f)]
-        [SerializeField] private float m_baseSpeed = 4.2f;
-
-        [Tooltip("Extra m/s per metre it has fallen behind the desired gap (and less per metre it "
-            + "is too close).")]
-        [Min(0f)]
-        [SerializeField] private float m_catchupPerMeter = 0.35f;
-
-        [Tooltip("Hard speed cap, in m/s.")]
-        [Min(0f)]
-        [SerializeField] private float m_maxSpeed = 6.5f;
-
-        [Header("Trail")]
-        [Tooltip("Metres between stored breadcrumbs. Coarser is cheaper; the pursuit point is "
-            + "interpolated, so this does not make the motion steppy.")]
-        [Min(0.1f)]
-        [SerializeField] private float m_trailSpacing = 0.75f;
-
-        [Tooltip("Oldest breadcrumbs are dropped past this count.")]
-        [Min(16)]
-        [SerializeField] private int m_maxTrailPoints = 256;
-
-        [Header("Grounding")]
-        [Tooltip("Layers the feet probe treats as ground. Keep in step with the level's Ground layer.")]
-        [SerializeField] private LayerMask m_groundLayers = 1 << 8;
-
-        [Tooltip("Degrees per second it can turn to face its motion.")]
-        [Min(30f)]
-        [SerializeField] private float m_turnDegreesPerSecond = 540f;
+        [Header("Body")]
+        [Tooltip("Animator on the boss mesh, running the looping chase cycle. Held on its first "
+            + "frame while the thing is still rooted, then released when the pursuit begins.")]
+        [SerializeField] private Animator m_animator;
 
         private readonly RaycastHit[] m_groundHits = new RaycastHit[8];
         private ChaseTrail m_trail;
@@ -68,19 +39,28 @@ namespace RootsDance.Chase
 
         private void Awake()
         {
-            m_trail = new ChaseTrail(m_trailSpacing, m_maxTrailPoints);
+            if (m_config == null)
+            {
+                Log.Error("ChaseMonster has no EnemyConfig; it cannot pursue.", this);
+                return;
+            }
+
+            m_trail = new ChaseTrail(m_config.TrailSpacing, m_config.MaxTrailPoints);
         }
 
-        /// <summary>Shows the rooted form only: the birth pose, before pursuit begins.</summary>
+        /// <summary>Holds the birth pose: on screen, but not yet moving and not yet animating.</summary>
         public void ShowRooted()
         {
-            SetBodies(rooted: true);
+            if (m_animator != null)
+            {
+                m_animator.speed = 0f;
+            }
         }
 
-        /// <summary>Swaps to the uprooted form and starts following the target's trail.</summary>
+        /// <summary>Releases the chase cycle and starts following the target's trail.</summary>
         public void BeginPursuit(Transform target)
         {
-            if (target == null)
+            if (target == null || m_trail == null)
             {
                 return;
             }
@@ -88,7 +68,12 @@ namespace RootsDance.Chase
             m_target = target;
             m_trail.Clear();
             m_trail.Record(transform.position);
-            SetBodies(rooted: false);
+
+            if (m_animator != null)
+            {
+                m_animator.speed = m_config.ChaseCycleSpeed;
+            }
+
             IsPursuing = true;
         }
 
@@ -97,6 +82,11 @@ namespace RootsDance.Chase
         {
             IsPursuing = false;
             m_target = null;
+
+            if (m_animator != null)
+            {
+                m_animator.speed = 0f;
+            }
         }
 
         private void Update()
@@ -109,14 +99,24 @@ namespace RootsDance.Chase
             Vector3 head = m_target.position;
             m_trail.Record(head);
 
+            float desiredGap = m_config.DesiredGapMeters;
+
             Vector3 pursuit;
-            m_trail.TryGetPursuitPoint(head, m_desiredGapMeters, out pursuit);
+            bool onTrail = m_trail.TryGetPursuitPoint(head, desiredGap, out pursuit);
 
             float gap = Vector3.Distance(transform.position, head);
             float speed = ChasePacing.SpeedForGap(
-                gap, m_desiredGapMeters, m_baseSpeed, m_catchupPerMeter, m_maxSpeed);
+                gap, desiredGap, m_config.BaseSpeed, m_config.CatchupPerMeter, m_config.MaxSpeed);
+            float step = ChasePacing.StepDistance(speed, Time.deltaTime, onTrail, gap, desiredGap);
 
-            Vector3 next = Vector3.MoveTowards(transform.position, pursuit, speed * Time.deltaTime);
+            if (!onTrail)
+            {
+                // Nothing on the route to aim at yet — head for the player; StepDistance is what
+                // keeps it from closing past the gap it is supposed to hold.
+                pursuit = head;
+            }
+
+            Vector3 next = Vector3.MoveTowards(transform.position, pursuit, step);
             next.y = GroundHeightAt(next);
 
             Vector3 motion = next - transform.position;
@@ -126,22 +126,17 @@ namespace RootsDance.Chase
             {
                 Quaternion facing = Quaternion.LookRotation(motion, Vector3.up);
                 transform.rotation = Quaternion.RotateTowards(
-                    transform.rotation, facing, m_turnDegreesPerSecond * Time.deltaTime);
+                    transform.rotation, facing, m_config.TurnDegreesPerSecond * Time.deltaTime);
             }
 
             transform.position = next;
-        }
 
-        private void SetBodies(bool rooted)
-        {
-            if (m_rootedBody != null)
+            // Retime the cycle to how fast it is actually travelling, so a boss that has slowed to
+            // hold its gap does not keep running on the spot at full tempo.
+            if (m_animator != null && m_config.BaseSpeed > 0.0001f)
             {
-                m_rootedBody.SetActive(rooted);
-            }
-
-            if (m_uprootedBody != null)
-            {
-                m_uprootedBody.SetActive(!rooted);
+                float travelled = step / Mathf.Max(Time.deltaTime, 0.0001f);
+                m_animator.speed = m_config.ChaseCycleSpeed * (travelled / m_config.BaseSpeed);
             }
         }
 
@@ -150,7 +145,8 @@ namespace RootsDance.Chase
         {
             Vector3 origin = point + Vector3.up * 3f;
             int count = Physics.RaycastNonAlloc(
-                origin, Vector3.down, m_groundHits, 12f, m_groundLayers, QueryTriggerInteraction.Ignore);
+                origin, Vector3.down, m_groundHits, 12f, m_config.GroundLayers,
+                QueryTriggerInteraction.Ignore);
 
             float best = float.MinValue;
 

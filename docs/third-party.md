@@ -192,6 +192,24 @@ the only derived data lives under `Assets/RootsDance/`.
   rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it. This remains true
   if the original rock materials/textures are discarded: the licence also protects the raw and modified meshes.
 
+## Briggs interior artist picks (Sketchfab, 2026-08-29)
+
+- **Path:** `Assets/ThirdParty/Environment/BriggsArtistPicks/`; per-model source and conversion notes are in `SOURCE.md`.
+- **Licence:** CC BY 4.0. Original Sketchfab metadata is preserved in `Attribution/`.
+- **Kitchen and Lab desk:** the Briggs central island uses only the `Kitchen_DeskBig_2` mesh from
+  [Kitchen And Lab by Amogusstrikesback2](https://sketchfab.com/3d-models/kitchen-and-lab-by-amogusstrikesback2-e9fdbbfb929e4bf796fa81d250fe6d64),
+  uploaded by @sanyabeast and crediting original creator amogusstrikesback2. The project retains both credits and the
+  original-model URL from the supplied description. The included base map is a brighter, desaturated derivative of the
+  downloaded baked texture.
+- **Chemical lab table:** at the art team's explicit direction, the central island now uses the table shell, sink and
+  faucet isolated from [Chemical lab (Fallout 4) by Vitaliy Kovalchuk / Domender](https://sketchfab.com/3d-models/chemical-lab-fallout-4-c5b0d9196de34c2881c8c225cfb14a92).
+  Its Sketchfab license is CC BY 4.0, but its title and description explicitly identify Fallout 4 provenance. The
+  project excludes all bundled labelled props and preserves the source metadata; production still needs to clear that
+  underlying IP risk before public release.
+- **Excluded references:** *Black Mesa Lab Props* remains out of the repository because of explicit third-party IP
+  provenance. *Abandoned Lab Equipment*, *Mad Scientist Lab* and *Conspiracy Papers X-Lab* had no legally reusable
+  source mesh in the local archive. The tabletop arrangement therefore uses existing attributed or CC0 project assets.
+
 ## Greenhouse interior props (Sketchfab, 2026-08-29)
 
 - **Path:** `Assets/ThirdParty/Environment/GreenhouseInteriorProps/`; complete work/author/source attribution and the

@@ -165,7 +165,7 @@ namespace RootsDance.Editor.Environment
             {
                 new Vector2(30f, 96.2f), new Vector2(25.8f, 95.5f), new Vector2(23f, 97.8f),
             };
-            Vector2[] clue =
+            Vector2[] corridor =
             {
                 new Vector2(30f, 96.2f), new Vector2(33.8f, 97.5f), new Vector2(35.8f, 100.8f),
                 new Vector2(36.4f, 104f), new Vector2(37f, 106f),
@@ -177,13 +177,11 @@ namespace RootsDance.Editor.Environment
                 new Vector2(33.8f, 97.5f), new Vector2(35.8f, 100.8f),
                 new Vector2(36.4f, 104f), new Vector2(37f, 106f),
             };
-            p.Routes = new[] { approach, narrative, clue };
+            p.Routes = new[] { approach, narrative, corridor };
             p.Checkpoints = new[]
             {
                 new Vector2(-16f, 28f), new Vector2(-12f, 39f), new Vector2(1.5f, 73.5f),
                 new Vector2(30f, 96.2f), new Vector2(25.8f, 95.5f), new Vector2(23f, 97.8f),
-                new Vector2(33.8f, 97.5f), new Vector2(35.8f, 100.8f),
-                new Vector2(36.4f, 104f), new Vector2(37f, 106f), new Vector2(37f, 106f),
             };
 
             // Builder replaces the target with the current facility upper bounds when it can resolve them.

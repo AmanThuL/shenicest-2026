@@ -66,6 +66,8 @@ namespace RootsDance.Rendering
         private static readonly int k_GrainSizeId = Shader.PropertyToID("_GrainSize");
         private static readonly int k_GrainSeedId = Shader.PropertyToID("_GrainSeed");
         private static readonly int k_GrainShadowBiasId = Shader.PropertyToID("_GrainShadowBias");
+        private static readonly int k_ShakeOffsetPixelsId = Shader.PropertyToID("_ShakeOffsetPixels");
+        private static readonly int k_ShakeOverscanId = Shader.PropertyToID("_ShakeOverscan");
         private static readonly int k_MainTexId = Shader.PropertyToID("_MainTex");
 
         private Material m_material;
@@ -82,7 +84,8 @@ namespace RootsDance.Rendering
                 return false;
             }
 
-            return grainMode.value ? grainIntensity.value > 0f : intensity.value > 0f;
+            return GateFullscreenShake.Strength > 0f
+                || (grainMode.value ? grainIntensity.value > 0f : intensity.value > 0f);
         }
 
         /// <summary>
@@ -135,6 +138,11 @@ namespace RootsDance.Rendering
             m_material.SetFloat(k_GrainSeedId,
                 ComputeGrainSeed(Time.unscaledTime, grainRate.value, Time.frameCount));
             m_material.SetFloat(k_GrainShadowBiasId, grainShadowBias.value);
+            Vector2 shakeOffset = GateFullscreenShake.OffsetPixels;
+            m_material.SetVector(
+                k_ShakeOffsetPixelsId,
+                new Vector4(shakeOffset.x, shakeOffset.y, 0f, 0f));
+            m_material.SetFloat(k_ShakeOverscanId, GateFullscreenShake.Strength * 0.018f);
             m_material.SetTexture(k_MainTexId, source);
             HDUtils.DrawFullScreen(cmd, m_material, destination, shaderPassId: 0);
         }

@@ -1,7 +1,9 @@
 using System.IO;
 using System.Linq;
 using RootsDance.Environment;
+using RootsDance.Rendering;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -128,6 +130,7 @@ namespace RootsDance.Editor.Environment
 
                 AutomaticSlidingDoor door = root.AddComponent<AutomaticSlidingDoor>();
                 door.Configure(left.transform, right.transform, 2.5f, 2.2f);
+                BriggsCorridorGateRuneBuilder.AddRunes(root, left.transform, right.transform, door);
 
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, DoorPrefabPath);
 
@@ -158,6 +161,26 @@ namespace RootsDance.Editor.Environment
             door.transform.SetParent(parent, false);
             door.transform.SetLocalPositionAndRotation(new Vector3(0f, 0f, 7.15f), Quaternion.identity);
             door.transform.localScale = Vector3.one;
+
+            AutomaticSlidingDoor automaticDoor = door.GetComponent<AutomaticSlidingDoor>();
+            GateFullscreenShake screenShake = EnsureGateFullscreenShake(scene);
+            UnityEventTools.AddPersistentListener(automaticDoor.ActivationStarted, screenShake.Play);
+            UnityEventTools.AddPersistentListener(automaticDoor.OpeningFinished, screenShake.Stop);
+            EditorUtility.SetDirty(automaticDoor);
+        }
+
+        private static GateFullscreenShake EnsureGateFullscreenShake(Scene scene)
+        {
+            GameObject camera = FindGameObject(scene, "FirstPersonCamera");
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(camera);
+            GateFullscreenShake shake = camera.GetComponent<GateFullscreenShake>();
+
+            if (shake == null)
+            {
+                shake = camera.AddComponent<GateFullscreenShake>();
+            }
+
+            return shake;
         }
 
         public static void RestorePreDressingCeilingVegetation(

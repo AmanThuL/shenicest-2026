@@ -5,6 +5,7 @@ using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Environment;
 using RootsDance.Investigation;
+using RootsDance.Rendering;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -651,6 +652,7 @@ namespace RootsDance.Editor.Tools
             CinemachineRotateWithFollowTarget rotationControl =
                 cameraRig.AddComponent<CinemachineRotateWithFollowTarget>();
             rotationControl.Damping = 0.05f;
+            cameraRig.AddComponent<GateFullscreenShake>();
         }
 
         private static LevelSO CreateLevelAsset()

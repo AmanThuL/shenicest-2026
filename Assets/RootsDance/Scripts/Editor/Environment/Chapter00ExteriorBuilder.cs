@@ -6,7 +6,6 @@ using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Terrain;
 using RootsDance.Interaction;
 using RootsDance.Investigation;
-using RootsDance.Scanner;
 using TheVisualEngine;
 using Unity.Collections;
 using UnityEditor;
@@ -19,7 +18,7 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Builds the checkpoint-led Chapter-00 exterior from the anomalous grass belt to the maintenance entrance.
+    /// Builds the checkpoint-led Chapter-00 exterior from the anomalous grass belt to the research facility.
     /// </summary>
     /// <remarks>
     /// This pass is idempotent: generated assets are rewritten in place and only scene instances whose names begin
@@ -53,21 +52,10 @@ namespace RootsDance.Editor.Environment
         private const string k_AnomalousPalette = "AnomalousGrassBand";
         private const string k_FacilityEcologyPalette = "FacilityExteriorEcology";
         private const string k_WayfindingPalette = "ResearchWayfinding";
-        private const string k_CluePalette = "ExteriorVineClues";
-        private const string k_ServicePalette = "ServiceApproach";
 
         private const string k_BlockedEntrancePrefabPath = k_PrefabFolder + "/BlockedMainEntrance.prefab";
         private const string k_MainSignPrefabPath = k_PrefabFolder + "/MainEntranceSign.prefab";
         private const string k_PosterPrefabPath = k_PrefabFolder + "/ResearchPosterStand.prefab";
-        private const string k_AshleafPrefabPath = k_PrefabFolder + "/AshleafVineCluster.prefab";
-        private const string k_FineVinePrefabPath = k_PrefabFolder + "/FineVeinedVineCluster.prefab";
-        private const string k_FanPrefabPath = k_PrefabFolder + "/GrowthDirectionFan.prefab";
-        private const string k_MaintenancePrefabPath = k_PrefabFolder + "/MaintenanceEntrance.prefab";
-
-        private const string k_AshleafTargetPath =
-            k_InvestigationFolder + "/BOT-FL-118_AshleafVine.asset";
-        private const string k_FineVineTargetPath =
-            k_InvestigationFolder + "/BOT-FL-203_FineVeinedVine.asset";
         private const string k_LegacyTanmaoPath = k_InvestigationFolder + "/FL-001_Tanmao.asset";
         private const string k_TanmaoTargetPath = k_InvestigationFolder + "/BOT-FL-041_Tanmao.asset";
 
@@ -124,11 +112,6 @@ namespace RootsDance.Editor.Environment
             new Vector2(30f, 96.2f),
             new Vector2(25.8f, 95.5f),
             new Vector2(23f, 97.8f),
-            new Vector2(33.8f, 97.5f),
-            new Vector2(35.8f, 100.8f),
-            new Vector2(36.4f, 104f),
-            new Vector2(37f, 106f),
-            new Vector2(37f, 106f),
         };
 
         private static readonly string[] k_GrassPrefabs =
@@ -256,21 +239,6 @@ namespace RootsDance.Editor.Environment
             EnsureFolder(k_InvestigationFolder);
             MigrateTanmaoTarget();
 
-            InvestigationTargetSO ashleaf = EnsureInvestigationTarget(
-                k_AshleafTargetPath,
-                "BOT-FL-118",
-                "灰叶藤",
-                "识别",
-                "叶片表面呈均匀灰白，常见于设施外围，根系会沿稳定水汽源扩展。",
-                WorldFlags.k_AshleafVineScanned);
-            InvestigationTargetSO fineVine = EnsureInvestigationTarget(
-                k_FineVineTargetPath,
-                "BOT-FL-203",
-                "细脉藤",
-                "识别",
-                "叶脉更细且朝同一方向增密，生长向量指向地下检修口附近的潮湿空气。",
-                WorldFlags.k_FineVeinedVineScanned);
-
             GeneratedMaterials materials = EnsureMaterials();
             Scene preview = EditorSceneManager.NewPreviewScene();
 
@@ -279,12 +247,6 @@ namespace RootsDance.Editor.Environment
                 BuildBlockedEntrancePrefab(preview, materials);
                 BuildMainSignPrefab(preview, materials);
                 BuildPosterPrefab(preview, materials);
-                BuildVinePrefab(preview, k_AshleafPrefabPath, "AshleafVineCluster", materials.Ashleaf,
-                    ashleaf, "灰叶藤", false);
-                BuildVinePrefab(preview, k_FineVinePrefabPath, "FineVeinedVineCluster", materials.FineVine,
-                    fineVine, "细脉藤", true);
-                BuildFanPrefab(preview, materials);
-                BuildMaintenancePrefab(preview, materials);
             }
             finally
             {
@@ -324,38 +286,6 @@ namespace RootsDance.Editor.Environment
             EditorUtility.SetDirty(current);
         }
 
-        private static InvestigationTargetSO EnsureInvestigationTarget(
-            string path,
-            string id,
-            string title,
-            string prompt,
-            string body,
-            string flag)
-        {
-            InvestigationTargetSO target = AssetDatabase.LoadAssetAtPath<InvestigationTargetSO>(path);
-
-            if (target == null)
-            {
-                target = ScriptableObject.CreateInstance<InvestigationTargetSO>();
-                AssetDatabase.CreateAsset(target, path);
-            }
-
-            SerializedObject serialized = new SerializedObject(target);
-            serialized.FindProperty("m_id").stringValue = id;
-            serialized.FindProperty("m_kind").enumValueIndex = (int)InvestigationKind.Identify;
-            serialized.FindProperty("m_category").enumValueIndex = (int)ReportCategory.BiologicalRecord;
-            serialized.FindProperty("m_title").stringValue = title;
-            serialized.FindProperty("m_promptText").stringValue = prompt;
-            serialized.FindProperty("m_resultBody").stringValue = body;
-            serialized.FindProperty("m_flagOnRecorded").stringValue = flag;
-            SerializedProperty monologue = serialized.FindProperty("m_monologueLines");
-            monologue.arraySize = 1;
-            monologue.GetArrayElementAtIndex(0).stringValue = title + "的生长方向不是随机的。";
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(target);
-            return target;
-        }
-
         private static GeneratedMaterials EnsureMaterials()
         {
             Material plant = LoadRequired<Material>(k_PlantSourceMaterialPath);
@@ -371,8 +301,6 @@ namespace RootsDance.Editor.Environment
                 EnsureTintMaterial("Grass_Amber", plant, new Color(0.78f, 0.59f, 0.31f, 1f)),
                 EnsureTintMaterial("Grass_Violet", plant, new Color(0.58f, 0.42f, 0.7f, 1f)),
                 EnsureTintMaterial("Grass_PaleCyan", plant, new Color(0.54f, 0.78f, 0.68f, 1f)),
-                EnsureTintMaterial("Vine_Ashleaf", plant, new Color(0.43f, 0.53f, 0.49f, 1f)),
-                EnsureTintMaterial("Vine_FineVein", plant, new Color(0.3f, 0.64f, 0.55f, 1f)),
                 aged,
                 dark,
                 oxide,
@@ -433,6 +361,7 @@ namespace RootsDance.Editor.Environment
                 AddCube(root.transform, "WarningCrossbar", new Vector3(0f, 1.15f, -0.15f),
                     new Vector3(4.6f, 0.16f, 0.18f), materials.Oxide, new Vector3(0f, 0f, -8f));
                 AddRootBoxCollider(root, new Vector3(0f, 0.65f, 0f), new Vector3(5f, 1.3f, 1.15f));
+                ConfigureOpenPassageColliders(root);
                 ConfigureWorldFlagInteractable(
                     root,
                     "正门被根系和路障封死",
@@ -503,157 +432,6 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        private static void BuildVinePrefab(
-            Scene preview,
-            string path,
-            string name,
-            Material material,
-            InvestigationTargetSO target,
-            string displayName,
-            bool isFine)
-        {
-            GameObject root = CreatePrefabRoot(name, preview);
-
-            try
-            {
-                string[] sources =
-                {
-                    k_DressingFolder + "/M3D_ivy_1_NoCollision.prefab",
-                    k_DressingFolder + "/M3D_ivy_2_NoCollision.prefab",
-                    k_DressingFolder + "/M3D_ivy_3_NoCollision.prefab",
-                    k_DressingFolder + "/M3D_ivy_4_NoCollision.prefab",
-                };
-                int count = isFine ? 5 : 7;
-
-                for (int i = 0; i < count; i++)
-                {
-                    float side = (i % 2 == 0 ? -1f : 1f) * (0.2f + i * 0.11f);
-                    float forward = i * 0.34f;
-                    GameObject ivy = AddNestedPrefab(root.transform, sources[i % sources.Length],
-                        $"Vine_{i + 1:00}", new Vector3(side, 0.02f + i * 0.025f, forward),
-                        new Vector3(0f, -24f + i * 17f, isFine ? 6f : 0f), isFine ? 0.78f : 1f);
-                    AssignMaterial(ivy, material);
-                }
-
-                ScannableTarget scannable = root.AddComponent<ScannableTarget>();
-                SetSerialized(scannable, "m_displayName", displayName);
-                SetSerialized(scannable, "m_repeatable", false);
-                ScannerWorldStateResult result = root.AddComponent<ScannerWorldStateResult>();
-                SetSerialized(result, "m_reportTarget", target);
-                SetLayerRecursively(root, ScannableLayer());
-                SavePrefab(root, path);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(root);
-            }
-        }
-
-        private static void BuildFanPrefab(Scene preview, GeneratedMaterials materials)
-        {
-            GameObject root = CreatePrefabRoot("GrowthDirectionFan", preview);
-
-            try
-            {
-                AddCylinder(root.transform, "FanDrum", new Vector3(0f, 2.2f, 0f),
-                    new Vector3(1.25f, 0.34f, 1.25f), new Vector3(90f, 0f, 0f), materials.DarkMetal);
-                AddCylinder(root.transform, "Hub", new Vector3(0f, 2.2f, -0.42f),
-                    new Vector3(0.22f, 0.12f, 0.22f), new Vector3(90f, 0f, 0f), materials.Oxide);
-
-                for (int i = 0; i < 6; i++)
-                {
-                    AddCube(root.transform, $"Blade_{i + 1:00}", new Vector3(0f, 2.2f, -0.48f),
-                        new Vector3(0.22f, 0.95f, 0.06f), materials.AgedEnamel,
-                        new Vector3(0f, 0f, i * 60f + 18f));
-                }
-
-                AddCylinder(root.transform, "IntakePipe", new Vector3(0f, 0.8f, 0.25f),
-                    new Vector3(0.3f, 1.4f, 0.3f), Vector3.zero, materials.CorridorRust);
-                AddCylinder(root.transform, "SidePipe", new Vector3(0.85f, 1.1f, 0.2f),
-                    new Vector3(0.18f, 0.95f, 0.18f), new Vector3(0f, 0f, 90f), materials.Oxide);
-                AddRootBoxCollider(root, new Vector3(0f, 1.5f, 0f), new Vector3(2.7f, 3f, 1f));
-                ConfigureWorldFlagInteractable(
-                    root,
-                    "观察藤蔓、管线与风扇的共同方向",
-                    WorldFlags.k_VineGrowthDirectionObserved);
-                SetLayerRecursively(root, InteractableLayer());
-                SavePrefab(root, k_FanPrefabPath);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(root);
-            }
-        }
-
-        private static void BuildMaintenancePrefab(Scene preview, GeneratedMaterials materials)
-        {
-            GameObject root = CreatePrefabRoot("MaintenanceEntrance", preview);
-
-            try
-            {
-                AddCube(root.transform, "Foundation", new Vector3(0f, 0.25f, 0.45f),
-                    new Vector3(5.5f, 0.5f, 3.8f), materials.Concrete);
-                AddCube(root.transform, "RetainingWall_Left", new Vector3(-2.35f, 1.45f, 0.55f),
-                    new Vector3(0.45f, 2.9f, 3.5f), materials.CorridorRust);
-                AddCube(root.transform, "RetainingWall_Right", new Vector3(2.35f, 1.45f, 0.55f),
-                    new Vector3(0.45f, 2.9f, 3.5f), materials.CorridorRust);
-                AddCube(root.transform, "Lintel", new Vector3(0f, 2.72f, 1.35f),
-                    new Vector3(4.25f, 0.42f, 0.48f), materials.DarkMetal);
-                AddCube(root.transform, "ServiceDoor", new Vector3(0f, 1.35f, 1.58f),
-                    new Vector3(3.6f, 2.55f, 0.22f), materials.AgedEnamel);
-                AddCube(root.transform, "DirtyWindow", new Vector3(0f, 1.75f, 1.44f),
-                    new Vector3(1.25f, 0.55f, 0.06f), materials.DirtyGlass);
-                AddCube(root.transform, "Threshold", new Vector3(0f, 0.38f, 1.25f),
-                    new Vector3(4.15f, 0.2f, 0.8f), materials.Oxide);
-                AddRootBoxCollider(root, new Vector3(0f, 0.25f, 0.45f), new Vector3(5.5f, 0.5f, 3.8f));
-                AddRootBoxCollider(root, new Vector3(-2.35f, 1.45f, 0.55f), new Vector3(0.45f, 2.9f, 3.5f));
-                AddRootBoxCollider(root, new Vector3(2.35f, 1.45f, 0.55f), new Vector3(0.45f, 2.9f, 3.5f));
-                AddRootBoxCollider(root, new Vector3(0f, 2.72f, 1.35f), new Vector3(4.25f, 0.42f, 0.48f));
-                // This chapter stops at the threshold: revealing the vine exposes the door but does not open it.
-                AddRootBoxCollider(root, new Vector3(0f, 1.35f, 1.58f), new Vector3(3.6f, 2.55f, 0.22f));
-
-                GameObject covered = new GameObject("CoveredVisual");
-                SceneManager.MoveGameObjectToScene(covered, preview);
-                covered.transform.SetParent(root.transform, false);
-                GameObject revealed = new GameObject("RevealedVisual");
-                SceneManager.MoveGameObjectToScene(revealed, preview);
-                revealed.transform.SetParent(root.transform, false);
-
-                for (int i = 0; i < 6; i++)
-                {
-                    GameObject ivy = AddNestedPrefab(covered.transform,
-                        k_DressingFolder + $"/M3D_ivy_{i % 4 + 1}_NoCollision.prefab",
-                        $"CoverVine_{i + 1:00}", new Vector3(-1.5f + i * 0.58f, 0.35f, 1.25f),
-                        new Vector3(0f, 10f + i * 13f, -12f + i * 4f), 1.1f);
-                    AssignMaterial(ivy, materials.Ashleaf);
-                }
-
-                for (int i = 0; i < 3; i++)
-                {
-                    GameObject ivy = AddNestedPrefab(revealed.transform,
-                        k_DressingFolder + $"/M3D_ivy_{i + 1}_NoCollision.prefab",
-                        $"PulledVine_{i + 1:00}", new Vector3(-2.05f + i * 2.05f, 0.2f, 1.05f),
-                        new Vector3(0f, -20f + i * 24f, 18f), 0.8f);
-                    AssignMaterial(ivy, materials.Ashleaf);
-                }
-
-                revealed.SetActive(false);
-                BoxCollider blocker = root.AddComponent<BoxCollider>();
-                blocker.center = new Vector3(0f, 1.35f, 1.05f);
-                blocker.size = new Vector3(4f, 2.7f, 0.8f);
-                VineCoverInteractable interactable = root.AddComponent<VineCoverInteractable>();
-                SetSerialized(interactable, "m_coveredVisual", covered);
-                SetSerialized(interactable, "m_revealedVisual", revealed);
-                SetSerialized(interactable, "m_blocker", blocker);
-                SetLayerRecursively(root, InteractableLayer());
-                SavePrefab(root, k_MaintenancePrefabPath);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(root);
-            }
-        }
-
         private static int BuildEnvironment(Scene scene)
         {
             UnityEngine.Terrain terrain = FindTerrain(scene);
@@ -670,15 +448,6 @@ namespace RootsDance.Editor.Environment
                 "C00M_MainEntranceSign", new Vector2(27f, 99f), 156f, 1f);
             count += PlaceHero(pins[k_WayfindingPalette], terrain, k_PosterPrefabPath,
                 "C00M_ResearchPoster", new Vector2(23f, 99.2f), 165f, 1f);
-            count += PlaceHero(pins[k_CluePalette], terrain, k_AshleafPrefabPath,
-                "C00M_AshleafVine", new Vector2(33.7f, 97.2f), 335f, 1.15f);
-            count += PlaceHero(pins[k_CluePalette], terrain, k_FineVinePrefabPath,
-                "C00M_FineVeinedVine", new Vector2(36.5f, 101.3f), 335f, 1.1f);
-            count += PlaceHero(pins[k_CluePalette], terrain, k_FanPrefabPath,
-                "C00M_GrowthDirectionFan", new Vector2(33.5f, 104.8f), 155.5f, 1f);
-            count += PlaceHero(pins[k_ServicePalette], terrain, k_MaintenancePrefabPath,
-                "C00M_MaintenanceEntrance", new Vector2(34.2f, 108.8f), 155.5f, 1f);
-
             EditorSceneManager.MarkSceneDirty(scene);
             return count;
         }
@@ -868,7 +637,7 @@ namespace RootsDance.Editor.Environment
             int prefabInstanceCount = ValidatePwbOwnership(environment);
             ValidateTerrainContract(config);
             ValidateSceneAnchors(environment);
-            float targetSeparation = ValidateRouteClearance(environment);
+            ValidateRouteClearance(environment);
             ValidateGameplayAlignment(gameplay);
 
             if (prefabInstanceCount != expectedInstanceCount)
@@ -883,7 +652,6 @@ namespace RootsDance.Editor.Environment
                 + "\"terrainRouteCount\":3,"
                 + $"\"anchorCount\":{config.Anchors.Length},"
                 + $"\"pwbPrefabInstances\":{prefabInstanceCount},"
-                + $"\"vineTargetSeparationMeters\":{targetSeparation:F2},"
                 + "\"grassBeltGateAligned\":true,"
                 + "\"ecologyRouteClearanceMeters\":3.50}");
         }
@@ -940,8 +708,6 @@ namespace RootsDance.Editor.Environment
                 k_AnomalousPalette,
                 k_FacilityEcologyPalette,
                 k_WayfindingPalette,
-                k_CluePalette,
-                k_ServicePalette,
             };
             int count = 0;
 
@@ -1069,7 +835,7 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        private static float ValidateRouteClearance(Scene environment)
+        private static void ValidateRouteClearance(Scene environment)
         {
             Transform root = FindSceneRoot(environment, k_PwbRootName);
             Transform anomalousPin = root.Find(k_AnomalousPalette + "/" + k_PinName);
@@ -1092,31 +858,6 @@ namespace RootsDance.Editor.Environment
                 throw new InvalidOperationException("Blocked entrance leaves no safe 00-09 checkpoint landing area.");
             }
 
-            GameObject ashleaf = FindInScene(environment, "C00M_AshleafVine");
-            GameObject fineVine = FindInScene(environment, "C00M_FineVeinedVine");
-            Vector2 ashleafPosition = new Vector2(ashleaf.transform.position.x, ashleaf.transform.position.z);
-            Vector2 finePosition = new Vector2(fineVine.transform.position.x, fineVine.transform.position.z);
-            float targetDistance = Vector2.Distance(ashleafPosition, finePosition);
-
-            if (targetDistance <= 3f)
-            {
-                throw new InvalidOperationException(
-                    $"00-12 and 00-13 scanner targets are only {targetDistance:F2} m apart.");
-            }
-
-            Vector2 ashleafCheckpoint = k_CheckpointPositions[6];
-            Vector2 fineCheckpoint = k_CheckpointPositions[7];
-
-            if (Vector2.Distance(ashleafPosition, ashleafCheckpoint) >= 3f
-                || Vector2.Distance(ashleafPosition, fineCheckpoint) <= 3f
-                || Vector2.Distance(finePosition, fineCheckpoint) >= 3f
-                || Vector2.Distance(finePosition, ashleafCheckpoint) <= 3f)
-            {
-                throw new InvalidOperationException(
-                    "00-12/00-13 scanner radii overlap or fail to contain their intended vine target.");
-            }
-
-            return targetDistance;
         }
 
         private static float MinimumEcologyClearance(Transform pin)
@@ -1234,8 +975,6 @@ namespace RootsDance.Editor.Environment
                 k_AnomalousPalette,
                 k_FacilityEcologyPalette,
                 k_WayfindingPalette,
-                k_CluePalette,
-                k_ServicePalette,
             };
             Dictionary<string, Transform> pins = new Dictionary<string, Transform>(names.Length);
 
@@ -1350,6 +1089,24 @@ namespace RootsDance.Editor.Environment
             BoxCollider collider = root.AddComponent<BoxCollider>();
             collider.center = center;
             collider.size = size;
+        }
+
+        private static void ConfigureOpenPassageColliders(GameObject root)
+        {
+            Collider[] colliders = root.GetComponentsInChildren<Collider>(true);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider collider = colliders[i];
+
+                if (collider.gameObject == root)
+                {
+                    collider.isTrigger = true;
+                    continue;
+                }
+
+                collider.enabled = false;
+            }
         }
 
         private static void ConfigureWorldFlagInteractable(GameObject root, string prompt, string flag)
@@ -1713,8 +1470,6 @@ namespace RootsDance.Editor.Environment
                 Material amber,
                 Material violet,
                 Material paleCyan,
-                Material ashleaf,
-                Material fineVine,
                 Material agedEnamel,
                 Material darkMetal,
                 Material oxide,
@@ -1723,8 +1478,6 @@ namespace RootsDance.Editor.Environment
                 Material concrete)
             {
                 GrassTints = new[] { silverBlue, amber, violet, paleCyan };
-                Ashleaf = ashleaf;
-                FineVine = fineVine;
                 AgedEnamel = agedEnamel;
                 DarkMetal = darkMetal;
                 Oxide = oxide;
@@ -1734,8 +1487,6 @@ namespace RootsDance.Editor.Environment
             }
 
             public Material[] GrassTints { get; }
-            public Material Ashleaf { get; }
-            public Material FineVine { get; }
             public Material AgedEnamel { get; }
             public Material DarkMetal { get; }
             public Material Oxide { get; }
