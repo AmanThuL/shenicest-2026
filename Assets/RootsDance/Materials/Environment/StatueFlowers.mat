@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: StatueFlowers
+  m_Shader: {fileID: 4800000, guid: 8a227194f029e4b1a92e656a21037f60, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _AmbientFloor: 0.7
+    - _Emission: 0
+    - _FlowerVariation: 0.22
+    - _Gloss: 18
+    - _Growth: 1
+    - _OpenSpan: 0.1
+    - _PetalRootShade: 0.68
+    - _Specular: 0.2
+    - _SurfaceType: 0
+    - _Sway: 0.06
+    - _SwaySpeed: 1.1
+    - _Wrap: 0.55
+    m_Colors:
+    - _CentreTint: {r: 0.95, g: 0.82, b: 0.35999998, a: 1}
+    - _FoliageTint: {r: 0.31999996, g: 0.45, b: 0.25999996, a: 1}
+    - _PetalTint: {r: 0.86, g: 0.41999996, b: 0.52, a: 1}
+    - _YoungTint: {r: 0.95, g: 0.88, b: 0.62, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

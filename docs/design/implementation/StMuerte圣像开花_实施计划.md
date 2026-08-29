@@ -84,9 +84,32 @@
 | 文件 | 职责 |
 |---|---|
 | `Tools/pipeline/build_bloom_patch.py` | 由 `build_algae_patch.py` 派生: 平面切轮廓 → shrinkwrap 到圣像表面 → 写顶点色 → 导出 |
+| `Tools/pipeline/build_bloom_flowers.py` | L3 花田: 程序化生成花（茎/花瓣/花心/叶），散布到 `Robe`，把「合拢/半开/全开」三个姿态烘成顶点数据 |
+| `Tools/blender/profiles/static_prop_vcol_smooth.json` | 与 `static_prop_vcol` 同，`mesh_smooth_type` 改 `EDGE`: 花瓣要平滑法线，`FACE` 会把顶点数翻三倍 |
+| `SourceArt/Blender/StatueBloom/BloomFlowers.blend` | 花田源文件 |
+| `SourceArt/Export/GAIA1/BloomFlowers.export.json` | 导出溯源 sidecar |
 | `Tools/pipeline/bake_statue_growth.py` | 把测地生长距离烘进 `StMuerte_Robe_Growth` 贴图的 R 通道 |
 | `SourceArt/Blender/StatueBloom/BloomPatch.blend` | patch 源文件，与 `AlgaePatch` 并列 |
 | `SourceArt/Export/GAIA1/BloomPatch.export.json` | 导出溯源 sidecar |
+
+重跑花田（Editor 可以开着，这一步只写 `SourceArt/` 与 `Assets/.../BloomFlowers.fbx`）:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b --python Tools/pipeline/build_bloom_flowers.py -- \
+  --statue Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/StMuerte.fbx \
+  --out SourceArt/Blender/StatueBloom/BloomFlowers.blend \
+  --count 4200 --spread 0.22 \
+  --seed-objects LeftHand_hand_anim,RightHand_hand_anim --strip
+
+/Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/StatueBloom/BloomFlowers.blend \
+  --python Tools/blender/export_fbx.py -- --project-root "$PWD" \
+  --output Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomFlowers.fbx \
+  --objects BloomFlowers \
+  --profile Tools/blender/profiles/static_prop_vcol_smooth.json \
+  --manifest SourceArt/Export/GAIA1/BloomFlowers.export.json
+```
+
+之后在 Editor 里跑 `RootsDance > Build Statue Bloom` 重建材质、prefab 与场景放置。
 
 ### 4.2 Unity
 
@@ -94,7 +117,7 @@
 |---|---|
 | `Assets/RootsDance/Shaders/Environment/StatueBloom.shadergraph` | L2 花簇的 Lit + Alpha Clip + 顶点色生长揭示 |
 | `Assets/RootsDance/Scripts/Runtime/Environment/GrowthDriver.cs` | 推进 `_Growth`，写 `renderer.material`（与 `EmissivePulse` 同一批处策略） |
-| `Assets/RootsDance/Scripts/Runtime/Environment/BloomBurst.cs` | L3 逐朵花按生长序触发绽放 |
+| `Assets/RootsDance/Shaders/Environment/StatueFlowers.shader` + `.hlsl` | L3 花田: 顶点着色器按 `_Growth` 在三个姿态间走二次 Bezier，真几何绽放 |
 | `Assets/RootsDance/Scripts/Editor/Tools/StatueBloomBuilder.cs` | 材质 / prefab / 场景放置，范式取自 `CorridorAlgaeBuilder` |
 | `Assets/RootsDance/Tests/EditMode/Environment/GrowthDriverTests.cs` | 进度映射与边界值 |
 
@@ -111,10 +134,43 @@
 - [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
 - [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
 - [x] 6. `StatueBloomBuilder.cs`: 材质、prefab、场景放置；**尚未运行**，运行会打开并保存 `Main_Environment_Statue`
-- [x] 8. L3 焦点花与 `BloomBurst.cs`: `48` 株，高 `0.56–1.33 m`，位置/朝向/生长时刻全部取自 clump mesh 顶点；9 项 EditMode 测试
+- [x] 8. L3 花田: `build_bloom_flowers.py` 散布 `3,296` 朵，`158,792` verts / `97,072` tris，一个 mesh 一个 draw call；姿态由顶点着色器插值，`BloomFlowersMeshTests` 守住通道契约
 - [x] 9. `SunBroadcaster` 已挂在 `_Lighting/Sun`：`12000 lux` → 全局量 `(1.20, 1.15, 1.06)`，贴近 shader 兜底光，`[ExecuteAlways]` 让 Editor 里也生效
 - [ ] 7. L1 生长贴图与基底材质
 - [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
+
+## 5.1 绽放动画怎么烘进顶点里
+
+Blender 的几何节点 / 粒子生长没有到 Unity 运行时的通路，顶点缓存（Alembic）的体积与开销不在本项目预算内，而且烘死之后就不能被剧情驱动。所以动画烘的是**姿态**，不是帧:
+
+同一套拓扑生成三次 —— 合拢的花苞、半开、全开。全开姿态就是导出的 mesh，另外两个存成**相对全开的位移**，塞进空闲 UV 通道。顶点着色器走一条二次 Bezier:
+
+```
+P(t) = (1-t)² · bud + 2t(1-t) · mid + t² · open
+     = open + (1-t)² · dBud + 2t(1-t) · dMid
+```
+
+三个姿态而不是两个: 花瓣是绕根部**转**出去的。两姿态线性插值时花瓣在中途会缩短，看起来像被吸进去再推出来。`mid` 是这条弧的控制点，它就是「开花」与「插值」的全部区别。
+
+`t` 来自顶点色 B —— 与花簇同一条全局生长序，所以一朵花不会早于它脚下的花簇开。
+
+| 通道 | 内容 |
+|---|---|
+| `COLOR.r` | 部位: `0` 茎与叶，`0.5` 花心，`1` 花瓣 |
+| `COLOR.g` | 每朵花的相位，用于色调离散与摇摆 |
+| `COLOR.b` | 生长序，`0` 最先开的那朵，`1` 最后一朵 |
+| `UV0` | 花瓣局部坐标，x 由根到尖 |
+| `UV1` / `UV2` / `UV3` | `dBud.xy` / `dBud.z dMid.x` / `dMid.yz` |
+
+### 位移必须写成 Unity 空间
+
+UV 就是一组数，导出链路上没有任何东西会变换它；而顶点位置要过 FBX 的轴向转换和导入器的 `0.6045` 单位缩放。所以位移在 Blender 侧就要先映射好，映射关系是 `unity = (x, y, -z) × 0.6045`。
+
+这不是猜的: 拿仓库里已有的一对资产量出来的 —— `BloomPatch.blend` 里 `BloomPatches` 的顶点坐标，对 builder 从导入后 mesh 上种花所写进 prefab 的位置。`build_bloom_flowers.py --self-test` 断言这个映射是线性的、等比的、且翻转手性。
+
+### 生长序的分布是偏的
+
+`growth_order` 取「从底座爬升」与「从双掌扩散」两条锋面的较小值，归一化后中位数只有 `0.114`（花簇是 `0.114`，花田是 `0.114`，两者一致）。也就是说 `_Growth` 走到 `0.11` 时圣像已经开了一半。花簇与花田偏得一样多，所以两者同步；但整体节奏偏前，需要靠 `GrowthDriver.m_shape` 曲线拉回来，不要改 bake。
 
 ## 6. 风险与已知约束
 
@@ -145,16 +201,26 @@
 
 `Packages/manifest.json` 只有 `com.unity.modules.director`，没有 `com.unity.timeline`。若需要一条时间轴统一编排开花、运镜与音乐，那是一次 `chore(packages):` 的团队决定，不在本轮范围内。本轮用 `GrowthDriver` + `CueSequence` 覆盖。
 
+### 6.9 三千朵花的开销
+
+花田是一个 mesh、一个 renderer、一个 draw call，unlit 两个 pass，不投影不接收阴影。代价在顶点: `158,792` verts / `97,072` tris，比圣像本体（`85,963` tris）略多。顶点着色器每帧对每个顶点做一次 Bezier 与一次摇摆，没有分支。若要减，`--count` 与 `--spread` 是唯一旋钮，重跑 `build_bloom_flowers.py` 并重跑 builder。
+
+### 6.10 变形后的法线没有跟着转
+
+顶点着色器移动位置，不移动法线 —— 花苞与半开姿态的法线仍是全开姿态的。花瓣是单面片且着色时把法线朝向摄像机翻转（`isFrontFace`），加上 wrap 漫反射，这个误差在花苞阶段（体积很小、持续很短）看不出来。要做对需要把 Jacobian 也烘进去，代价是又两个 UV 通道。
+
 ### 6.7 花簇几何的两个轴向陷阱
 
-`BloomPatches.fbx` 与 NiwlPlants 的花，模型导入器都把轴/单位转换留在**模型根的 transform 上**，没有烘进顶点：
+`BloomPatches.fbx`、`BloomFlowers.fbx` 与 NiwlPlants 的花，模型导入器都把轴/单位转换留在**模型根的 transform 上**，没有烘进顶点：
 
 | | 根 rotation | 根 scale |
 |---|---|---|
 | `BloomPatches.fbx` | `(90, 0, 0)` | `1` |
 | `M3D_poppy-1.fbx` 等 | `(270, 0, 0)` | `100`（FBX 声明单位为厘米） |
 
-`StMuerte.fbx` 的根没有旋转，照它的样子把裸 mesh 挂到新建 GameObject 上，两次都出了同一类事故: 花簇被甩到圣像 `93 m` 外并躺平；花只有 `1 cm` 高且侧躺。**取模型自己的根变换，不要取它的 mesh** —— builder 现在实例化模型，花则从模型根读 pose 与 unitScale，导入设置若变化会自动跟随。
+还有第三个陷阱，同一类但更隐蔽: **新导入的 FBX 拿的是 Unity 的默认导入设置，不是同批资产的设置**。花簇是 `bakeAxisConversion: 1`（轴向转换烘进顶点，模型根近似单位阵），新导入的花田默认 `0`（留在根上），两者挂成父子后中间就差一个绕 X 的 180°；mesh 原点离圣像 `93 m`，这个翻转把花田甩到 `139 m` 外。`globalScale` 同理: GAIA1 系列一律 `0.6045`，默认导入是 `1`，花会大 `1.65` 倍。builder 现在从花簇的 importer 上把这两项连同动画/可见性/焊接一起抄过来，`BloomFlowersMeshTests.Field_StandsWhereTheCoverDoes` 量两个 renderer 的 bounds 中心距来守。
+
+`StMuerte.fbx` 的根没有旋转，照它的样子把裸 mesh 挂到新建 GameObject 上，两次都出了同一类事故: 花簇被甩到圣像 `93 m` 外并躺平；花只有 `1 cm` 高且侧躺。**取模型自己的根变换，不要取它的 mesh** —— builder 现在实例化两个模型；花田挂到花簇根下时用 `SetParent(root, worldPositionStays: true)`，让 Editor 自己算出「留在导入器放的位置」对应的局部变换，否则同一个轴向转换会被套两次。
 
 ### 6.8 builder 保存场景会写掉别人的在改内容
 

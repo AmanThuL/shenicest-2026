@@ -22,11 +22,18 @@ namespace RootsDance.Environment
     /// reason: with one shader and one UnityPerMaterial layout the SRP Batcher still batches
     /// material instances, while an MPB breaks the batch outright.
     /// </para>
+    /// <para>
+    /// Several renderers, one clock. The statue grows two meshes — the cover wrapped on the robe
+    /// and the field of flowers standing out of it — and they have to advance on exactly the same
+    /// value. Two drivers with matching settings would agree on the first frame and drift by a
+    /// frame of <c>deltaTime</c> forever after, which shows up as flowers opening on stone the
+    /// cover has not reached.
+    /// </para>
     /// </summary>
     public class GrowthDriver : MonoBehaviour
     {
         [Tooltip("What grows. Empty uses the Renderer on this object.")]
-        [SerializeField] private Renderer m_renderer;
+        [SerializeField] private Renderer[] m_renderers = System.Array.Empty<Renderer>();
 
         [Tooltip("The shader's growth scalar. Named here so another growth shader can be driven.")]
         [SerializeField] private string m_growthProperty = "_Growth";
@@ -45,7 +52,7 @@ namespace RootsDance.Environment
         [Tooltip("Run as soon as this is switched on. Off leaves the growth parked at Start at.")]
         [SerializeField] private bool m_playOnEnable = true;
 
-        private Material m_material;
+        private Material[] m_materials = System.Array.Empty<Material>();
         private int m_growthId;
         private float m_elapsed;
         private bool m_running;
@@ -83,16 +90,19 @@ namespace RootsDance.Environment
 
         private void Awake()
         {
-            if (m_renderer == null)
+            if (m_renderers == null || m_renderers.Length == 0)
             {
-                m_renderer = GetComponent<Renderer>();
+                Renderer own = GetComponent<Renderer>();
+                m_renderers = own == null ? System.Array.Empty<Renderer>() : new[] { own };
             }
 
             m_growthId = Shader.PropertyToID(m_growthProperty);
 
-            if (m_renderer != null)
+            m_materials = new Material[m_renderers.Length];
+
+            for (int i = 0; i < m_renderers.Length; i++)
             {
-                m_material = m_renderer.material;
+                m_materials[i] = m_renderers[i] == null ? null : m_renderers[i].material;
             }
         }
 
@@ -108,10 +118,14 @@ namespace RootsDance.Environment
 
         private void OnDestroy()
         {
-            // renderer.material instantiated it, so this object owns it and has to clean it up.
-            if (m_material != null)
+            // renderer.material instantiated each of these, so this object owns them and has to
+            // clean them up.
+            for (int i = 0; i < m_materials.Length; i++)
             {
-                Destroy(m_material);
+                if (m_materials[i] != null)
+                {
+                    Destroy(m_materials[i]);
+                }
             }
         }
 
@@ -158,9 +172,12 @@ namespace RootsDance.Environment
         {
             Growth = growth;
 
-            if (m_material != null)
+            for (int i = 0; i < m_materials.Length; i++)
             {
-                m_material.SetFloat(m_growthId, growth);
+                if (m_materials[i] != null)
+                {
+                    m_materials[i].SetFloat(m_growthId, growth);
+                }
             }
         }
     }

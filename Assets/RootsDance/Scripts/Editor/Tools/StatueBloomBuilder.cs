@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using RootsDance.Environment;
 using UnityEditor;
@@ -9,8 +8,14 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.EditorTools
 {
     /// <summary>
-    /// Puts the growth that climbs the StMuerte statue into <c>Main_Environment_Statue</c>: the
-    /// material, the prefab and the one scene placement.
+    /// Puts the growth that climbs the StMuerte statue into <c>Main_Environment_Statue</c>: two
+    /// materials, the prefab and the one scene placement.
+    /// <para>
+    /// Two meshes make the bloom. <c>BloomPatches</c> is cover wrapped onto the robe and revealed
+    /// by a clip; <c>BloomFlowers</c> is the field of flowers standing out of it, each opening as
+    /// geometry from poses baked into its vertex data. One <see cref="GrowthDriver"/> feeds both,
+    /// because a shared front that is computed twice is a front that drifts.
+    /// </para>
     /// <para>
     /// Written as a builder for the same reason <see cref="CorridorAlgaeBuilder"/> is — the effect
     /// is a material, a prefab and a placement that have to agree, and a mismatch fails silently
@@ -20,9 +25,9 @@ namespace RootsDance.EditorTools
     /// there is nothing to position by hand.
     /// </para>
     /// <para>
-    /// The clumps cast no shadows. <c>RootsDance/Environment/StatueBloom</c> has a DepthForwardOnly
-    /// and a ForwardOnly pass and no ShadowCaster — see the plan's §6.3 for why it is unlit — so
-    /// asking for shadows would cost a pass that cannot run.
+    /// Neither mesh casts shadows. Both shaders have a DepthForwardOnly and a ForwardOnly pass and
+    /// no ShadowCaster — see the plan's §6.3 for why they are unlit — so asking for shadows would
+    /// cost a pass that cannot run.
     /// </para>
     /// Menu: RootsDance > Build Statue Bloom. Re-runnable: every step reuses what is already there,
     /// and an existing placement is left exactly where it is.
@@ -37,6 +42,17 @@ namespace RootsDance.EditorTools
         private const string k_Material = "Assets/RootsDance/Materials/Environment/StatueBloom.mat";
         private const string k_Prefab = "Assets/RootsDance/Prefabs/Environment/StatueBloom.prefab";
 
+        private const string k_FlowerFbx =
+            "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomFlowers.fbx";
+
+        private const string k_FlowerShader = "RootsDance/Environment/StatueFlowers";
+
+        private const string k_FlowerMaterial =
+            "Assets/RootsDance/Materials/Environment/StatueFlowers.mat";
+
+        /// <summary>The flower field's own child under the prefab root.</summary>
+        private const string k_FlowerInstanceName = "Flowers";
+
         /// <summary>The statue's root in the scene. The clumps go under it, so it carries them.</summary>
         private const string k_StatueRoot = "Statue";
 
@@ -48,63 +64,18 @@ namespace RootsDance.EditorTools
         /// </summary>
         private const float k_Duration = 45f;
 
-        // --- Standing flowers -------------------------------------------------------------------
-
-        private static readonly string[] k_FlowerFbx =
-        {
-            "Assets/ThirdParty/Environment/NiwlPlants/Models/Flowers/M3D_poppy-1.fbx",
-            "Assets/ThirdParty/Environment/NiwlPlants/Models/Flowers/M3D_poppy2.fbx",
-            "Assets/ThirdParty/Environment/NiwlPlants/Models/Flowers/M3D_sunflower.fbx",
-        };
-
-        private const string k_FlowerMaterial =
-            "Assets/RootsDance/Materials/Environment/Niwl_Plants_General.mat";
-
-        /// <summary>LOD0 of each source. They are 24-114 triangles, so a few dozen cost nothing.</summary>
-        private const string k_FlowerLodSuffix = "_LOD0";
-
-        private const string k_FlowerRoot = "Flowers";
-
-        /// <summary>How many stems to plant. The clumps carry the coverage; these carry silhouette.</summary>
-        private const int k_FlowerCount = 110;
-
-        /// <summary>Minimum metres between stems, so they read as clumps and not as a lawn.</summary>
-        private const float k_FlowerSpacing = 0.85f;
-
-        /// <summary>
-        /// Only plant on a clump's interior. Vertex colour R is the rim falloff, and a stem rooted
-        /// on an eroded edge stands in a part of the cover the shader has clipped away.
-        /// </summary>
-        private const float k_FlowerRimFloor = 0.75f;
-
-        /// <summary>
-        /// Fraction of the statue's height, from the base up, that gets stems. The player stands at
-        /// its feet: above this only the silhouette reads, and the wrapped cover carries that.
-        /// </summary>
-        private const float k_FlowerHeightFraction = 0.55f;
-
-        /// <summary>How far a stem leans towards world up rather than straight out of the robe.</summary>
-        private const float k_FlowerUprightBias = 0.4f;
-
-        /// <summary>Metres tall, at the statue's own scale. A stem, not a tree.</summary>
-        private const float k_FlowerHeightMin = 0.55f;
-
-        private const float k_FlowerHeightMax = 1.15f;
-
-        /// <summary>Fixed, so a rebuild plants the same garden rather than reshuffling it.</summary>
-        private const int k_FlowerSeed = 20260830;
-
         [MenuItem("RootsDance/Build Statue Bloom")]
         public static void Build()
         {
-            Material material = EnsureMaterial();
+            Material material = EnsureMaterial(k_Shader, k_Material);
+            Material flowers = EnsureMaterial(k_FlowerShader, k_FlowerMaterial);
 
-            if (material == null)
+            if (material == null || flowers == null)
             {
                 return;
             }
 
-            GameObject prefab = EnsurePrefab(material);
+            GameObject prefab = EnsurePrefab(material, flowers);
 
             if (prefab == null)
             {
@@ -116,23 +87,23 @@ namespace RootsDance.EditorTools
             Debug.Log($"{k_LogPrefix}: done.");
         }
 
-        private static Material EnsureMaterial()
+        private static Material EnsureMaterial(string shaderName, string path)
         {
-            Shader shader = Shader.Find(k_Shader);
+            Shader shader = Shader.Find(shaderName);
 
             if (shader == null)
             {
-                Debug.LogError($"{k_LogPrefix}: shader '{k_Shader}' not found.");
+                Debug.LogError($"{k_LogPrefix}: shader '{shaderName}' not found.");
                 return null;
             }
 
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_Material);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
 
             if (material == null)
             {
-                EnsureFolder(Path.GetDirectoryName(k_Material));
+                EnsureFolder(Path.GetDirectoryName(path));
                 material = new Material(shader);
-                AssetDatabase.CreateAsset(material, k_Material);
+                AssetDatabase.CreateAsset(material, path);
             }
 
             material.shader = shader;
@@ -145,8 +116,92 @@ namespace RootsDance.EditorTools
             return material;
         }
 
-        private static GameObject EnsurePrefab(Material material)
+        /// <summary>
+        /// Imports the flower field exactly the way the cover is imported.
+        /// <para>
+        /// The two meshes were exported from the same statue in the same coordinates by the same
+        /// exporter, so the only thing that can put them in different places is the importer — and
+        /// a freshly imported FBX arrives on Unity's defaults, not on the cover's settings. Two of
+        /// those defaults move geometry:
+        /// </para>
+        /// <para>
+        /// <c>bakeAxisConversion</c> decides whether the Blender-to-Unity axis conversion goes
+        /// into the vertices or stays on the model root as a rotation. The cover bakes it; a new
+        /// import does not. Hanging one under the other then leaves a 180° flip about X between
+        /// them, and because the mesh origin is ~93 m from the statue, that flip throws the field
+        /// 139 m away — which is what <c>BloomFlowersMeshTests</c> measures.
+        /// </para>
+        /// <para>
+        /// <c>globalScale</c> is the GAIA1 convention: 0.6045, the number that makes the statue
+        /// 18.8 m tall rather than 31. A default import stands the flowers 1.65× too large.
+        /// </para>
+        /// <para>
+        /// Read off the cover rather than written down here, so the two cannot drift apart.
+        /// </para>
+        /// </summary>
+        private static bool EnsureFlowerImport()
         {
+            ModelImporter cover = AssetImporter.GetAtPath(k_Fbx) as ModelImporter;
+            ModelImporter flowers = AssetImporter.GetAtPath(k_FlowerFbx) as ModelImporter;
+
+            if (cover == null || flowers == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: {k_Fbx} or {k_FlowerFbx} is not an imported model. "
+                    + "Run Tools/pipeline/build_bloom_flowers.py first.");
+                return false;
+            }
+
+            bool changed = flowers.bakeAxisConversion != cover.bakeAxisConversion
+                || flowers.useFileScale != cover.useFileScale
+                || !Mathf.Approximately(flowers.globalScale, cover.globalScale)
+                || flowers.importAnimation != cover.importAnimation
+                || flowers.animationType != cover.animationType
+                || flowers.importVisibility != cover.importVisibility
+                || flowers.importBlendShapes != cover.importBlendShapes
+                || flowers.importCameras != cover.importCameras
+                || flowers.importLights != cover.importLights
+                || flowers.materialImportMode != cover.materialImportMode
+                || flowers.importNormals != cover.importNormals
+                || flowers.weldVertices != cover.weldVertices;
+
+            if (!changed)
+            {
+                return true;
+            }
+
+            // Placement.
+            flowers.bakeAxisConversion = cover.bakeAxisConversion;
+            flowers.useFileScale = cover.useFileScale;
+            flowers.globalScale = cover.globalScale;
+
+            // The field is one static mesh. Everything here is a rig, a camera or a light the
+            // exporter never wrote, and importing them costs an Animator on the model root.
+            flowers.importAnimation = cover.importAnimation;
+            flowers.animationType = cover.animationType;
+            flowers.importVisibility = cover.importVisibility;
+            flowers.importBlendShapes = cover.importBlendShapes;
+            flowers.importCameras = cover.importCameras;
+            flowers.importLights = cover.importLights;
+            flowers.materialImportMode = cover.materialImportMode;
+
+            // Vertex data. The pose deltas live in UV1..UV3 and the growth order in vertex colour;
+            // a weld setting that disagrees with the cover's would merge them differently.
+            flowers.importNormals = cover.importNormals;
+            flowers.weldVertices = cover.weldVertices;
+
+            flowers.SaveAndReimport();
+            Debug.Log($"{k_LogPrefix}: reimported the flower field on the cover's settings "
+                + $"(scale {cover.globalScale}, bakeAxisConversion {cover.bakeAxisConversion}).");
+            return true;
+        }
+
+        private static GameObject EnsurePrefab(Material material, Material flowerMaterial)
+        {
+            if (!EnsureFlowerImport())
+            {
+                return null;
+            }
+
             GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_Fbx);
 
             if (source == null)
@@ -181,9 +236,24 @@ namespace RootsDance.EditorTools
                 renderer.sharedMaterial = material;
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
+                MeshRenderer flowers = AttachFlowers(root, flowerMaterial);
+
+                if (flowers == null)
+                {
+                    return null;
+                }
+
                 GrowthDriver driver = root.AddComponent<GrowthDriver>();
                 SerializedObject so = new SerializedObject(driver);
-                so.FindProperty("m_renderer").objectReferenceValue = renderer;
+
+                // One driver, both meshes. The cover and the flowers standing in it read the same
+                // growth order out of their own vertex colour, so they only stay in step while
+                // they are handed the same value on the same frame.
+                SerializedProperty renderers = so.FindProperty("m_renderers");
+                renderers.arraySize = 2;
+                renderers.GetArrayElementAtIndex(0).objectReferenceValue = renderer;
+                renderers.GetArrayElementAtIndex(1).objectReferenceValue = flowers;
+
                 so.FindProperty("m_duration").floatValue = k_Duration;
                 so.FindProperty("m_startAt").floatValue = 0f;
 
@@ -191,8 +261,6 @@ namespace RootsDance.EditorTools
                 // the curve. Nothing else has to call Play.
                 so.FindProperty("m_playOnEnable").boolValue = true;
                 so.ApplyModifiedPropertiesWithoutUndo();
-
-                PlantFlowers(root, driver);
 
                 return PrefabUtility.SaveAsPrefabAsset(root, k_Prefab);
             }
@@ -204,266 +272,50 @@ namespace RootsDance.EditorTools
 
 
         /// <summary>
-        /// Plants standing flowers on the clumps and hands them to a <see cref="BloomBurst"/>.
+        /// Hangs the flower field under the prefab root and gives it its material.
         /// <para>
-        /// Positions come out of the clump mesh rather than from a separate scatter, which is what
-        /// keeps a stem and the cover under it inseparable: the vertex it is rooted at supplies the
-        /// place, the surface direction and — in vertex colour B — the moment the front reaches it.
-        /// A stem can therefore never open before, or long after, the patch it stands in.
-        /// </para>
-        /// <para>
-        /// Editor-only work. The mesh is imported non-readable, which costs nothing here because
-        /// the Editor keeps its own copy, and means the runtime never touches vertex data.
+        /// Parented with <c>worldPositionStays</c> true, deliberately. Both FBXes carry the
+        /// importer's axis conversion on their own root, and both were exported in the statue's
+        /// own coordinates; parenting one under the other without keeping its world pose applies
+        /// that conversion twice and throws the flowers off the statue exactly the way §7 of the
+        /// plan records the clumps being thrown 93 m. Keeping the world pose makes the Editor
+        /// compute whatever local transform expresses "leave it where the importer put it".
         /// </para>
         /// </summary>
-        private static void PlantFlowers(GameObject root, GrowthDriver driver)
+        private static MeshRenderer AttachFlowers(GameObject root, Material material)
         {
-            MeshFilter filter = root.GetComponentInChildren<MeshFilter>();
-            Mesh mesh = filter == null ? null : filter.sharedMesh;
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_FlowerFbx);
 
-            if (mesh == null)
+            if (source == null)
             {
-                Debug.LogError($"{k_LogPrefix}: no clump mesh to plant on.");
-                return;
+                Debug.LogError($"{k_LogPrefix}: {k_FlowerFbx} not found. Run "
+                    + "Tools/pipeline/build_bloom_flowers.py first.");
+                return null;
             }
 
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_FlowerMaterial);
-            FlowerSource[] sources = LoadFlowerSources();
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(source);
+            PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+            instance.name = k_FlowerInstanceName;
+            instance.transform.SetParent(root.transform, true);
 
-            if (material == null || sources.Length == 0)
+            MeshRenderer renderer = instance.GetComponentInChildren<MeshRenderer>();
+
+            if (renderer == null)
             {
-                Debug.LogError($"{k_LogPrefix}: flower material or meshes missing; "
-                    + "planting nothing.");
-                return;
+                Debug.LogError($"{k_LogPrefix}: no MeshRenderer in {k_FlowerFbx}.");
+                Object.DestroyImmediate(instance);
+                return null;
             }
 
-            Vector3[] vertices = mesh.vertices;
-            Vector3[] normals = mesh.normals;
-            Color[] colors = mesh.colors;
+            renderer.sharedMaterial = material;
 
-            if (colors == null || colors.Length != vertices.Length)
-            {
-                Debug.LogError($"{k_LogPrefix}: the clump mesh carries no vertex colour, so there "
-                    + "is no growth order to plant against.");
-                return;
-            }
+            // Same reason the cover casts none: RootsDance/Environment/StatueFlowers has a depth
+            // and a forward pass and no ShadowCaster, so asking for shadows costs a pass that
+            // cannot run. Three thousand flowers is also the wrong place to start paying for one.
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
-            // The clumps' own local space is not world space -- the model root holds the axis
-            // conversion -- so "up" has to be brought into it before anything can lean towards it.
-            Vector3 localUp = Quaternion.Inverse(root.transform.localRotation) * Vector3.up;
-
-            float lowest = float.MaxValue;
-            float highest = float.MinValue;
-
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                float h = Vector3.Dot(vertices[i], localUp);
-                lowest = Mathf.Min(lowest, h);
-                highest = Mathf.Max(highest, h);
-            }
-
-            float ceiling = lowest + (highest - lowest) * k_FlowerHeightFraction;
-
-            GameObject holder = new GameObject(k_FlowerRoot);
-            holder.transform.SetParent(root.transform, false);
-
-            System.Random rng = new System.Random(k_FlowerSeed);
-            List<Vector3> taken = new List<Vector3>(k_FlowerCount);
-            List<BloomBurst.Flower> planted = new List<BloomBurst.Flower>(k_FlowerCount);
-
-            // Walk the vertices in a shuffled order rather than in mesh order, which would plant
-            // every stem in whichever clump happens to be first in the buffer.
-            int[] order = new int[vertices.Length];
-
-            for (int i = 0; i < order.Length; i++)
-            {
-                order[i] = i;
-            }
-
-            for (int i = order.Length - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (order[i], order[j]) = (order[j], order[i]);
-            }
-
-            for (int k = 0; k < order.Length && planted.Count < k_FlowerCount; k++)
-            {
-                int i = order[k];
-
-                if (colors[i].r < k_FlowerRimFloor)
-                {
-                    continue;
-                }
-
-                Vector3 position = vertices[i];
-
-                if (Vector3.Dot(position, localUp) > ceiling)
-                {
-                    continue;
-                }
-
-                Vector3 normal = normals != null && normals.Length == vertices.Length
-                    ? normals[i]
-                    : localUp;
-
-                // Nothing grows out of an overhang pointing at the ground.
-                if (Vector3.Dot(normal.normalized, localUp) < -0.2f)
-                {
-                    continue;
-                }
-
-                if (TooClose(taken, position, k_FlowerSpacing))
-                {
-                    continue;
-                }
-
-                taken.Add(position);
-
-                Vector3 aim = Vector3.Slerp(normal.normalized, localUp, k_FlowerUprightBias);
-                FlowerSource source = sources[rng.Next(sources.Length)];
-
-                float target = Mathf.Lerp(k_FlowerHeightMin, k_FlowerHeightMax,
-                    (float)rng.NextDouble());
-                float scale = source.m_unitScale * (target / source.m_height);
-
-                GameObject flower = new GameObject(source.m_mesh.name);
-                flower.transform.SetParent(holder.transform, false);
-                flower.transform.localPosition = position;
-
-                // Stand the mesh up with its model root's pose first, then aim the standing stem
-                // along the surface. Composed in that order: the right-hand rotation is applied
-                // first, so the flower is upright before it is tilted.
-                flower.transform.localRotation =
-                    Quaternion.FromToRotation(Vector3.up, aim) * source.m_pose;
-
-                // Saved open, not shut. BloomBurst runs only in Play, so stems saved at zero scale
-                // are invisible in the Editor — exactly where the look gets judged and the growth
-                // slider gets dragged. Nothing flickers at runtime: BloomBurst writes every scale
-                // in OnEnable, before the first frame is drawn.
-                flower.transform.localScale = new Vector3(scale, scale, scale);
-
-                flower.AddComponent<MeshFilter>().sharedMesh = source.m_mesh;
-                MeshRenderer mr = flower.AddComponent<MeshRenderer>();
-                mr.sharedMaterial = material;
-                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-                planted.Add(new BloomBurst.Flower(flower.transform, colors[i].b, scale));
-            }
-
-            BloomBurst burst = root.AddComponent<BloomBurst>();
-            SerializedObject so = new SerializedObject(burst);
-            so.FindProperty("m_driver").objectReferenceValue = driver;
-
-            SerializedProperty array = so.FindProperty("m_flowers");
-            array.arraySize = planted.Count;
-
-            for (int i = 0; i < planted.Count; i++)
-            {
-                SerializedProperty element = array.GetArrayElementAtIndex(i);
-                element.FindPropertyRelative("m_transform").objectReferenceValue =
-                    planted[i].Transform;
-                element.FindPropertyRelative("m_order").floatValue = planted[i].Order;
-                element.FindPropertyRelative("m_scale").floatValue = planted[i].Scale;
-            }
-
-            so.ApplyModifiedPropertiesWithoutUndo();
-            Debug.Log($"{k_LogPrefix}: planted {planted.Count} flowers of {k_FlowerCount} asked "
-                + "for.");
-        }
-
-        private static bool TooClose(List<Vector3> taken, Vector3 candidate, float spacing)
-        {
-            float sqr = spacing * spacing;
-
-            for (int i = 0; i < taken.Count; i++)
-            {
-                if ((taken[i] - candidate).sqrMagnitude < sqr)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// One flower source: its LOD0 mesh plus the pose and scale its own model root carries.
-        /// <para>
-        /// Those are not decoration. The importer parks the axis conversion (270° about X, so the
-        /// mesh's long axis is Z, not Y) and the unit conversion (x100 — the FBX declares
-        /// centimetres) on the model root, and its LOD children are identity. A bare mesh planted
-        /// straight into the scene is therefore a centimetre tall and lying on its side.
-        /// </para>
-        /// </summary>
-        private struct FlowerSource
-        {
-            public Mesh m_mesh;
-
-            /// <summary>The model root's orientation, which stands the mesh up.</summary>
-            public Quaternion m_pose;
-
-            /// <summary>The model root's uniform scale, which converts its units to metres.</summary>
-            public float m_unitScale;
-
-            /// <summary>Metres tall once posed and scaled — what a real one measures.</summary>
-            public float m_height;
-        }
-
-        /// <summary>
-        /// LOD0 of each flower source, with the transform its model root carries. Everything is
-        /// read from the asset rather than written down here, so a change to the import settings
-        /// moves the flowers with it instead of silently mis-sizing them.
-        /// </summary>
-        private static FlowerSource[] LoadFlowerSources()
-        {
-            List<FlowerSource> found = new List<FlowerSource>(k_FlowerFbx.Length);
-
-            foreach (string path in k_FlowerFbx)
-            {
-                GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-
-                if (model == null)
-                {
-                    Debug.LogWarning($"{k_LogPrefix}: {path} not found.");
-                    continue;
-                }
-
-                Mesh best = null;
-
-                foreach (Object o in AssetDatabase.LoadAllAssetsAtPath(path))
-                {
-                    if (o is Mesh m && m.name.EndsWith(k_FlowerLodSuffix))
-                    {
-                        best = m;
-                        break;
-                    }
-                }
-
-                if (best == null)
-                {
-                    Debug.LogWarning($"{k_LogPrefix}: no {k_FlowerLodSuffix} mesh in {path}.");
-                    continue;
-                }
-
-                MeshRenderer renderer = model.GetComponentInChildren<MeshRenderer>();
-                float height = renderer == null ? 0f : renderer.bounds.size.y;
-
-                if (height < 1e-4f)
-                {
-                    Debug.LogWarning($"{k_LogPrefix}: {path} measures no height; skipping.");
-                    continue;
-                }
-
-                found.Add(new FlowerSource
-                {
-                    m_mesh = best,
-                    m_pose = model.transform.localRotation,
-                    m_unitScale = model.transform.localScale.y,
-                    m_height = height,
-                });
-            }
-
-            return found.ToArray();
+            return renderer;
         }
 
         private static void PlaceInScene(GameObject prefab)
