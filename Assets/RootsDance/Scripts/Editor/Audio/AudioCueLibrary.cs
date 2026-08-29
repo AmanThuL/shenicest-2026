@@ -153,7 +153,34 @@ namespace RootsDance.Editor.Audio
             new CueSpec("SFX_MetalCreak", AudioRouting.k_SfxGroup, false, 1f, 25f, 0.4f),
             new CueSpec("SFX_VineDrag", AudioRouting.k_SfxGroup, false, 1f, 14f, 0f),
             new CueSpec("SFX_WaterDrip", AudioRouting.k_SfxGroup, false, 1f, 10f, 0.3f),
-            new CueSpec("AMB_PipeHum", AudioRouting.k_SfxGroup, true, 0.5f, 20f, 0f)
+            new CueSpec("AMB_PipeHum", AudioRouting.k_SfxGroup, true, 0.5f, 20f, 0f),
+
+            // ---- The tracks the audition picked ------------------------------------------------
+
+            // One cue per scene the music selection names, rather than one cue reused with a
+            // different clip pushed into it: which piece plays where is a decision the mix owns,
+            // and a cue is where the project already keeps that kind of decision. No pitch jitter
+            // on any of them — a detuned track is audible as a wobble, and half of these crossfade
+            // into each other.
+            new CueSpec("MUS_MainMenu", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_Exploration", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_Contamination", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_Underground", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_SacredGaia", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_BossWarning", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_BossChase", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_Ending", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("MUS_Credits", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f, k_NoPitchJitter),
+
+            // ---- The four sounds the audition picked with no cue to put them in ----------------
+
+            // Plant powers, the relic, the flower sprite and the creature. Nothing wires these yet;
+            // they exist because the pick is a decision worth keeping, and a cue is the only place
+            // in the project where a sound and its mix settings survive together.
+            new CueSpec("SFX_PlantPower", AudioRouting.k_SfxGroup, false, 1f, 20f, 0f),
+            new CueSpec("SFX_RelicChime", AudioRouting.k_SfxGroup, false, 1f, 25f, 0f),
+            new CueSpec("SFX_FlowerVoice", AudioRouting.k_SfxGroup, false, 1f, 15f, 0.1f),
+            new CueSpec("SFX_CreatureCall", AudioRouting.k_SfxGroup, false, 1f, 40f, 0.3f)
         };
 
         [MenuItem("RootsDance/Audio/Build Audio Cue Library")]

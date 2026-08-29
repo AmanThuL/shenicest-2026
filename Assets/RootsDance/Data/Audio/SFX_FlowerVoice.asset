@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
-  m_Name: MUS_GreenhouseReveal
+  m_Name: SFX_FlowerVoice
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
   m_clips:
-  - {fileID: 8300000, guid: 58fbc001f10e441608f688b63cee8b34, type: 3}
-  m_outputGroup: {fileID: 7254828753142777459, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
+  - {fileID: 8300000, guid: f7dcfdc72184a4ded85bbbd483e9884e, type: 3}
+  m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0
   m_pitch: 1
-  m_pitchJitter: 0
-  m_loop: 1
-  m_cooldownSeconds: 0
-  m_spatialBlend: 0
+  m_pitchJitter: 0.05
+  m_loop: 0
+  m_cooldownSeconds: 0.1
+  m_spatialBlend: 1
   m_minDistance: 1
-  m_maxDistance: 20
+  m_maxDistance: 15
   m_rolloff: 1

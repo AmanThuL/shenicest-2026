@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: MUS_EndingBloom
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 98db77c6076134f8f9b87bf0b7074069, type: 3}
   m_outputGroup: {fileID: 7254828753142777459, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0
   m_pitch: 1
-  m_pitchJitter: 0.05
+  m_pitchJitter: 0
   m_loop: 1
   m_cooldownSeconds: 0
   m_spatialBlend: 0

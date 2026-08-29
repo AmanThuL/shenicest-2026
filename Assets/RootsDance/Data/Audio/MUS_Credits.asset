@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
-  m_Name: MUS_GreenhouseReveal
+  m_Name: MUS_Credits
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
   m_clips:
   - {fileID: 8300000, guid: 58fbc001f10e441608f688b63cee8b34, type: 3}
