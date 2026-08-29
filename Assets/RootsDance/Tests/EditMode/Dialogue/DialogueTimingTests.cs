@@ -78,5 +78,32 @@ namespace RootsDance.Tests.EditMode.Dialogue
 
             Assert.AreEqual(DialogueTiming.k_DefaultMinimumSeconds, hold, 0.001f);
         }
+
+        [Test]
+        public void VoicedHoldSeconds_LongRecording_ExtendsTheHoldPastTheTextEstimate()
+        {
+            // A 6-second recording under a 2-second subtitle: the voice must finish, plus a tail.
+            Assert.AreEqual(6.35f, DialogueTiming.VoicedHoldSeconds(2f, 6f, 0.35f), 0.001f);
+        }
+
+        [Test]
+        public void VoicedHoldSeconds_ShortRecording_KeepsTheReadingTime()
+        {
+            // A one-word recording under a long subtitle: the reader still gets their time.
+            Assert.AreEqual(5f, DialogueTiming.VoicedHoldSeconds(5f, 1f, 0.35f), 0.001f);
+        }
+
+        [Test]
+        public void VoicedHoldSeconds_NoRecording_ChangesNothing()
+        {
+            Assert.AreEqual(3f, DialogueTiming.VoicedHoldSeconds(3f, 0f), 0.001f);
+            Assert.AreEqual(3f, DialogueTiming.VoicedHoldSeconds(3f, -1f), 0.001f);
+        }
+
+        [Test]
+        public void VoicedHoldSeconds_NegativeTail_IsTreatedAsZero()
+        {
+            Assert.AreEqual(6f, DialogueTiming.VoicedHoldSeconds(2f, 6f, -5f), 0.001f);
+        }
     }
 }

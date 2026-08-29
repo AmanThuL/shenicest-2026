@@ -32,11 +32,20 @@ namespace RootsDance.Dialogue
             + "pays off for a deliberate pause.")]
         private float m_holdSeconds;
 
+        [SerializeField]
+        [Tooltip("The recorded voice for this line. Optional: an unvoiced line just reads. With a "
+            + "clip, the line stays up at least until the voice finishes, and skipping the line "
+            + "cuts the voice with it.")]
+        private AudioClip m_voice;
+
         public DialogueSpeaker Speaker => m_speaker;
         public string Chinese => m_chinese;
         public string English => m_english;
 
         /// <summary>0 means "decide from the length of the text".</summary>
         public float HoldSeconds => m_holdSeconds;
+
+        /// <summary>The recorded line, or null for a text-only line.</summary>
+        public AudioClip Voice => m_voice;
     }
 }

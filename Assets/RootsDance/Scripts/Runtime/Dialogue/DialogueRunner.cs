@@ -7,6 +7,7 @@ using RootsDance.Core.Commands;
 using RootsDance.Events;
 using RootsDance.Player;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace RootsDance.Dialogue
 {
@@ -45,6 +46,16 @@ namespace RootsDance.Dialogue
             + "scene where no serialized reference can reach.")]
         [SerializeField] private PlayerInputReader m_input;
 
+        [Header("Voice")]
+        [Tooltip("Mixer group the recorded lines play through. Optional: empty goes straight to "
+            + "the master, and the lines still play — routing is a mix decision, not a "
+            + "prerequisite.")]
+        [SerializeField] private AudioMixerGroup m_voiceGroup;
+
+        [Tooltip("Seconds a voiced line lingers after the recording ends, so the subtitle is not "
+            + "snatched away on the last syllable.")]
+        [SerializeField] private float m_voiceTailSeconds = DialogueTiming.k_DefaultVoiceTailSeconds;
+
         [Header("Reading speed")]
         [Tooltip("Chinese characters per second for a line with no authored hold.")]
         [SerializeField] private float m_cjkCharsPerSecond = DialogueTiming.k_DefaultCjkCharsPerSecond;
@@ -59,6 +70,7 @@ namespace RootsDance.Dialogue
         private readonly HashSet<string> m_played = new HashSet<string>();
         private readonly List<int> m_remaining = new List<int>();
         private IDialogueView m_view;
+        private AudioSource m_voiceSource;
         private int m_pendingChoice = -1;
 
         /// <summary>True while a conversation is on screen. A second request is refused, not queued.</summary>
@@ -72,6 +84,15 @@ namespace RootsDance.Dialogue
             {
                 Log.Error($"'{m_viewBehaviour.GetType().Name}' does not implement IDialogueView.", this);
             }
+
+            // Built rather than serialized: the runner is the only thing that ever touches this
+            // source, so there is nothing for an Inspector to say about it. Flat, like narration —
+            // the voice belongs to whoever is on screen, not to a point in the world.
+            m_voiceSource = gameObject.AddComponent<AudioSource>();
+            m_voiceSource.playOnAwake = false;
+            m_voiceSource.loop = false;
+            m_voiceSource.spatialBlend = 0f;
+            m_voiceSource.outputAudioMixerGroup = m_voiceGroup;
         }
 
         private void Start()
@@ -168,6 +189,7 @@ namespace RootsDance.Dialogue
             finally
             {
                 IsPlaying = false;
+                StopVoice();
 
                 if (m_view != null)
                 {
@@ -212,6 +234,15 @@ namespace RootsDance.Dialogue
                     : DialogueTiming.HoldSecondsFor(line.Chinese, line.English, m_cjkCharsPerSecond,
                         m_latinCharsPerSecond, m_minimumHoldSeconds, m_maximumHoldSeconds);
 
+                StopVoice();
+
+                if (line.Voice != null && m_voiceSource != null)
+                {
+                    m_voiceSource.clip = line.Voice;
+                    m_voiceSource.Play();
+                    hold = DialogueTiming.VoicedHoldSeconds(hold, line.Voice.length, m_voiceTailSeconds);
+                }
+
                 await HoldAsync(hold, cancellationToken);
             }
         }
@@ -232,8 +263,19 @@ namespace RootsDance.Dialogue
 
                 if (m_input != null && m_input.InteractPressedThisFrame)
                 {
+                    // The skip takes the voice with it: a line that keeps talking after its
+                    // subtitle has moved on would make every skip sound like a bug.
+                    StopVoice();
                     return;
                 }
+            }
+        }
+
+        private void StopVoice()
+        {
+            if (m_voiceSource != null && m_voiceSource.isPlaying)
+            {
+                m_voiceSource.Stop();
             }
         }
 
