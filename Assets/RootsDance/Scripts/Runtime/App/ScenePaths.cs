@@ -7,5 +7,9 @@ namespace RootsDance.App
         public const string k_MainMenu = "Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity";
         public const string k_MainEnvironment = "Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity";
         public const string k_MainGameplay = "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
+        public const string k_GreenhouseInteriorEnvironment =
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity";
+        public const string k_GreenhouseInteriorGameplay =
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity";
     }
 }
