@@ -12,18 +12,20 @@ namespace RootsDance.EditorTools
     /// The assembled building (<c>GreenHouse1_Textured.fbx</c>) never carried the stair: the swap
     /// to the 782-face spiral happened in the ground truth
     /// (<c>GreenHouse1Glass_Preview_Whole.blend</c>) only, and the stair was exported as its own
-    /// module afterwards. So the stair has to be re-registered against the building, and the
-    /// building arrives in Unity through a different import scale (0.6045) than the stair (1.0)
-    /// and under a scaled instance on top of that.
+    /// module afterwards. So the stair has to be re-registered against the building, and the two
+    /// do not even share a unit: a source metre is about 0.60 world units through the building and
+    /// about 0.01 through the stair, with a scaled instance on top of that.
     /// </para>
     /// <para>
     /// Rather than trusting any of those numbers, this tool measures them: it reads the world
-    /// bounds of four objects inside the placed building whose coordinates in the source blend are
-    /// known, solves the source-to-world map from them, and lands the stair's bounding box on the
-    /// mapped one. Move or rescale the building and re-running this still lands the stair correctly.
+    /// bounds of five objects inside the placed building whose coordinates in the source blend are
+    /// known, solves the source-to-world map from them, and fits the stair's own bounding box onto
+    /// the mapped one. Move or rescale the building, or re-export either mesh, and re-running this
+    /// still lands the stair correctly.
     /// </para>
-    /// Menu: RootsDance > Place Greenhouse Spiral Stair. Idempotent; marks the scene dirty and
-    /// leaves saving to whoever ran it.
+    /// Menu: RootsDance > Place Greenhouse Spiral Stair, over whichever scenes are open.
+    /// Idempotent; marks the scene dirty and leaves saving to whoever ran it. <see cref="PlaceBatch"/>
+    /// is the headless version and covers every scene in <see cref="k_BatchScenes"/>.
     /// </summary>
     public static class GreenhouseSpiralStairBuilder
     {
