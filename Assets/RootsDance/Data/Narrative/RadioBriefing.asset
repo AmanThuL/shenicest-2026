@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca1ed3469ff884cefa20714aea02c68c, type: 3}
   m_Name: RadioBriefing
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Narrative.RadioSequenceSO
+  m_id: RAD-002
+  m_title: "\u51FA\u53D1\u7B80\u62A5\uFF0800-03\uFF09"
   m_lines:
   - m_text: "\u7EE7\u7EED\u5411\u524D\u3002\u76D1\u6D4B\u6570\u636E\u663E\u793A\u524D\u65B9\u6C61\u67D3\u6D53\u5EA6\u6B63\u5728\u4E0B\u964D\u3002"
+    m_english: Keep moving. Our readings show that the contamination levels are dropping
+      ahead.
+    m_voice: {fileID: 0}
     m_holdSeconds: 3.5
   - m_text: "\u8FDB\u5165\u9057\u8FF9\u6700\u5916\u5C42\u540E\uFF0C\u901A\u8BAF\u53EF\u80FD\u65E0\u6CD5\u7EF4\u6301\u3002"
+    m_english: Once you enter the outer perimeter of the ruins, we may not be able
+      to maintain communications.
+    m_voice: {fileID: 0}
     m_holdSeconds: 3.5
   - m_text: "\u5B8C\u6210\u57FA\u7840\u73AF\u5883\u8C03\u67E5\u3002\u4E4B\u540E\u6211\u4EEC\u518D\u8054\u7CFB\u3002"
+    m_english: Complete the initial environmental survey. We'll get back in touch
+      after that.
+    m_voice: {fileID: 0}
     m_holdSeconds: 3.5
   - m_text: "\u795D\u4F60\u597D\u8FD0\u3002"
+    m_english: Good luck.
+    m_voice: {fileID: 0}
     m_holdSeconds: 3.5
   m_startDelay: 0.5
+  m_voiceCue: {fileID: 11400000, guid: c0168eb5b716e4bf6b07b3d715d830c7, type: 2}
