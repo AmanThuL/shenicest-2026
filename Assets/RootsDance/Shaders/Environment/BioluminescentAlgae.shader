@@ -5,7 +5,11 @@
 // same _RootsFlashlight* globals that Environment/FluorescentReveal already reads, and the two
 // effects should fail and be fixed the same way if HDRP changes its unlit plumbing. Everything
 // below is HDRP's own Unlit pass structure with one substitution - UnlitData.hlsl, which normally
-// fills SurfaceData from the unlit properties, is replaced by the GetSurfaceAndBuiltinData here.
+// fills SurfaceData from the unlit properties, is replaced by the GetSurfaceAndBuiltinData in the
+// sibling BioluminescentAlgae.hlsl. That function is included per pass, after Unlit.hlsl has
+// defined SurfaceData, rather than being hoisted above the passes; hoisted, it compiles in
+// whichever pass includes the most and fails in the other. Environment/StatueBloom is laid out
+// the same way.
 //
 // Opaque with alpha clip, not blended: the patches are small and numerous, and a cutout keeps them
 // out of transparent sorting entirely. The ragged rim comes from clipping, so the mesh silhouette
@@ -130,89 +134,6 @@ Shader "RootsDance/Environment/BioluminescentAlgae"
             "Queue" = "AlphaTest"
         }
 
-        HLSLINCLUDE
-
-        /// How much energy the beam delivers here, 0..1, and which way it arrives. Kept as one
-        /// function so the cone, the range fade and the spill can each be read on their own when
-        /// the response looks wrong.
-        float BeamEnergy(float3 positionWS, out float3 lightDirWS)
-        {
-            float3 toFragment = positionWS - _RootsFlashlightPosition.xyz;
-            float dist = length(toFragment);
-            float3 dir = toFragment / max(dist, 1e-5);
-            lightDirWS = -dir;                       // surface -> torch
-
-            float axis = dot(dir, _RootsFlashlightDirection.xyz);
-            float cone = smoothstep(_RootsFlashlightCone.x, _RootsFlashlightCone.y, axis);
-
-            // A torch does not stop at the edge of its bright pool. Taken as a max rather than a
-            // sum so the bright cone stays exactly as bright as it was without the wash.
-            float spill = smoothstep(_RootsFlashlightSpill.x, _RootsFlashlightCone.x, axis)
-                        * saturate(_RootsFlashlightSpill.y);
-            cone = max(cone, spill);
-
-            float range = 1.0 - smoothstep(_RootsFlashlightCone.z * 0.75,
-                                           _RootsFlashlightCone.z, dist);
-
-            return cone * range * saturate(_RootsFlashlightCone.w);
-        }
-
-        void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput,
-            out SurfaceData surfaceData, out BuiltinData builtinData)
-        {
-            ZERO_BUILTIN_INITIALIZE(builtinData);    // unlit: nothing for HDRP to light
-            ZERO_INITIALIZE(SurfaceData, surfaceData);
-            builtinData.opacity = 1.0;
-            builtinData.emissiveColor = 0.0;
-            surfaceData.normalWS = 0.0;
-
-            float2 uv = input.texCoord0.xy * _WrinkleNormal_ST.xy + _WrinkleNormal_ST.zw;
-            float density = SAMPLE_TEXTURE2D(_DensityMap, sampler_DensityMap, uv).r;
-
-            float rim   = saturate(input.color.r);
-            float phase = input.color.g;
-            float order = saturate(input.color.b);
-
-            // Growth runs outwards along the seed distance stored in B. The softness is the width
-            // of the advancing front, so it dissolves rather than snapping on.
-            float soft = max(_GrowthSoftness, 1e-3);
-            float grown = saturate((_Growth * (1.0 + soft) - order) / soft);
-
-            // Density raises the clip threshold instead of scaling coverage, which confines the
-            // erosion to the rim. Scaling coverage instead eats holes through the middle.
-            float threshold = _AlphaCutoff + _EdgeErode * (1.0 - density);
-            clip(rim * grown - threshold);
-
-            float3 normalTS = UnpackNormalmapRGorAG(
-                SAMPLE_TEXTURE2D(_WrinkleNormal, sampler_WrinkleNormal, uv), _NormalStrength);
-            float3 N = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
-
-            float3 positionWS = GetAbsolutePositionWS(input.positionRWS);
-            float3 L;
-            float energy = BeamEnergy(positionWS, L);
-
-            // Wrapped diffuse: a translucent film keeps carrying light past its own terminator, so
-            // a hard N.L makes it read as painted-on plastic.
-            float w = saturate(_Wrap);
-            float diffuse = saturate((dot(N, L) + w) / (1.0 + w));
-
-            float3 H = normalize(L + V);
-            float spec = pow(saturate(dot(N, H)), max(_WetGloss, 1.0)) * _WetSpecular;
-
-            float pulse = 1.0 + _PulseDepth * sin(TWO_PI * (_TimeParameters.x * _PulseSpeed + phase));
-
-            // Beam boost is a floor on top of the resting glow, so switching it on never makes the
-            // unlit film darker than it already was.
-            float glow = _EmissionStrength * pulse * density * grown
-                       * (1.0 + _InteractionBoost * energy);
-
-            float3 lit = _BaseTint.rgb * (_AmbientFloor + diffuse * energy) + spec * energy;
-
-            surfaceData.color = lit + _EmissionTint.rgb * glow;
-        }
-
-        ENDHLSL
-
         Pass
         {
             Name "DepthForwardOnly"
@@ -235,6 +156,9 @@ Shader "RootsDance/Environment/BioluminescentAlgae"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitDepthPass.hlsl"
+
+            #include "BioluminescentAlgae.hlsl"
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -266,6 +190,8 @@ Shader "RootsDance/Environment/BioluminescentAlgae"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitSharePass.hlsl"
+
+            #include "BioluminescentAlgae.hlsl"
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
 
