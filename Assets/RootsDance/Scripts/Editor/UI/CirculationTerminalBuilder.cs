@@ -2,6 +2,7 @@ using RootsDance.Events;
 using RootsDance.Interaction;
 using RootsDance.Player;
 using RootsDance.Scanner;
+using RootsDance.UI;
 using RootsDance.World;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -85,9 +86,19 @@ namespace RootsDance.EditorTools
         /// height a standing person reads without tilting their head. Its +Z faces back down the
         /// room, towards the checkpoint the player arrives at.
         /// </summary>
-        private static readonly Vector3 k_WallPosition = new Vector3(0f, 1.45f, 2.5f);
+        /// <summary>
+        /// On the greenhouse's south wall (<c>GreenHouse1_Textured/R-W1_T</c>, a slab centred at
+        /// x 1.77, z -13.39, 0.35 thick), just clear of its inner face — which is the wall the
+        /// player is facing when the Central Greenhouse checkpoint puts them down. The hall has no
+        /// wall anywhere near its middle, so a panel there would be a screen standing in a field.
+        /// </summary>
+        private static readonly Vector3 k_WallPosition = new Vector3(1.77f, 2.45f, -13.19f);
 
-        private static readonly Quaternion k_WallRotation = Quaternion.Euler(0f, 180f, 0f);
+        /// <summary>Identity: the slab's inner face looks down +Z, and so does the panel.</summary>
+        private static readonly Quaternion k_WallRotation = Quaternion.identity;
+
+        private const string k_WorldTextMaterial =
+            "Assets/RootsDance/Materials/UI/FusionPixel WorldSpace.mat";
 
         [MenuItem("RootsDance/UI/Build Circulation Terminal")]
         public static void Build()
@@ -367,6 +378,25 @@ namespace RootsDance.EditorTools
             if (inner != null)
             {
                 inner.gameObject.SetActive(true);
+            }
+
+            // TMP derives its antialiasing width from the transform scale, and a 1180-unit layout
+            // on a 1.28 m panel is a scale of about 1e-3 — small enough that the glyphs submit
+            // fully transparent while the boxes around them draw. Same fix the scanner's screen
+            // needs; see WorldSpaceTextMaterial.
+            Material worldText = AssetDatabase.LoadAssetAtPath<Material>(k_WorldTextMaterial);
+
+            if (worldText == null)
+            {
+                Debug.LogWarning($"[UI] {k_WorldTextMaterial} not found; the panel's text may "
+                    + "render blank at world scale. Run RootsDance > Build World Space Text first.");
+            }
+            else
+            {
+                WorldSpaceTextMaterial fitter = screen.AddComponent<WorldSpaceTextMaterial>();
+                SerializedObject serializedFitter = new SerializedObject(fitter);
+                serializedFitter.FindProperty("m_textMaterial").objectReferenceValue = worldText;
+                serializedFitter.ApplyModifiedPropertiesWithoutUndo();
             }
 
             GameObject cameraObject = new GameObject("ReadCamera");
