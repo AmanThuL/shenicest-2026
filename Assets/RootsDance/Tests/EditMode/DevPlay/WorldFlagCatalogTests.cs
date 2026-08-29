@@ -40,6 +40,10 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_CirculationCore,
                     WorldFlags.k_CirculationRing,
                     WorldFlags.k_CirculationOuter,
+
+                    // The chase.
+                    WorldFlags.k_ChaseStarted,
+                    WorldFlags.k_ChaseEscaped,
                 },
                 all);
         }
