@@ -122,6 +122,28 @@ namespace RootsDance.Tests.EditMode.Scanner
         }
 
         [Test]
+        public void InspectCamera_ReadsTheReportUprightHoweverTheScannerIsHeld()
+        {
+            // The scanner is held in a hand, so the plate is never level with the world. A camera
+            // that keeps the world horizon level instead of the screen's own up lands with the
+            // report turned on its side — which is what a player sees as having to tilt their head.
+            m_instance.transform.rotation = Quaternion.Euler(23f, 41f, 57f);
+
+            ScannerInspectFraming framing = Framing();
+            framing.Apply();
+
+            CinemachineCamera camera = Camera();
+            Transform eye = camera.transform;
+            Vector3 screenUp = eye.InverseTransformDirection(Surface().transform.up);
+            float tilt = Vector3.Angle(new Vector3(screenUp.x, screenUp.y, 0f), Vector3.up);
+
+            Debug.Log($"[scanner] report tilt in view {tilt:F2}°");
+
+            Assert.Less(tilt, 1f,
+                "The report is turned in the viewport: up on the screen is not up on the display.");
+        }
+
+        [Test]
         public void Open_ActivatesTheReportAndPrintsAPage()
         {
             ScannerReportPresenter presenter =

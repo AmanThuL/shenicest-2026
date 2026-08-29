@@ -43,19 +43,6 @@ namespace RootsDance.Scanner
             + "target build. In play mode the real screen aspect is used instead.")]
         [SerializeField] private float m_editorAspect = 16f / 9f;
 
-        /// <summary>
-        /// The up axis to level the camera against. World up nearly always, but a screen held flat
-        /// — face up or face down — leaves that parallel to the view direction, where it says
-        /// nothing about which way is up on the screen; the anchor's own up is the only answer
-        /// there, and rolling with the hand is better than a degenerate look rotation.
-        /// </summary>
-        private static Vector3 UprightFor(Transform anchor)
-        {
-            return Mathf.Abs(Vector3.Dot(anchor.forward.normalized, Vector3.up)) > 0.985f
-                ? anchor.up
-                : Vector3.up;
-        }
-
         /// <summary>Fraction of the viewport the screen covers. Serialized; see the class summary.</summary>
         public float ScreenFill => m_screenFill;
 
@@ -114,12 +101,12 @@ namespace RootsDance.Scanner
             float metresPerLocalUnit = Mathf.Max(Mathf.Abs(m_screenAnchor.lossyScale.x), 1e-9f);
             camera.localPosition = new Vector3(0f, 0f, -distance / metresPerLocalUnit);
 
-            // Face the screen, but keep the horizon level. Inheriting the anchor's rotation whole
-            // — which an identity local rotation does — also inherits its roll, and the anchor is
-            // on the arm, so the screen is held at whatever angle the hand is at. Blending into a
-            // rolled camera swings the whole view over on the way in and reads as the player lying
-            // down rather than raising something to look at it.
-            camera.rotation = Quaternion.LookRotation(m_screenAnchor.forward, UprightFor(m_screenAnchor));
+            // Read the screen the way the screen is written: up on the report is up in the view.
+            // Levelling against the world horizon instead was tried and is wrong — the anchor rides
+            // the hand, the hand holds the scanner at an angle, and a camera that keeps the horizon
+            // level therefore lands with the report turned on its side. What a player does with a
+            // device in their hand is tilt their head to it, so the camera does the same.
+            camera.localRotation = Quaternion.identity;
 
             LensSettings lens = m_camera.Lens;
             lens.FieldOfView = m_fieldOfView;
