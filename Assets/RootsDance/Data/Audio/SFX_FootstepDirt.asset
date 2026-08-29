@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: SFX_FootstepDirt
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 263e8b281f48d41609c8313613f7b929, type: 3}
+  - {fileID: 8300000, guid: ab6d7f655716e45ccbc14751d2ff379a, type: 3}
+  - {fileID: 8300000, guid: a96c4f27729d34ff7af8ff61a91978b9, type: 3}
+  - {fileID: 8300000, guid: e3c99b7569d314cf9a3482c417319f16, type: 3}
+  - {fileID: 8300000, guid: 38a66fa5208f64e58980ccec08962a1d, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0

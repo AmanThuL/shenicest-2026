@@ -232,3 +232,27 @@ the only derived data lives under `Assets/RootsDance/`.
 - **为什么引入**：纸面原本整张是 Perlin 噪声，无论频率怎么调都读成一团棕雾 ——
   真实纸纤维是各个尺度都有结构的照片纹理，带限噪声没有。做旧（污渍、霉斑、撕边）仍然是程序生成的，
   只是现在叠在一张真实扫描上，而不是替代它。
+
+## 音乐与音效素材 —— `Assets/RootsDance/Audio/`
+
+- **路径**：`Assets/RootsDance/Audio/{Music,Ambience,SFX}/`（46 个片段，2026-08-30 导入）。
+  完整试听库（723 个文件）在分支 `content/music-and-sounds` 的 `SourceArt/music and sounds/` 下，
+  `Assets/` 里只放最终选中的那些。选择结果记录在 `roots-dance-audio-selections.json`，
+  片段与 cue 的对照表在 `AudioClipBinder.k_Bindings` 与
+  [音频管线](architecture/systems/音频管线.md) §9。
+- **Scott Buckley —— CC BY 4.0**（<https://www.scottbuckley.com.au/library/>）。入库曲目：
+  Signal To Noise（无旋律版）、Convergence、Phase Shift、Permafrost、Memories Of Stone、
+  Incantation、Eyes In The Void、Hour Of The Witch。
+  **署名是发布条件**，制作人员表里每首都要出现一行：
+  `'<曲名>' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au`
+- **Kevin MacLeod —— CC BY 4.0**（<https://incompetech.com/music/royalty-free/music.html>）。
+  入库曲目：I Can Feel It Coming、Nightmare Machine。制作人员表里需要：
+  `Music: I Can Feel It Coming, Nightmare Machine by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0, http://creativecommons.org/licenses/by/4.0/`
+- **Kenney —— CC0 1.0**（<https://kenney.nl>）：Impact Sounds（脚步）、Interface Sounds、UI Audio、
+  RPG Audio（门）。无需署名，仍列入制作人员表。
+- **OpenGameArt —— CC0 1.0**：`80 CC0 RPG SFX`（作者 rubberduck，植物能力与生物叫声）、
+  `7 Assorted Sound Effects`（作者 Joth，遗物音）。无需署名。
+- **自制补缺片段** —— `Ambience/` 下五个 `*_Loop.wav`（头盔呼吸两条、污染区三条），
+  2026-08-29 用噪声与包络在本地合成，循环边界按数学无缝构造，属项目自有资产。
+  **压缩导入后仍需在 Unity 里复听循环接缝**（见音频管线 §4：Ambience 走 Vorbis 0.6 流式）。
+- **两条 CC BY 是"必须做的事"，不只是仓库备注**：制作人员表还没有这些行之前，构建不满足授权条件。

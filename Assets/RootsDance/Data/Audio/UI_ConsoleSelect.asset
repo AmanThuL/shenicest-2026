@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
   m_Name: UI_ConsoleSelect
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
-  m_clips: []
+  m_clips:
+  - {fileID: 8300000, guid: 187532efee63b44b28f780aa1772baac, type: 3}
   m_outputGroup: {fileID: 1808069202947050206, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0
