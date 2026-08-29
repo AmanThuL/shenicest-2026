@@ -19,5 +19,16 @@ namespace RootsDance.Tests.EditMode.Player
             property.floatValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        /// <summary>Sets a serialized reference field, for wiring a component up in a test.</summary>
+        public static void Set(Object target, string fieldName, Object value)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty property = so.FindProperty(fieldName);
+
+            Debug.Assert(property != null, $"No serialized field '{fieldName}' on {target}.");
+            property.objectReferenceValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
     }
 }
