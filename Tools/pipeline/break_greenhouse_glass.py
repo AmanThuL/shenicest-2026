@@ -46,22 +46,6 @@ rng = random.Random(SEED)
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 col = bpy.data.collections["GlassRecovered"]
 
-# --- drop the backdrop sheets -----------------------------------------------
-# Behind the real panes the source carries whole-wall glass sheets (14 m2 on
-# a wall, 4.4 m2 on a window band). With those in place a hole punched in a
-# pane still shows glass, so the breakage reads as nothing. No true pane
-# exceeds 1.1 m2, so area separates them cleanly.
-BACKDROP_M2 = 3.0
-for obj in list(col.objects):
-    mesh = obj.data
-    big = [p.index for p in mesh.polygons if p.area > BACKDROP_M2]
-    if big:
-        bm = bmesh.new(); bm.from_mesh(mesh)
-        bm.faces.ensure_lookup_table()
-        bmesh.ops.delete(bm, geom=[bm.faces[i] for i in big], context='FACES')
-        bm.to_mesh(mesh); bm.free()
-        print("###   %-16s dropped %d backdrop sheets" % (obj.name, len(big)))
-
 # --- carve the big sheets into pane cells -----------------------------------
 # The source glazing is not one pane per opening: SketchUp modelled whole
 # sheets, the largest 10 m2. Broken per loose part, a sheet either vanishes
@@ -91,11 +75,14 @@ centres = np.array([tuple(p["centre"]) for p in panes])
 radii = np.linalg.norm(centres[:, :2], axis=1)
 strays = [i for i, p in enumerate(panes)
           if radii[i] > 26.0 or p["area"] < 0.002]
-degenerate = sum(1 for i in strays if panes[i]["area"] < 0.002)
+degenerate = [i for i in strays if panes[i]["area"] < 0.002]
 far = [i for i in strays if panes[i]["area"] >= 0.002]
-print("### culled: %d zero-area slivers, %d far strays %s"
-      % (degenerate, len(far),
-         [("%s r=%.0f" % (panes[i]["obj"], radii[i])) for i in far]))
+print("### culled: %d slivers (%.3f m2 total), %d far strays (%.2f m2) %s"
+      % (len(degenerate), sum(panes[i]["area"] for i in degenerate),
+         len(far), sum(panes[i]["area"] for i in far),
+         sorted({panes[i]["obj"] for i in far})))
+kept_area = sum(panes[i]["area"] for i in range(len(panes)) if i not in set(strays))
+print("### glass area kept for breakage: %.1f m2" % kept_area)
 
 # --- adjacency --------------------------------------------------------------
 alive = [i for i in range(len(panes)) if i not in set(strays)]
@@ -105,15 +92,21 @@ for a_pos, i in enumerate(alive):
         if np.linalg.norm(centres[i] - centres[j]) < NEIGHBOUR_M:
             neighbours[i].append(j); neighbours[j].append(i)
 
-# --- seeds: reachable panes break first -------------------------------------
+# --- seeds: stratified per panel, reachable panes first ---------------------
+# One global draw piles every impact onto whichever panel is densest and the
+# rest of the building stays pristine. Every panel takes its share instead,
+# and within a panel the low panes -- the reachable ones -- break first.
 z = centres[:, 2]
-weights = []
+by_panel = {}
 for i in alive:
-    reach = max(0.0, 1.0 - (z[i] - z.min()) / 12.0)     # ground vandalism
-    weights.append(0.15 + reach)
-n_seeds = N_SEEDS or max(14, len(alive) // 16)
-print("### seeds: %d" % n_seeds)
-seeds = rng.choices(alive, weights=weights, k=n_seeds)
+    by_panel.setdefault(panes[i]["obj"], []).append(i)
+seeds = []
+for name, cells in sorted(by_panel.items()):
+    quota = max(1, round((N_SEEDS or len(alive) // 16) * len(cells) / len(alive)))
+    lo = min(z[i] for i in cells)
+    weights = [0.15 + max(0.0, 1.0 - (z[i] - lo) / 8.0) for i in cells]
+    seeds += rng.choices(cells, weights=weights, k=quota)
+print("### seeds: %d across %d panels" % (len(seeds), len(by_panel)))
 
 damage = {i: 0.0 for i in alive}
 for s in seeds:
