@@ -48,7 +48,9 @@
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
   但不再穿墙或在室外形成难以辨认的轮廓。
-- 原先六段双排黑柜改为约 `2.2 × 5.4 × 0.92 m` 的一体废弃实验岛。岛台由 CC0 同系列 sink、open shelves、outlet counter 组合，统一使用旧青灰烤漆、锈褐边缘和污渍台面材质。
+- 中央岛已从 18 个等距完整柜台替换为约 `2.0 × 5.2 × 0.92 m` 的单体废弃木制实验桌。桌体取自本地
+  `Kitchen and Lab` 下载包中的 `Kitchen_DeskBig_2` Mesh，保留旧木、裸露框架和烘焙污渍，并用项目 HDRP 材质降低饱和度与光滑度。
+  Prefab 稳定路径、三个连续 BoxCollider、PWB 父级和原有 27 件桌面器材全部保留，因此没有重新触碰地面生态、屋顶或灯光。
 - 东侧 S7 工作台原位替换而不移动根须与植物；西侧档案区增加原创公告板；东北角增加由黄铜象限仪 Mesh 改造的旧式光学标定仪。
 - 小件与软植物通过项目内 `_NoCollision` Prefab Variant 关闭 Collider，不在场景实例上制造 Collider override。
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
@@ -459,16 +461,17 @@ Sketchfab 下载包多数是 CC BY。使用前必须核对作者、源页面、�
 
 | 截图目标 | 本地状态 | 本轮处理 |
 |---|---|---|
-| 化学旧桌、废弃 Lab Equipment | 参考包不可发布或未下载 | 用 CC0 counters、centrifuge、scale、CRT 原创组合复现破损密度 |
+| 化学旧桌、废弃 Lab Equipment | `Chemical Lab Fallout 4` 有第三方 IP 风险；`Abandoned Lab Equipment` 未下载 | 不导入两套风险模型；改用已下载 CC BY `Kitchen and Lab` 的旧桌 Mesh，保留现有 centrifuge、scale 和器皿组 |
 | Mad Scientist Lab | metadata-only | 借玻璃器皿高低错落构图，不导入模型 |
 | Conspiracy Papers X-Lab | metadata-only | 用项目原创公告板、现有 clipboard/binder/纸片变体替代 |
 | Old Lab Tubes | 已下载，CC BY 4.0 | 导入并放在中央 S8A |
 | PSX Adrenaline Syringe | 已下载，CC BY 4.0 | 导入并放在 S7 |
 | Astronomical quintant | 已下载，CC BY 4.0 | 改材质并作为东北旧光学标定仪 |
-| Lab Glassware | 已下载，CC BY 4.0 | 只取 2 至 3 件的组团观感，放在 S8B |
+| Lab Glassware | 已下载，CC BY 4.0 | 已放在 S8B，不重复导入 |
+| Kitchen and Lab | 已下载，CC BY 4.0 | 只拆 `Kitchen_DeskBig_2`，替换中央整齐柜台岛；同时保留上传者和原作者署名链 |
 | PSX Vintage Wall Clocks | 本地无 source zip | 自制破损低模时钟，不从截图抠图 |
 
-四个 CC BY 模型的转换后 FBX 与原始 metadata 位于
+五个 CC BY 模型的转换后 FBX 与原始 metadata 位于
 `Assets/ThirdParty/Environment/BriggsArtistPicks/`。Unity 场景只引用 `Assets/RootsDance/Prefabs/Environment/` 下的项目 prefab，
 不直接散放第三方 FBX。
 
