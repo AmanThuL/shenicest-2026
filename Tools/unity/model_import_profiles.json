@@ -301,7 +301,7 @@
     },
     {
       "m_path": "Assets/RootsDance/Meshes/Props/Helmet.fbx",
-      "m_profile": "static_prop",
+      "m_profile": "static_prop_shared_material",
       "m_manifest": "SourceArt/Export/Helmet.export.json",
       "m_materials": [
         {
@@ -549,6 +549,25 @@
         {
           "m_source": "small_plastic_torch_glass",
           "m_asset": "Assets/RootsDance/Materials/FlashlightLens.mat"
+        }
+      ]
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Props/BlueFlask.fbx",
+      "m_profile": "static_prop",
+      "m_manifest": "SourceArt/Export/BlueFlask.export.json",
+      "m_materials": [
+        {
+          "m_source": "BlueFlaskGlass",
+          "m_asset": "Assets/RootsDance/Materials/Props/BlueFlaskGlass.mat"
+        },
+        {
+          "m_source": "BlueFlaskLiquid",
+          "m_asset": "Assets/RootsDance/Materials/Props/BlueFlaskLiquid.mat"
+        },
+        {
+          "m_source": "BlueFlaskCork",
+          "m_asset": "Assets/RootsDance/Materials/Props/BlueFlaskCork.mat"
         }
       ]
     },
