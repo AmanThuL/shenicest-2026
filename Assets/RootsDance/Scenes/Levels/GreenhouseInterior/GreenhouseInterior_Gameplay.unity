@@ -291,7 +291,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 223790027}
+    - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 223790026}
   m_SourcePrefab: {fileID: 100100000, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
 --- !u!4 &223790019 stripped
 Transform:
@@ -308,12 +314,89 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1168216218860767587, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 223790018}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 223790025}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e27d3e720f3994eb490e6016a186b0e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.FirstPersonController
+--- !u!114 &223790022 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3067282954758705644, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 223790018}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223790025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2289978579a1045e0a960e905c79ab86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerLook
+--- !u!114 &223790023 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2523268967826309828, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 223790018}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223790025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7446a6f54c8184e09b06a88622412e47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerInputReader
+--- !u!114 &223790024 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6295360982917947931, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 223790018}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a407ebae978d9466aafbe6874f5dfe19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.InteractionRaycaster
+--- !u!1 &223790025 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 223790018}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &223790026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223790025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1fcbbd7e8f9492babc8e14b3f0412e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.World.TerminalProximityTrigger
+  m_controller: {fileID: 223790027}
+  m_player: {fileID: 223790019}
+  m_input: {fileID: 223790023}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 3
+  m_promptFormat: "[E] \u4F7F\u7528 {0}"
+--- !u!114 &223790027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223790025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68ff1941381843e8b9f48f151b274dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.World.TerminalInspectController
+  m_input: {fileID: 223790023}
+  m_suspendedWhileReading:
+  - {fileID: 223790022}
+  - {fileID: 223790021}
+  - {fileID: 223790024}
+  m_activePriority: 30
+  m_zoomSeconds: 0.4
+  m_releaseCursorWhileReading: 1
+  m_exitLockoutSeconds: 0.25
 --- !u!1 &365722240
 GameObject:
   m_ObjectHideFlags: 0
