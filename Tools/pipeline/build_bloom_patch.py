@@ -38,6 +38,8 @@ import os
 import random
 import sys
 
+import bisect
+
 import bpy
 import bmesh
 from mathutils import Vector, noise
@@ -60,6 +62,10 @@ MAX_EDGE_STRETCH = 2.5
 
 # The most the relief noise can lift a vertex off the target. Matches `relief` below.
 RELIEF_CEILING = 0.011 + 0.0045
+
+# Below this clearance a patch risks z-fighting with the surface it sits on. Reported, not
+# failed: a crease legitimately brings the opposite wall this close.
+GRAZE_WARN = 0.0005
 
 # Islands smaller than this fraction of the patch's faces are crumbs left behind by tearing.
 MIN_ISLAND_FRACTION = 0.04
@@ -125,6 +131,17 @@ def boundary_rim(bm, step, width):
     return {v: smoothstep(0.0, max(width, 1e-4), d) for v, d in rim.items()}
 
 
+def grid_res(size, spacing):
+    """Grid divisions across a patch of `size` metres at `spacing` metres per vertex.
+
+    The algae builder fixes this at 2 cm because those patches are read from arm's length on a
+    corridor wall. Most of an 18.8 m statue is not, and 2 cm on a 2 m patch is 9216 quads --
+    two hundred of those would put 1.5M triangles on one prop. The caller picks the spacing;
+    the clamps keep a patch from degenerating or exploding whatever it picks.
+    """
+    return max(12, min(96, int(size / max(spacing, 1e-3))))
+
+
 def smoothstep(e0, e1, x):
     t = min(1.0, max(0.0, (x - e0) / (e1 - e0))) if e1 > e0 else 0.0
     return t * t * (3 - 2 * t)
@@ -183,13 +200,13 @@ class Outline:
         return u + d.x * t, v + d.y * t
 
 
-def plane_points(outline, size):
+def plane_points(outline, size, spacing):
     """Grid vertices of the cut-out patch, in patch-local metres.
 
     Returns (quads, info) where quads are (i,j) grid cells kept and info maps a grid index to
     (local_xy, rim_falloff, local_seed_distance).
     """
-    res = max(24, min(96, int(size / 0.02)))
+    res = grid_res(size, spacing)
     F = {}
     for j in range(res + 1):
         for i in range(res + 1):
@@ -244,6 +261,13 @@ class Surface:
         self.tris = [tuple(t.vertices) for t in me.loop_triangles]
         self.face_normals = [(nm @ t.normal).normalized() for t in me.loop_triangles]
         self.bvh = BVHTree.FromPolygons(self.verts, self.tris, all_triangles=True)
+        self.cum_area = []
+        run = 0.0
+        for ia, ib, ic in self.tris:
+            run += (self.verts[ib] - self.verts[ia]).cross(
+                self.verts[ic] - self.verts[ia]).length * 0.5
+            self.cum_area.append(run)
+        self.total_area = run
         ev.to_mesh_clear()
 
     def _smooth_normal(self, point, index, fallback):
@@ -263,6 +287,23 @@ class Surface:
         if blended.length < 1e-6:
             return fallback
         return blended.normalized()
+
+    def sample(self, rng):
+        """A uniformly-distributed point on the surface, with its interpolated normal.
+
+        Triangles are drawn in proportion to area, so a densely tessellated fold does not
+        attract more clumps than a flat panel of the same size.
+        """
+        r = rng.random() * self.total_area
+        idx = bisect.bisect_left(self.cum_area, r)
+        idx = min(idx, len(self.tris) - 1)
+        ia, ib, ic = self.tris[idx]
+        a, b, c = self.verts[ia], self.verts[ib], self.verts[ic]
+        u, v = rng.random(), rng.random()
+        if u + v > 1.0:
+            u, v = 1.0 - u, 1.0 - v
+        point = a + (b - a) * u + (c - a) * v
+        return point, self._smooth_normal(point, idx, (b - a).cross(c - a).normalized())
 
     def clearance(self, point, reach=1.0):
         """Signed distance from `point` to the target: negative means inside the stone."""
@@ -299,7 +340,7 @@ def basis(normal, up_hint=Vector((0.0, 0.0, 1.0))):
     return t.cross(n).normalized(), t, n
 
 
-def build_patch(name, size, seed, surface, anchor, normal, order, lift=0.004):
+def build_patch(name, size, seed, surface, anchor, normal, order, spacing, lift=0.004):
     """One patch, cut flat and dropped onto `surface` around `anchor`.
 
     `order` is the global growth time at the anchor, 0 where the bloom starts and 1 where it
@@ -307,7 +348,7 @@ def build_patch(name, size, seed, surface, anchor, normal, order, lift=0.004):
     distance, so the front crosses the statue and each patch still opens outwards.
     """
     outline = Outline(seed)
-    keep, info = plane_points(outline, size)
+    keep, info = plane_points(outline, size, spacing)
     tangent, bitangent, n = basis(normal)
     reach = size * 2.0 + 0.5
 
@@ -327,7 +368,16 @@ def build_patch(name, size, seed, surface, anchor, normal, order, lift=0.004):
         # the surface -- which is what a real one does, and it reads as contact rather than as
         # something hovering. `lift` is only the gap that keeps the two out of z-fighting.
         off = lift + max(0.0, relief(outline, p, rim, size))
-        placed[key] = (hit + hit_n * off, hit_n, rim, local, on_surface)
+        final = hit + hit_n * off
+        # Where the target is thin -- the deep folds along the hem -- a hit can be on the far
+        # wall of a crease, and offsetting along its normal puts the vertex inside the solid.
+        # The ray hit is not enough on its own to tell; the nearest-surface test is. Dropping
+        # these costs a few vertices at the edge of a clump and is the difference between a
+        # patch that lies on the robe and one that is buried in it.
+        gap = surface.clearance(final, reach=size * 2.0 + 1.0)
+        if gap is not None and gap < 0.0:
+            continue
+        placed[key] = (final, hit_n, rim, local, on_surface)
 
     if not placed:
         return None, 0, 0.0
@@ -348,7 +398,7 @@ def build_patch(name, size, seed, surface, anchor, normal, order, lift=0.004):
     # wrong: a sheet spanning a crease, lit as if it were lying on something. Dropping the face
     # instead tears the patch along the fold, which is what a real clump growing over a crease
     # does anyway.
-    res = max(24, min(96, int(size / 0.02)))
+    res = grid_res(size, spacing)
     span_limit = (size / res) * MAX_EDGE_STRETCH
 
     for (i, j) in keep:
@@ -406,7 +456,59 @@ def build_patch(name, size, seed, surface, anchor, normal, order, lift=0.004):
 
 
 
-def audit_patch(ob, surface, size, lift=0.004):
+
+def scatter_anchors(surface, count, min_dist, rng, tries_per_anchor=40):
+    """Poisson-ish surface scatter: area-weighted samples, rejected when too close.
+
+    Dart throwing rather than a proper Poisson disc. The target here is a few dozen clumps on
+    a statue, where the cost of a rejected dart is nothing and the difference from a perfect
+    disc is invisible under the clumps' own irregular outlines.
+    """
+    cell = max(min_dist, 1e-3)
+    buckets = {}
+    anchors = []
+    for _ in range(count):
+        for _try in range(tries_per_anchor):
+            point, normal = surface.sample(rng)
+            key = (int(point.x // cell), int(point.y // cell), int(point.z // cell))
+            crowded = False
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for dz in (-1, 0, 1):
+                        for other in buckets.get((key[0] + dx, key[1] + dy, key[2] + dz), ()):
+                            if (other - point).length < min_dist:
+                                crowded = True
+                                break
+                        if crowded:
+                            break
+                    if crowded:
+                        break
+                if crowded:
+                    break
+            if crowded:
+                continue
+            buckets.setdefault(key, []).append(point)
+            anchors.append((point, normal))
+            break
+    return anchors
+
+
+def growth_order(point, low, high, seeds, reach):
+    """When the bloom reaches `point`, as 0 at the first stone to flower and 1 at the last.
+
+    Two fronts, whichever arrives first: one climbing from the base, one spreading out of the
+    seed points the caller names -- the palms, where the water already falls. A statue that
+    only filled bottom-up would ignore the thing its own silhouette is about.
+    """
+    span = max(high - low, 1e-6)
+    climb = min(1.0, max(0.0, (point.z - low) / span))
+    if not seeds:
+        return climb
+    nearest = min((point - s).length for s in seeds)
+    return min(climb, min(1.0, nearest / max(reach, 1e-6)))
+
+
+def audit_patch(ob, surface, size, spacing, lift=0.004):
     """Check a wrapped patch against the three ways this can silently go wrong.
 
     Every one of these was a real defect during step 1 and 2 of the plan, which is why the
@@ -417,20 +519,29 @@ def audit_patch(ob, surface, size, lift=0.004):
     mw = ob.matrix_world
     ceiling = lift + RELIEF_CEILING
 
+    # Only a negative gap is a defect. A vertex sitting closer than `lift` is normal wherever
+    # the robe folds: inside a crease the nearest surface is the opposite wall, a couple of
+    # millimetres away, and the clump is correctly lying on the wall it was cast onto. Failing
+    # those rejects the geometry the statue actually has.
     inside = 0
+    grazing = 0
     floated = 0
     worst_gap = 0.0
+    min_gap = 9e9
     for v in me.vertices:
         gap = surface.clearance(mw @ v.co, reach=size * 2.0 + 1.0)
         if gap is None:
             continue
-        if gap < lift - 1e-3:
+        if gap < 0.0:
             inside += 1
+        elif gap < GRAZE_WARN:
+            grazing += 1
         if gap > ceiling + 1e-3:
             floated += 1
         worst_gap = max(worst_gap, gap)
+        min_gap = min(min_gap, gap)
 
-    res = max(24, min(96, int(size / 0.02)))
+    res = grid_res(size, spacing)
     span_limit = (size / res) * MAX_EDGE_STRETCH
     bridged = 0
     for e in me.edges:
@@ -440,8 +551,8 @@ def audit_patch(ob, surface, size, lift=0.004):
             bridged += 1
 
     ok = not (inside or floated or bridged)
-    return ok, ("penetrating=%d floating=%d bridged=%d max_gap=%.1fmm"
-                % (inside, floated, bridged, worst_gap * 1000.0))
+    return ok, ("inside=%d grazing=%d floating=%d bridged=%d gap[%.2f,%.1f]mm"
+                % (inside, grazing, floated, bridged, min_gap * 1000.0, worst_gap * 1000.0))
 
 
 def make_test_sphere(radius=1.5):
@@ -458,9 +569,20 @@ def main():
     ap.add_argument("--out", required=True, help=".blend to write the patches into")
     ap.add_argument("--target", help="object in the open .blend to wrap onto")
     ap.add_argument("--self-test", action="store_true",
-                    help="wrap onto a generated sphere instead, and report the fit")
+                    help="wrap onto a generated sphere instead, and audit the fit")
+    ap.add_argument("--count", type=int, default=5,
+                    help="how many clumps to scatter over the target")
     ap.add_argument("--sizes", default="0.45,0.70,1.00,1.40,2.00",
-                    help="patch sizes in metres")
+                    help="patch sizes in metres, drawn from at random")
+    ap.add_argument("--spacing", type=float, default=0.05,
+                    help="metres per patch vertex; 0.02 is the algae builder's wall density")
+    ap.add_argument("--spread", type=float, default=0.6,
+                    help="minimum metres between clump anchors")
+    ap.add_argument("--seed-objects", default="",
+                    help="objects the bloom also starts from, e.g. the palms")
+    ap.add_argument("--seed-reach", type=float, default=6.0,
+                    help="metres over which the bloom spreads out of a seed object")
+    ap.add_argument("--seed", type=int, default=20260830, help="scatter RNG seed")
     args = ap.parse_args(argv)
 
     if args.self_test:
@@ -477,38 +599,55 @@ def main():
     depsgraph = bpy.context.evaluated_depsgraph_get()
     surface = Surface(target, depsgraph)
 
-    # Anchors ride the target's own surface: cast at it from outside along a ring of
-    # directions, so the self-test covers curvature the way a statue's robe does.
-    centre = sum((target.matrix_world @ Vector(c) for c in target.bound_box),
-                 Vector()) / 8.0
-    span = max(target.dimensions) + 1.0
-
-    sizes = [float(s) for s in args.sizes.split(",")]
-    built = []
-    for idx, size in enumerate(sizes):
-        a = math.tau * idx / max(len(sizes), 1)
-        d = Vector((math.cos(a), math.sin(a), 0.35 - 0.7 * idx / max(len(sizes) - 1, 1)))
-        d.normalize()
-        hit, hit_n, _ = surface.drop(centre + d * span, -d, span * 2.0)
-        if hit is None:
-            print("SKIP size=%.2f: no anchor found" % size)
-            continue
-        name = "Bloom_Patch_%s" % chr(ord("A") + idx)
-        ob, tris, projected = build_patch(name, size, 11 + idx * 11, surface, hit, hit_n,
-                                          order=idx / max(len(sizes) - 1, 1))
+    seeds = []
+    for nm in (n.strip() for n in args.seed_objects.split(",") if n.strip()):
+        ob = bpy.data.objects.get(nm)
         if ob is None:
-            print("SKIP size=%.2f: patch was entirely off-surface" % size)
-            continue
-        ok, report = audit_patch(ob, surface, size)
-        built.append((name, size, tris, projected, ok))
-        print("BUILT %s size=%.2fm tris=%d projected=%.0f%% | %s %s"
-              % (name, size, tris, projected * 100, "OK" if ok else "BAD", report))
+            ap.error("no object named %r for --seed-objects" % nm)
+        corners = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        seeds.append(sum(corners, Vector()) / 8.0)
 
-    failed = [n for n, _s, _t, _p, ok in built if not ok]
-    if built:
-        worst = min(p for _n, _s, _t, p, _ok in built)
-        print("AUDIT patches=%d clean=%d worst_projection_rate=%.0f%%"
-              % (len(built), len(built) - len(failed), worst * 100))
+    lo = min(v.z for v in surface.verts)
+    hi = max(v.z for v in surface.verts)
+    rng = random.Random(args.seed)
+    sizes = [float(x) for x in args.sizes.split(",")]
+
+    anchors = scatter_anchors(surface, args.count, args.spread, rng)
+    if len(anchors) < args.count:
+        print("SCATTER placed %d of %d requested (spread %.2f m is the limit)"
+              % (len(anchors), args.count, args.spread))
+
+    # Normalise the scattered orders so _Growth 0->1 spans exactly first clump to last.
+    # Unnormalised they stop wherever the scatter happened to stop -- 0.82 on a 60-clump run --
+    # and the last fifth of the animation plays to an already-finished statue.
+    raw_orders = [growth_order(a, lo, hi, seeds, args.seed_reach) for a, _n in anchors]
+    span = max(raw_orders) - min(raw_orders) if raw_orders else 0.0
+    base = min(raw_orders) if raw_orders else 0.0
+    orders = ([(o - base) / span for o in raw_orders] if span > 1e-6
+              else [0.0 for _ in raw_orders])
+
+    built = []
+    tris_total = 0
+    for idx, (anchor, normal) in enumerate(anchors):
+        size = sizes[idx % len(sizes)] if args.self_test else rng.choice(sizes)
+        order = orders[idx]
+        name = "Bloom_Patch_%03d" % idx
+        ob, tris, projected = build_patch(name, size, args.seed + idx * 17, surface,
+                                          anchor, normal, order, args.spacing)
+        if ob is None:
+            print("SKIP %s size=%.2f: nothing survived the wrap" % (name, size))
+            continue
+        ok, report = audit_patch(ob, surface, size, args.spacing)
+        built.append((name, ok))
+        tris_total += tris
+        if not ok or args.self_test:
+            print("BUILT %s size=%.2fm tris=%d order=%.2f projected=%.0f%% | %s %s"
+                  % (name, size, tris, order, projected * 100, "OK" if ok else "BAD", report))
+
+    failed = [n for n, ok in built if not ok]
+    print("AUDIT patches=%d clean=%d tris=%d order[%.2f,%.2f]"
+          % (len(built), len(built) - len(failed), tris_total,
+             min(orders) if orders else 0.0, max(orders) if orders else 0.0))
 
     out = os.path.abspath(args.out)
     os.makedirs(os.path.dirname(out), exist_ok=True)
