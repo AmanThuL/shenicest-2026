@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-008_CirculationConsole
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-008
+  m_title: "\u4E2D\u592E\u5FAA\u73AF\u88C5\u7F6E"
+  m_choices:
+  - m_chinese: "\u3010\u6838\u5FC3\u57F9\u80B2\u5FAA\u73AF\u3011"
+    m_english: '[CORE CULTIVATION CYCLE]'
+    m_response:
+    - m_speaker: 2
+      m_chinese: "\u9002\u7528\u4E8E\u96C6\u4E2D\u6837\u672C\u7684\u96C6\u4E2D\u57F9\u80B2\u4E0E\u7A33\u5B9A\u89C2\u5BDF\u3002"
+      m_english: For concentrated cultivation and stable observation of pooled samples.
+      m_holdSeconds: 0
+      m_voice: {fileID: 0}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: flow.circulation_core
+    m_voice: {fileID: 0}
+  - m_chinese: "\u3010\u6807\u51C6\u73AF\u5F62\u5FAA\u73AF\u3011"
+    m_english: '[STANDARD RING CYCLE]'
+    m_response:
+    - m_speaker: 2
+      m_chinese: "\u57F9\u80B2\u533A\u8FDB\u884C\u5747\u8861\u4F9B\u7ED9\u3002"
+      m_english: Balanced supply across the cultivation zones.
+      m_holdSeconds: 0
+      m_voice: {fileID: 0}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: flow.circulation_ring
+    m_voice: {fileID: 0}
+  - m_chinese: "\u3010\u5916\u7F18\u68C0\u6D4B\u5FAA\u73AF\u3011"
+    m_english: '[OUTER BOUNDARY SURVEY CYCLE]'
+    m_response:
+    - m_speaker: 2
+      m_chinese: "\u7528\u4E8E\u89C2\u6D4B\u533A\u57DF\u5916\u7F18\u53D8\u5316\u53CA\u65B0\u589E\u751F\u957F\u5E26\u3002"
+      m_english: For observing change at the zone's outer edge and newly grown belts.
+      m_holdSeconds: 0
+      m_voice: {fileID: 0}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: flow.circulation_outer
+    m_voice: {fileID: 0}
+  m_choicesRepeat: 0
+  m_requiredFlag: 
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 2
+    m_chinese: "GAIA \u73AF\u5883\u5FAA\u73AF\u88C5\u7F6E"
+    m_english: GAIA ENVIRONMENTAL CIRCULATION SYSTEM
+    m_holdSeconds: 0
+    m_voice: {fileID: 0}
+  - m_speaker: 2
+    m_chinese: "\u7CFB\u7EDF\u72B6\u6001\uFF1A\u4F11\u7720"
+    m_english: 'SYSTEM STATUS: Dormant'
+    m_holdSeconds: 0
+    m_voice: {fileID: 0}
+  - m_speaker: 2
+    m_chinese: "\u5F53\u524D\u73AF\u5883\u53C2\u6570\u4E0E\u9884\u8BBE\u6A21\u578B\u5B58\u5728\u504F\u5DEE\u3002"
+    m_english: Current environmental parameters deviate from the preset model.
+    m_holdSeconds: 0
+    m_voice: {fileID: 0}
+  m_flagOnComplete: 

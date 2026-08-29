@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-001_FirstMeeting
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-001
+  m_title: "\u521D\u6B21\u76F8\u9047"
+  m_choices:
+  - m_chinese: "\u2026\u2026\u4F60\u662F\u4EC0\u4E48\uFF1F"
+    m_english: ...What are you?
+    m_response:
+    - m_speaker: 1
+      m_chinese: "\u8FD9\u4E2A\u95EE\u9898\u5F88\u590D\u6742\u3002"
+      m_english: That's a very complicated question.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: 015850445d8fe4d66a0fc17f31de3d64, type: 3}
+    - m_speaker: 1
+      m_chinese: "\u4E5F\u53EF\u80FD\u4E0D\u662F\u3002"
+      m_english: ...Or maybe it isn't.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: 3c8526ac2a27d4eb18bf7ebf0d17c37a, type: 3}
+    - m_speaker: 1
+      m_chinese: "\u6211\u4F4F\u5728\u8FD9\u91CC\u3002"
+      m_english: I live here.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: dfbded5a20b5b4caab6eaf9bc29c3173, type: 3}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: 
+    m_voice: {fileID: 8300000, guid: 9ef107c3493934706a306d6b61fb671e, type: 3}
+  - m_chinese: "\u8FD9\u91CC\u8FD8\u6709\u5176\u4ED6\u4EBA\uFF1F"
+    m_english: Is anyone else here?
+    m_response:
+    - m_speaker: 1
+      m_chinese: "\u4EE5\u524D\u6709\u3002"
+      m_english: There used to be.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: 1daa19abd529c40b1971d0ef50f2027f, type: 3}
+    - m_speaker: 1
+      m_chinese: "\u540E\u6765\u6CA1\u6709\u4E86\u3002"
+      m_english: Then there wasn't.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: da4dd3df25e3d49bc8ba9246d980b63d, type: 3}
+    - m_speaker: 1
+      m_chinese: "\u4E0D\u8FC7\u4E1C\u897F\u8FD8\u5728\u3002\u6211\u5C31\u5728\u8FD9\u3002"
+      m_english: But the things are still here. And I'm here.
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: bc8301bd34e9347ec9c3bc54669ec36f, type: 3}
+    m_follow: {fileID: 11400000, guid: 712a790225a05414490ce91c6e300a13, type: 2}
+    m_flagOnChosen: 
+    m_voice: {fileID: 8300000, guid: a20ade0789fc04ea992782890e50f607, type: 3}
+  m_choicesRepeat: 1
+  m_requiredFlag: 
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 0
+    m_chinese: "\u2026\u2026\u4EC0\u4E48\u4E1C\u897F\uFF1F"
+    m_english: ...What the hell?
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: dd0ee2ca8359543a8875c3adaa5d03d5, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u554A\uFF01"
+    m_english: Ah!
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 065c06b88fd1742299ed563b0ef5ea2f, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u2026\u2026\u4E0D\u5BF9\uFF0C\u662F\u4F60\u5148\u5413\u5230\u6211\u7684\u3002"
+    m_english: ...Wait. You scared me first.
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: edd636633acd04b388b2a081c1b5022b, type: 3}
+  - m_speaker: 0
+    m_chinese: "\u4F60\u4F1A\u8BF4\u8BDD\uFF1F"
+    m_english: You can speak?
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 600ee2e0b97304e29b1134a9f21179ac, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u5BF9\u3002"
+    m_english: Yeah.
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: a7dfa4105ead940748c796cea9a76903, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u6211\u8BF4\u5F97\u8FD8\u53EF\u4EE5\u3002"
+    m_english: I'm pretty good at it.
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: e91f220fc1dea4a26bc29431d4c80621, type: 3}
+  m_flagOnComplete: flow.met_flower_sprite
