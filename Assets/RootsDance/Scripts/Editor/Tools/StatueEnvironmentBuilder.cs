@@ -42,6 +42,9 @@ namespace RootsDance.EditorTools
 
         /// <summary>Lives beside the materials: the Textures/ pipeline owns only material map sets.</summary>
         private const string k_StreakTexture = k_MaterialFolder + "/WaterStreaks.png";
+
+        /// <summary>Tileable ripple normal map, stretched along V so the scroll reads as flow.</summary>
+        private const string k_FlowNormalTexture = k_MaterialFolder + "/WaterFlowNormal.png";
         private const string k_WaterMaterial = k_MaterialFolder + "/VFX_StatueWater.mat";
         private const string k_SplashMaterial = k_MaterialFolder + "/VFX_StatueWaterSplash.mat";
         private const string k_MistMaterial = k_MaterialFolder + "/VFX_StatueWaterMist.mat";
@@ -56,6 +59,14 @@ namespace RootsDance.EditorTools
         private static readonly int k_UnlitColorMapId = Shader.PropertyToID("_UnlitColorMap");
         private static readonly int k_SortPriorityId = Shader.PropertyToID("_TransparentSortPriority");
         private static readonly int k_DoubleSidedId = Shader.PropertyToID("_DoubleSidedEnable");
+        private static readonly int k_BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int k_BaseColorMapId = Shader.PropertyToID("_BaseColorMap");
+        private static readonly int k_NormalMapId = Shader.PropertyToID("_NormalMap");
+        private static readonly int k_NormalScaleId = Shader.PropertyToID("_NormalScale");
+        private static readonly int k_SmoothnessId = Shader.PropertyToID("_Smoothness");
+        private static readonly int k_MetallicId = Shader.PropertyToID("_Metallic");
+        private static readonly int k_RefractionModelId = Shader.PropertyToID("_RefractionModel");
+        private static readonly int k_IorId = Shader.PropertyToID("_Ior");
 
         /// <summary>UV tiles per metre of stream length; wrap mode keeps long falls seamless.</summary>
         private const float k_UvTilesPerMeter = 0.35f;
@@ -105,7 +116,8 @@ namespace RootsDance.EditorTools
             }
 
             Texture2D streaks = EnsureStreakTexture();
-            Material water = EnsureWaterMaterial(streaks);
+            Texture2D flowNormal = EnsureFlowNormalTexture();
+            Material water = EnsureWaterMaterial(streaks, flowNormal);
             Material splash = EnsureParticleMaterial(
                 k_SplashMaterial, k_SplashSprite, new Color(0.85f, 0.93f, 1f, 0.5f), 1);
             Material mist = EnsureParticleMaterial(
@@ -264,8 +276,9 @@ namespace RootsDance.EditorTools
             SerializedObject serialized = new SerializedObject(flow);
             serialized.FindProperty("m_renderer").objectReferenceValue = renderer;
             SerializedProperty properties = serialized.FindProperty("m_textureProperties");
-            properties.arraySize = 1;
-            properties.GetArrayElementAtIndex(0).stringValue = "_UnlitColorMap";
+            properties.arraySize = 2;
+            properties.GetArrayElementAtIndex(0).stringValue = "_NormalMap";
+            properties.GetArrayElementAtIndex(1).stringValue = "_BaseColorMap";
             serialized.FindProperty("m_speed").vector2Value = scrollSpeed;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -457,23 +470,48 @@ namespace RootsDance.EditorTools
 
         // ---------------------------------------------------------------------- materials/tex
 
-        private static Material EnsureWaterMaterial(Texture2D streaks)
+        /// <summary>
+        /// HDRP/Lit transparent with a scrolling ripple normal map: specular glints, fresnel edges
+        /// and smooth reflections come from Lit itself — the "surface shader turned sideways" look
+        /// with the depth-based parts (deep-water tint, shore foam) deliberately absent, because
+        /// those assume a horizontal plane. The streak map keeps the silhouette broken up.
+        /// </summary>
+        private static Material EnsureWaterMaterial(Texture2D streaks, Texture2D flowNormal)
         {
-            Material material = LoadOrCreateMaterial(k_WaterMaterial);
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_WaterMaterial);
+            Shader lit = Shader.Find("HDRP/Lit");
 
-            if (material == null)
+            if (lit == null)
             {
+                Debug.LogError($"{k_LogPrefix}: shader 'HDRP/Lit' not found.");
                 return null;
             }
 
+            if (material == null)
+            {
+                material = new Material(lit);
+                AssetDatabase.CreateAsset(material, k_WaterMaterial);
+            }
+            else if (material.shader != lit)
+            {
+                material.shader = lit;
+            }
+
             HDMaterial.SetSurfaceType(material, true);
-            material.SetColor(k_UnlitColorId, new Color(0.72f, 0.86f, 0.95f, 0.6f));
-            material.SetTexture(k_UnlitColorMapId, streaks);
+            material.SetColor(k_BaseColorId, new Color(0.55f, 0.72f, 0.85f, 0.55f));
+            material.SetTexture(k_BaseColorMapId, streaks);
+            material.SetTexture(k_NormalMapId, flowNormal);
+            material.SetFloat(k_NormalScaleId, 1.6f);
+            material.SetFloat(k_SmoothnessId, 0.92f);
+            material.SetFloat(k_MetallicId, 0f);
             material.SetFloat(k_DoubleSidedId, 1f);
             material.SetFloat(k_SortPriorityId, 0f);
-            HDMaterial.SetUseEmissiveIntensity(material, true);
-            HDMaterial.SetEmissiveColor(material, new Color(0.6f, 0.8f, 1f));
-            HDMaterial.SetEmissiveIntensity(material, 80f, EmissiveIntensityUnit.Nits);
+
+            // Clear water over a white statue has no contrast of its own: what sells it is the
+            // background bending through the sheet. Thin refraction (model 3, the flashlight-lens
+            // precedent) plus the scrolling normal is what makes the flow read.
+            material.SetFloat(k_RefractionModelId, 3f);
+            material.SetFloat(k_IorId, 1.33f);
             HDMaterial.ValidateMaterial(material);
             EditorUtility.SetDirty(material);
             return material;
@@ -570,8 +608,10 @@ namespace RootsDance.EditorTools
                 for (int y = 0; y < height; y++)
                 {
                     float wave = 0.62f + 0.38f * Mathf.Sin(y * (Mathf.PI * 2f * 3f / height) + phase);
-                    float alpha = Mathf.Pow(Mathf.Clamp01(column * wave), 1.4f);
-                    byte a = (byte)(alpha * 235f);
+                    // Floor keeps the sheet legible; streaks modulate on top rather than cutting
+                    // holes, which read as broken geometry at a distance.
+                    float alpha = 0.45f + 0.55f * Mathf.Pow(Mathf.Clamp01(column * wave), 1.4f);
+                    byte a = (byte)(alpha * 255f);
                     pixels[y * width + x] = new Color32(255, 255, 255, a);
                 }
             }
@@ -582,6 +622,106 @@ namespace RootsDance.EditorTools
             Object.DestroyImmediate(texture);
             AssetDatabase.ImportAsset(k_StreakTexture, ImportAssetOptions.ForceUpdate);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(k_StreakTexture);
+        }
+
+        /// <summary>
+        /// Tileable water-ripple normal map from octaves of periodic value noise, stretched 4:1
+        /// along V so scrolling it lengthwise reads as flow rather than boiling.
+        /// </summary>
+        private static Texture2D EnsureFlowNormalTexture()
+        {
+            Texture2D existing = AssetDatabase.LoadAssetAtPath<Texture2D>(k_FlowNormalTexture);
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            EnsureFolder(k_MaterialFolder);
+
+            const int size = 256;
+            const int cells = 8;
+            System.Random random = new System.Random(20260830);
+            float[,] lattice = new float[cells, cells];
+
+            for (int y = 0; y < cells; y++)
+            {
+                for (int x = 0; x < cells; x++)
+                {
+                    lattice[x, y] = (float)random.NextDouble();
+                }
+            }
+
+            float[,] height = new float[size, size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float value = 0f;
+                    float amplitude = 1f;
+                    float total = 0f;
+
+                    for (int octave = 0; octave < 3; octave++)
+                    {
+                        int frequency = 1 << octave;
+                        // V is sampled at a quarter of the U frequency: elongated ripples.
+                        float u = (float)x / size * cells * frequency;
+                        float v = (float)y / size * cells * frequency * 0.25f;
+                        value += SampleLattice(lattice, cells, u, v) * amplitude;
+                        total += amplitude;
+                        amplitude *= 0.5f;
+                    }
+
+                    height[x, y] = value / total;
+                }
+            }
+
+            const float strength = 4f;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            Color32[] pixels = new Color32[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (height[(x + 1) % size, y] - height[(x + size - 1) % size, y]) * strength;
+                    float dy = (height[x, (y + 1) % size] - height[x, (y + size - 1) % size]) * strength;
+                    Vector3 normal = new Vector3(-dx, -dy, 1f).normalized;
+                    pixels[y * size + x] = new Color32(
+                        (byte)((normal.x * 0.5f + 0.5f) * 255f),
+                        (byte)((normal.y * 0.5f + 0.5f) * 255f),
+                        (byte)((normal.z * 0.5f + 0.5f) * 255f),
+                        255);
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            File.WriteAllBytes(k_FlowNormalTexture, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+            AssetDatabase.ImportAsset(k_FlowNormalTexture, ImportAssetOptions.ForceUpdate);
+
+            TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(k_FlowNormalTexture);
+            importer.textureType = TextureImporterType.NormalMap;
+            importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(k_FlowNormalTexture);
+        }
+
+        private static float SampleLattice(float[,] lattice, int cells, float u, float v)
+        {
+            int x0 = Mathf.FloorToInt(u);
+            int y0 = Mathf.FloorToInt(v);
+            float tx = Mathf.SmoothStep(0f, 1f, u - x0);
+            float ty = Mathf.SmoothStep(0f, 1f, v - y0);
+            int ix0 = ((x0 % cells) + cells) % cells;
+            int iy0 = ((y0 % cells) + cells) % cells;
+            int ix1 = (ix0 + 1) % cells;
+            int iy1 = (iy0 + 1) % cells;
+            float a = Mathf.Lerp(lattice[ix0, iy0], lattice[ix1, iy0], tx);
+            float b = Mathf.Lerp(lattice[ix0, iy1], lattice[ix1, iy1], tx);
+            return Mathf.Lerp(a, b, ty);
         }
 
         private static void EnsureFolder(string folder)
