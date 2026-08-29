@@ -86,6 +86,19 @@ namespace RootsDance.Editor.Content
                 + "triggers have conversations to point at.");
         }
 
+        /// <summary>
+        /// The chapter house half of the pass on its own, for
+        /// <see cref="RootsDance.Editor.Environment.ChapterHouseInteriorLevelBuilder"/> to call at
+        /// the end of a rebuild: that rebuild starts the gameplay scene from an empty scene, so
+        /// everything wired here is on the floor until it is written back.
+        /// </summary>
+        public static void ApplyChapterHouseOnly()
+        {
+            EnsureDialogueChannel();
+            WireChapterHouse();
+            AssetDatabase.SaveAssets();
+        }
+
         // ---- Assets ----------------------------------------------------------------------------
 
         private static DialogueEventChannelSO EnsureDialogueChannel()

@@ -217,6 +217,12 @@ namespace RootsDance.Editor.Environment
                 level = CreateLevelAsset();
                 CreateCheckpointAssets(level);
                 RegisterScenesInBuildSettings();
+
+                // The gameplay scene above is built from an empty scene, so the bridge meeting and
+                // the sprite are gone every time this runs. Writing them back here is what keeps a
+                // geometry rebuild from silently deleting the only story beat in the level.
+                Content.NarrativeRuntimeBuilder.ApplyChapterHouseOnly();
+
                 AssetDatabase.SaveAssets();
 
                 Log.Info($"Built the chapter house interior: {bounds.size.x:F1} x {bounds.size.z:F1} m "
