@@ -223,7 +223,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/pine_roots.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440913826570,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -452,7 +452,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/root_cluster_01.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440917359680,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -681,7 +681,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/root_cluster_02.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440938493610,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -910,7 +910,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/single_root.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440957646830,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -1139,7 +1139,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/rock_moss_set_01.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440958770710,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -1368,7 +1368,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Rocks/rock_moss_set_02.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440959458300,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -1597,7 +1597,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Heroes/dead_tree_trunk.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440960351710,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
@@ -1826,7 +1826,7 @@
                     "_prefabPath": "Assets/RootsDance/Prefabs/Environment/Heroes/dead_tree_trunk_02.prefab",
                     "_frequency": 1.0,
                     "_parentId": 639234440965078640,
-                    "_paletteName": "RootRock_Clutter",
+                    "_paletteName": "",
                     "_overwriteThumbnailSettings": false,
                     "_includeInThumbnail": true,
                     "_isAsset2D": false
