@@ -108,6 +108,7 @@ namespace RootsDance.UI
         private readonly List<ScannerReportTab> m_pageTabs = new List<ScannerReportTab>();
         private readonly List<ScannerReportTab> m_functionTabs = new List<ScannerReportTab>();
 
+        private WorldSpaceTextMaterial m_worldSpaceText;
         private int m_sectionIndex;
         private int m_pageIndex;
         private bool m_isOpen;
@@ -265,6 +266,7 @@ namespace RootsDance.UI
             }
 
             UpdateArrows();
+            RestoreWorldSpaceTextMaterial();
         }
 
         private void OnPreviousClicked()
@@ -478,6 +480,29 @@ namespace RootsDance.UI
             }
 
             button.interactable = available;
+        }
+
+        /// <summary>
+        /// Puts the world-space text material back after a page is written.
+        /// <para>
+        /// Writing a label runs the theme over it, and the theme assigns its face; TextMeshPro
+        /// resets a label's material whenever its font changes, so every page turn would otherwise
+        /// hand the screen back to TMP's own SDF shader — which renders nothing at this canvas's
+        /// scale. Resolved lazily rather than in <c>Awake</c> so the headless capture tool, which
+        /// never runs one, gets the same screen a player does.
+        /// </para>
+        /// </summary>
+        private void RestoreWorldSpaceTextMaterial()
+        {
+            if (m_worldSpaceText == null)
+            {
+                m_worldSpaceText = GetComponentInParent<WorldSpaceTextMaterial>(true);
+            }
+
+            if (m_worldSpaceText != null)
+            {
+                m_worldSpaceText.Apply();
+            }
         }
 
         private void SetRootActive(bool active)
