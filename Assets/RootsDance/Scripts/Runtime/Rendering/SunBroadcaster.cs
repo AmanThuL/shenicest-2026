@@ -24,7 +24,15 @@ namespace RootsDance.Rendering
     /// Written per camera rather than per frame, so a Sun animated between renders is read at the
     /// point its pose matters.
     /// </para>
+    /// <para>
+    /// <see cref="ExecuteAlways"/> because the Editor is where the materials that read this get
+    /// looked at and tuned. Without it the Scene view shows every such surface lit by whatever
+    /// fallback its shader carries, and the first time anyone sees the real Sun on them is in
+    /// Play. Writing shader globals is the whole of what this does, so running outside Play costs
+    /// nothing and changes nothing else.
+    /// </para>
     /// </remarks>
+    [ExecuteAlways]
     public class SunBroadcaster : MonoBehaviour
     {
         /// <summary>xyz: the direction the light travels, normalised. <c>w</c> unused.</summary>
@@ -41,12 +49,15 @@ namespace RootsDance.Rendering
         [SerializeField] private Light m_sun;
 
         [Tooltip("Scales the published sun. HDRP intensities are in lux and reach the thousands, " +
-                 "which would blow out a material that multiplies by them directly.")]
-        [SerializeField] private float m_intensityScale = 0.0008f;
+                 "which would blow out a material that multiplies by them directly. The default " +
+                 "maps the level's 12000 lux noon Sun to about 1.2, close to the fallback key " +
+                 "light in StatueBloom.hlsl, so wiring a broadcaster in does not jump the " +
+                 "brightness of everything reading it.")]
+        [SerializeField] private float m_intensityScale = 0.0001f;
 
         [Tooltip("Ceiling on the published sun, after scaling. Noon should not white out the " +
                  "surfaces that read this.")]
-        [SerializeField] private float m_maxIntensity = 3f;
+        [SerializeField] private float m_maxIntensity = 2f;
 
         [Tooltip("Ambient the surfaces sit in when no probe is a better answer.")]
         [ColorUsage(false, true)]

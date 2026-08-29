@@ -111,9 +111,9 @@
 - [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
 - [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
 - [x] 6. `StatueBloomBuilder.cs`: 材质、prefab、场景放置；**尚未运行**，运行会打开并保存 `Main_Environment_Statue`
+- [x] 8. L3 焦点花与 `BloomBurst.cs`: `48` 株，高 `0.56–1.33 m`，位置/朝向/生长时刻全部取自 clump mesh 顶点；9 项 EditMode 测试
+- [x] 9. `SunBroadcaster` 已挂在 `_Lighting/Sun`：`12000 lux` → 全局量 `(1.20, 1.15, 1.06)`，贴近 shader 兜底光，`[ExecuteAlways]` 让 Editor 里也生效
 - [ ] 7. L1 生长贴图与基底材质
-- [ ] 8. L3 焦点花与 `BloomBurst.cs`
-- [ ] 9. `SunBroadcaster`: 把场景 Sun 写进 `_RootsSun*`，当前由 shader 内的固定主光兜底
 - [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
 
 ## 6. 风险与已知约束
@@ -144,6 +144,21 @@
 ### 6.4 Timeline 包未安装
 
 `Packages/manifest.json` 只有 `com.unity.modules.director`，没有 `com.unity.timeline`。若需要一条时间轴统一编排开花、运镜与音乐，那是一次 `chore(packages):` 的团队决定，不在本轮范围内。本轮用 `GrowthDriver` + `CueSequence` 覆盖。
+
+### 6.7 花簇几何的两个轴向陷阱
+
+`BloomPatches.fbx` 与 NiwlPlants 的花，模型导入器都把轴/单位转换留在**模型根的 transform 上**，没有烘进顶点：
+
+| | 根 rotation | 根 scale |
+|---|---|---|
+| `BloomPatches.fbx` | `(90, 0, 0)` | `1` |
+| `M3D_poppy-1.fbx` 等 | `(270, 0, 0)` | `100`（FBX 声明单位为厘米） |
+
+`StMuerte.fbx` 的根没有旋转，照它的样子把裸 mesh 挂到新建 GameObject 上，两次都出了同一类事故: 花簇被甩到圣像 `93 m` 外并躺平；花只有 `1 cm` 高且侧躺。**取模型自己的根变换，不要取它的 mesh** —— builder 现在实例化模型，花则从模型根读 pose 与 unitScale，导入设置若变化会自动跟随。
+
+### 6.8 builder 保存场景会写掉别人的在改内容
+
+`EditorSceneManager.SaveScene` 写的是整个场景。对一个**已经打开**的场景调用它，会把当时任何人未保存的改动一并写盘 —— 曾把另一个 agent 改到一半的温室模块禁用状态提交进 `Main_Environment`。两个 builder 现在都在场景已打开且 `isDirty` 时直接拒绝执行。
 
 ### 6.5 圣像没有 UV2
 
