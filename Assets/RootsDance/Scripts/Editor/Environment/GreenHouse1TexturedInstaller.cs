@@ -20,8 +20,8 @@ namespace RootsDance.Editor.Environment
     /// the main facility places the greenhouse at the origin of its parent, the greenhouse-interior
     /// level places it offset and scaled by 1.198.
     /// </para>
-    /// Idempotent, and nothing is deleted — the old dome is only deactivated, so reverting is a
-    /// matter of ticking it back on. Runs over every loaded scene.
+    /// Idempotent, and nothing is deleted — the old dome objects are deactivated and the opaque
+    /// window shells overlapping the glass are disabled. Runs over every loaded scene.
     /// Menu: RootsDance > Environment > Install Textured GreenHouse1.
     /// </summary>
     public static class GreenHouse1TexturedInstaller
@@ -43,6 +43,8 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx";
 
         private const string k_Installed = "GreenHouse1_Textured";
+
+        private const string k_OpaqueWindowMaterial = "GreenHouse1Window";
 
         /// <summary>
         /// The SketchUp group the dome's objects sit under. Their names carry the whole group chain,
@@ -120,16 +122,18 @@ namespace RootsDance.Editor.Environment
             }
 
             int assigned = AssignMaterials(installed);
-            int hidden = HideOldDome(old);
+            int hiddenWindowPanels = HideOpaqueWindowPanels(installed);
+            int hiddenOldDomeObjects = HideOldDome(old);
 
-            if (hidden > 0)
+            if (hiddenWindowPanels > 0 || hiddenOldDomeObjects > 0)
             {
                 EditorSceneManager.MarkSceneDirty(old.scene);
             }
 
             Debug.Log($"GreenHouse1TexturedInstaller: [{old.scene.name}] replaced the dome of "
-                + $"'{old.name}'; {assigned} renderer material slots bound, {hidden} of its objects "
-                + $"deactivated. Placed at {installed.transform.localPosition:F3} scale "
+                + $"'{old.name}'; {assigned} renderer material slots bound, {hiddenWindowPanels} "
+                + $"opaque window panels hidden, {hiddenOldDomeObjects} old dome objects deactivated. "
+                + $"Placed at {installed.transform.localPosition:F3} scale "
                 + $"{installed.transform.localScale:F5}. The wings either side are untouched.",
                 installed);
         }
@@ -299,6 +303,41 @@ namespace RootsDance.Editor.Environment
             }
 
             return bound;
+        }
+
+        /// <summary>
+        /// Hides the opaque window shells that overlap the authored transparent glass meshes.
+        /// </summary>
+        private static int HideOpaqueWindowPanels(GameObject root)
+        {
+            int hidden = 0;
+
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled || !UsesMaterial(renderer, k_OpaqueWindowMaterial))
+                {
+                    continue;
+                }
+
+                renderer.enabled = false;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+                hidden++;
+            }
+
+            return hidden;
+        }
+
+        private static bool UsesMaterial(Renderer renderer, string materialName)
+        {
+            foreach (Material material in renderer.sharedMaterials)
+            {
+                if (material != null && material.name == materialName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Turns off the dome's objects inside the old FBX, leaving the two wings on.</summary>
