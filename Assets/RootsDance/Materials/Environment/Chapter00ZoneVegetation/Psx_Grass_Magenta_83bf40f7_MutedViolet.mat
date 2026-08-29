@@ -237,7 +237,7 @@ Material:
     - _EmissiveFlagMode: 0
     - _EmissiveGlowMode: 0
     - _EmissiveGlowValue: 1
-    - _EmissiveIntensityValue: 0.3
+    - _EmissiveIntensityValue: 0.12
     - _EmissiveMaskValue: 1
     - _EmissiveMeshMode: 0
     - _EmissiveMeshValue: 0
@@ -353,13 +353,13 @@ Material:
     - _MetaVariationValue: 1
     - _MetaWetnessValue: 1
     - _MotionBaseDelayValue: 0
-    - _MotionBaseIntensityValue: 1
+    - _MotionBaseIntensityValue: 0.31314793
     - _MotionBaseMaskMode: 4
-    - _MotionBaseNoiseValue: 0.5
-    - _MotionBasePhaseValue: 0
+    - _MotionBaseNoiseValue: 0.82
+    - _MotionBasePhaseValue: 0.6014745
     - _MotionBasePivotValue: 0.8
     - _MotionBasePushValue: 0
-    - _MotionBaseSpeedValue: 5
+    - _MotionBaseSpeedValue: 0.57638335
     - _MotionBaseTillingValue: 5
     - _MotionCategory: 0
     - _MotionDistValue: 100
@@ -368,20 +368,20 @@ Material:
     - _MotionFlowMode: 0
     - _MotionFlowValue: 1
     - _MotionHighlightValue: 0
-    - _MotionIntensityValue: 1
+    - _MotionIntensityValue: 0.37217695
     - _MotionSmallDelayValue: 0
-    - _MotionSmallIntensityValue: 0.5
+    - _MotionSmallIntensityValue: 0.19217694
     - _MotionSmallMaskMode: 4
-    - _MotionSmallNoiseValue: 0.5
-    - _MotionSmallPhaseValue: 0
+    - _MotionSmallNoiseValue: 0.88
+    - _MotionSmallPhaseValue: 0.9428996
     - _MotionSmallPivotValue: 0.2
-    - _MotionSmallPushValue: 9.588676
-    - _MotionSmallSpeedValue: 5
+    - _MotionSmallPushValue: 0.35
+    - _MotionSmallSpeedValue: 1.1271598
     - _MotionSmallTillingValue: 5
-    - _MotionTinyIntensityValue: 0.5
+    - _MotionTinyIntensityValue: 0.09657398
     - _MotionTinyMaskMode: 4
     - _MotionTinyNoiseValue: 1
-    - _MotionTinySpeedValue: 10
+    - _MotionTinySpeedValue: 1.5608847
     - _MotionTinyTillingValue: 50
     - _ObjectCategory: 1
     - _ObjectCoordMode: 0

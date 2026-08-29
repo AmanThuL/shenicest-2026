@@ -57,7 +57,7 @@ namespace RootsDance.Editor.Environment
 
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorAtmosphere] Applied dark green interior grading, roof shafts, fog and PSX.");
+            Debug.Log("[BriggsInteriorAtmosphere] Restored the exact 006b2dc dark-green lighting, fog and PSX configuration.");
         }
 
         /// <summary>Batch entry point for the standalone atmosphere pass.</summary>
@@ -65,6 +65,11 @@ namespace RootsDance.Editor.Environment
         {
             EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
             ApplyToLoadedScene();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
         }
 
         private static Scene FindLoadedEnvironmentScene()

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -11,13 +13,20 @@ namespace RootsDance.Editor.Environment
     {
         private const string k_ScenePath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
-        private const string k_OutputFolder = "Logs/VisualQA/artist-table-pass";
+        private const string k_MainEnvironmentPath =
+            "Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity";
+        private const string k_OutputFolder = "Logs/VisualQA/briggs-interior-cleanup";
         private const int k_Width = 1600;
         private const int k_Height = 900;
 
         public static void CaptureFromCommandLine()
         {
-            Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Single);
+            // Reproduce the additive gameplay volume stack. The restored 006b2dc Briggs profile is itself
+            // global and owns the dark-green sky, fog, Bloom and PSX values used by the historical look.
+            Scene mainEnvironment = EditorSceneManager.OpenScene(k_MainEnvironmentPath, OpenSceneMode.Single);
+            KeepOnlyMainProfileAtmosphere(mainEnvironment);
+            Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Additive);
+            SceneManager.SetActiveScene(scene);
             Directory.CreateDirectory(k_OutputFolder);
 
             GameObject cameraObject = new GameObject("BriggsInteriorQaCamera");
@@ -34,15 +43,25 @@ namespace RootsDance.Editor.Environment
 
             try
             {
-                Capture(camera, target, readback, "01_entrance",
-                    new Vector3(3f, 1.65f, -5.8f), new Vector3(0.1f, 1.05f, 0.3f));
-                Capture(camera, target, readback, "02_central_island",
-                    new Vector3(3.8f, 2.05f, -3.8f), new Vector3(0.1f, 0.92f, 0.3f));
-                Capture(camera, target, readback, "03_west_archives",
-                    new Vector3(-2.5f, 1.9f, -0.6f), new Vector3(-7.2f, 1.15f, -2.2f));
-                Capture(camera, target, readback, "04_topdown",
-                    new Vector3(0f, 12f, 0f), Vector3.zero);
-                Debug.Log($"BriggsInteriorVisualQaCapture: wrote four views to '{k_OutputFolder}'.");
+                Capture(camera, target, readback, "01_inside_entrance",
+                    new Vector3(3f, 1.65f, -5.8f), new Vector3(0.1f, 1.05f, 0.4f));
+                Capture(camera, target, readback, "02_inside_northwest_reverse",
+                    new Vector3(-7.2f, 1.8f, 5.4f), new Vector3(0.2f, 1.1f, 0f));
+                Capture(camera, target, readback, "03_inside_east_to_archives",
+                    new Vector3(7.4f, 1.75f, -4.2f), new Vector3(-1.5f, 1.05f, 0.3f));
+                Capture(camera, target, readback, "04_inside_ceiling_light_axis",
+                    new Vector3(-0.28f, 1.65f, -0.38f), new Vector3(-0.28f, 4.9f, -0.38f));
+
+                Capture(camera, target, readback, "05_outside_southwest",
+                    new Vector3(-15f, 3.5f, -12f), new Vector3(0f, 2f, -2f));
+                Capture(camera, target, readback, "06_outside_northeast",
+                    new Vector3(15f, 3.5f, 12f), new Vector3(0f, 2f, 0f));
+                Capture(camera, target, readback, "07_inside_god_ray_side",
+                    new Vector3(2.7f, 1.65f, 3.7f), new Vector3(-1.15f, 2.7f, 1.35f));
+                Capture(camera, target, readback, "08_inside_west_roof_hole",
+                    new Vector3(-1.6f, 1.65f, -1.8f), new Vector3(-5.75f, 3.6f, 2.05f));
+                AuditPwbBounds(scene);
+                Debug.Log($"BriggsInteriorVisualQaCapture: wrote eight views to '{k_OutputFolder}'.");
             }
             finally
             {
@@ -52,6 +71,103 @@ namespace RootsDance.Editor.Environment
                 Object.DestroyImmediate(target);
                 Object.DestroyImmediate(cameraObject);
             }
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        private static void KeepOnlyMainProfileAtmosphere(Scene scene)
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Light light in root.GetComponentsInChildren<Light>(true))
+                {
+                    light.enabled = false;
+                }
+
+                foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+                {
+                    renderer.enabled = false;
+                }
+
+                foreach (UnityEngine.Terrain terrain in root.GetComponentsInChildren<UnityEngine.Terrain>(true))
+                {
+                    terrain.enabled = false;
+                }
+            }
+        }
+
+        private static void AuditPwbBounds(Scene scene)
+        {
+            Transform pwb = null;
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                if (roots[i].name == "Prefab World Builder")
+                {
+                    pwb = roots[i].transform;
+                    break;
+                }
+            }
+
+            if (pwb == null)
+            {
+                throw new System.InvalidOperationException("Briggs QA: Prefab World Builder root is missing.");
+            }
+
+            int checkedCount = 0;
+            List<string> violations = new List<string>();
+
+            for (int paletteIndex = 0; paletteIndex < pwb.childCount; paletteIndex++)
+            {
+                Transform pin = pwb.GetChild(paletteIndex).Find("PIN");
+
+                if (pin == null)
+                {
+                    continue;
+                }
+
+                for (int instanceIndex = 0; instanceIndex < pin.childCount; instanceIndex++)
+                {
+                    Transform instance = pin.GetChild(instanceIndex);
+                    Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+
+                    if (renderers.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    Bounds bounds = renderers[0].bounds;
+
+                    for (int rendererIndex = 1; rendererIndex < renderers.Length; rendererIndex++)
+                    {
+                        bounds.Encapsulate(renderers[rendererIndex].bounds);
+                    }
+
+                    bool outsideRoom = bounds.min.x < -9.5f || bounds.max.x > 9.5f
+                        || bounds.min.y < -0.25f || bounds.max.y > 6f
+                        || bounds.min.z < -7.5f || bounds.max.z > 7.5f;
+                    bool oversized = bounds.size.x > 12f || bounds.size.y > 6f || bounds.size.z > 12f;
+
+                    if (outsideRoom || oversized)
+                    {
+                        violations.Add($"{instance.name}: {bounds}");
+                    }
+
+                    checkedCount++;
+                }
+            }
+
+            if (violations.Count > 0)
+            {
+                throw new System.InvalidOperationException(
+                    "Briggs QA: PWB instances have invalid bounds:\n" + string.Join("\n", violations));
+            }
+
+            Debug.Log($"BriggsInteriorVisualQaCapture: PWB bounds audit passed for {checkedCount} instances.");
         }
 
         private static void Capture(

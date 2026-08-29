@@ -1,0 +1,156 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1684979731888011136
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2702893694787843769}
+  m_Layer: 0
+  m_Name: Greenhouse_SwampFern
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 80
+  m_IsActive: 1
+--- !u!4 &2702893694787843769
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684979731888011136}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 11.5823145, y: 11.5823145, z: 11.5823145}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5277306558329010394}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5671856191420456753
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2702893694787843769}
+    m_Modifications:
+    - target: {fileID: -8700617353114198275, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.010459021
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0061494485
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.0234119
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -5151452875257404596, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -5151452875257404596, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e73f3fba317104df5b9881a12c161599, type: 2}
+    - target: {fileID: -4715235025163745512, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4715235025163745512, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e73f3fba317104df5b9881a12c161599, type: 2}
+    - target: {fileID: -1615971870827060967, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: -1043837251113642414, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1043837251113642414, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e73f3fba317104df5b9881a12c161599, type: 2}
+    - target: {fileID: -70958141835281639, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 65702495048144492, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_Name
+      value: swamp fern
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 2458145645838444674, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2458145645838444674, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e73f3fba317104df5b9881a12c161599, type: 2}
+    - target: {fileID: 2572142980794518035, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 5411630479025233169, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 80
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+--- !u!4 &5277306558329010394 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7682200e2be1e4c32a25d57d48a9e4fa, type: 3}
+  m_PrefabInstance: {fileID: 5671856191420456753}
+  m_PrefabAsset: {fileID: 0}

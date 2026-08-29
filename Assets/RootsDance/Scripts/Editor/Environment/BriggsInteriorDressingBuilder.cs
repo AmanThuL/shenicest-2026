@@ -100,6 +100,44 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
+        /// Applies the visibility-cleanup transforms without rebuilding or reserializing the full PWB pass.
+        /// </summary>
+        public static void ApplyVisibilityCleanupFromCommandLine()
+        {
+            Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Single);
+            Placement[] placements = CreatePlacements();
+            string[] names =
+            {
+                "BI_S7_SamplingSyringe",
+                "BI_S7_RootCluster_Wall",
+                "BI_S7_RootCluster_Floor",
+                "BI_Ecology_East_Ivy",
+            };
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                Placement placement = Array.Find(placements, item => item.Name == names[i]);
+                GameObject instance = GameObject.Find(names[i]);
+
+                if (string.IsNullOrEmpty(placement.Name) || instance == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not apply Briggs visibility cleanup to '{names[i]}'.");
+                }
+
+                ApplyPlacementTransform(instance, placement);
+            }
+
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("BriggsInteriorDressingBuilder: applied four visibility-cleanup transforms.");
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        /// <summary>
         /// Rebuilds the owned dressing in an already loaded Briggs Interior environment scene.
         /// </summary>
         public static int BuildLoadedScene(Scene scene)
@@ -232,22 +270,22 @@ namespace RootsDance.Editor.Environment
             placements.Add(ArtistEvidence(
                 "BI_S7_SamplingSyringe",
                 "PSX_Adrenaline_Syringe",
-                new Vector3(7.15f, 0.94f, -0.35f),
+                new Vector3(7.05f, 0.94f, -0.35f),
                 new Vector3(3f, 55f, 78f),
-                0.7f));
+                0.1f));
 
             placements.Add(Ecology(
                 "BI_S7_RootCluster_Wall",
                 "root_cluster_02",
-                new Vector3(8.35f, 0.05f, -0.25f),
+                new Vector3(7.55f, 0.05f, -0.25f),
                 204f,
-                0.72f));
+                0.5f));
             placements.Add(Ecology(
                 "BI_S7_RootCluster_Floor",
                 "root_cluster_01",
-                new Vector3(8.15f, 0.03f, -2.15f),
+                new Vector3(7.15f, 0.03f, -1.4f),
                 153f,
-                0.62f));
+                0.5f));
             placements.Add(Ecology(
                 "BI_S7_SingleRoot",
                 "single_root",
@@ -428,9 +466,9 @@ namespace RootsDance.Editor.Environment
             placements.Add(Ecology(
                 "BI_Ecology_East_Ivy",
                 "M3D_ivy_1",
-                new Vector3(8.45f, 0.02f, 2.75f),
+                new Vector3(7.35f, 0.02f, 2.75f),
                 166f,
-                0.72f));
+                0.5f));
             placements.Add(Ecology(
                 "BI_Ecology_East_Grass",
                 "M3D_grass_patch_4",
@@ -798,10 +836,17 @@ namespace RootsDance.Editor.Environment
             }
 
             instance.name = placement.Name;
+            ApplyPlacementTransform(instance, placement);
+        }
+
+        private static void ApplyPlacementTransform(GameObject instance, Placement placement)
+        {
             instance.transform.SetLocalPositionAndRotation(
                 placement.Position,
                 Quaternion.Euler(placement.Euler));
-            instance.transform.localScale = prefab.transform.localScale * placement.Scale;
+            GameObject source = PrefabUtility.GetCorrespondingObjectFromSource(instance);
+            Vector3 sourceScale = source != null ? source.transform.localScale : Vector3.one;
+            instance.transform.localScale = sourceScale * placement.Scale;
 
             if (placement.SnapToSurface)
             {

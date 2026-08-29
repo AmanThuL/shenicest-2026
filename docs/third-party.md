@@ -144,6 +144,25 @@ the only derived data lives under `Assets/RootsDance/`.
   rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it. This remains true
   if the original rock materials/textures are discarded: the licence also protects the raw and modified meshes.
 
+## Greenhouse interior props (Sketchfab, 2026-08-29)
+
+- **Path:** `Assets/ThirdParty/Environment/GreenhouseInteriorProps/`; complete work/author/source attribution and the
+  local selection notes are in `SOURCE.md`, with the shared CC BY 4.0 terms in `LICENSE.md`.
+- **Included:** 11 officially downloadable CC BY 4.0 works — Tropical Plants Pack M02P plus ten complementary fern
+  assets. The M02P kit is split into 15 individual plants; the other works contribute one placement prefab each, for
+  25 prefabs total.
+- **Optimisation:** the PlantCatalog male fern imports the supplied LOD2/LOD4 meshes instead of the 126,070-triangle
+  LOD0; common polypody imports LOD0/LOD2/LOD4. `GreenhouseInteriorPropsBuilder` creates both `LODGroup` prefabs,
+  normalises the remaining models to useful interior heights, keeps all foliage walk-through, disables foliage shadow
+  casting, and maps every renderer to project-owned The Visual Engine materials.
+- **Derived data:** channel-packed albedo/opacity PNGs live under
+  `Assets/RootsDance/Textures/Environment/GreenhouseInteriorProps/`; generated materials and prefabs live in the
+  matching `Materials/Environment/GreenhouseInteriorProps/` and `Prefabs/Environment/GreenhouseInteriorProps/`
+  folders. PWB's shared `GreenhouseInteriorProps` palette contains one preconfigured brush per prefab (embedded,
+  upright, random 360-degree yaw, uniform scale 0.85–1.15).
+- **Not imported:** *Tree Fern 2* and *Tropical Vegetation* have author-disabled downloads. Their candidate metadata
+  was retained, but no model data is present and no download restriction was bypassed.
+
 ## Kenney Particle Pack (Kenney) — `Assets/ThirdParty/VFX/KenneyParticlePack/`
 
 - **Version:** 1.1. Downloaded 2026-08-27 from <https://kenney.nl/assets/particle-pack>; record in the folder's `SOURCE.md`.

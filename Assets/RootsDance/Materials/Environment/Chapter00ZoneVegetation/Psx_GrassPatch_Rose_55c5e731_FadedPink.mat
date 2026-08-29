@@ -237,7 +237,7 @@ Material:
     - _EmissiveFlagMode: 0
     - _EmissiveGlowMode: 0
     - _EmissiveGlowValue: 1
-    - _EmissiveIntensityValue: 0.3
+    - _EmissiveIntensityValue: 0.12
     - _EmissiveMaskValue: 1
     - _EmissiveMeshMode: 0
     - _EmissiveMeshValue: 0
@@ -353,13 +353,13 @@ Material:
     - _MetaVariationValue: 1
     - _MetaWetnessValue: 1
     - _MotionBaseDelayValue: 0
-    - _MotionBaseIntensityValue: 1
+    - _MotionBaseIntensityValue: 0.31752452
     - _MotionBaseMaskMode: 4
-    - _MotionBaseNoiseValue: 0.5
-    - _MotionBasePhaseValue: 0
+    - _MotionBaseNoiseValue: 0.82
+    - _MotionBasePhaseValue: 0.8528167
     - _MotionBasePivotValue: 0.8
     - _MotionBasePushValue: 0
-    - _MotionBaseSpeedValue: 5
+    - _MotionBaseSpeedValue: 0.64173234
     - _MotionBaseTillingValue: 5
     - _MotionCategory: 0
     - _MotionDistValue: 100
@@ -368,20 +368,20 @@ Material:
     - _MotionFlowMode: 0
     - _MotionFlowValue: 1
     - _MotionHighlightValue: 0
-    - _MotionIntensityValue: 1
+    - _MotionIntensityValue: 0.402338
     - _MotionSmallDelayValue: 0
-    - _MotionSmallIntensityValue: 0.5
+    - _MotionSmallIntensityValue: 0.222338
     - _MotionSmallMaskMode: 4
-    - _MotionSmallNoiseValue: 0.5
-    - _MotionSmallPhaseValue: 0
+    - _MotionSmallNoiseValue: 0.88
+    - _MotionSmallPhaseValue: 0.9793711
     - _MotionSmallPivotValue: 0.2
-    - _MotionSmallPushValue: 9.588676
-    - _MotionSmallSpeedValue: 5
+    - _MotionSmallPushValue: 0.35
+    - _MotionSmallSpeedValue: 1.1417484
     - _MotionSmallTillingValue: 5
-    - _MotionTinyIntensityValue: 0.5
+    - _MotionTinyIntensityValue: 0.09876227
     - _MotionTinyMaskMode: 4
     - _MotionTinyNoiseValue: 1
-    - _MotionTinySpeedValue: 10
+    - _MotionTinySpeedValue: 1.71169
     - _MotionTinyTillingValue: 50
     - _ObjectCategory: 1
     - _ObjectCoordMode: 0
@@ -615,7 +615,7 @@ Material:
     - _DrynessMeshRemap: {r: 0, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveBlendRemap: {r: 0, g: 1, b: 1, a: 0}
-    - _EmissiveColor: {r: 1.55, g: 0.9, b: 1.1, a: 1}
+    - _EmissiveColor: {r: 1.42, g: 0.78, b: 0.92, a: 1}
     - _EmissiveCoordValue: {r: 1, g: 1, b: 0, a: 0}
     - _EmissiveMaskRemap: {r: 0, g: 1, b: 1, a: 0}
     - _EmissiveMeshRemap: {r: 0, g: 1, b: 1, a: 0}
@@ -637,7 +637,7 @@ Material:
     - _GradientColorMeshRemap: {r: 0, g: 1, b: 1, a: 0}
     - _GradientColorOne: {r: 1, g: 0.6135602, b: 0, a: 1}
     - _GradientColorTwo: {r: 0.75471693, g: 0.0389044, b: 0.03203986, a: 1}
-    - _MainColor: {r: 1.55, g: 0.9, b: 1.1, a: 1}
+    - _MainColor: {r: 1.42, g: 0.78, b: 0.92, a: 1}
     - _MainColorTwo: {r: 1, g: 1, b: 1, a: 1}
     - _MainCoordValue: {r: 1, g: 1, b: 0, a: 0}
     - _MainMultiWriteRemap: {r: 0, g: 1, b: 1, a: 0}
@@ -690,7 +690,7 @@ Material:
     - _ThirdProjRemap: {r: 0, g: 1, b: 1, a: 0}
     - _ThirdSmoothnessRemap: {r: 0, g: 1, b: 1, a: 0}
     - _TintingBlendRemap: {r: 0, g: 0.1, b: 10, a: 0}
-    - _TintingColor: {r: 1.55, g: 0.9, b: 1.1, a: 1}
+    - _TintingColor: {r: 1.42, g: 0.78, b: 0.92, a: 1}
     - _TintingLumaRemap: {r: 0, g: 1, b: 1, a: 0}
     - _TintingMeshRemap: {r: 0, g: 1, b: 1, a: 0}
     - _TransferMeshRemap: {r: 0, g: 1, b: 1, a: 0}
