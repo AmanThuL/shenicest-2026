@@ -154,6 +154,37 @@ Transform:
   - {fileID: 665274591}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &32239947
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 32239948}
+  m_Layer: 0
+  m_Name: Checkpoint_ChaseStart
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &32239948
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32239947}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.05, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 464706809}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &131261716
 GameObject:
   m_ObjectHideFlags: 0
@@ -444,6 +475,7 @@ Transform:
   m_Children:
   - {fileID: 775939159}
   - {fileID: 1033425137}
+  - {fileID: 32239948}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &665274590
@@ -499,8 +531,8 @@ MonoBehaviour:
   - {fileID: 461919547}
   m_birthSeconds: 1.1
   m_lookBackDelays:
-  - 2.5
-  - 10
+  - 2.6
+  - 4.4
   m_resumeSpawn: {fileID: 0}
   m_despawnSeconds: 4
 --- !u!1 &775939158
@@ -1178,7 +1210,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.5
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1262,7 +1294,7 @@ Transform:
   m_GameObject: {fileID: 1592227317}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
-  m_LocalPosition: {x: 0, y: 0, z: 3.5}
+  m_LocalPosition: {x: 0, y: 0, z: 8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1421,6 +1453,9 @@ MonoBehaviour:
   m_panicOnFlag: 
   m_calmOnFlag: 
   m_lookBackOnFlag: 
+  m_controller: {fileID: 223790021}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
   m_stepsPerSecond: 2.9
   m_verticalMeters: 0.025
   m_lateralMeters: 0.018

@@ -898,10 +898,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Narrative.RadioSequencePlayer
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_startOnFlag: flow.radio_briefing_started
+  m_playRequested: {fileID: 0}
+  m_transmissions: []
   m_lineShown: {fileID: 11400000, guid: 3bb3f5b8b31844013b3f45bf2318dda3, type: 2}
-  m_sequence: {fileID: 11400000, guid: 2453b792f7527421c83f53122515d4e6, type: 2}
-  m_flagOnFinished: flow.radio_briefing_finished
+  m_englishShown: {fileID: 0}
+  m_audioChannel: {fileID: 0}
+  m_openCue: {fileID: 0}
+  m_closeCue: {fileID: 0}
 --- !u!4 &659950670
 Transform:
   m_ObjectHideFlags: 0
@@ -2005,6 +2008,9 @@ MonoBehaviour:
   m_panicOnFlag: 
   m_calmOnFlag: 
   m_lookBackOnFlag: 
+  m_controller: {fileID: 510528445}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
   m_stepsPerSecond: 2.9
   m_verticalMeters: 0.025
   m_lateralMeters: 0.018
