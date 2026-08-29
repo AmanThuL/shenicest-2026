@@ -1,4 +1,5 @@
 using System;
+using RootsDance.App;
 using RootsDance.Audio;
 using RootsDance.Core;
 using RootsDance.Dialogue;
@@ -31,8 +32,7 @@ namespace RootsDance.Editor.Content
     public static class NarrativeRuntimeBuilder
     {
         private const string k_BootstrapScenePath = "Assets/RootsDance/Scenes/Bootstrap.unity";
-        private const string k_BriggsGameplayPath =
-            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
+        private const string k_ChapterHouseGameplayPath = ScenePaths.k_ChapterHouseInteriorGameplay;
         private const string k_GreenhouseGameplayPath =
             "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity";
 
@@ -64,7 +64,7 @@ namespace RootsDance.Editor.Content
             {
                 EnsureDialogueChannel();
                 WireBootstrap();
-                WireBriggs();
+                WireChapterHouse();
                 WireGreenhouse();
                 AssetDatabase.SaveAssets();
             }
@@ -233,16 +233,40 @@ namespace RootsDance.Editor.Content
 
         // ---- Briggs interior -------------------------------------------------------------------
 
-        private static void WireBriggs()
+        /// <summary>
+        /// 02-04, the first meeting with the flower sprite. It belongs in the chapter house — the
+        /// corridor — at the rear of the hall, which is what
+        /// <c>docs/architecture/systems/对话与场景序列.md</c> means by 通道后段. An earlier pass put
+        /// it in the laboratory because this level did not exist yet; the laboratory is not wired
+        /// from here at all any more.
+        /// <para>
+        /// The volume is placed off the level's own anchors rather than typed in: the chapter house
+        /// is built from a blockout that is still being moved around, and its floor is re-derived
+        /// on every rebuild, so a hard-coded Z would end up outside the building the first time the
+        /// artist nudges anything.
+        /// </para>
+        /// </summary>
+        private static void WireChapterHouse()
         {
-            Scene scene = EditorSceneManager.OpenScene(k_BriggsGameplayPath, OpenSceneMode.Single);
+            Scene scene = EditorSceneManager.OpenScene(k_ChapterHouseGameplayPath, OpenSceneMode.Single);
             Transform root = EnsureRoot(scene, "_Narrative");
+            Transform anchors = EnsureRoot(scene, "_Anchors");
+            Transform nave = anchors.Find("Checkpoint_ChapterHouseNave");
+            Transform bridge = anchors.Find("Checkpoint_ChapterHouseBridge");
 
-            // 02-04: the first meeting, walked into in the rear half of the lab on the way to the
-            // north door. Grey-box: spans the walkway between the benches.
+            if (nave == null || bridge == null)
+            {
+                throw new InvalidOperationException(
+                    "The chapter house anchors are missing; run RootsDance > Build Chapter House "
+                    + "Interior before wiring the narrative into it.");
+            }
+
+            // Mid-bridge. The player crosses the catwalk to get anywhere, and the sprite meets
+            // them out over the drop rather than on solid ground — CH-02 marks the same spot, so
+            // the anchor is the placement and this only has to sit on it.
             Transform meeting = EnsureChild(root, "FirstMeeting");
-            meeting.position = new Vector3(0f, 1.5f, -2f);
-            ConfigureVolumeTrigger(meeting.gameObject, "DLG-001_FirstMeeting", new Vector3(8f, 3f, 4f));
+            meeting.position = bridge.position;
+            ConfigureVolumeTrigger(meeting.gameObject, "DLG-001_FirstMeeting", new Vector3(3f, 3f, 2.5f));
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -258,6 +282,7 @@ namespace RootsDance.Editor.Content
             // Crossing the south entrance raises the flag DLG-004 hangs on.
             Transform entered = EnsureChild(root, "EnteredGreenhouse");
             entered.position = new Vector3(0f, 1.5f, -8f);
+            SetLayer(entered.gameObject, "TriggerVolume");
             BoxCollider enteredBox = EnsureComponent<BoxCollider>(entered.gameObject);
             enteredBox.isTrigger = true;
             enteredBox.size = new Vector3(7f, 3f, 2f);
@@ -342,6 +367,7 @@ namespace RootsDance.Editor.Content
 
         private static void ConfigureVolumeTrigger(GameObject host, string dialogueFile, Vector3 size)
         {
+            SetLayer(host, "TriggerVolume");
             BoxCollider box = EnsureComponent<BoxCollider>(host);
             box.isTrigger = true;
             box.size = size;
@@ -380,7 +406,9 @@ namespace RootsDance.Editor.Content
         private static void ConfigureInteractTrigger(GameObject host, string dialogueFile,
             Vector3 size, string prompt)
         {
-            // Solid, not a trigger: the interaction raycaster needs a surface to hit.
+            // Solid, not a trigger: the interaction raycaster needs a surface to hit — and it
+            // only raycasts the Interactable layer, so the surface has to be on it.
+            SetLayer(host, "Interactable");
             BoxCollider box = EnsureComponent<BoxCollider>(host);
             box.isTrigger = false;
             box.size = size;
@@ -426,6 +454,25 @@ namespace RootsDance.Editor.Content
             }
 
             return asset;
+        }
+
+        /// <summary>
+        /// Puts a trigger or an interactable on the layer that can actually reach the player.
+        /// Neither path is forgiving: the player's trigger detection sits on a probe whose layer
+        /// meets nothing but TriggerVolume, and the interaction raycaster masks to Interactable
+        /// alone. An object left on Default has a collider, a component and no effect whatsoever,
+        /// which is indistinguishable from a scene that simply was not walked into yet.
+        /// </summary>
+        private static void SetLayer(GameObject host, string layerName)
+        {
+            int layer = LayerMask.NameToLayer(layerName);
+
+            if (layer < 0)
+            {
+                throw new InvalidOperationException("The " + layerName + " layer is not configured.");
+            }
+
+            host.layer = layer;
         }
 
         private static T EnsureComponent<T>(GameObject target) where T : Component
