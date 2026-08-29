@@ -6,8 +6,12 @@
 > 表中「台词片段」还原自录音文件名，**是截断的片段，不是全文**——
 > 生成第三章 `DialogueSO` 需要策划案的完整双语文本。
 
-接入方式：`DialogueLine` 的 `Voice` 字段直接拖入对应 clip。带语音的行至少停留到录音放完
-（加 0.35 s 尾距），跳过台词会一并打断语音；无语音的行维持按字数估时。见
+接入方式：`DialogueLine` / `DialogueChoice` 的 `Voice` 字段直接拖入 clip。带语音的行至少停留到
+录音放完（加 0.35 s 尾距），跳过台词会一并打断语音；选项的语音在选中后、回应之前播出。
+**逐句映射已写进 `Build Chapter 02 Dialogue` 生成器**——50 条挂进 DLG-001..009，
+未挂的 5 条：`MrsDavid_06_HowDidYouKnow`（无对应台词行）、`MrsDavid_07_IsThisOurPast`（内心独白，
+等独白播放节拍）、`Verity_14_OhWeEmph`（疑似 DLG-003 的多余 take）、`Verity_25__Alt`（备选条）、
+三条 `Unsorted`（源文件名损坏）。见
 [对话与场景序列](../../architecture/systems/对话与场景序列.md)。
 
 ## 女主 Mrs. David（对话 + 内心独白）
