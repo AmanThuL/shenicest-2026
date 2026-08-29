@@ -30,7 +30,7 @@ BLEND = ROOT + "/SourceArt/Blender/GreenHouse1Glass/GreenHouse1Glass.blend"
 SEED = int(sys.argv[sys.argv.index("--") + 1]) if "--" in sys.argv and \
     len(sys.argv) > sys.argv.index("--") + 1 else 20260829
 N_SEEDS = 0   # 0 = scale with the pane count              # impact points across the building
-NEIGHBOUR_M = 0.85         # panes closer than this brace each other
+NEIGHBOUR_M = 1.35         # panes closer than this brace each other
 DECAY = 0.68              # damage lost per hop from the impact
 REINFORCE = 0.12          # extra damage per already-broken neighbour
 THRESH_MISSING = 0.80
@@ -46,29 +46,92 @@ rng = random.Random(SEED)
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 col = bpy.data.collections["GlassRecovered"]
 
-# --- carve the big sheets into pane cells -----------------------------------
-# The source glazing is not one pane per opening: SketchUp modelled whole
-# sheets, the largest 10 m2. Broken per loose part, a sheet either vanishes
-# entirely or stays entirely -- so anything bigger than a hand span is
-# subdivided first, and each resulting face is a breakable cell.
+# --- units of breakage: the panes the eye sees ------------------------------
+# The muntin grid lives in the frame mesh, not in the glass: behind it the
+# source keeps whole sheets. Damage bitten out of a sheet on an arbitrary
+# grid crosses the muntins and reads as wrong. So the sheet is subdivided
+# fine, each cell is classified by whether a frame bar sits in front of it,
+# and the open cells flood-fill into the apparent panes -- the units glass
+# actually breaks in, frame to frame.
+from mathutils.bvhtree import BVHTree
+
+FINE_M = 0.28             # subdivision for classifying against the muntins
+COVER_M = 0.55            # a frame face this close in front covers the cell
+
+panes = []
 for obj in list(col.objects):
+    base = obj.name[:-6]                       # strip -GLASS
+    frame = bpy.data.objects.get(base)
     bm = bmesh.new(); bm.from_mesh(obj.data)
-    for _ in range(6):
-        long_edges = [e for e in bm.edges if e.calc_length() > CELL_M * 1.6]
+    for _ in range(8):
+        long_edges = [e for e in bm.edges if e.calc_length() > FINE_M * 1.6]
         if not long_edges:
             break
         bmesh.ops.subdivide_edges(bm, edges=long_edges, cuts=1,
                                   use_grid_fill=True)
     bm.to_mesh(obj.data); bm.free()
 
-# --- cells: every face is a pane cell ---------------------------------------
-panes = []
-for obj in list(col.objects):
+    mesh = obj.data
     mw = obj.matrix_world
-    for poly in obj.data.polygons:
-        panes.append({"obj": obj.name, "faces": [poly.index],
-                      "centre": mw @ poly.center, "area": poly.area})
-print("### pane cells: %d" % len(panes))
+    rot = mw.to_3x3()
+    centres = [mw @ p.center for p in mesh.polygons]
+
+    covered = [False] * len(mesh.polygons)
+    if frame is not None and not base.startswith("STAIR"):
+        fw = frame.matrix_world
+        verts = [fw @ v.co for v in frame.data.vertices]
+        polys = [tuple(p.vertices) for p in frame.data.polygons]
+        tree = BVHTree.FromPolygons(verts, polys, all_triangles=False)
+        pivot = sum(centres, Vector()) / len(centres)
+        for i, poly in enumerate(mesh.polygons):
+            n = rot @ poly.normal
+            radial = Vector((centres[i].x, centres[i].y, 0.0)).normalized()
+            out = n if n.dot(radial) > 0 else -n
+            hit = tree.ray_cast(centres[i] + out * 0.005, out, COVER_M)
+            covered[i] = hit[0] is not None
+
+    # flood fill the open cells into apparent panes
+    edge_faces = {}
+    for i, poly in enumerate(mesh.polygons):
+        for k in poly.edge_keys:
+            edge_faces.setdefault(k, []).append(i)
+    region = [-1] * len(mesh.polygons)
+    next_id = 0
+    for i in range(len(mesh.polygons)):
+        if covered[i] or region[i] >= 0:
+            continue
+        stack = [i]; region[i] = next_id
+        while stack:
+            f = stack.pop()
+            for k in mesh.polygons[f].edge_keys:
+                for g in edge_faces[k]:
+                    if not covered[g] and region[g] < 0:
+                        region[g] = next_id; stack.append(g)
+        next_id += 1
+    # a covered cell breaks with the pane next to it, so the hole runs
+    # frame to frame instead of stopping at the muntin's edge
+    frontier = [i for i in range(len(mesh.polygons)) if region[i] >= 0]
+    while frontier:
+        nxt = []
+        for f in frontier:
+            for k in mesh.polygons[f].edge_keys:
+                for g in edge_faces[k]:
+                    if region[g] < 0:
+                        region[g] = region[f]; nxt.append(g)
+        frontier = nxt
+    for f in range(len(mesh.polygons)):
+        if region[f] < 0:                       # isolated fully covered patch
+            region[f] = next_id; next_id += 1
+
+    groups = {}
+    for f, r in enumerate(region):
+        groups.setdefault(r, []).append(f)
+    for faces in groups.values():
+        centre = sum((centres[f] for f in faces), Vector()) / len(faces)
+        area = sum(mesh.polygons[f].area for f in faces)
+        panes.append({"obj": obj.name, "faces": faces,
+                      "centre": centre, "area": area})
+print("### apparent panes: %d" % len(panes))
 
 # --- a stray pane far from the building is extraction debris ----------------
 centres = np.array([tuple(p["centre"]) for p in panes])
@@ -102,7 +165,7 @@ for i in alive:
     by_panel.setdefault(panes[i]["obj"], []).append(i)
 seeds = []
 for name, cells in sorted(by_panel.items()):
-    quota = max(1, round((N_SEEDS or len(alive) // 16) * len(cells) / len(alive)))
+    quota = max(1, round((N_SEEDS or len(alive) // 34) * len(cells) / max(1, len(alive))))
     lo = min(z[i] for i in cells)
     weights = [0.15 + max(0.0, 1.0 - (z[i] - lo) / 8.0) for i in cells]
     seeds += rng.choices(cells, weights=weights, k=quota)
