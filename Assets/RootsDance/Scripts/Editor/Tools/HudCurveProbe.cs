@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using CurvedUIUtility;
+using RootsDance.UI;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,6 +22,9 @@ namespace RootsDance.EditorTools
         // The canvas scaler's reference resolution. Batch mode has no real screen, so the layout is
         // reconstructed in reference units instead of read off a RectTransform.
         private static readonly Vector2 k_Canvas = new Vector2(1920f, 1080f);
+
+        private static readonly Vector2 k_ReadoutSize = new Vector2(520f, 140f);
+        private const float k_ReadoutInset = 90f;
 
         public static void Report()
         {
@@ -51,12 +55,16 @@ namespace RootsDance.EditorTools
             sb.AppendLine("  each readout, over its own width:");
             ReportLabels(sb, s, plot);
 
+            sb.AppendLine("  clearance against the helmet's opening (negative = drawn on the frame):");
+            ReportClearance(sb, s, plot);
+
             // Bow scales with the square of the span: a 520 px readout on a 1920 px canvas can
             // only ever show 3.7% of the arc's amplitude, so a small widget expresses curvature as
             // tilt and a spanning line expresses it as bow. Judging both by the same number is what
             // made a visibly flat HUD look acceptable on paper.
             sb.AppendLine("  small widgets read as tilt, spanning lines read as bow.");
-            sb.AppendLine("  target: readout tilt 8-12 deg, visor top bow >= 100 px, mid bow > 0.");
+            sb.AppendLine("  target: readout tilt 8-12 deg, visor top bow >= 100 px, mid bow > 0,");
+            sb.AppendLine("          and every readout clearance positive.");
 
             plot.Apply(false);
             Directory.CreateDirectory("Logs");
@@ -67,19 +75,86 @@ namespace RootsDance.EditorTools
             Debug.Log(sb.ToString());
         }
 
+        /// <summary>
+        /// Draws the frame's inner edge and says, per readout, how far its curved top sits below
+        /// it. The frame is geometry in front of the camera, so it is plotted uncurved — the whole
+        /// question is where the curved text lands relative to where the frame actually is.
+        /// </summary>
+        private static void ReportClearance(StringBuilder sb, CurvedUISettings s, Texture2D plot)
+        {
+            var edge = new Color(1f, 0.3f, 0.35f);
+
+            for (int i = 0; i <= 200; i++)
+            {
+                float x01 = i / 200f;
+                float y = k_Canvas.y * 0.5f - VisorOpening.TopInset01(x01) * k_Canvas.y;
+                Plot(plot, new Vector2((x01 - 0.5f) * k_Canvas.x, y), edge);
+            }
+
+            Clearance(sb, s, "ContamReadout", 0f);
+            Clearance(sb, s, "SystemReadout", 1f);
+        }
+
+        private static void Clearance(StringBuilder sb, CurvedUISettings s, string name, float anchorX01)
+        {
+            VisorOpening.SpanFor(anchorX01, k_ReadoutInset, k_ReadoutSize.x, k_Canvas.x,
+                out float x0, out float x1);
+
+            float drop = VisorOpening.TopPixels(x0, x1, k_Canvas.y);
+            Vector2 anchor = new Vector2(anchorX01, 1f);
+            float inward = anchorX01 < 0.5f ? k_ReadoutInset : -k_ReadoutInset;
+
+            Vector2 centre = (anchor - new Vector2(0.5f, 0.5f)) * k_Canvas
+                + new Vector2(inward, -drop)
+                + (new Vector2(0.5f, 0.5f) - anchor) * k_ReadoutSize;
+
+            // Worst case: the highest point the curved text reaches anywhere across its width.
+            float top = float.MinValue;
+            float frame = float.MinValue;
+
+            for (int i = 0; i <= 32; i++)
+            {
+                float t = i / 32f;
+                float x = Mathf.Lerp(centre.x - k_ReadoutSize.x * 0.5f, centre.x + k_ReadoutSize.x * 0.5f, t);
+                Vector2 curved = Curved(new Vector2(x, centre.y + k_ReadoutSize.y * 0.5f), s);
+                top = Mathf.Max(top, curved.y);
+
+                float x01 = curved.x / k_Canvas.x + 0.5f;
+                frame = Mathf.Max(frame, k_Canvas.y * 0.5f - VisorOpening.TopInset01(x01) * k_Canvas.y);
+            }
+
+            float clearance = frame - top;
+
+            sb.Append("    ").Append(name.PadRight(20))
+                .Append(" top ").Append(top.ToString("F0").PadLeft(6))
+                .Append("   frame ").Append(frame.ToString("F0").PadLeft(6))
+                .Append("   clearance ").Append(clearance.ToString("F0").PadLeft(6)).AppendLine(" px");
+        }
+
         private static void ReportLabels(StringBuilder sb, CurvedUISettings s, Texture2D plot)
         {
             // The readouts are rebuilt from the same numbers HelmetHudBuilder lays them out with, so
             // the measurement does not depend on a scene being open in batch mode.
-            AddLabel(sb, s, plot, "ContamReadout", new Vector2(0f, 1f), new Vector2(90f, -70f));
-            AddLabel(sb, s, plot, "SystemReadout", new Vector2(1f, 1f), new Vector2(-90f, -70f));
+            // The same numbers HelmetHudBuilder lays them out with, derived the same way, so the
+            // measurement cannot drift from what was actually built.
+            AddLabel(sb, s, plot, "ContamReadout", new Vector2(0f, 1f), TopReadout(0f));
+            AddLabel(sb, s, plot, "SystemReadout", new Vector2(1f, 1f), TopReadout(1f));
             AddLabel(sb, s, plot, "InteractPrompt", new Vector2(0.5f, 0f), new Vector2(0f, 170f));
+        }
+
+        private static Vector2 TopReadout(float anchorX01)
+        {
+            VisorOpening.SpanFor(anchorX01, k_ReadoutInset, k_ReadoutSize.x, k_Canvas.x,
+                out float x0, out float x1);
+
+            return new Vector2(anchorX01 < 0.5f ? k_ReadoutInset : -k_ReadoutInset,
+                -VisorOpening.TopPixels(x0, x1, k_Canvas.y));
         }
 
         private static void AddLabel(StringBuilder sb, CurvedUISettings s, Texture2D plot, string name,
             Vector2 anchor, Vector2 anchoredPosition)
         {
-            Vector2 size = new Vector2(520f, 140f);
+            Vector2 size = k_ReadoutSize;
 
             // anchorMin == anchorMax == pivot for every readout, so the centre is exact.
             Vector2 centre = (anchor - new Vector2(0.5f, 0.5f)) * k_Canvas

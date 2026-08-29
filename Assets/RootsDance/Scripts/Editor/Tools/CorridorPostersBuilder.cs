@@ -34,7 +34,7 @@ namespace RootsDance.EditorTools
         private const string k_Scene = "Assets/RootsDance/Scenes/Levels/Main/Main_Environment_2.unity";
 
         /// <summary>The hand-placed group node whose children are the corridor's posters.</summary>
-        private const string k_GroupName = "LabCorridorPosters";
+        internal const string k_GroupName = "LabCorridorPosters";
 
         private const string k_Shader = "RootsDance/Environment/FluorescentReveal";
         private const string k_TunedMaterial = "Assets/RootsDance/Materials/Environment/PosterRunes.mat";
@@ -44,7 +44,7 @@ namespace RootsDance.EditorTools
         private const string k_OverlayName = "RuneGlow";
 
         /// <summary>One rune per poster. The mask and the material are both named after the rune.</summary>
-        private static readonly string[] k_Runes = { "Fehu", "Raidho", "Thurisaz", "Mannaz" };
+        internal static readonly string[] k_Runes = { "Fehu", "Raidho", "Thurisaz", "Mannaz" };
 
         /// <summary>
         /// How sheet-like a child has to be before it counts as a poster: its thinnest side over
@@ -174,7 +174,7 @@ namespace RootsDance.EditorTools
         /// are sheets rather than matching their names keeps a renamed or duplicated poster
         /// working, and keeps the marks off anything that is not a flat print.
         /// </summary>
-        private static List<Transform> Sheets(Transform group)
+        internal static List<Transform> Sheets(Transform group)
         {
             List<Transform> sheets = new List<Transform>();
 
@@ -297,7 +297,7 @@ namespace RootsDance.EditorTools
             return index == 0 ? Vector3.right : index == 1 ? Vector3.up : Vector3.forward;
         }
 
-        private static GameObject Find(Scene scene, string name)
+        internal static GameObject Find(Scene scene, string name)
         {
             foreach (GameObject root in scene.GetRootGameObjects())
             {

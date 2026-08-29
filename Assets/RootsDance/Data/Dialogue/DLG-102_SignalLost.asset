@@ -18,5 +18,10 @@ MonoBehaviour:
   m_choicesRepeat: 1
   m_requiredFlag: flow.radio_signal_lost
   m_playsOnce: 1
-  m_lines: []
+  m_lines:
+  - m_speaker: 2
+    m_chinese: "\u5566\u5566\u5566\u5566\u5566\u5566"
+    m_english: "(placeholder) DLG-102 \u2014 \u5931\u53BB\u5916\u90E8\u901A\u8BAF\uFF0800-04\uFF09"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 2.5
   m_flagOnComplete: 

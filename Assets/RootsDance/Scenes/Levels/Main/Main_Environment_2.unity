@@ -229,6 +229,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -8.4
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b9164981811984312ba618259f1ddc04, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b9164981811984312ba618259f1ddc04, type: 2}
     - target: {fileID: 919132149155446097, guid: 231499b279158480c848d891a7134611, type: 3}
       propertyPath: m_Name
       value: BandPoster (2)
@@ -705,6 +713,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 651f1df7538ee4593b93f8533658d475, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 651f1df7538ee4593b93f8533658d475, type: 2}
     - target: {fileID: 919132149155446097, guid: 231499b279158480c848d891a7134611, type: 3}
       propertyPath: m_Name
       value: BandPoster (4)
@@ -1011,6 +1027,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 651f1df7538ee4593b93f8533658d475, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 651f1df7538ee4593b93f8533658d475, type: 2}
     - target: {fileID: 919132149155446097, guid: 231499b279158480c848d891a7134611, type: 3}
       propertyPath: m_Name
       value: BandPoster
@@ -1092,6 +1116,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 52c16eb26bce044e99c209a55debe8b6, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 52c16eb26bce044e99c209a55debe8b6, type: 2}
     - target: {fileID: 919132149155446097, guid: 231499b279158480c848d891a7134611, type: 3}
       propertyPath: m_Name
       value: BandPoster (1)
@@ -2259,6 +2291,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 586ccdd9615f647d8b5bf11755921752, type: 2}
+    - target: {fileID: -7511558181221131132, guid: 231499b279158480c848d891a7134611, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 586ccdd9615f647d8b5bf11755921752, type: 2}
     - target: {fileID: 919132149155446097, guid: 231499b279158480c848d891a7134611, type: 3}
       propertyPath: m_Name
       value: BandPoster (3)

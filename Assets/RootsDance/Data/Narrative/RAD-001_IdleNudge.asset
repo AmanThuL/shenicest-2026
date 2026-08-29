@@ -18,7 +18,7 @@ MonoBehaviour:
   - m_text: "\u4F60\u90A3\u91CC\u51FA\u73B0\u60C5\u51B5\u4E86\u5417\uFF1F\u5F80\u91CC\u8D70\u8D70\uFF0C\u8FD9\u8FB9\u8FD8\u662F\u6C61\u67D3\u533A\u3002"
     m_english: Everything alright over there? Keep moving further in. You're still
       in the contaminated zone.
-    m_voice: {fileID: 0}
+    m_voice: {fileID: 8300000, guid: 0518291974166449eacc2fb9947c2204, type: 3}
     m_holdSeconds: 0
   m_startDelay: 0.5
   m_voiceCue: {fileID: 11400000, guid: c0168eb5b716e4bf6b07b3d715d830c7, type: 2}

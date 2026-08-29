@@ -18,5 +18,10 @@ MonoBehaviour:
   m_choicesRepeat: 1
   m_requiredFlag: flow.research_facility_poster_read
   m_playsOnce: 1
-  m_lines: []
+  m_lines:
+  - m_speaker: 0
+    m_chinese: "\u5566\u5566\u5566\u5566\u5566\u5566"
+    m_english: "(placeholder) DLG-111 \u2014 \u7814\u7A76\u6240\u5BA3\u4F20\u6D77\u62A5\uFF0800-11\uFF09"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 2.5
   m_flagOnComplete: 

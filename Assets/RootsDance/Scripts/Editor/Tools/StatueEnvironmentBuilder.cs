@@ -149,14 +149,14 @@ namespace RootsDance.EditorTools
             EnsureFolder(k_MeshFolder);
 
             BuildStream(waterRoot, "Stream_ArmToRightPalm", k_ArmToRightPalm, 0.18f, 0.26f,
-                new Vector2(0f, -0.6f), water);
+                new Vector2(0f, -0.6f), water, root.transform);
             BuildStream(waterRoot, "Stream_RightPalmToLeftPalm", k_RightPalmToLeftPalm, 0.22f, 0.3f,
-                new Vector2(0f, -0.7f), water);
+                new Vector2(0f, -0.7f), water, root.transform);
 
             for (int i = 0; i < k_FingerGaps.Length; i++)
             {
                 BuildStream(waterRoot, $"Stream_FingerFall_{i}", FallPath(k_FingerGaps[i]), 0.12f, 0.32f,
-                    new Vector2(0f, -1.6f), water);
+                    new Vector2(0f, -1.6f), water, null);
             }
 
             BuildSplash(waterRoot, "Splash_RightPalm", k_RightPalmSplash, splash,
@@ -264,9 +264,9 @@ namespace RootsDance.EditorTools
 
         private static void BuildStream(
             GameObject parent, string name, Vector3[] waypoints, float startWidth, float endWidth,
-            Vector2 scrollSpeed, Material material)
+            Vector2 scrollSpeed, Material material, Transform conformTo)
         {
-            Mesh mesh = BuildRibbonMesh(waypoints, startWidth, endWidth);
+            Mesh mesh = BuildRibbonMesh(waypoints, startWidth, endWidth, conformTo);
             string meshPath = $"{k_MeshFolder}/{name}.asset";
             AssetDatabase.DeleteAsset(meshPath);
             AssetDatabase.CreateAsset(mesh, meshPath);
@@ -296,7 +296,8 @@ namespace RootsDance.EditorTools
         /// Two perpendicular ribbons along a Catmull-Rom curve through the waypoints, so the
         /// stream has a silhouette from every side without billboarding. V runs with the flow.
         /// </summary>
-        private static Mesh BuildRibbonMesh(Vector3[] waypoints, float startWidth, float endWidth)
+        private static Mesh BuildRibbonMesh(
+            Vector3[] waypoints, float startWidth, float endWidth, Transform conformTo)
         {
             const int samplesPerSegment = 10;
             List<Vector3> centers = new List<Vector3>();
@@ -313,6 +314,11 @@ namespace RootsDance.EditorTools
                 {
                     centers.Add(CatmullRom(p0, p1, p2, p3, (float)s / samplesPerSegment));
                 }
+            }
+
+            if (conformTo != null)
+            {
+                ConformToSurface(centers, conformTo, startWidth, endWidth);
             }
 
             int count = centers.Count;
@@ -372,6 +378,58 @@ namespace RootsDance.EditorTools
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        /// <summary>
+        /// Lifts every sample that sank into the statue back above its surface. The anchors are
+        /// straight-line guesses between raycast points; between them the robe's folds and the
+        /// bone forearm bulge higher than the interpolation, which is what clips. Centers are in
+        /// the statue root's local frame; the root is yaw-only, so "down" matches in both frames.
+        /// </summary>
+        private static void ConformToSurface(
+            List<Vector3> centers, Transform frame, float startWidth, float endWidth)
+        {
+            Physics.SyncTransforms();
+
+            int count = centers.Count;
+            float[] lifted = new float[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                float t = count > 1 ? (float)i / (count - 1) : 0f;
+                float clearance = Mathf.Lerp(startWidth, endWidth, t) * 0.5f + 0.02f;
+                Vector3 world = frame.TransformPoint(centers[i]);
+                Vector3 origin = world + Vector3.up * 1.5f;
+                lifted[i] = centers[i].y;
+
+                if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 3f))
+                {
+                    float surface = frame.InverseTransformPoint(hit.point).y;
+
+                    if (lifted[i] < surface + clearance)
+                    {
+                        lifted[i] = surface + clearance;
+                    }
+                }
+            }
+
+            // One smoothing pass so the lifted path rolls over folds instead of stair-stepping,
+            // then a re-clamp so smoothing cannot push a point back under the surface it left.
+            for (int i = 1; i < count - 1; i++)
+            {
+                float smoothed = (lifted[i - 1] + lifted[i] * 2f + lifted[i + 1]) * 0.25f;
+                Vector3 c = centers[i];
+                c.y = Mathf.Max(smoothed, lifted[i]);
+                centers[i] = c;
+            }
+
+            Vector3 first = centers[0];
+            first.y = lifted[0];
+            centers[0] = first;
+
+            Vector3 last = centers[count - 1];
+            last.y = lifted[count - 1];
+            centers[count - 1] = last;
         }
 
         private static int AddQuad(int[] triangles, int index, int a0, int a1, int b0, int b1)

@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Narrative.RadioSequenceSO
   m_id: RAD-004
   m_title: "\u4FE1\u53F7\u4E2D\u65AD\uFF0800-04\uFF09"
-  m_lines: []
+  m_lines:
+  - m_text: "\u5566\u5566\u5566\u5566\u5566\u5566"
+    m_english: "(placeholder) RAD-004 \u2014 \u4FE1\u53F7\u4E2D\u65AD\uFF0800-04\uFF09"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 2.5
   m_startDelay: 0.5
   m_voiceCue: {fileID: 11400000, guid: c0168eb5b716e4bf6b07b3d715d830c7, type: 2}

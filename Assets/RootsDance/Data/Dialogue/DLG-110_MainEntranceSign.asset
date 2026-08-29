@@ -18,5 +18,10 @@ MonoBehaviour:
   m_choicesRepeat: 1
   m_requiredFlag: flow.main_entrance_sign_read
   m_playsOnce: 1
-  m_lines: []
+  m_lines:
+  - m_speaker: 0
+    m_chinese: "\u5566\u5566\u5566\u5566\u5566\u5566"
+    m_english: "(placeholder) DLG-110 \u2014 \u7814\u7A76\u5BA4\u5165\u53E3\u6307\u793A\u724C\uFF0800-10\uFF09"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 2.5
   m_flagOnComplete: 
