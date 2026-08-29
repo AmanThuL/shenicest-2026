@@ -12,6 +12,7 @@ checklist. This file only says how to run the code.
 ```
 export_fbx.py              the exporter; knows no asset names
 generate_static_lod.py     deterministic FBX decimation for static-mesh LODs
+generate_spider_silk.py    parameterised procedural spider silk (swept-tube geometry)
 validate_wrist.py          per-frame joint-rotation validator; knows no asset names
 profiles/fps_arms.json     skinned + animated: bake every frame, no decimation
 profiles/static_prop.json  static prop: no animation baked
@@ -19,6 +20,18 @@ profiles/static_prop.json  static prop: no animation baked
 
 The Unity half lives in `Tools/unity/model_import_profiles.json` and
 `Assets/RootsDance/Scripts/Editor/Pipeline/`.
+
+## Generate procedural spider silk
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  --python Tools/blender/generate_spider_silk.py -- --preset web --seed 11
+```
+
+`--preset web | study | all`; every numeric key of the script's `PARAMS` dict is also a
+flag (`--cone-depth`, `--droplet-dropout`, `--loose-ends`, …). The defaults produce a
+derelict web; the script header lists the numbers for a web still in service. Inside a
+running Blender, `exec(open(...).read())` then call `generate("web")`.
 
 ## Export one asset
 
