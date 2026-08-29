@@ -209,6 +209,12 @@ GameObject:
   - component: {fileID: 797071106}
   - component: {fileID: 797071105}
   - component: {fileID: 797071104}
+  - component: {fileID: 797071112}
+  - component: {fileID: 797071111}
+  - component: {fileID: 797071110}
+  - component: {fileID: 797071109}
+  - component: {fileID: 797071108}
+  - component: {fileID: 797071107}
   m_Layer: 0
   m_Name: GameBootstrap
   m_TagString: Untagged
@@ -264,6 +270,112 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &797071107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56786ad91e719470aa495c03daa507e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueRunner
+  m_playRequested: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
+  m_conversationStarted: {fileID: 0}
+  m_conversationEnded: {fileID: 0}
+  m_audioChannel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
+  m_voiceCue: {fileID: 11400000, guid: f8442e9b7ad9e49119d674b6a3b6d586, type: 2}
+  m_viewBehaviour: {fileID: 2084551497}
+  m_input: {fileID: 0}
+  m_cjkCharsPerSecond: 5
+  m_latinCharsPerSecond: 15
+  m_minimumHoldSeconds: 1.2
+  m_maximumHoldSeconds: 7
+--- !u!114 &797071108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2ed6740ebed04ca3b4358a30318cca3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.ChannelAudioCue
+  m_textChannels:
+  - {fileID: 11400000, guid: b3c40bd8b027844a1a63baa868ec919b, type: 2}
+  - {fileID: 11400000, guid: a609440e92c16426eb84a8155d1561c4, type: 2}
+  - {fileID: 11400000, guid: 5b070311161ba4ea98e8b10b625f2f16, type: 2}
+  m_reportUpdated: {fileID: 11400000, guid: be9c903e76a644c7f9eec315eda926c1, type: 2}
+  m_voidChannels: []
+  m_channel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
+  m_cue: {fileID: 0}
+--- !u!114 &797071109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9978ec6fee5b542bf9540c81062507a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.FlagAudioCues
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_channel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
+  m_bindings: []
+--- !u!114 &797071110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8997d34acb64e55b7e35bad1f484b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioVolumeSettings
+  m_mixer: {fileID: 24100000, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
+  m_defaultMusic: 0.8
+  m_defaultSfx: 1
+  m_defaultUi: 1
+  m_defaultVoice: 1
+--- !u!114 &797071111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f3a5e19afdc04cc684d36d561794731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.MusicDirector
+  m_musicRequested: {fileID: 11400000, guid: efbf8f287de064d0fb6aed18a242ec16, type: 2}
+  m_crossfadeSeconds: 2
+--- !u!114 &797071112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36d9bf314d5fa4e50b4d8e54c76fa8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioDirector
+  m_channels:
+  - {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
+  m_maxVoices: 24
+  m_pooledVoices: 12
+  m_releaseMargin: 0.1
 --- !u!1 &1237885287
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,7 +541,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2084551496}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1623371660
@@ -811,6 +924,119 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1001 &2084551495
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1557813503}
+    m_Modifications:
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8169736721705708723, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+      propertyPath: m_Name
+      value: DialogueScreen
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+--- !u!224 &2084551496 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5748441135719515832, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+  m_PrefabInstance: {fileID: 2084551495}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2084551497 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1642800111297289744, guid: 1f05530ebd8104b7b97e26de6d7d17e1, type: 3}
+  m_PrefabInstance: {fileID: 2084551495}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ab9ca80a4b754e45a3b3a263fd4f5d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialoguePresenter
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
