@@ -1,0 +1,40 @@
+{
+  "asset": "GreenHouse1IronTile",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/_TilingJigs/GreenHouse1IronTilePlane.blend",
+    "object": "GreenHouse1IronTile",
+    "licence": "Authoring jig generated in-repo (a 2 m plane); sources are CC0.",
+    "note": "Weathered iron as a 2 m tile -- 1024 px/m at 2K. It exists for the spiral stair: 1295 m2 of surface would be about 57 px/m from a unique unwrap, and the mesh carries 1963 non-manifold edges that an unwrap would have to be repaired around first. World-space triplanar needs neither."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": false,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "material_slots": [
+      "GreenHouse1IronTile"
+    ]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": [
+    "GreenHouse1IronTile"
+  ],
+  "painter": {
+    "fills": [
+      "SteelBase(0,1.0):basecolor=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Roughness.jpg",
+      "Oxidation(0,0.55):basecolor=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_diff_2k.jpg;normal=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_rough_2k.jpg|~grunge_galvanic_large",
+      "RustPatch(0,0.4):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;normal=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|~grunge_rust_fine",
+      "RustSpots(0,0.28):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|~grunge_spots_dirty",
+      "Grime(0,0.35):basecolor=#241F1A;roughness=0.82|~grunge_dirt_large",
+      "MossFine(0,0.16):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|~grunge_concrete_moss_small",
+      "Scuff(0,0.22):basecolor=#9AA0A3;roughness=0.38;metallic=1.0|~grunge_scratches"
+    ],
+    "layers": [],
+    "note": "Tiling iron per docs/architecture/废墟风化分层策略.md. Procedural masks only: a flat jig bakes uniform AO and curvature."
+  }
+}

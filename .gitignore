@@ -146,3 +146,6 @@ docs/superpowers/
 
 # AmbientCG mask source channels: Unity ignores '~' folders, git must not
 !Assets/ThirdParty/Environment/**/Source~/
+
+# Substance Painter writes a lock file beside an open .spp
+*.painter_lock

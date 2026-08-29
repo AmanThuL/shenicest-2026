@@ -307,9 +307,27 @@ def main():
                 if not pair.strip():
                     continue
                 channel, _, path = pair.partition("=")
-                channels.append([channel.strip().lower(),
-                                 os.path.abspath(path.strip())])
-            fill_spec.append([name.strip(), channels, mask.strip()])
+                path = path.strip()
+                # "#RRGGBB" / "0.72" are values, not files: stains and deposits
+                # have no photo source, they are a tint plus a roughness shift.
+                # Painter refuses a uniform-colour source in a legacy colour
+                # managed project, so the value becomes a swatch image and takes
+                # the bitmap path that already works.
+                swatch = _swatch(path, os.path.dirname(args.report))
+                path = swatch if swatch else os.path.abspath(path)
+                channels.append([channel.strip().lower(), path])
+            tri, opacity = 0.0, 1.0
+            if name.strip().endswith(")") and "(" in name:
+                head, _, tail = name.strip().rpartition("(")
+                parts = [x.strip() for x in tail[:-1].split(",")]
+                try:
+                    tri = float(parts[0])
+                    if len(parts) > 1:
+                        opacity = float(parts[1])
+                    name = head
+                except ValueError:
+                    tri, opacity = 0.0, 1.0
+            fill_spec.append([name.strip(), channels, mask.strip(), tri, opacity])
 
         try:
             filled = painter.run_python(_FILL.replace("__SPEC__", repr(fill_spec)))
@@ -531,6 +549,44 @@ for ts in TS.all_texture_sets():
 RESULT = "set"
 """
 
+def _swatch(value, out_dir):
+    """Render "#RRGGBB" or a bare scalar as a flat PNG; None if not a literal.
+
+    Painter cannot take a uniform colour as a fill source in a legacy colour
+    managed project, so tint-only layers are fed a solid image instead.
+    """
+    text = value.strip()
+    if text.startswith("#"):
+        digits = text[1:]
+        if len(digits) == 3:
+            digits = "".join(c * 2 for c in digits)
+        if len(digits) != 6:
+            return None
+        try:
+            rgb = tuple(int(digits[i:i + 2], 16) for i in (0, 2, 4))
+        except ValueError:
+            return None
+        stem = "hex_" + digits.lower()
+    else:
+        try:
+            level = float(text)
+        except ValueError:
+            return None
+        byte = max(0, min(255, int(round(level * 255))))
+        rgb = (byte, byte, byte)
+        stem = "val_%03d" % byte
+
+    from PIL import Image
+
+    folder = os.path.join(out_dir, "swatches")
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    target = os.path.join(folder, stem + ".png")
+    if not os.path.isfile(target):
+        Image.new("RGB", (8, 8), rgb).save(target)
+    return target
+
+
 _FILL = """
 import os
 import substance_painter.layerstack as L
@@ -546,15 +602,42 @@ CHANNELS = {
 }
 
 
-def _mask(query):
-    for hit in R.search(query):
+def _procedural(query):
+    '''Find a procedural (an .sbsar generator) by its shelf name.'''
+    for shelf in ("starter_assets", "your_assets", "allegorithmic"):
         try:
-            rid = hit.identifier()
-            stem = rid.url().rsplit("/", 1)[-1].split("?")[0].rsplit(".", 1)[0]
+            hits = R.search("u:procedural s:%s" % shelf)
         except Exception:
             continue
-        if stem.lower() == query.lower():
-            return rid
+        for hit in hits:
+            try:
+                rid = hit.identifier()
+            except Exception:
+                continue
+            if rid.name.lower().rsplit("/", 1)[-1] == query.lower():
+                return rid
+    return None
+
+
+def _mask(query):
+    '''Find a smart mask by its shelf name.
+
+    The search has to be scoped to the smartmask usage: generic names such as
+    "Dirt" also match procedurals and textures, and handing one of those to
+    insert_smart_mask raises instead of failing the lookup.
+    '''
+    for shelf in ("starter_assets", "your_assets", "allegorithmic"):
+        try:
+            hits = R.search("u:smartmask s:%s" % shelf)
+        except Exception:
+            continue
+        for hit in hits:
+            try:
+                rid = hit.identifier()
+            except Exception:
+                continue
+            if rid.name.lower() == query.lower():
+                return rid
     return None
 
 
@@ -563,11 +646,36 @@ out = []
 
 for ts in TS.all_texture_sets():
     stack = ts.get_stack()
-    for name, channels, mask_query in spec:
+    for name, channels, mask_query, triplanar, opacity in spec:
         entry = {"texture_set": ts.name(), "layer": name, "channels": [],
                  "mask": mask_query or "", "status": "ok"}
         fill = L.insert_fill(L.InsertPosition.from_textureset_stack(stack))
         fill.set_name(name)
+
+        # weathering reads as accents over a base, so upper layers are dialled down
+        if opacity < 1.0:
+            for ch in (L.ChannelType.BaseColor, L.ChannelType.SpecularRoughness,
+                       L.ChannelType.Normal, L.ChannelType.BaseMetalness):
+                try:
+                    fill.set_opacity(opacity, ch)
+                except Exception:
+                    pass
+            entry["opacity"] = opacity
+
+        # A unique unwrap breaks a tiling source into disconnected islands, and
+        # UV projection makes every island edge a seam. Triplanar keeps the
+        # material continuous in 3D and the bake resolves it onto the unwrap.
+        if triplanar:
+            try:
+                fill.set_projection_mode(L.ProjectionMode.Triplanar)
+                params = fill.get_projection_parameters()
+                if hasattr(params, "scale"):
+                    params.scale = triplanar
+                    fill.set_projection_parameters(params)
+            except Exception as exc:
+                entry["projection"] = "triplanar-failed: %s" % exc
+            else:
+                entry["projection"] = "triplanar"
 
         for channel, path in channels:
             if channel not in CHANNELS:
@@ -581,14 +689,29 @@ for ts in TS.all_texture_sets():
             entry["channels"].append(channel)
 
         if mask_query:
-            rid = _mask(mask_query)
+            # "~name" asks for a procedural rather than a smart mask: a tiling
+            # surface has no mesh maps worth reading, so the AO- and
+            # curvature-driven smart masks there degrade to full coverage.
+            procedural = mask_query.startswith("~")
+            rid = (_procedural(mask_query[1:]) if procedural
+                   else _mask(mask_query))
             if rid is None:
                 entry["status"] = "mask-not-found"
+            elif procedural:
+                fill.add_mask(L.MaskBackground.Black)
+                effect = L.insert_fill(
+                    L.InsertPosition.inside_node(fill, L.NodeStack.Mask))
+                effect.set_source(None, rid)
             else:
                 fill.add_mask(L.MaskBackground.Black)
                 L.insert_smart_mask(
                     L.InsertPosition.inside_node(fill, L.NodeStack.Mask), rid)
+            # only promote to ok-masked when the channels themselves landed,
+            # otherwise a broken layer reports as a healthy masked one
+            if rid is not None and entry["status"] == "ok":
                 entry["status"] = "ok-masked"
+        if entry["status"].startswith("ok") and not entry["channels"]:
+            entry["status"] = "no-channels-applied"
         out.append(entry)
 
 RESULT = out
