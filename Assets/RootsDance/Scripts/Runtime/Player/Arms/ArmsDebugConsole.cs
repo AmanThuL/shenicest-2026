@@ -14,8 +14,7 @@ namespace RootsDance.Player.Arms
     /// Replaces the three one-clip trigger components that came before it. Those each held the
     /// Animator and parked it with <c>speed = 0</c>, so testing one animation stopped the rest;
     /// this one only calls <see cref="IArmsDirector.TryPlay"/>, which means every action is
-    /// testable at once and in any order, and an illegal request is refused with a readable reason
-    /// instead of playing a broken seam.
+    /// testable at once and in any order, from whatever pose the arms happen to be in.
     /// </para>
     /// The key for each action lives on its own <see cref="ArmsActionSO"/>, so a new animation
     /// becomes testable by filling in a field — no edit here. The same table draws the on-screen

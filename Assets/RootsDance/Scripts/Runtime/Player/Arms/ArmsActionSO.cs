@@ -14,9 +14,8 @@ namespace RootsDance.Player.Arms
     /// controller is regenerated from <see cref="ArmsActionSetSO"/> by
     /// <c>RootsDance > Build Arms Controller</c>.
     /// </para>
-    /// The pose fields are the arms contract written down where code can enforce it: an action
-    /// whose <see cref="RequiredPose"/> does not match the arm's current pose is refused rather
-    /// than played into a broken seam.
+    /// <see cref="ResultPose"/> records where the arms are left, which is bookkeeping other
+    /// systems can read. No action is ever refused because of the pose the arms are in.
     /// </summary>
     [CreateAssetMenu(fileName = "ArmsAction", menuName = "RootsDance/Arms/Action")]
     public class ArmsActionSO : ScriptableObject
@@ -54,19 +53,11 @@ namespace RootsDance.Player.Arms
         [SerializeField] private bool m_loop;
 
         [Header("State machine")]
-        [Tooltip("Off for actions with no legal entry pose yet (the crawl cycle has no authored "
-            + "way in). Leave on for everything the contract gives a start pose.")]
-        [SerializeField] private bool m_requiredPoseEnforced = true;
-
-        [Tooltip("The pose this action's first frame assumes. Requests from any other pose are "
-            + "refused with a warning instead of playing a broken seam.")]
-        [SerializeField] private ArmsPose m_requiredPose = ArmsPose.HangLow;
-
-        [Tooltip("The pose the arms are left in. Drives the gate for whatever runs next.")]
+        [Tooltip("The pose the arms are left in. Read as state; it never blocks what runs next.")]
         [SerializeField] private ArmsPose m_resultPose = ArmsPose.HangLow;
 
-        [Tooltip("Played automatically when this one finishes, gate bypassed — the seam is "
-            + "authored, not requested. This is how GrabGround hands the right arm to Hold.")]
+        [Tooltip("Played automatically when this one finishes. This is how GrabGround hands the "
+            + "right arm to Hold.")]
         [SerializeField] private string m_chainToId;
 
         [Tooltip("Freeze on the last frame instead of returning to neutral. On for actions whose "
@@ -106,8 +97,6 @@ namespace RootsDance.Player.Arms
         public AnimationClip Clip => m_clip;
         public ArmsScope Scope => m_scope;
         public bool Loop => m_loop;
-        public bool RequiredPoseEnforced => m_requiredPoseEnforced;
-        public ArmsPose RequiredPose => m_requiredPose;
         public ArmsPose ResultPose => m_resultPose;
         public string ChainToId => m_chainToId;
         public bool HoldAfterFinish => m_holdAfterFinish;

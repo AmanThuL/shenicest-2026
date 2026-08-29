@@ -24,9 +24,9 @@ namespace RootsDance.Player.Arms
         bool IsBusy(ArmsScope scope);
 
         /// <summary>
-        /// Requests an action. Returns false without playing anything when the id is unknown, the
-        /// arm is already busy, or the action's start pose does not match the arm's current pose —
-        /// each case logs why. A false return is a refusal, not an error.
+        /// Requests an action. Returns false without playing anything when the id is unknown or
+        /// the arm is already busy; both log why. A false return is a refusal, not an error.
+        /// The pose the arms are in never refuses anything.
         /// </summary>
         bool TryPlay(string actionId);
 
