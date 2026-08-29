@@ -31,8 +31,14 @@ namespace RootsDance.Editor.Environment
         private const string k_FogName = "C00M_LabPassageOcclusionFog";
         private const float k_PostExposure = -3.5f;
 
-        private static readonly Vector3 k_DoorPosition = new Vector3(31.2f, 8.9f, 109.05f);
-        private static readonly Quaternion k_DoorRotation = Quaternion.Euler(0f, 335.52f, 0f);
+        private static readonly Vector3 k_DoorPosition = new Vector3(31.285f, 8.9f, 108.91f);
+        private static readonly Quaternion k_DoorRotation = Quaternion.Euler(0f, 336.629f, 0f);
+        private static readonly Vector3 k_DoorVisualLocalPosition =
+            new Vector3(-0.038f, -0.831f, 0.022f);
+        private static readonly Quaternion k_DoorVisualLocalRotation =
+            new Quaternion(0.31462047f, 0.6363994f, -0.63134074f, 0.31211963f);
+        private static readonly Vector3 k_DoorVisualLocalScale =
+            new Vector3(0.70832f, 1.1687279f, 1.3458079f);
         private static readonly Vector3 k_VolumePosition = new Vector3(30.95f, 9f, 104.1f);
         private static readonly Quaternion k_VolumeRotation = Quaternion.Euler(0f, 2.9f, 0f);
         private static readonly Vector3 k_VolumeSize = new Vector3(4.2f, 4.6f, 12f);
@@ -88,14 +94,10 @@ namespace RootsDance.Editor.Environment
                     trimMaterial,
                     Mathf.Max(1, source.sharedMesh.subMeshCount)).ToArray();
 
-                Bounds meshBounds = source.sharedMesh.bounds;
-                visual.transform.localRotation =
-                    Quaternion.Euler(0f, 90f, 0f) * Quaternion.Euler(90f, 0f, 0f);
-                visual.transform.localScale = new Vector3(
-                    1f,
-                    3.3f / Mathf.Max(0.0001f, meshBounds.size.y),
-                    3.8f / Mathf.Max(0.0001f, meshBounds.size.z));
-                visual.transform.position -= renderer.bounds.center;
+                visual.transform.SetLocalPositionAndRotation(
+                    k_DoorVisualLocalPosition,
+                    k_DoorVisualLocalRotation);
+                visual.transform.localScale = k_DoorVisualLocalScale;
 
                 GameObject seal = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 seal.name = "DoorCollisionAndLightSeal";

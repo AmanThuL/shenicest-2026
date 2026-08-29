@@ -17,7 +17,13 @@ namespace RootsDance.Tests.EditMode.Environment
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 Chapter00LabPassageBuilder.DoorPrefabPath);
             Assert.IsNotNull(prefab);
-            Assert.IsNotNull(prefab.transform.Find("Wooden_Door_Panel"));
+            Transform visual = prefab.transform.Find("Wooden_Door_Panel");
+            Assert.IsNotNull(visual);
+            Assert.AreEqual(new Vector3(-0.038f, -0.831f, 0.022f), visual.localPosition);
+            Assert.AreEqual(new Vector3(0.70832f, 1.1687279f, 1.3458079f), visual.localScale);
+            Assert.That(Quaternion.Angle(
+                new Quaternion(0.31462047f, 0.6363994f, -0.63134074f, 0.31211963f),
+                visual.localRotation), Is.LessThan(0.01f));
 
             BoxCollider collider = prefab.GetComponentInChildren<BoxCollider>(true);
             Assert.IsNotNull(collider);
@@ -73,6 +79,12 @@ namespace RootsDance.Tests.EditMode.Environment
                 }
 
                 Assert.IsNotNull(fog);
+                GameObject door = GameObject.Find("C00M_LabPassageSquareDoor");
+                Assert.IsNotNull(door);
+                Assert.AreEqual(new Vector3(31.285f, 8.9f, 108.91f), door.transform.position);
+                Assert.That(Quaternion.Angle(
+                    Quaternion.Euler(0f, 336.629f, 0f),
+                    door.transform.rotation), Is.LessThan(0.01f));
                 BoxCollider bounds = fog.transform.parent.GetComponent<BoxCollider>();
                 Assert.IsNotNull(bounds);
                 Assert.AreEqual(new Vector3(-0.77f, -0.86f, 1f), fog.transform.localPosition);
