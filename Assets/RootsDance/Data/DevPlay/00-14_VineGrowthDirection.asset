@@ -16,9 +16,13 @@ MonoBehaviour:
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-14_VineGrowthDirection
   m_position: {x: 19.435, y: 7.299, z: 133.774}
-  m_yaw: 0
+  m_yaw: 34
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 0
   m_flags:
   - flow.left_start_area
@@ -28,6 +32,13 @@ MonoBehaviour:
   - flow.helmet_removed
   - flow.entered_grass_belt
   - flow.first_investigation_done
+  - flow.main_entrance_blocked
+  - flow.main_entrance_sign_read
+  - flow.research_facility_poster_read
+  - flow.ashleaf_vine_scanned
+  - flow.fine_veined_vine_scanned
   m_recordedTargets:
-  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
+  - {fileID: 11400000, guid: e2c9adf2a979542fb80ed5974a4ff9bb, type: 2}
+  - {fileID: 11400000, guid: b5a0f99885c6e4f6ea01765f8dd747a7, type: 2}

@@ -19,7 +19,11 @@ This attribution must appear in the shipped game's credits.
 
 - `RuneKeypad.blend`: editable Blender source.
 - `Assets/RootsDance/Meshes/Props/RuneKeypad/RuneKeypad.fbx`: Unity model.
-- `Assets/RootsDance/Textures/Props/RuneKeypad/`: source PBR textures.
+- `Maps/`: the supplied unpacked PBR maps (metallic, roughness). Source only — HDRP reads
+  metallic, occlusion and smoothness from one channel-packed `Mask` map, so these must be
+  packed into `RuneKeypadBase_Mask.png` / `RuneKeypadScreen_Mask.png` when the material is
+  authored.
+- `Assets/RootsDance/Textures/Props/RuneKeypad/`: the base colour and normal maps Unity imports.
 
 ## Rune Layout
 

@@ -280,6 +280,17 @@ namespace RootsDance.Scanner
             if (m_target != null)
             {
                 m_target.MarkScanned();
+
+                // Scan result bridges enqueue report/flag commands. Let GameBootstrap drain them before the
+                // report presenter opens, so the page revealed by this scan is visible on the first frame.
+                try
+                {
+                    await Awaitable.NextFrameAsync(destroyCancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
             }
 
             if (m_state == ScannerState.Scanning)

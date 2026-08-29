@@ -1,0 +1,366 @@
+using System.IO;
+using RootsDance.Core;
+using RootsDance.Dialogue;
+using UnityEditor;
+using UnityEngine;
+
+namespace RootsDance.Editor.Content
+{
+    /// <summary>
+    /// Writes chapter 02's conversations from the design document — the corridor meeting, the
+    /// sprite's remarks around the greenhouse, the staff photograph, and the three-way choice at
+    /// the circulation console.
+    /// <para>
+    /// The console is authored as a conversation rather than as a bespoke terminal component, and
+    /// that is a deliberate reduction: what the console asks the player is "one of these three",
+    /// which is what a set of dialogue choices already is. Each option raises its own world flag,
+    /// and a <c>CueSequence</c> keyed to that flag plays the consequence. Nothing new had to be
+    /// built for the chapter's central decision.
+    /// </para>
+    /// Non-destructive: an existing conversation is left alone.
+    /// Menu: RootsDance &gt; Content &gt; Build Chapter 02 Dialogue.
+    /// </summary>
+    public static class Chapter02DialogueBuilder
+    {
+        private const string k_Folder = "Assets/RootsDance/Data/Dialogue";
+
+        /// <summary>One authored line, before it becomes serialized data.</summary>
+        private readonly struct Line
+        {
+            public readonly DialogueSpeaker m_speaker;
+            public readonly string m_chinese;
+            public readonly string m_english;
+
+            public Line(DialogueSpeaker speaker, string chinese, string english)
+            {
+                m_speaker = speaker;
+                m_chinese = chinese;
+                m_english = english;
+            }
+        }
+
+        /// <summary>One authored option.</summary>
+        private class Choice
+        {
+            public string m_chinese;
+            public string m_english;
+            public Line[] m_response = new Line[0];
+            public string m_followFile;
+            public string m_flagOnChosen = string.Empty;
+        }
+
+        [MenuItem("RootsDance/Content/Build Chapter 02 Dialogue")]
+        public static void Build()
+        {
+            Directory.CreateDirectory(k_Folder);
+            AssetDatabase.Refresh();
+
+            int created = 0;
+
+            // Built before DLG-001, which points at it. Order is the whole dependency management
+            // this needs: the follow-up is loaded back off disk when the parent is wired.
+            created += Conversation("DLG-002_WhoIsShe", "DLG-002", "追问「她」",
+                new[]
+                {
+                    P("她是谁？", "Who is she?"),
+                    F("就是……就是她啦。", "Her. I mean... her."),
+                    F("这里是她的哦。", "This is hers."),
+                    F("嗯，之前是。", "Well. It was.")
+                },
+                null, true, string.Empty, WorldFlags.k_HeardAboutHer) ? 1 : 0;
+
+            created += Conversation("DLG-001_FirstMeeting", "DLG-001", "初次相遇",
+                new[]
+                {
+                    P("……什么东西？", "...What the hell?"),
+                    F("啊！", "Ah!"),
+                    F("……不对，是你先吓到我的。", "...Wait. You scared me first."),
+                    P("你会说话？", "You can speak?"),
+                    F("对。", "Yeah."),
+                    F("我说得还可以。", "I'm pretty good at it.")
+                },
+                new[]
+                {
+                    new Choice
+                    {
+                        m_chinese = "……你是什么？",
+                        m_english = "...What are you?",
+                        m_response = new[]
+                        {
+                            F("这个问题很复杂。", "That's a very complicated question."),
+                            F("也可能不是。", "...Or maybe it isn't."),
+                            F("我住在这里。", "I live here.")
+                        }
+                    },
+                    new Choice
+                    {
+                        m_chinese = "这里还有其他人？",
+                        m_english = "Is anyone else here?",
+                        m_response = new[]
+                        {
+                            F("以前有。", "There used to be."),
+                            F("后来没有了。", "Then there wasn't."),
+                            F("不过东西还在。我就在这。", "But the things are still here. And I'm here.")
+                        },
+                        m_followFile = "DLG-002_WhoIsShe"
+                    }
+                },
+                true, string.Empty, WorldFlags.k_MetFlowerSprite) ? 1 : 0;
+
+            created += Conversation("DLG-003_LeadOn", "DLG-003", "小花带路",
+                new[]
+                {
+                    F("你不去吗？", "Aren't you going?"),
+                    F("我们都很喜欢那边哦！", "We all really like it over there!")
+                },
+                null, true, string.Empty, string.Empty) ? 1 : 0;
+
+            created += Conversation("DLG-004_ItUsedToBeNeat", "DLG-004", "温室：以前很整齐",
+                new[]
+                {
+                    F("这里以前很整齐。真的，真的，非常，非常整齐。",
+                        "It used to be very neat here. Really, really neat. Very, very neat."),
+                    F("后来！她才不会管我们呢！没有谁喜欢那么长啊！",
+                        "But then! She stopped keeping us in line! Nobody likes being that!")
+                },
+                null, true, WorldFlags.k_EnteredGreenhouse, string.Empty) ? 1 : 0;
+
+            created += Conversation("DLG-005_TheSign", "DLG-005", "培养边界的牌子",
+                new[]
+                {
+                    F("这个牌子以前很有用。", "That sign used to be really useful."),
+                    P("人类的边界，对植物有什么意义呢。",
+                        "What meaning do human boundaries have for plants?")
+                },
+                null, true, string.Empty, string.Empty) ? 1 : 0;
+
+            created += Conversation("DLG-006_SheUsedToMove", "DLG-006", "盖娅雕像",
+                new[]
+                {
+                    F("她以前会流动。", "She used to move."),
+                    F("很漂亮。", "She was beautiful."),
+                    F("然后有一天，她就停下来了。", "Then one day, she stopped."),
+                    P("她？", "She?"),
+                    F("嗯。她。", "Yeah. Her.")
+                },
+                null, true, string.Empty, string.Empty) ? 1 : 0;
+
+            // The English for this exchange is not in the design document; left empty rather than
+            // invented, so the writer can see at a glance what still needs translating.
+            created += Conversation("DLG-007_StaffPhotograph", "DLG-007", "研究人员合照",
+                new[]
+                {
+                    P("没有她。至少，没有一个看起来像她的人。", string.Empty),
+                    F("这些人我一个都没见过。不知道是谁。", string.Empty)
+                },
+                new[]
+                {
+                    new Choice
+                    {
+                        m_chinese = "你不是一直在这里吗？",
+                        m_english = string.Empty,
+                        m_response = new[]
+                        {
+                            F("对呀！我可是一直陪着她呢！我现在还在这里等她！", string.Empty)
+                        }
+                    },
+                    new Choice
+                    {
+                        m_chinese = "那她去哪了？",
+                        m_english = string.Empty,
+                        m_response = new[] { F("……嗯。我忘记了。", string.Empty) }
+                    }
+                },
+                true, string.Empty, WorldFlags.k_SawStaffPhotograph) ? 1 : 0;
+
+            created += BuildConsole() ? 1 : 0;
+            created += BuildWrongChoiceOutburst() ? 1 : 0;
+
+            AssetDatabase.SaveAssets();
+
+            Debug.Log($"[Content] Chapter 02: {created} conversation(s) created in {k_Folder}. "
+                + "Existing assets were left untouched.");
+        }
+
+        /// <summary>
+        /// The circulation console. Options do not repeat: the choice is the chapter's decision and
+        /// the player gets one.
+        /// </summary>
+        private static bool BuildConsole()
+        {
+            return Conversation("DLG-008_CirculationConsole", "DLG-008", "中央循环装置",
+                new[]
+                {
+                    D("GAIA 环境循环装置", "GAIA ENVIRONMENTAL CIRCULATION SYSTEM"),
+                    D("系统状态：休眠", "SYSTEM STATUS: Dormant"),
+                    D("当前环境参数与预设模型存在偏差。",
+                        "Current environmental parameters deviate from the preset model.")
+                },
+                new[]
+                {
+                    new Choice
+                    {
+                        m_chinese = "【核心培育循环】",
+                        m_english = "[CORE CULTIVATION CYCLE]",
+                        m_response = new[]
+                        {
+                            D("适用于集中样本的集中培育与稳定观察。",
+                                "For concentrated cultivation and stable observation of pooled samples.")
+                        },
+                        m_flagOnChosen = WorldFlags.k_CirculationCore
+                    },
+                    new Choice
+                    {
+                        m_chinese = "【标准环形循环】",
+                        m_english = "[STANDARD RING CYCLE]",
+                        m_response = new[]
+                        {
+                            D("培育区进行均衡供给。", "Balanced supply across the cultivation zones.")
+                        },
+                        m_flagOnChosen = WorldFlags.k_CirculationRing
+                    },
+                    new Choice
+                    {
+                        m_chinese = "【外缘检测循环】",
+                        m_english = "[OUTER BOUNDARY SURVEY CYCLE]",
+                        m_response = new[]
+                        {
+                            D("用于观测区域外缘变化及新增生长带。",
+                                "For observing change at the zone's outer edge and newly grown belts.")
+                        },
+                        m_flagOnChosen = WorldFlags.k_CirculationOuter
+                    }
+                },
+                false, string.Empty, string.Empty);
+        }
+
+        /// <summary>The sprite's reaction to either wrong cycle. Played by a CueSequence on the flag.</summary>
+        private static bool BuildWrongChoiceOutburst()
+        {
+            return Conversation("DLG-009_TheyAreNotThere", "DLG-009", "错误循环：它们已经不在那里了",
+                new[]
+                {
+                    F("哦。哦哦哦。", "Oh. Oh, oh, oh."),
+                    F("你选了这个。", "You picked this."),
+                    F("没关系，没关系，机器有时候就是会——",
+                        "It's okay. It's okay. Machines just sometimes—"),
+                    F("……等等。", "...Wait."),
+                    F("你真的选了这个。", "You really picked this."),
+                    F("不，不，不不不。", "No. No, no, no."),
+                    F("停下来。", "Stop it."),
+                    F("把它停下来。", "Make it stop."),
+                    F("它们已经不在那里了！", "They're not there anymore!"),
+                    F("拿着东西。站在这里。", "Take things. Stand here."),
+                    F("然后说，嗯，这里应该这样。", "And then say, um, it should be like this."),
+                    F("可是——", "But—"),
+                    F("停下来。", "Stop."),
+                    F("停下来！", "Stop!"),
+                    F("它们已经不在那里了！", "They're not there anymore!"),
+                    F("为什么你们总想让活着的东西，回到已经死掉的地方？",
+                        "Why do you always want to make living things go back to somewhere that's already dead?"),
+                    F("它们没有出错。", "They didn't do anything wrong.")
+                },
+                null, true, string.Empty, string.Empty);
+        }
+
+        private static Line P(string chinese, string english)
+        {
+            return new Line(DialogueSpeaker.Protagonist, chinese, english);
+        }
+
+        private static Line F(string chinese, string english)
+        {
+            return new Line(DialogueSpeaker.Flower, chinese, english);
+        }
+
+        private static Line D(string chinese, string english)
+        {
+            return new Line(DialogueSpeaker.Device, chinese, english);
+        }
+
+        private static bool Conversation(string fileName, string id, string title, Line[] lines,
+            Choice[] choices, bool choicesRepeat, string requiredFlag, string flagOnComplete)
+        {
+            DialogueSO conversation = ContentAssetWriter.Ensure<DialogueSO>(
+                $"{k_Folder}/{fileName}.asset", out bool created);
+
+            if (!created)
+            {
+                return false;
+            }
+
+            SerializedObject serialized = new SerializedObject(conversation);
+            ContentAssetWriter.SetString(serialized, "m_id", id);
+            ContentAssetWriter.SetString(serialized, "m_title", title);
+            ContentAssetWriter.SetBool(serialized, "m_choicesRepeat", choicesRepeat);
+            ContentAssetWriter.SetBool(serialized, "m_playsOnce", true);
+            ContentAssetWriter.SetString(serialized, "m_requiredFlag", requiredFlag);
+            ContentAssetWriter.SetString(serialized, "m_flagOnComplete", flagOnComplete);
+
+            WriteLines(serialized.FindProperty("m_lines"), lines);
+            WriteChoices(serialized.FindProperty("m_choices"), choices);
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(conversation);
+
+            return true;
+        }
+
+        private static void WriteLines(SerializedProperty property, Line[] lines)
+        {
+            if (property == null)
+            {
+                return;
+            }
+
+            int count = lines == null ? 0 : lines.Length;
+            property.arraySize = count;
+
+            for (int i = 0; i < count; i++)
+            {
+                SerializedProperty entry = property.GetArrayElementAtIndex(i);
+                entry.FindPropertyRelative("m_speaker").enumValueIndex = (int)lines[i].m_speaker;
+                entry.FindPropertyRelative("m_chinese").stringValue = lines[i].m_chinese;
+                entry.FindPropertyRelative("m_english").stringValue = lines[i].m_english;
+
+                // 0 means "work it out from the text" — see DialogueTiming. Authoring a hold per
+                // line is work that only pays off for a deliberate pause, and none of these are.
+                entry.FindPropertyRelative("m_holdSeconds").floatValue = 0f;
+            }
+        }
+
+        private static void WriteChoices(SerializedProperty property, Choice[] choices)
+        {
+            if (property == null)
+            {
+                return;
+            }
+
+            int count = choices == null ? 0 : choices.Length;
+            property.arraySize = count;
+
+            for (int i = 0; i < count; i++)
+            {
+                SerializedProperty entry = property.GetArrayElementAtIndex(i);
+                entry.FindPropertyRelative("m_chinese").stringValue = choices[i].m_chinese;
+                entry.FindPropertyRelative("m_english").stringValue = choices[i].m_english;
+                entry.FindPropertyRelative("m_flagOnChosen").stringValue = choices[i].m_flagOnChosen;
+
+                WriteLines(entry.FindPropertyRelative("m_response"), choices[i].m_response);
+
+                DialogueSO follow = string.IsNullOrEmpty(choices[i].m_followFile)
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<DialogueSO>(
+                        $"{k_Folder}/{choices[i].m_followFile}.asset");
+
+                if (follow == null && !string.IsNullOrEmpty(choices[i].m_followFile))
+                {
+                    Debug.LogWarning($"[Content] Follow-up '{choices[i].m_followFile}' was not found; "
+                        + "build it before the conversation that points at it.");
+                }
+
+                entry.FindPropertyRelative("m_follow").objectReferenceValue = follow;
+            }
+        }
+    }
+}

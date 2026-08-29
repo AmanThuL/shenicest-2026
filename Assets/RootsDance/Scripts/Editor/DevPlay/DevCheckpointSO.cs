@@ -40,8 +40,18 @@ namespace RootsDance.Editor.DevPlay
         [SerializeField] private bool m_snapToGround = true;
 
         [TitleGroup("Where")]
+        [Tooltip("Only colliders on these layers can be used as ground. "
+            + "Keep buildings off Ground so roofs cannot steal spawns.")]
+        [SerializeField, EnableIf("m_snapToGround")] private LayerMask m_groundLayers = 1 << 8;
+
+        [TitleGroup("Where")]
         [Tooltip("Metres between the found ground and the Player root (the capsule is 1.5 m tall, centred).")]
         [SerializeField, EnableIf("m_snapToGround")] private float m_groundClearance = 1f;
+
+        [TitleGroup("Where")]
+        [Tooltip("When an anchor is found, use its authored Y. "
+            + "Disable this for fixed-height safety spawns near roofs.")]
+        [SerializeField] private bool m_useAnchorHeight = true;
 
         [TitleGroup("World State")]
         [Tooltip("Time of day forced when this checkpoint is applied. Level Default leaves the level alone.")]
@@ -61,21 +71,29 @@ namespace RootsDance.Editor.DevPlay
         public Vector3 Position => m_position;
         public float Yaw => m_yaw;
         public bool SnapToGround => m_snapToGround;
+        public LayerMask GroundLayers => m_groundLayers;
         public float GroundClearance => m_groundClearance;
+        public bool UseAnchorHeight => m_useAnchorHeight;
         public CheckpointTimeOfDay TimeOfDay => m_timeOfDay;
         public IReadOnlyList<string> Flags => m_flags;
         public IReadOnlyList<InvestigationTargetSO> RecordedTargets => m_recordedTargets;
 
-        /// <summary>Fills a freshly created asset. Only <see cref="DevCheckpointDefaults"/> calls this.</summary>
+        /// <summary>Applies an authored checkpoint definition from Editor tooling.</summary>
         public void Configure(
             string label, LevelSO level, string anchorName, Vector3 position, float yaw,
-            CheckpointTimeOfDay timeOfDay, string[] flags, InvestigationTargetSO[] recordedTargets)
+            CheckpointTimeOfDay timeOfDay, string[] flags, InvestigationTargetSO[] recordedTargets,
+            bool snapToGround = true, int groundLayerMask = 1 << 8, float groundClearance = 1f,
+            bool useAnchorHeight = true)
         {
             m_label = label;
             m_level = level;
             m_anchorName = anchorName;
             m_position = position;
             m_yaw = yaw;
+            m_snapToGround = snapToGround;
+            m_groundLayers = groundLayerMask;
+            m_groundClearance = groundClearance;
+            m_useAnchorHeight = useAnchorHeight;
             m_timeOfDay = timeOfDay;
             m_flags = flags ?? new string[0];
             m_recordedTargets = recordedTargets ?? new InvestigationTargetSO[0];
@@ -83,7 +101,7 @@ namespace RootsDance.Editor.DevPlay
 
         /// <summary>
         /// Rewrites only the time of day on an already authored asset. Only Dev Play tooling calls this
-        /// (<see cref="DevCheckpointDefaults.SetAllTimeOfDayToNight"/>); the caller owns
+        /// (<see cref="DevCheckpointDefaults.SetAllTimeOfDayToLevelDefault"/>); the caller owns
         /// <c>EditorUtility.SetDirty</c> and saving.
         /// </summary>
         public void SetTimeOfDay(CheckpointTimeOfDay timeOfDay)

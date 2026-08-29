@@ -90,5 +90,37 @@ namespace RootsDance.Tests.EditMode.Player
         {
             Assert.AreEqual(300f, FlashlightState.StepIntensity(0f, 2000f, 300f), 0.001f);
         }
+
+        [Test]
+        public void IsLit_SwitchOnButNotHeld_IsFalse()
+        {
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.Toggle();
+            state.SetHeld(false);
+
+            Assert.That(state.IsOn, Is.True, "the switch keeps its setting");
+            Assert.That(state.IsLit, Is.False, "but nothing is lit by a torch nobody holds");
+        }
+
+        [Test]
+        public void IsLit_PickedBackUpWhileSwitchedOn_IsTrueAgain()
+        {
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.Toggle();
+            state.SetHeld(false);
+            state.SetHeld(true);
+
+            Assert.That(state.IsLit, Is.True);
+        }
+
+        [Test]
+        public void IsLit_HeldButSwitchedOff_IsFalse()
+        {
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.SetHeld(true);
+
+            Assert.That(state.IsLit, Is.False);
+        }
+
     }
 }

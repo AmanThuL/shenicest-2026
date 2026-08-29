@@ -2,10 +2,14 @@ using System.Text.RegularExpressions;
 
 namespace RootsDance.Data
 {
-    /// <summary>Content IDs are PREFIX-NNN: 2-8 upper-case letters, a dash, 2-4 digits (FL-001, SO-001).</summary>
+    /// <summary>
+    /// Content IDs are PREFIX-NNN or DOMAIN-PREFIX-NNN: each prefix is 2-8 upper-case letters and the
+    /// numeric suffix is 2-4 digits (FL-001, SO-001, BOT-FL-041).
+    /// </summary>
     public static class ContentId
     {
-        private static readonly Regex k_Pattern = new Regex("^[A-Z]{2,8}-[0-9]{2,4}$", RegexOptions.Compiled);
+        private static readonly Regex k_Pattern = new Regex(
+            "^[A-Z]{2,8}(?:-[A-Z]{2,8})?-[0-9]{2,4}$", RegexOptions.Compiled);
 
         public static bool IsValid(string id)
         {

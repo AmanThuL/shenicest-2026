@@ -16,9 +16,13 @@ MonoBehaviour:
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-12_AshleafVine
   m_position: {x: 12.334, y: 7.299, z: 123.184}
-  m_yaw: 0
+  m_yaw: 16
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 0
   m_flags:
   - flow.left_start_area
@@ -28,6 +32,9 @@ MonoBehaviour:
   - flow.helmet_removed
   - flow.entered_grass_belt
   - flow.first_investigation_done
+  - flow.main_entrance_blocked
+  - flow.main_entrance_sign_read
+  - flow.research_facility_poster_read
   m_recordedTargets:
-  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}

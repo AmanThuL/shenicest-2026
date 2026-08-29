@@ -14,6 +14,10 @@ namespace RootsDance.Player.Arms
         [Tooltip("Which hand this item is meant for.")]
         [SerializeField] private HandSide m_hand = HandSide.Right;
 
+        [Tooltip("What this is, for systems that care which prop is in the hand — a torch lights "
+            + "the beam whichever of the ones lying around the level it happens to be.")]
+        [SerializeField] private CarriedKind m_kind = CarriedKind.Prop;
+
         [Tooltip("Grip position relative to the socket, in metres.")]
         [SerializeField] private Vector3 m_gripPosition;
 
@@ -27,6 +31,9 @@ namespace RootsDance.Player.Arms
         [SerializeField] private Collider[] m_colliders;
 
         public HandSide Hand => m_hand;
+
+        public CarriedKind Kind => m_kind;
+
         public Vector3 GripPosition => m_gripPosition;
         public Quaternion GripRotation => m_gripRotation;
 

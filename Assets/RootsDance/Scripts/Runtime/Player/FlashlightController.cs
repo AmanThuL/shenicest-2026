@@ -1,6 +1,7 @@
 using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
+using RootsDance.Player.Arms;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,12 +11,22 @@ namespace RootsDance.Player
     /// Drives the first-person flashlight: the world's time of day switches it on, the flashlight
     /// button flips it, and the beam fades in and out instead of popping.
     /// <para>
-    /// The Light lives on the Player's <c>Head</c> child at a zero position/rotation offset, which is
-    /// the transform the Cinemachine first-person camera hard-locks to. Sitting exactly on the eye
-    /// means the cone is centred on the screen and never parallaxes against the view, so the beam
-    /// always lights what the player is looking at — the cheapest thing that reads correctly in the
-    /// volumetric fog. Arms and a torch model come later; when they do, the Light moves onto the
-    /// torch bone and picks up a small offset, and only the prefab wiring changes, not this script.
+    /// With no beam anchor wired the Light sits exactly on the eye, which keeps the cone centred on
+    /// screen and never parallaxing against the view — the cheapest thing that reads correctly in
+    /// the volumetric fog, and still the fallback.
+    /// </para>
+    /// <para>
+    /// With a beam anchor wired the torch emits from the hand that holds it instead. That is what
+    /// makes the pool of light read as a carried object: the cone leaves from below and to one side
+    /// of the eye, so it meets a wall obliquely and lands as an ellipse rather than as the perfect
+    /// circle an eye-mounted light always draws. The axis is aimed at a point out along the view
+    /// ray rather than straight down the hand bone, so the torch still lights what the player is
+    /// looking at while keeping that off-axis angle.
+    /// </para>
+    /// <para>
+    /// Nothing is lit while no hand holds the torch. The switch keeps its setting, but the Light is
+    /// off and <see cref="FlashlightBeamBroadcaster"/> publishes a dead beam, so no surface in any
+    /// scene reacts to a torch that is not in a hand.
     /// </para>
     /// </summary>
     [RequireComponent(typeof(PlayerInputReader))]
@@ -25,6 +36,14 @@ namespace RootsDance.Player
         [Tooltip("The Spot light on Head/Flashlight. Its authored intensity is the 'on' brightness.")]
         [SerializeField] private Light m_light;
 
+        [Tooltip("The hand socket that carries the torch. Leave empty and the torch counts as " +
+                 "always held, which is the behaviour from before hands existed.")]
+        [SerializeField] private HandSocket m_holdSocket;
+
+        [Tooltip("Where the beam leaves from — the torch's emitter, or the hand socket itself. " +
+                 "Leave empty and the beam sits on the eye instead.")]
+        [SerializeField] private Transform m_beamAnchor;
+
         [Header("Tuning")]
         [Tooltip("Night switches the beam on and daylight switches it off. Off = the button is the only control.")]
         [SerializeField] private bool m_autoOnAtNight;
@@ -32,9 +51,17 @@ namespace RootsDance.Player
         [Tooltip("Seconds for the beam to fade from off to full brightness, and back.")]
         [SerializeField] private float m_fadeSeconds = 0.15f;
 
+        [Tooltip("Metres out along the view ray that a hand-held beam is aimed at. Larger is " +
+                 "closer to parallel with the view — and a rounder pool. 0 points the beam " +
+                 "straight down the anchor's own forward instead.")]
+        [Range(0f, 40f)][SerializeField] private float m_aimDistance = 7f;
+
         [Header("Listens to")]
         [Tooltip("Time-of-day channel raised by GameBootstrap when the world phase changes.")]
         [SerializeField] private TimeOfDayEventChannelSO m_timeOfDayChanged;
+
+        /// <summary>Metres past which a "hand" anchor cannot be a hand, so the eye is used.</summary>
+        private const float k_MaxHandReach = 1.5f;
 
         private PlayerInputReader m_input;
         private FlashlightState m_state;
@@ -49,6 +76,27 @@ namespace RootsDance.Player
         /// </summary>
         public float BeamStrength =>
             m_hasLight && m_fullIntensity > 0f ? m_light.intensity / m_fullIntensity : 0f;
+
+        /// <summary>
+        /// Whether a hand is holding the torch. With no socket wired this is always true, so a
+        /// scene built before the arms existed still lights up.
+        /// </summary>
+        public bool IsHeld
+        {
+            get
+            {
+                if (m_holdSocket == null)
+                {
+                    return true;
+                }
+
+                // By kind, not by identity: any of the torches lying around the level lights the
+                // beam, and nothing else does — a hand full of helmet is still a dark corridor.
+                CarriedItem carried = m_holdSocket.Carried;
+
+                return carried != null && carried.Kind == CarriedKind.Torch;
+            }
+        }
 
         private void Awake()
         {
@@ -94,7 +142,42 @@ namespace RootsDance.Player
             }
 
             Transform cameraTransform = camera.transform;
-            m_light.transform.SetPositionAndRotation(cameraTransform.position, cameraTransform.rotation);
+
+            if (m_beamAnchor == null || !IsHeld)
+            {
+                m_light.transform.SetPositionAndRotation(cameraTransform.position,
+                    cameraTransform.rotation);
+                return;
+            }
+
+            // Origin from the hand, axis toward what the eye is looking at. Aiming straight down
+            // the hand bone would send the beam wherever the animation happens to point the wrist,
+            // which is unplayable; converging on the view ray keeps the light useful and still
+            // leaves the few degrees of offset that turn the pool into an ellipse.
+            Vector3 origin = m_beamAnchor.position;
+
+            // A torch in a hand is never further from the eye than arm's length. Anything more
+            // means the rig is not posed - an unplayed animator, a scene without arms - and the
+            // beam would be left somewhere across the level. Fall back to the eye rather than
+            // ship a flashlight that lights the floor behind the player.
+            if ((origin - cameraTransform.position).sqrMagnitude > k_MaxHandReach * k_MaxHandReach)
+            {
+                m_light.transform.SetPositionAndRotation(cameraTransform.position,
+                    cameraTransform.rotation);
+                return;
+            }
+
+            Vector3 forward = m_aimDistance > 0f
+                ? cameraTransform.position + cameraTransform.forward * m_aimDistance - origin
+                : m_beamAnchor.forward;
+
+            if (forward.sqrMagnitude < 1e-6f)
+            {
+                forward = cameraTransform.forward;
+            }
+
+            m_light.transform.SetPositionAndRotation(origin,
+                Quaternion.LookRotation(forward.normalized, cameraTransform.up));
         }
 
         private void Update()
@@ -105,6 +188,7 @@ namespace RootsDance.Player
             }
 
             SeedFromWorldState();
+            m_state.SetHeld(IsHeld);
 
             if (m_input.FlashlightPressedThisFrame)
             {
@@ -156,7 +240,7 @@ namespace RootsDance.Player
 
         private void Fade()
         {
-            float target = m_state.IsOn ? m_fullIntensity : 0f;
+            float target = m_state.IsLit ? m_fullIntensity : 0f;
             float maxDelta = m_fadeSeconds <= 0f
                 ? m_fullIntensity
                 : m_fullIntensity * Time.deltaTime / m_fadeSeconds;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Investigation;
@@ -8,9 +9,8 @@ namespace RootsDance.Editor.DevPlay
 {
     /// <summary>
     /// RootsDance > Dev Play > Create Default Checkpoints. Find-or-create one checkpoint per opening
-    /// station (00章前段), each carrying the world state the route has produced by then. Existing
-    /// assets are never touched, so tuned positions and yaws survive a re-run — which is why the
-    /// second menu resets the committed assets to the level-authored time of day in place.
+    /// station (00章), each carrying only the world state produced before that station. Create Missing
+    /// preserves existing assets; Apply Chapter 00 Checkpoint Defaults is the explicit route migration.
     /// </summary>
     public static class DevCheckpointDefaults
     {
@@ -22,7 +22,14 @@ namespace RootsDance.Editor.DevPlay
         private const string k_Folder = k_ParentFolder + "/" + k_FolderName;
         private const string k_MainLevelPath = "Assets/RootsDance/Data/Levels/Main.asset";
         private const string k_SoilPath = "Assets/RootsDance/Data/Investigation/SO-001_Soil.asset";
-        private const string k_TanmaoPath = "Assets/RootsDance/Data/Investigation/FL-001_Tanmao.asset";
+        private const string k_TanmaoPath = "Assets/RootsDance/Data/Investigation/BOT-FL-041_Tanmao.asset";
+        private const string k_AshleafVinePath =
+            "Assets/RootsDance/Data/Investigation/BOT-FL-118_AshleafVine.asset";
+        private const string k_FineVeinedVinePath =
+            "Assets/RootsDance/Data/Investigation/BOT-FL-203_FineVeinedVine.asset";
+        private const string k_ApplyChapter00MenuPath =
+            "RootsDance/Dev Play/Apply Chapter 00 Checkpoint Defaults";
+        private const int k_GroundLayerMask = 1 << 8;
 
         private struct Spec
         {
@@ -30,17 +37,33 @@ namespace RootsDance.Editor.DevPlay
             public string Label;
             public string AnchorName;
             public Vector3 Position;
+            public float Yaw;
+            public bool SnapToGround;
+            public bool UseAnchorHeight;
             public CheckpointTimeOfDay TimeOfDay;
             public string[] Flags;
-            public bool WithRecords;
+            public string[] RecordPaths;
         }
 
         [MenuItem(k_MenuPath)]
         public static void CreateMissing()
         {
+            ApplyDefaults(false);
+        }
+
+        /// <summary>
+        /// Reapplies the authored Chapter 00 route to committed checkpoints. Environment builders call this
+        /// after moving anchors so fallback positions, facing and progressive world state stay in lockstep.
+        /// </summary>
+        [MenuItem(k_ApplyChapter00MenuPath)]
+        public static void ApplyChapter00Defaults()
+        {
+            ApplyDefaults(true);
+        }
+
+        private static void ApplyDefaults(bool overwriteExisting)
+        {
             LevelSO main = AssetDatabase.LoadAssetAtPath<LevelSO>(k_MainLevelPath);
-            InvestigationTargetSO soil = AssetDatabase.LoadAssetAtPath<InvestigationTargetSO>(k_SoilPath);
-            InvestigationTargetSO tanmao = AssetDatabase.LoadAssetAtPath<InvestigationTargetSO>(k_TanmaoPath);
 
             if (main == null)
             {
@@ -53,7 +76,6 @@ namespace RootsDance.Editor.DevPlay
                 AssetDatabase.CreateFolder(k_ParentFolder, k_FolderName);
             }
 
-            InvestigationTargetSO[] records = { soil, tanmao };
             Spec[] specs = BuildSpecs();
             int created = 0;
 
@@ -61,27 +83,44 @@ namespace RootsDance.Editor.DevPlay
             {
                 Spec spec = specs[i];
                 string path = k_Folder + "/" + spec.FileName + ".asset";
+                DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
 
-                if (AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path) != null)
+                if (checkpoint != null && !overwriteExisting)
                 {
                     continue;
                 }
 
-                DevCheckpointSO checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+                bool isNew = checkpoint == null;
+
+                if (isNew)
+                {
+                    checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+                }
+
                 checkpoint.Configure(
-                    spec.Label, main, spec.AnchorName, spec.Position, 0f, spec.TimeOfDay, spec.Flags,
-                    spec.WithRecords ? records : new InvestigationTargetSO[0]);
-                AssetDatabase.CreateAsset(checkpoint, path);
-                created++;
+                    spec.Label, main, spec.AnchorName, spec.Position, spec.Yaw, spec.TimeOfDay, spec.Flags,
+                    LoadRecords(spec.RecordPaths), spec.SnapToGround, k_GroundLayerMask, 1f,
+                    spec.UseAnchorHeight);
+
+                if (isNew)
+                {
+                    AssetDatabase.CreateAsset(checkpoint, path);
+                    created++;
+                }
+                else
+                {
+                    EditorUtility.SetDirty(checkpoint);
+                }
             }
 
             AssetDatabase.SaveAssets();
+            string action = overwriteExisting ? "updated" : "already existed";
             Debug.Log("Dev Play: " + created + " checkpoint(s) created, " + (specs.Length - created)
-                + " already existed in " + k_Folder + ".");
+                + " " + action + " in " + k_Folder + ".");
         }
 
         /// <summary>
-        /// Restores every committed checkpoint to the level default. <see cref="CreateMissing"/> never overwrites an
+        /// Restores every outdoor checkpoint to its level default. <see cref="CreateMissing"/> never overwrites an
         /// existing asset, so this is how the assets authored before time of day existed catch up with
         /// the defaults above. No dialogs — safe to call from a batch -executeMethod run.
         /// </summary>
@@ -124,6 +163,10 @@ namespace RootsDance.Editor.DevPlay
 
         private static Spec[] BuildSpecs()
         {
+            string[] noRecords = new string[0];
+            string[] investigationRecords = { k_TanmaoPath, k_SoilPath };
+            string[] investigationAndAshleafRecords = Append(investigationRecords, k_AshleafVinePath);
+            string[] allPlantRecords = Append(investigationAndAshleafRecords, k_FineVeinedVinePath);
             string[] afterStart = { WorldFlags.k_LeftStartArea };
             string[] afterRadio =
             {
@@ -133,53 +176,59 @@ namespace RootsDance.Editor.DevPlay
             string[] afterHelmet =
             {
                 WorldFlags.k_LeftStartArea, WorldFlags.k_RadioBriefingStarted, WorldFlags.k_RadioBriefingFinished,
-                WorldFlags.k_HelmetRemovable, WorldFlags.k_HelmetRemoved, WorldFlags.k_EnteredGrassBelt,
+                WorldFlags.k_HelmetRemovable, WorldFlags.k_HelmetRemoved,
             };
-            string[] afterInvestigation =
-            {
-                WorldFlags.k_LeftStartArea, WorldFlags.k_RadioBriefingStarted, WorldFlags.k_RadioBriefingFinished,
-                WorldFlags.k_HelmetRemovable, WorldFlags.k_HelmetRemoved, WorldFlags.k_EnteredGrassBelt,
-                WorldFlags.k_FirstInvestigationDone,
-            };
+            string[] afterGrassBelt = Append(afterHelmet, WorldFlags.k_EnteredGrassBelt);
+            string[] afterInvestigation = Append(afterGrassBelt, WorldFlags.k_FirstInvestigationDone);
+            string[] afterBlockedEntrance = Append(afterInvestigation, WorldFlags.k_MainEntranceBlocked);
+            string[] afterEntranceSign = Append(afterBlockedEntrance, WorldFlags.k_MainEntranceSignRead);
+            string[] afterFacilityPoster = Append(afterEntranceSign, WorldFlags.k_ResearchFacilityPosterRead);
+            string[] afterAshleafScan = Append(afterFacilityPoster, WorldFlags.k_AshleafVineScanned);
+            string[] afterFineVeinedScan = Append(afterAshleafScan, WorldFlags.k_FineVeinedVineScanned);
+            string[] afterGrowthDirection = Append(
+                afterFineVeinedScan, WorldFlags.k_VineGrowthDirectionObserved);
+            string[] afterMaintenanceReveal = Append(
+                afterGrowthDirection, WorldFlags.k_MaintenanceEntranceRevealed);
 
-            // The pre-lab route follows Main's authored polluted-day default. Keeping checkpoints on
-            // LevelDefault prevents them from silently overriding later lighting revisions.
+            // Chapter 00 follows Main's authored polluted-day default. Keeping checkpoints on LevelDefault
+            // prevents them from silently overriding later lighting revisions.
             return new[]
             {
                 Make("00-01_Wake", "00-01 Wake", "",
-                    new Vector3(0f, 3.8f, -10f), CheckpointTimeOfDay.LevelDefault, new string[0], false),
+                    new Vector3(0f, 3.8f, -10f), 0f, new string[0], noRecords),
                 Make("00-04_RadioBriefing", "00-04 Radio briefing", "",
-                    new Vector3(0f, 5f, 0f), CheckpointTimeOfDay.LevelDefault, afterStart, false),
+                    new Vector3(0f, 5f, 0f), 0f, afterStart, noRecords),
                 Make("00-05_HelmetUnlock", "00-05 Helmet unlock", "",
-                    new Vector3(0f, 5f, 15f), CheckpointTimeOfDay.LevelDefault, afterRadio, false),
-                Make("00-06_GrassBelt", "00-06 Grass belt", "",
-                    new Vector3(0f, 7f, 32f), CheckpointTimeOfDay.LevelDefault, afterHelmet, false),
+                    new Vector3(0f, 5f, 15f), 0f, afterRadio, noRecords),
+                Make("00-06_GrassBelt", "00-06 Grass belt", "Anchor_00-06_GrassBelt",
+                    new Vector3(-16f, 7f, 28f), 20f, afterHelmet, noRecords),
                 Make("00-07_FirstToolUse", "00-07 First tool use", "Anchor_00-07_FirstToolUse",
-                    new Vector3(-12f, 6.285f, 39f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
-                Make("00-08_ResearchFacilityView", "00-08 Research facility view", "Anchor_00-08_ResearchFacilityView",
-                    new Vector3(0.473f, 7.289f, 85.366f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(-12f, 6.285f, 39f), 20f, afterGrassBelt, noRecords),
+                Make("00-08_ResearchFacilityView", "00-08 Facility reveal", "Anchor_00-08_ResearchFacilityView",
+                    new Vector3(1.5f, 7.289f, 73.5f), 10f, afterInvestigation, investigationRecords),
                 Make("00-09_BlockedMainEntrance", "00-09 Blocked main entrance", "Anchor_00-09_BlockedMainEntrance",
-                    new Vector3(9.505f, 7.299f, 118.941f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(9.505f, 7.299f, 118.941f), 0f, afterInvestigation, investigationRecords),
                 Make("00-10_MainEntranceSign", "00-10 Main entrance sign", "Anchor_00-10_MainEntranceSign",
-                    new Vector3(7.030f, 7.299f, 115.759f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
-                Make("00-11_ResearchFacilityPoster", "00-11 Research facility poster", "Anchor_00-11_ResearchFacilityPoster",
-                    new Vector3(-4.637f, 7.299f, 114.699f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(7.030f, 7.299f, 115.759f), 0f, afterBlockedEntrance, investigationRecords),
+                Make("00-11_ResearchFacilityPoster", "00-11 Research facility poster",
+                    "Anchor_00-11_ResearchFacilityPoster",
+                    new Vector3(-4.637f, 7.299f, 114.699f), 0f, afterEntranceSign, investigationRecords),
                 Make("00-12_AshleafVine", "00-12 Ashleaf vine", "Anchor_00-12_AshleafVine",
-                    new Vector3(12.334f, 7.299f, 123.184f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(12.334f, 7.299f, 123.184f), 16f, afterFacilityPoster, investigationRecords),
                 Make("00-13_FineVeinedVine", "00-13 Fine-veined vine", "Anchor_00-13_FineVeinedVine",
-                    new Vector3(13.394f, 7.299f, 124.952f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(15f, 7.8f, 127.8f), 24f, afterAshleafScan, investigationAndAshleafRecords),
                 Make("00-14_VineGrowthDirection", "00-14 Vine growth direction", "Anchor_00-14_VineGrowthDirection",
-                    new Vector3(19.435f, 7.299f, 133.774f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(19.435f, 7.299f, 133.774f), 34f, afterFineVeinedScan, allPlantRecords),
                 Make("00-15_ClearAshleafVine", "00-15 Clear ashleaf vine", "Anchor_00-15_ClearAshleafVine",
-                    new Vector3(23.538f, 7.299f, 139.749f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(20.7f, 7.8f, 135.8f), 32f, afterGrowthDirection, allPlantRecords, false, false),
                 Make("00-16_MaintenanceEntrance", "00-16 Maintenance entrance", "Anchor_00-16_MaintenanceEntrance",
-                    new Vector3(24.237f, 7.299f, 140.785f), CheckpointTimeOfDay.LevelDefault, afterInvestigation, true),
+                    new Vector3(20.7f, 7.8f, 135.8f), 32f, afterMaintenanceReveal, allPlantRecords, false, false),
             };
         }
 
         private static Spec Make(
-            string fileName, string label, string anchorName, Vector3 position,
-            CheckpointTimeOfDay timeOfDay, string[] flags, bool withRecords)
+            string fileName, string label, string anchorName, Vector3 position, float yaw, string[] flags,
+            string[] recordPaths, bool snapToGround = true, bool useAnchorHeight = true)
         {
             return new Spec
             {
@@ -187,10 +236,41 @@ namespace RootsDance.Editor.DevPlay
                 Label = label,
                 AnchorName = anchorName,
                 Position = position,
-                TimeOfDay = timeOfDay,
+                Yaw = yaw,
+                SnapToGround = snapToGround,
+                UseAnchorHeight = useAnchorHeight,
+                TimeOfDay = CheckpointTimeOfDay.LevelDefault,
                 Flags = flags,
-                WithRecords = withRecords,
+                RecordPaths = recordPaths,
             };
+        }
+
+        private static string[] Append(string[] values, string value)
+        {
+            string[] result = new string[values.Length + 1];
+            values.CopyTo(result, 0);
+            result[values.Length] = value;
+            return result;
+        }
+
+        private static InvestigationTargetSO[] LoadRecords(string[] paths)
+        {
+            List<InvestigationTargetSO> records = new List<InvestigationTargetSO>(paths.Length);
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                InvestigationTargetSO target = AssetDatabase.LoadAssetAtPath<InvestigationTargetSO>(paths[i]);
+
+                if (target == null)
+                {
+                    Debug.LogError("Dev Play: missing investigation target " + paths[i]);
+                    continue;
+                }
+
+                records.Add(target);
+            }
+
+            return records.ToArray();
         }
     }
 }

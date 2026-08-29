@@ -93,5 +93,25 @@ namespace RootsDance.Editor.DevPlay
 
             return new Vector3(basePosition.x, groundY + clearance, basePosition.z);
         }
+
+        /// <summary>
+        /// Resolves an optional scene anchor without forcing its height. Fixed-height checkpoints can
+        /// follow an anchor's X/Z while retaining the safety-tested Y stored in their asset.
+        /// </summary>
+        public static Vector3 ResolveBasePosition(
+            Vector3 fallbackPosition, bool anchorFound, Vector3 anchorPosition, bool useAnchorHeight)
+        {
+            if (!anchorFound)
+            {
+                return fallbackPosition;
+            }
+
+            if (useAnchorHeight)
+            {
+                return anchorPosition;
+            }
+
+            return new Vector3(anchorPosition.x, fallbackPosition.y, anchorPosition.z);
+        }
     }
 }

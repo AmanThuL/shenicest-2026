@@ -35,6 +35,9 @@ namespace RootsDance.Player
         /// <summary>x: cos(outer half-angle), y: cos(inner half-angle), z: range, w: 0..1 fade.</summary>
         public const string k_ConeProperty = "_RootsFlashlightCone";
 
+        /// <summary>x: cos(spill half-angle), y: 0..1 spill level; z and w unused.</summary>
+        public const string k_SpillProperty = "_RootsFlashlightSpill";
+
         [Header("Wiring")]
         [Tooltip("The Spot light on Head/Flashlight — the same one the controller drives.")]
         [SerializeField] private Light m_light;
@@ -49,9 +52,19 @@ namespace RootsDance.Player
                  "edge read as a projected texture rather than as ink catching the light.")]
         [Range(0f, 20f)][SerializeField] private float m_coneMarginDegrees = 4f;
 
+        [Tooltip("How far past the cone the weak wash reaches. A real torch throws a wide, faint " +
+                 "spill around its bright pool, and it is what lets a mark be noticed before the " +
+                 "beam is squarely on it.")]
+        [Range(0f, 60f)][SerializeField] private float m_spillDegrees = 18f;
+
+        [Tooltip("How bright that wash is, as a fraction of the beam. Keep it low: it should " +
+                 "hint that something is there, not read it out.")]
+        [Range(0f, 1f)][SerializeField] private float m_spillLevel = 0.22f;
+
         private static readonly int k_PositionId = Shader.PropertyToID(k_PositionProperty);
         private static readonly int k_DirectionId = Shader.PropertyToID(k_DirectionProperty);
         private static readonly int k_ConeId = Shader.PropertyToID(k_ConeProperty);
+        private static readonly int k_SpillId = Shader.PropertyToID(k_SpillProperty);
 
         private bool m_hasLight;
 
@@ -108,13 +121,19 @@ namespace RootsDance.Player
 
             float strength = m_controller != null ? m_controller.BeamStrength : 1f;
 
+            // Nothing may react to a torch no hand is holding, however the switch was left.
+            bool held = m_controller == null || m_controller.IsHeld;
+            float spillDegrees = Mathf.Min(outerDegrees + m_spillDegrees, 89.9f);
+
             return new FlashlightBeam(
                 beam.position,
                 beam.forward,
                 Mathf.Cos(outerDegrees * Mathf.Deg2Rad),
                 Mathf.Cos(innerDegrees * Mathf.Deg2Rad),
                 m_light.range,
-                m_light.enabled ? Mathf.Clamp01(strength) : 0f);
+                m_light.enabled && held ? Mathf.Clamp01(strength) : 0f,
+                Mathf.Cos(spillDegrees * Mathf.Deg2Rad),
+                m_spillLevel);
         }
 
         private static void Publish(FlashlightBeam beam)
@@ -126,6 +145,7 @@ namespace RootsDance.Player
             Shader.SetGlobalVector(
                 k_ConeId,
                 new Vector4(beam.OuterCos, beam.InnerCos, beam.Range, beam.Strength));
+            Shader.SetGlobalVector(k_SpillId, new Vector4(beam.SpillCos, beam.SpillLevel, 0f, 0f));
         }
     }
 }

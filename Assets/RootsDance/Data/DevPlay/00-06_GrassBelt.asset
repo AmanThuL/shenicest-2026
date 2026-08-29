@@ -14,11 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
   m_label: 00-06 Grass belt
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
-  m_anchorName: 
-  m_position: {x: 0, y: 7, z: 32}
-  m_yaw: 0
+  m_anchorName: Anchor_00-06_GrassBelt
+  m_position: {x: -16, y: 7, z: 28}
+  m_yaw: 20
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 0
   m_flags:
   - flow.left_start_area
@@ -26,5 +30,4 @@ MonoBehaviour:
   - flow.radio_briefing_finished
   - flow.helmet_removable
   - flow.helmet_removed
-  - flow.entered_grass_belt
   m_recordedTargets: []

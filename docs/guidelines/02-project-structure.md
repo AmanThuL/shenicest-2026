@@ -75,8 +75,8 @@ Unity-forced root folders **MAY** be added later, and only at `Assets/` root bec
 | `Animations/Clips/` | `.anim` clips, avatar masks | Imported FBX clips stay inside their model under `Meshes/`. |
 | `Animations/Controllers/` | `.controller`, `.overrideController` | |
 | `Animations/Timelines/` | Timeline `.playable` assets | E-book: Timeline assets live with animations. |
-| `Audio/Music/`, `Audio/SFX/` | `.wav` / `.ogg` clips | |
-| `Audio/Mixers/` | `.mixer` | |
+| `Audio/Music/`, `Audio/Ambience/`, `Audio/SFX/`, `Audio/Voice/` | `.wav` / `.ogg` clips | Import settings are derived from which of the four a clip is in — see [音频管线](../architecture/systems/音频管线.md). **[project decision]** |
+| `Audio/Mixers/` | `.mixer` | Exactly one asset, `Main.mixer`. |
 | `Data/` | ScriptableObject **instances**, one subfolder per type, one logical thing per asset | Initial sub-folders: `Events/` (event channels), `Levels/` (`LevelSO` assets), `Config/` (gameplay config), `Enemies/`. Class definitions live in `Scripts/Runtime/Data/`, or in the feature folder that owns them when only that feature uses them. **[project decision]** |
 | `Data/Events/` | ScriptableObject event-channel assets | Pattern owned by [03](./03-architecture-patterns.md). |
 | `Fonts/` | Source font files (`.ttf`, `.otf`) | Generated SDF font assets go to `UI/Fonts/`. |
@@ -203,7 +203,7 @@ Hidden by the importer: folders/files starting with `.` (except under `Streaming
 | Animation clip | `Animations/Clips/` | `<Character>_<Action>` | `Player_Run.anim` |
 | Animator controller | `Animations/Controllers/` | `<Character>` | `Player.controller` |
 | Timeline | `Animations/Timelines/` | `<Sequence>` | `IntroCutscene.playable` |
-| Audio clip | `Audio/SFX/`, `Audio/Music/` | `<Source>_<Event>[_NN]` / `<Track>` | `Footstep_Grass_01.wav`, `MainTheme.ogg` |
+| Audio clip | `Audio/SFX/`, `Audio/Ambience/`, `Audio/Music/`, `Audio/Voice/` | `<Source>_<Event>[_NN]` / `<Track>` | `Footstep_Grass_01.wav`, `MainTheme.ogg` |
 | Audio mixer | `Audio/Mixers/` | `<Name>` | `Main.mixer` |
 | UI screen prefab | `Prefabs/UI/` | `<Screen>` | `MainMenu.prefab`, `Hud.prefab` |
 | Source font | `Fonts/` | vendor file name, no spaces | `Inter-Regular.ttf` |
@@ -541,10 +541,13 @@ Assets/
 │   │   ├── Controllers/
 │   │   └── Timelines/
 │   ├── Audio/
+│   │   ├── Ambience/
 │   │   ├── Mixers/
 │   │   ├── Music/
-│   │   └── SFX/
+│   │   ├── SFX/
+│   │   └── Voice/
 │   ├── Data/
+│   │   ├── Audio/                    # AudioCueSO assets
 │   │   ├── Config/
 │   │   ├── Enemies/
 │   │   ├── Events/
@@ -610,8 +613,8 @@ Shell one-liner (bash/zsh) for an agent creating the tree from the repository ro
 ```sh
 cd Assets && mkdir -p \
   RootsDance/Animations/{Clips,Controllers,Timelines} \
-  RootsDance/Audio/{Mixers,Music,SFX} \
-  RootsDance/Data/{Config,Enemies,Events,Levels} \
+  RootsDance/Audio/{Ambience,Mixers,Music,SFX,Voice} \
+  RootsDance/Data/{Audio,Config,Enemies,Events,Levels} \
   RootsDance/Fonts RootsDance/Input \
   RootsDance/Materials/Physics \
   RootsDance/Meshes/{Characters,Environment,Props} \

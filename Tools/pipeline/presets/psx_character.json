@@ -1,6 +1,6 @@
 {
   "extends": "psx_prop",
-  "description": "Retro character / first-person arms. 512 matches the existing arms_01.png sheet in the current source asset.",
+  "description": "Retro character / first-person arms. 512 matches the Arms_BaseMap.png sheet in the current source asset.",
   "texture": {
     "resolution": 512,
     "maps": ["BaseMap"]

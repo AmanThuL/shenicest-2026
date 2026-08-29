@@ -292,6 +292,9 @@ If the camera follows a Rigidbody-driven object and jitters, set that Rigidbody'
 **MUST** keep each project font as a TMP **Font Asset** under `UI/Fonts/`, generated once with the Font Asset Creator; CJK coverage comes from a dynamic font asset plus a fallback chain, never from one static atlas per screen.
 - *Source:* [Font Assets](../reference/packages/ugui-2-0-textmeshpro-fontassets.md), [Font Asset Creator](../reference/packages/ugui-2-0-textmeshpro-fontassetscreator.md), [Fallback font assets](../reference/packages/ugui-2-0-textmeshpro-fontassetsfallback.md).
 
+**MUST** set Latin text in **m5x7** (CC0, Daniel Linssen — `Assets/RootsDance/Fonts/m5x7.ttf`) and Simplified Chinese in **Fusion Pixel 12px zh_hans** (OFL-1.1 — `FusionPixel-12px-Zh_Hans.ttf`), wired as one face: m5x7 is the primary TMP font asset, Fusion Pixel sits in its fallback table, and m5x7's Face Info `Scale` is `4/3`. `ElectronicUIKitBuilder.EnsureFont()` generates and maintains both assets. **[project decision]**
+- *Why:* Fusion Pixel ships Latin too, so ordering it first would leave m5x7 unused; its Latin cut is CJK-companion filler where m5x7 is a purpose-drawn 5×7 instrument face. The `4/3` scale puts a 16 px em and a 12 px em on the same pixel grid, so a mixed line does not read as two resolutions. Rationale and the measured type sizes: [电子类UI组件库规范 §2C](../effects/电子类UI组件库规范.md).
+
 **SHOULD** style runs inside one label with TMP rich-text tags instead of splitting the line into several text objects.
 - *Source:* [Rich text](../reference/packages/ugui-2-0-textmeshpro-richtext.md).
 

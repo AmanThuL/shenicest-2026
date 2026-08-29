@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -42,10 +43,28 @@ namespace RootsDance.Scanner
         /// <summary>False once a one-shot target has been read.</summary>
         public bool CanScan => m_repeatable || !m_hasBeenScanned;
 
+        /// <summary>Raised once, when this target completes its first successful scan.</summary>
+        public event Action<ScannableTarget> Scanned;
+
         /// <summary>World point the beam is pointed at.</summary>
         public Vector3 AimPosition => m_aimPoint == null ? transform.position : m_aimPoint.position;
 
         public void MarkScanned()
+        {
+            if (m_hasBeenScanned)
+            {
+                return;
+            }
+
+            m_hasBeenScanned = true;
+            Scanned?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Restores a previously recorded one-shot target without replaying scan-result side effects.
+        /// Checkpoint hydration uses this after WorldState becomes available.
+        /// </summary>
+        public void RestoreScannedState()
         {
             m_hasBeenScanned = true;
         }

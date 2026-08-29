@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &9186836216955423824
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2250580960823764767, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5738551107749385225, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      propertyPath: m_Name
+      value: BootScreenCover
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5738551107749385225, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2958449225259461879}
+  m_SourcePrefab: {fileID: 100100000, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+--- !u!20 &3374105349647711736 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 5885369281053290920, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3521074978206373977 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5738551107749385225, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2958449225259461879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3521074978206373977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da40ce79fb1bb4f3c87a46b1f8155e4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.BootScreenCover
+  m_screen: {fileID: 3860558759449002294}
+  m_progressRule: {fileID: 7113814907845967533}
+  m_canvases:
+  - {fileID: 4993916449815754318}
+  - {fileID: 4223704051375613803}
+  m_signalCamera: {fileID: 3374105349647711736}
+--- !u!114 &3860558759449002294 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5399050011737148774, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3521074978206373977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea83590e65bb94602a209a7960d2c371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.BootScreenPresenter
+--- !u!223 &4223704051375613803 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 5036060851011676987, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+--- !u!223 &4993916449815754318 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 4193913728475675166, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7113814907845967533 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2145800477652759293, guid: 3a67c5bea9d7845bcba30bdbe8b03ea4, type: 3}
+  m_PrefabInstance: {fileID: 9186836216955423824}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 234aac6873ec5438fa6ff7dab6916f55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.TerminalProgressRule

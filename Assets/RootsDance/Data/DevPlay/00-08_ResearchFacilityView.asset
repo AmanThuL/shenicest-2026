@@ -12,13 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
   m_Name: 00-08_ResearchFacilityView
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: 00-08 Research facility view
+  m_label: 00-08 Facility reveal
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-08_ResearchFacilityView
-  m_position: {x: 0.473, y: 7.289, z: 85.366}
-  m_yaw: 0
+  m_position: {x: 1.5, y: 7.289, z: 73.5}
+  m_yaw: 10
   m_snapToGround: 1
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_groundClearance: 1
+  m_useAnchorHeight: 1
   m_timeOfDay: 0
   m_flags:
   - flow.left_start_area
@@ -29,5 +33,5 @@ MonoBehaviour:
   - flow.entered_grass_belt
   - flow.first_investigation_done
   m_recordedTargets:
-  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}

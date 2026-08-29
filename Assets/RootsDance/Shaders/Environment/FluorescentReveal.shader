@@ -80,6 +80,7 @@ Shader "RootsDance/Environment/FluorescentReveal"
     float4 _RootsFlashlightDirection;  // xyz: beam axis, normalised by C#
     float4 _RootsFlashlightCone;       // x: cos(outer half-angle)  y: cos(inner half-angle)
                                        // z: range in metres        w: 0..1 fade of the beam itself
+    float4 _RootsFlashlightSpill;      // x: cos(spill half-angle)  y: 0..1 level of the wash
 
     ENDHLSL
 
@@ -134,6 +135,15 @@ Shader "RootsDance/Environment/FluorescentReveal"
                 // Outer to inner, so the fragment brightens across the cone's penumbra exactly
                 // where the real spot light's own falloff puts it.
                 float cone = smoothstep(_RootsFlashlightCone.x, _RootsFlashlightCone.y, axis);
+
+                // A torch does not stop at the edge of its bright pool: a wide, weak wash carries
+                // past it. Without this a mark is either fully read or invisible, and the player
+                // has no way to notice one is there before the beam is already square on it. Taken
+                // as a max rather than a sum so the bright cone is exactly as bright as before.
+                float spill = smoothstep(_RootsFlashlightSpill.x, _RootsFlashlightCone.x, axis)
+                            * saturate(_RootsFlashlightSpill.y);
+
+                cone = max(cone, spill);
 
                 // Fades over the last quarter of the range rather than at a hard edge.
                 float range = 1.0 - smoothstep(_RootsFlashlightCone.z * 0.75,

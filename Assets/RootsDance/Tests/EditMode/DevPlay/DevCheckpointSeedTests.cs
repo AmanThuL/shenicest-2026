@@ -3,7 +3,9 @@ using NUnit.Framework;
 using RootsDance.Core;
 using RootsDance.Core.Commands;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Investigation;
 using UnityEngine;
+using UnityEngine.TestTools.Utils;
 
 namespace RootsDance.Tests.EditMode.DevPlay
 {
@@ -112,7 +114,8 @@ namespace RootsDance.Tests.EditMode.DevPlay
         {
             Vector3 result = DevCheckpointSeed.ResolvePosition(new Vector3(3f, 99f, -7f), true, 4.2f, 1f);
 
-            Assert.AreEqual(new Vector3(3f, 5.2f, -7f), result);
+            Assert.That(result, Is.EqualTo(new Vector3(3f, 5.2f, -7f))
+                .Using(Vector3EqualityComparer.Instance));
         }
 
         [Test]
@@ -120,7 +123,61 @@ namespace RootsDance.Tests.EditMode.DevPlay
         {
             Vector3 result = DevCheckpointSeed.ResolvePosition(new Vector3(3f, 6f, -7f), false, 0f, 1f);
 
-            Assert.AreEqual(new Vector3(3f, 6f, -7f), result);
+            Assert.That(result, Is.EqualTo(new Vector3(3f, 6f, -7f))
+                .Using(Vector3EqualityComparer.Instance));
+        }
+
+        [Test]
+        public void ResolveBasePosition_AnchorHeightDisabled_KeepsFallbackHeight()
+        {
+            Vector3 result = DevCheckpointSeed.ResolveBasePosition(
+                new Vector3(20.7f, 7.8f, 135.8f), true, new Vector3(21f, 20f, 136f), false);
+
+            Assert.That(result, Is.EqualTo(new Vector3(21f, 7.8f, 136f))
+                .Using(Vector3EqualityComparer.Instance));
+        }
+
+        [Test]
+        public void ResolveBasePosition_AnchorHeightEnabled_UsesWholeAnchorPosition()
+        {
+            Vector3 anchorPosition = new Vector3(21f, 6f, 136f);
+            Vector3 result = DevCheckpointSeed.ResolveBasePosition(
+                new Vector3(20.7f, 7.8f, 135.8f), true, anchorPosition, true);
+
+            Assert.That(result, Is.EqualTo(anchorPosition).Using(Vector3EqualityComparer.Instance));
+        }
+
+        [Test]
+        public void ResolveBasePosition_AnchorMissing_UsesFallbackPosition()
+        {
+            Vector3 fallbackPosition = new Vector3(20.7f, 7.8f, 135.8f);
+            Vector3 result = DevCheckpointSeed.ResolveBasePosition(
+                fallbackPosition, false, new Vector3(21f, 20f, 136f), false);
+
+            Assert.That(result, Is.EqualTo(fallbackPosition).Using(Vector3EqualityComparer.Instance));
+        }
+
+        [Test]
+        public void Configure_FixedHeightCheckpoint_DisablesSnapAndAnchorHeight()
+        {
+            DevCheckpointSO checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+
+            try
+            {
+                checkpoint.Configure(
+                    "00-15 Clear ashleaf vine", null, "Anchor_00-15_ClearAshleafVine",
+                    new Vector3(20.7f, 7.8f, 135.8f), 32f, CheckpointTimeOfDay.Night,
+                    new string[0], new InvestigationTargetSO[0], false, 1 << 8, 1f, false);
+
+                Assert.IsFalse(checkpoint.SnapToGround);
+                Assert.IsFalse(checkpoint.UseAnchorHeight);
+                Assert.AreEqual(1 << 8, checkpoint.GroundLayers.value);
+                Assert.AreEqual(7.8f, checkpoint.Position.y);
+            }
+            finally
+            {
+                Object.DestroyImmediate(checkpoint);
+            }
         }
     }
 }

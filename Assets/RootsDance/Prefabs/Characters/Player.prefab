@@ -119,6 +119,7 @@ GameObject:
   - component: {fileID: 1633556529951712519}
   - component: {fileID: 8163118375396427749}
   - component: {fileID: 6841962975302966709}
+  - component: {fileID: 5093586072011387537}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -267,8 +268,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.FlashlightController
   m_light: {fileID: 3238816247033891326}
+  m_holdSocket: {fileID: 7863462782624755283}
+  m_beamAnchor: {fileID: 8979133815423464653}
   m_autoOnAtNight: 0
   m_fadeSeconds: 0.15
+  m_aimDistance: 7
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
 --- !u!114 &6841962975302966709
 MonoBehaviour:
@@ -285,6 +289,29 @@ MonoBehaviour:
   m_light: {fileID: 3238816247033891326}
   m_controller: {fileID: 8163118375396427749}
   m_coneMarginDegrees: 4
+  m_spillDegrees: 18
+  m_spillLevel: 0.22
+--- !u!114 &5093586072011387537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1f7828fb0cac43ce83c7d6ca78509c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.PickupProximityTrigger
+  m_socket: {fileID: 7863462782624755283}
+  m_player: {fileID: 6772109266663148318}
+  m_input: {fileID: 2523268967826309828}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 3
+  m_dropKey: 21
+  m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
+  m_dropPromptFormat: "[G] \u653E\u4E0B {0}"
+  m_swapPromptFormat: "[G] \u5148\u653E\u4E0B {1} \u624D\u80FD\u62FE\u53D6 {0}"
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
@@ -1882,11 +1909,11 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[0]'
+      propertyPath: m_suspendedWhileReading.Array.data[0]
       value: 
       objectReference: {fileID: 3067282954758705644}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[1]'
+      propertyPath: m_suspendedWhileReading.Array.data[1]
       value: 
       objectReference: {fileID: 1168216218860767587}
     - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
@@ -2061,6 +2088,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.CarriedItem
   m_hand: 0
+  m_kind: 0
   m_gripPosition: {x: 0, y: 0, z: 0}
   m_gripRotation: {x: 0, y: 0, z: 0, w: 1}
   m_body: {fileID: 0}

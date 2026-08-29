@@ -2,9 +2,12 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using RootsDance.App;
+using RootsDance.Audio;
+using RootsDance.Dialogue;
 using RootsDance.Events;
 
 namespace RootsDance.Editor.Tools
@@ -23,6 +26,12 @@ namespace RootsDance.Editor.Tools
         private const string k_FlagRaisedPath = k_EventsFolder + "/FlagRaised.asset";
         private const string k_ReportUpdatedPath = k_EventsFolder + "/ReportUpdated.asset";
         private const string k_TimeOfDayChangedPath = k_EventsFolder + "/TimeOfDayChanged.asset";
+        private const string k_AudioCueRequestedPath = k_EventsFolder + "/AudioCueRequested.asset";
+        private const string k_MusicRequestedPath = k_EventsFolder + "/MusicRequested.asset";
+        private const string k_DialogueRequestedPath = k_EventsFolder + "/DialogueRequested.asset";
+        private const string k_MonologuePath = k_EventsFolder + "/Monologue.asset";
+        private const string k_NoticePath = k_EventsFolder + "/Notice.asset";
+        private const string k_InvestigationResultPath = k_EventsFolder + "/InvestigationResult.asset";
 
         /// <summary>
         /// Batch entry point (-executeMethod). In batch mode
@@ -54,6 +63,9 @@ namespace RootsDance.Editor.Tools
             EnsureChannel<StringEventChannelSO>(k_FlagRaisedPath);
             EnsureChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath);
             EnsureChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath);
+            EnsureChannel<AudioCueEventChannelSO>(k_AudioCueRequestedPath);
+            EnsureChannel<AudioCueEventChannelSO>(k_MusicRequestedPath);
+            EnsureChannel<DialogueEventChannelSO>(k_DialogueRequestedPath);
 
             // Re-load every channel from its path immediately before wiring. Creating an asset can
             // invalidate the instance CreateAsset handed back (an import in between reloads it), and
@@ -65,12 +77,16 @@ namespace RootsDance.Editor.Tools
                 LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath),
                 LoadChannel<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath));
 
+            EnsureAudio(bootstrap);
+            EnsureDialogue(bootstrap, scene);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
             Debug.Log("Bootstrap scene built: GameBootstrap + SceneLoader wired to 4 channel assets, "
-                + "UI slot created, forbidden content removed.");
+                + "audio directors and listeners wired, dialogue screen and runner wired, UI slot "
+                + "created, forbidden content removed.");
         }
 
         /// <summary>
@@ -187,6 +203,167 @@ namespace RootsDance.Editor.Tools
 
             GameObject uiRoot = new GameObject("UI");
             SceneManager.MoveGameObjectToScene(uiRoot, scene);
+        }
+
+        /// <summary>
+        /// The audio side of the persistent root: the two directors that actually make sound, the
+        /// volume settings, and the two listeners that turn events the game already raises into
+        /// cues. All five belong here rather than in a level, because a track and a bed have to
+        /// survive an additive level load.
+        /// <para>
+        /// The mixer is looked up rather than created — Unity has no API for authoring one — and a
+        /// missing mixer only leaves that one field empty, so the rest of the wiring still lands.
+        /// See docs/architecture/systems/音频管线.md §3.
+        /// </para>
+        /// </summary>
+        private static void EnsureAudio(GameBootstrap bootstrap)
+        {
+            GameObject root = bootstrap.gameObject;
+
+            AudioDirector director = Ensure<AudioDirector>(root);
+            MusicDirector music = Ensure<MusicDirector>(root);
+            AudioVolumeSettings volume = Ensure<AudioVolumeSettings>(root);
+            FlagAudioCues flagCues = Ensure<FlagAudioCues>(root);
+            ChannelAudioCue channelCue = Ensure<ChannelAudioCue>(root);
+
+            AudioCueEventChannelSO cueRequested = LoadChannel<AudioCueEventChannelSO>(k_AudioCueRequestedPath);
+            AudioCueEventChannelSO musicRequested = LoadChannel<AudioCueEventChannelSO>(k_MusicRequestedPath);
+            StringEventChannelSO flagRaised = LoadChannel<StringEventChannelSO>(k_FlagRaisedPath);
+
+            SerializedObject serializedDirector = new SerializedObject(director);
+            SetArray(serializedDirector.FindProperty("m_channels"), cueRequested);
+            serializedDirector.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedMusic = new SerializedObject(music);
+            serializedMusic.FindProperty("m_musicRequested").objectReferenceValue = musicRequested;
+            serializedMusic.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedFlags = new SerializedObject(flagCues);
+            serializedFlags.FindProperty("m_flagRaised").objectReferenceValue = flagRaised;
+            serializedFlags.FindProperty("m_channel").objectReferenceValue = cueRequested;
+            serializedFlags.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedChannel = new SerializedObject(channelCue);
+            SetArray(serializedChannel.FindProperty("m_textChannels"),
+                LoadChannel<StringEventChannelSO>(k_MonologuePath),
+                LoadChannel<StringEventChannelSO>(k_NoticePath),
+                LoadChannel<StringEventChannelSO>(k_InvestigationResultPath));
+            serializedChannel.FindProperty("m_reportUpdated").objectReferenceValue =
+                LoadChannel<ReportUpdateEventChannelSO>(k_ReportUpdatedPath);
+            serializedChannel.FindProperty("m_channel").objectReferenceValue = cueRequested;
+            serializedChannel.ApplyModifiedPropertiesWithoutUndo();
+
+            AudioMixer mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioRouting.k_MixerAssetPath);
+
+            if (mixer == null)
+            {
+                Debug.LogWarning($"No audio mixer at {AudioRouting.k_MixerAssetPath}; the volume "
+                    + "settings were left unwired. Create it by hand, then run "
+                    + "RootsDance/Audio/Validate Mixer.");
+            }
+
+            SerializedObject serializedVolume = new SerializedObject(volume);
+            serializedVolume.FindProperty("m_mixer").objectReferenceValue = mixer;
+            serializedVolume.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static T Ensure<T>(GameObject target) where T : Component
+        {
+            T component = target.GetComponent<T>();
+
+            return component == null ? target.AddComponent<T>() : component;
+        }
+
+        /// <summary>Rewrites an object-reference array property to exactly the given entries.</summary>
+        private static void SetArray(SerializedProperty property, params Object[] entries)
+        {
+            property.arraySize = entries.Length;
+
+            for (int i = 0; i < entries.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = entries[i];
+            }
+        }
+
+        /// <summary>
+        /// The dialogue runner, and the screen it drives, both in the bootstrap scene.
+        /// <para>
+        /// The runner belongs here rather than on the player, and the reason is a serialized
+        /// reference: it has to reach the <c>DialoguePresenter</c>, the screen lives in the UI slot
+        /// of this scene, and the player lives in a level scene. Put the runner on the player and
+        /// that reference cannot be made at all. What the runner loses by not being on the player —
+        /// the input reader it uses to let the interact button skip a line — it finds by itself at
+        /// Start, and losing it would only cost the skip.
+        /// </para>
+        /// </summary>
+        private static void EnsureDialogue(GameBootstrap bootstrap, Scene scene)
+        {
+            DialoguePresenter presenter = FindPresenter(scene);
+
+            if (presenter == null)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/RootsDance/Prefabs/UI/DialogueScreen.prefab");
+
+                if (prefab == null)
+                {
+                    Debug.LogWarning("No DialogueScreen prefab; run RootsDance/UI/Build Dialogue "
+                        + "Screen, then this item again. The runner is wired without a view, which "
+                        + "runs conversations silently.");
+                }
+                else
+                {
+                    GameObject uiRoot = FindUiRoot(scene);
+                    GameObject screen = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+
+                    if (uiRoot != null)
+                    {
+                        screen.transform.SetParent(uiRoot.transform, false);
+                    }
+
+                    presenter = screen.GetComponentInChildren<DialoguePresenter>(true);
+                }
+            }
+
+            DialogueRunner runner = Ensure<DialogueRunner>(bootstrap.gameObject);
+
+            SerializedObject serialized = new SerializedObject(runner);
+            serialized.FindProperty("m_playRequested").objectReferenceValue =
+                LoadChannel<DialogueEventChannelSO>(k_DialogueRequestedPath);
+            serialized.FindProperty("m_viewBehaviour").objectReferenceValue = presenter;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static DialoguePresenter FindPresenter(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                DialoguePresenter presenter = roots[i].GetComponentInChildren<DialoguePresenter>(true);
+
+                if (presenter != null)
+                {
+                    return presenter;
+                }
+            }
+
+            return null;
+        }
+
+        private static GameObject FindUiRoot(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                if (roots[i].name == "UI")
+                {
+                    return roots[i];
+                }
+            }
+
+            return null;
         }
 
         private static void WireBootstrap(GameBootstrap bootstrap, LevelEventChannelSO loadLevelRequested,

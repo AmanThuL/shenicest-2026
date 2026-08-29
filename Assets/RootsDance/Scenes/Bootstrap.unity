@@ -228,6 +228,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20803c8497f3a4250a142aa7968fbf63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.App.SceneLoader
+  m_coverPrefab: {fileID: 2958449225259461879, guid: eafc288f91f4847f6a1b7fdda9f13d1f, type: 3}
+  m_minimumCoverSeconds: 1.25
+  m_settleFrames: 4
 --- !u!114 &797071105
 MonoBehaviour:
   m_ObjectHideFlags: 0
