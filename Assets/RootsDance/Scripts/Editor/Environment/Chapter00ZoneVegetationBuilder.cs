@@ -294,7 +294,8 @@ namespace RootsDance.Editor.Environment
             }
 
             ApplyTint(instance, placement.Tint, tintCache);
-            Undo.RegisterCreatedObjectUndo(instance, "Build Chapter 00 A-E Vegetation");
+            // The generated group root owns the undo record. Registering more than 40,000 nested instances
+            // separately overflows Unity's undo stack before the group is connected to its prefab.
             return true;
         }
 
@@ -350,7 +351,6 @@ namespace RootsDance.Editor.Environment
             ScannerWorldStateResult result = instance.AddComponent<ScannerWorldStateResult>();
             SetSerialized(result, "m_reportTarget", target);
             SetLayerRecursively(instance, LayerMask.NameToLayer("Scannable"));
-            Undo.RegisterCreatedObjectUndo(instance, "Build Chapter 00 C Scannable Grass");
             return true;
         }
 

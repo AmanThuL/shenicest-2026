@@ -335,13 +335,6 @@ namespace RootsDance.Editor.Tools
             serialized.FindProperty("m_playRequested").objectReferenceValue =
                 LoadChannel<DialogueEventChannelSO>(k_DialogueRequestedPath);
             serialized.FindProperty("m_viewBehaviour").objectReferenceValue = presenter;
-
-            // One runner plays every conversation, so the mix for a spoken line is wired once, here.
-            // The recordings themselves live on the lines of each DialogueSO.
-            serialized.FindProperty("m_audioChannel").objectReferenceValue =
-                LoadChannel<AudioCueEventChannelSO>(k_AudioCueRequestedPath);
-            serialized.FindProperty("m_voiceCue").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<AudioCueSO>(k_DialogueVoiceCuePath);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

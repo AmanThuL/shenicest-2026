@@ -87,6 +87,22 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void DefaultRandomPools_ExcludePhotogrammetryRootHeroes()
+        {
+            string[] heroKeys = { "pine_roots", "root_cluster_01", "root_cluster_02" };
+            Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
+
+            foreach (Chapter00VegetationLayerSpec layer in p.Layers)
+            {
+                foreach (string heroKey in heroKeys)
+                {
+                    CollectionAssert.DoesNotContain(layer.PrefabKeys, heroKey,
+                        heroKey + " must remain explicit hero placement only");
+                }
+            }
+        }
+
+        [Test]
         public void Layout_IsDeterministicAndTargetHeightsStayInLayerRanges()
         {
             Chapter00ZoneVegetationParams p = SmallDefault();
