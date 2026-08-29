@@ -46,7 +46,18 @@ namespace RootsDance.Core
         /// <summary>The underground root network has been read through the floor window (02-02).</summary>
         public const string k_SawUndergroundNetwork = "flow.saw_underground_network";
 
-        /// <summary>The flower sprite has been met and spoken to (02-04).</summary>
+        /// <summary>
+        /// The flower sprite has just turned up behind the player on the bridge (02-04). Raised at
+        /// the start of the meeting, not at its end: it is what makes her visible and what the
+        /// camera's look-behind hangs on, and the player has to see her before she has said
+        /// anything. <see cref="k_MetFlowerSprite"/> is the other end of the same beat.
+        /// </summary>
+        public const string k_FlowerSpriteAppeared = "flow.flower_sprite_appeared";
+
+        /// <summary>
+        /// The flower sprite has been met and spoken to (02-04). Raised by DLG-001 on completion,
+        /// and it is what starts her following the player — from here she is company, not a prop.
+        /// </summary>
         public const string k_MetFlowerSprite = "flow.met_flower_sprite";
 
         /// <summary>The sprite has said the station belonged to someone — the first "her" (02-04).</summary>

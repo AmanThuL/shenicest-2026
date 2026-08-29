@@ -17,9 +17,10 @@ namespace RootsDance.Editor.Content
     /// scene keeps transforms at 1 and nothing downstream has to know she was resized.
     /// </para>
     /// <para>
-    /// The FBX carries four takes — idle, walk, attack, aggro. Only idle is wired up here; the
-    /// other three are imported and named so they are there when something needs them, but a
-    /// controller that can only stand still is honest about what the level actually does with her.
+    /// The FBX carries four takes — idle, walk, attack, aggro. Idle and walk are wired into a
+    /// controller that switches on a <c>Speed</c> float, which is what lets her trail the player
+    /// without moonwalking; attack and aggro are imported and named but left out, because she is
+    /// written as company and a controller that can turn on her is not honest about that.
     /// </para>
     /// Menu: RootsDance &gt; Content &gt; Build Flower Sprite.
     /// </summary>
@@ -46,6 +47,20 @@ namespace RootsDance.Editor.Content
         private const float k_ImportScale = 0.1155f;
 
         private const string k_IdleClip = "FlowerSprite_Idle";
+        private const string k_WalkClip = "FlowerSprite_Walk";
+
+        /// <summary>
+        /// Float parameter the controller switches on, in metres per second.
+        /// <see cref="RootsDance.Companion.FollowCompanion"/> writes her actual speed into it.
+        /// </summary>
+        private const string k_SpeedParameter = "Speed";
+
+        /// <summary>
+        /// Metres per second above which she is walking. Under a real footstep's worth of movement
+        /// the walk cycle reads as a twitch, so the threshold sits above the noise a follow leaves
+        /// when it is holding its distance rather than at zero.
+        /// </summary>
+        private const float k_WalkSpeed = 0.25f;
 
         /// <summary>
         /// The takes in the FBX, in file order, and what each becomes. The authored names arrive as
@@ -242,9 +257,15 @@ namespace RootsDance.Editor.Content
             return material;
         }
 
+        /// <summary>
+        /// Idle and walk, switched by how fast she is actually moving. Only these two of the four
+        /// takes are wired: aggro and attack belong to a monster, and she is not written as one —
+        /// they stay imported and named so a later beat can reach them.
+        /// </summary>
         private static AnimatorController EnsureController()
         {
             AnimationClip idle = FindClip(k_IdleClip);
+            AnimationClip walk = FindClip(k_WalkClip);
             AnimatorController controller =
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(k_ControllerPath);
 
@@ -253,26 +274,70 @@ namespace RootsDance.Editor.Content
                 controller = AnimatorController.CreateAnimatorControllerAtPath(k_ControllerPath);
             }
 
-            AnimatorStateMachine machine = controller.layers[0].stateMachine;
-            AnimatorState state = null;
+            EnsureSpeedParameter(controller);
 
-            for (int i = 0; i < machine.states.Length; i++)
+            AnimatorStateMachine machine = controller.layers[0].stateMachine;
+            AnimatorState idleState = EnsureState(machine, k_IdleClip, idle);
+            AnimatorState walkState = EnsureState(machine, k_WalkClip, walk);
+            machine.defaultState = idleState;
+
+            // Rebuilt rather than patched: a transition carries conditions, durations and an exit
+            // time, and reconciling those in place is more code than making the two again.
+            ClearTransitions(idleState);
+            ClearTransitions(walkState);
+
+            AnimatorStateTransition toWalk = idleState.AddTransition(walkState);
+            toWalk.hasExitTime = false;
+            toWalk.duration = 0.15f;
+            toWalk.AddCondition(AnimatorConditionMode.Greater, k_WalkSpeed, k_SpeedParameter);
+
+            AnimatorStateTransition toIdle = walkState.AddTransition(idleState);
+            toIdle.hasExitTime = false;
+            toIdle.duration = 0.2f;
+            toIdle.AddCondition(AnimatorConditionMode.Less, k_WalkSpeed, k_SpeedParameter);
+
+            EditorUtility.SetDirty(controller);
+            return controller;
+        }
+
+        private static void EnsureSpeedParameter(AnimatorController controller)
+        {
+            for (int i = 0; i < controller.parameters.Length; i++)
             {
-                if (machine.states[i].state.name == k_IdleClip)
+                if (controller.parameters[i].name == k_SpeedParameter)
                 {
-                    state = machine.states[i].state;
+                    return;
                 }
             }
 
-            if (state == null)
+            controller.AddParameter(k_SpeedParameter, AnimatorControllerParameterType.Float);
+        }
+
+        private static AnimatorState EnsureState(
+            AnimatorStateMachine machine, string name, AnimationClip clip)
+        {
+            for (int i = 0; i < machine.states.Length; i++)
             {
-                state = machine.AddState(k_IdleClip);
+                if (machine.states[i].state.name == name)
+                {
+                    machine.states[i].state.motion = clip;
+                    return machine.states[i].state;
+                }
             }
 
-            state.motion = idle;
-            machine.defaultState = state;
-            EditorUtility.SetDirty(controller);
-            return controller;
+            AnimatorState state = machine.AddState(name);
+            state.motion = clip;
+            return state;
+        }
+
+        private static void ClearTransitions(AnimatorState state)
+        {
+            AnimatorStateTransition[] transitions = state.transitions;
+
+            for (int i = 0; i < transitions.Length; i++)
+            {
+                state.RemoveTransition(transitions[i]);
+            }
         }
 
         private static GameObject EnsurePrefab(Material material, AnimatorController controller)

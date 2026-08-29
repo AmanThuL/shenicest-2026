@@ -31,6 +31,7 @@ namespace RootsDance.Tests.EditMode.DevPlay
 
                     // Chapter 02.
                     WorldFlags.k_SawUndergroundNetwork,
+                    WorldFlags.k_FlowerSpriteAppeared,
                     WorldFlags.k_MetFlowerSprite,
                     WorldFlags.k_HeardAboutHer,
                     WorldFlags.k_EnteredGreenhouse,
