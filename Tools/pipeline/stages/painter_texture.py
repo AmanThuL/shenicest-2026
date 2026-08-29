@@ -599,6 +599,9 @@ CHANNELS = {
     "roughness": L.ChannelType.SpecularRoughness,
     "metallic": L.ChannelType.BaseMetalness,
     "height": L.ChannelType.Height,
+    # glass: haze is contamination scattering, so opacity is authored per
+    # layer alongside roughness rather than dialled on the material once
+    "opacity": L.ChannelType.Opacity,
 }
 
 
@@ -646,6 +649,12 @@ out = []
 
 for ts in TS.all_texture_sets():
     stack = ts.get_stack()
+    # the HDRP template ships without an opacity channel; a glass stack needs
+    # one, and filling a channel the stack lacks raises instead of creating it
+    wants_opacity = any(ch == "opacity" for _, chans, _, _, _ in spec
+                        for ch, _ in chans)
+    if wants_opacity and not stack.has_channel(TS.ChannelType.Opacity):
+        stack.add_channel(TS.ChannelType.Opacity, TS.ChannelFormat.L8)
     for name, channels, mask_query, triplanar, opacity in spec:
         entry = {"texture_set": ts.name(), "layer": name, "channels": [],
                  "mask": mask_query or "", "status": "ok"}

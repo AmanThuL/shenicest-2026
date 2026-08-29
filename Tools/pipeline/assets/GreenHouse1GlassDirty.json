@@ -1,0 +1,39 @@
+{
+  "asset": "GreenHouse1GlassDirty",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/_TilingJigs/GreenHouse1GlassDirtyPlane.blend",
+    "object": "GreenHouse1GlassDirty",
+    "licence": "Authoring jig generated in-repo (a 2 m plane); sources are CC0.",
+    "note": "One of the three glazing states per docs/architecture/废弃温室材质研究.md: haze is micro-surface contamination, so roughness and opacity are authored per layer, never a single material alpha. All masks are procedural -- a flat jig bakes uniform mesh maps."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": false,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "material_slots": [
+      "GreenHouse1GlassDirty"
+    ]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": [
+    "GreenHouse1GlassDirty"
+  ],
+  "painter": {
+    "fills": [
+      "GlassBase(0,1.0):basecolor=#B4C6C6;roughness=0.05;opacity=0.20;metallic=0.0",
+      "DustFilm(0,0.5):basecolor=#9A968B;roughness=0.55;opacity=0.45|~grunge_dust_spread",
+      "RainStreak(0,0.55):basecolor=#8C908A;roughness=0.18;opacity=0.26|~grunge_leaks",
+      "MineralSpots(0,0.4):basecolor=#C9C5B3;roughness=0.68;opacity=0.55|~grunge_stains_hollow",
+      "MildewSpots(0,0.3):basecolor=#3A4A34;roughness=0.72;opacity=0.60|~grunge_spots_dirty",
+      "MossCreep(0,0.45):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg;opacity=0.92|~grunge_concrete_moss_medium"
+    ],
+    "layers": [],
+    "note": "Tiling glass state authored per the research doc's glass-haze rule."
+  }
+}
