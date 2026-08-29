@@ -16,18 +16,22 @@
 // be allowed to treat them as colour, or the rim bends and the growth front moves. Measured
 // intact end to end on 2026-08-30; see the plan's §3.2.
 
-float3 BloomKeyLight(out float3 lightDirWS)
+float3 BloomKeyLight(out float3 lightDirWS, out float3 ambient)
 {
     float3 dir = _RootsSunDirection.xyz;
     float3 col = _RootsSunColor.rgb;
+    ambient = _RootsSkyColor.rgb;
 
     // Nothing has broadcast a sun: a prefab preview, a scene with no SunBroadcaster, or the
     // first frame before it runs. A fixed key light keeps the material readable instead of
-    // rendering the clumps black and sending someone hunting for a shader bug.
+    // rendering the clumps black and sending someone hunting for a shader bug. The sky is
+    // substituted along with it -- a sun without an ambient term leaves every shadowed side
+    // fully black, which looks like a different bug entirely.
     if (dot(col, float3(1.0, 1.0, 1.0)) < 1e-4)
     {
         dir = normalize(float3(0.4, -0.82, 0.41));
         col = float3(1.0, 0.96, 0.88);
+        ambient = float3(0.32, 0.38, 0.45);
     }
 
     lightDirWS = -normalize(dir);       // surface -> light
@@ -62,12 +66,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float threshold = _AlphaCutoff + _EdgeErode * (1.0 - rim);
     clip(rim * grown * base.a - threshold);
 
-    float3 normalTS = UnpackNormalmapRGorAG(
+    float3 normalTS = UnpackNormalMapRGorAG(
         SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uv), _NormalStrength);
     float3 N = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
 
     float3 L;
-    float3 sun = BloomKeyLight(L);
+    float3 ambient;
+    float3 sun = BloomKeyLight(L, ambient);
 
     // Wrapped diffuse: a petal is thin enough to keep carrying light past its own terminator, and
     // a hard N.L makes the clumps read as painted-on plastic.
@@ -86,7 +91,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // species growing over one statue, not a flowerbed.
     tint *= 1.0 + _ClumpVariation * (phase - 0.5);
 
-    float3 lit = base.rgb * tint * (_RootsSkyColor.rgb * _AmbientFloor + sun * diffuse)
+    float3 lit = base.rgb * tint * (ambient * _AmbientFloor + sun * diffuse)
                + sun * spec;
 
     surfaceData.color = lit;
