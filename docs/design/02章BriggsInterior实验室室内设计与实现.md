@@ -38,8 +38,14 @@
 - 第二轮重建后共 121 个 PWB prefab 实例。数量下降来自合并中央六柜台、移除阻塞北环路的服务台和清理重复器材，不是减少地面生态或桌面叙事密度。
 - 第二轮保留全部 `BI_Overgrowth_*`、`BI_Moss_*` 与既有地面生态坐标，只重做家具和台面层。
 - 顶部结构和悬挂植物最终以首次室内布景前的 `64792d1` 为基线：`Ceiling`、两根梁、Mesh 内的 ceiling holes、
-  `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留原 Prefab、材质与 Transform。PWB 下 121 个室内 props
+  `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留 `64792d1` 的 Prefab、父子层级与 Transform。
+  破顶是 `GarageShell.fbx/Ceiling` 网格中真实建模的开口，不是植被或光柱造成的视觉错觉。PWB 下 121 个室内 props
   则严格保持 `55a362d` 的状态；两套基线互不覆盖。
+- `Ceiling`、`Ceiling_Beam` 和 `Ceiling_Beam_Broken` 使用实验室专用
+  `Assets/RootsDance/Materials/Environment/BriggsInterior/BriggsCeiling_Triplanar.mat`。材质复用本地 AmbientCG
+  `Concrete032` 的 seamless BaseColor 与 Normal，使用 HDRP Triplanar 映射（`_UVBase = 5`）和 `2.25 m` world scale，
+  再以灰绿 tint 压低顶棚高亮。
+  这样非均匀缩放的 Garage Ceiling 不再沿原 UV 拉伸，也不需要替换破口网格。
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
   但不再穿墙或在室外形成难以辨认的轮廓。
@@ -569,18 +575,20 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 4. 手电是廊道和暗角的玩家主导光源。
 
 曝光保持固定或受控，不使用会因看向荧光物而剧烈跳变的自动曝光。Bloom 只让高亮边缘有轻微扩散，不做赛博霓虹。
-当前实现使用 Fixed Exposure EV 7。主破顶 Spot 为 4200 lm，西侧次光为 2800 lm；两束光恢复为首次室内布景前
-`64792d1` 的窄角艺术定向光，负责加强真实破顶日光在 PSX 后处理下的体积轮廓，不能替代室内填充。
+当前实现使用 Fixed Exposure EV 9，避免晴天顶光把破口边界和顶棚纹理整体洗白。主破顶 Spot 为 3400 lm，西侧次光为 2100 lm。
+两束灯都放在真实顶棚上方，开启 Soft Shadow 与体积阴影，并与 Sun 共用日光轴。它们负责加强真实破顶日光在 PSX
+后处理下的体积轮廓，不能替代室内填充，也不能在实心顶板下直接绘制无阴影光锥。
 
 ### 8.2 破顶与顶部光
 
 推荐两束受控 Spot Light：
 
-- 主光束中心约 `(0.1, 4.18, 2.5)`，使用首次室内布景前已经验证过的艺术定向轴，斜擦中央桌北半和台面玻璃。
-- 西侧次光束约 `(-5.35, 4.18, 3.75)`，从西侧破口照到破损培养区和残留低矮植物。
+- 主破口的平面中心约为 `X -0.28, Z -0.38`，主光束从该中心上方入射，斜擦中央桌北半和台面玻璃。
+- 西侧破口的平面中心约为 `X -5.75, Z 2.05`，次光束从该中心上方照到破损培养区和残留低矮植物。
 
-这两个位置与 `BriggsInteriorAtmosphereBuilder` 中的 `RoofShaft_Main`、`RoofShaft_West` 一致。可见顶棚破口必须与光束
-入口一致。根系在光束中形成剪影，但不能完全堵住体积光。
+灯源位于 Y 7.5 m，主灯位置约 `(0.77, 7.5, -2.20)`，西侧灯位置约 `(-4.70, 7.5, 0.23)`；它们沿 Sun
+轴线穿过上述两个洞口中心。主灯 60 度、西侧灯 50 度的锥体会同时覆盖洞口和周边实体 Ceiling，因此真实网格、断梁和藤蔓
+会共同裁切光束。根系在光束中形成剪影，但不能完全堵住体积光。
 
 布置顺序：
 

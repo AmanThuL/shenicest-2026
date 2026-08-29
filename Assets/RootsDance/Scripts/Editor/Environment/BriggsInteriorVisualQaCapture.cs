@@ -50,14 +50,18 @@ namespace RootsDance.Editor.Environment
                 Capture(camera, target, readback, "03_inside_east_to_archives",
                     new Vector3(7.4f, 1.75f, -4.2f), new Vector3(-1.5f, 1.05f, 0.3f));
                 Capture(camera, target, readback, "04_inside_ceiling_light_axis",
-                    new Vector3(-4.5f, 1.6f, -4.8f), new Vector3(0f, 3.6f, 1.2f));
+                    new Vector3(-0.28f, 1.65f, -0.38f), new Vector3(-0.28f, 4.9f, -0.38f));
 
                 Capture(camera, target, readback, "05_outside_southwest",
                     new Vector3(-15f, 3.5f, -12f), new Vector3(0f, 2f, -2f));
                 Capture(camera, target, readback, "06_outside_northeast",
                     new Vector3(15f, 3.5f, 12f), new Vector3(0f, 2f, 0f));
+                Capture(camera, target, readback, "07_inside_god_ray_side",
+                    new Vector3(2.7f, 1.65f, 3.7f), new Vector3(-1.15f, 2.7f, 1.35f));
+                Capture(camera, target, readback, "08_inside_west_roof_hole",
+                    new Vector3(-1.6f, 1.65f, -1.8f), new Vector3(-5.75f, 3.6f, 2.05f));
                 AuditPwbBounds(scene);
-                Debug.Log($"BriggsInteriorVisualQaCapture: wrote six views to '{k_OutputFolder}'.");
+                Debug.Log($"BriggsInteriorVisualQaCapture: wrote eight views to '{k_OutputFolder}'.");
             }
             finally
             {

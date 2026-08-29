@@ -149,6 +149,8 @@ namespace RootsDance.Editor.Environment
             Transform propsRoot,
             Material ivyMaterial)
         {
+            Restore647CeilingPlacement(environment);
+
             GameObject ivy = environment.GetRootGameObjects()
                 .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
                 .Select(item => item.gameObject)
@@ -193,6 +195,53 @@ namespace RootsDance.Editor.Environment
             vines.SetParent(propsRoot, false);
             CreateVine(ivyRoot, vines, "Ivy_Hanging_09", "MainHoleVine_Left", -0.78f, 2.5f, 12f, ivyMaterial);
             CreateVine(ivyRoot, vines, "Ivy_Hanging_10", "MainHoleVine_Right", 0.98f, 2.5f, -16f, ivyMaterial);
+            vines.localPosition = Vector3.zero;
+        }
+
+        private static void Restore647CeilingPlacement(Scene environment)
+        {
+            Transform shell = FindGameObject(environment, "GarageShell").transform;
+            shell.SetLocalPositionAndRotation(
+                new Vector3(0f, 0.0000011920929f, 0f),
+                new Quaternion(0f, 1f, 0f, -0.00000004371139f));
+            shell.localScale = new Vector3(2.8658316f, 2.003904f, 3.563683f);
+
+            SetHistoricalRoofPart(
+                shell,
+                "Ceiling",
+                new Vector3(-0.000000000000001f, 2.28f, 0.201f),
+                new Vector3(183.52277f, 322.36707f, 322.36707f));
+            SetHistoricalRoofPart(
+                shell,
+                "Ceiling_Beam",
+                new Vector3(2.2463758f, 2.2016478f, 0f),
+                new Vector3(10.94717f, 181.54106f, 10.94717f));
+            SetHistoricalRoofPart(
+                shell,
+                "Ceiling_Beam_Broken",
+                new Vector3(-0.443f, 2.412f, -0.073f),
+                new Vector3(10.94717f, 181.54106f, 10.94717f));
+        }
+
+        private static void SetHistoricalRoofPart(
+            Transform shell,
+            string name,
+            Vector3 position,
+            Vector3 scale)
+        {
+            Transform part = shell.Find(name);
+
+            if (part == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"The 64792d1 GarageShell roof part '{name}' is missing.");
+            }
+
+            part.gameObject.SetActive(true);
+            part.SetLocalPositionAndRotation(
+                position,
+                new Quaternion(0.7071069f, 0f, 0f, 0.7071067f));
+            part.localScale = scale;
         }
 
         private static void CreateVine(

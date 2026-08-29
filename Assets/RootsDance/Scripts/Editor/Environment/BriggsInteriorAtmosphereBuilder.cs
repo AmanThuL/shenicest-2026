@@ -24,6 +24,14 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Settings/VolumeProfiles/BriggsInteriorProfile.asset";
         private const string k_BlockerMaterialPath =
             "Assets/RootsDance/Materials/Environment/BriggsInterior/LabLightBlocker.mat";
+        private const string k_CeilingMaterialPath =
+            "Assets/RootsDance/Materials/Environment/BriggsInterior/BriggsCeiling_Triplanar.mat";
+        private const string k_SourceCeilingMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat";
+        private const string k_CeilingBaseMapPath =
+            "Assets/ThirdParty/Environment/AmbientCG/Concrete032/Concrete032_1K-JPG_Color.jpg";
+        private const string k_CeilingNormalMapPath =
+            "Assets/ThirdParty/Environment/AmbientCG/Concrete032/Concrete032_1K-JPG_NormalGL.jpg";
         private const string k_FogNoisePath =
             "Assets/RootsDance/Textures/Environment/Garage/LabFogNoise.asset";
 
@@ -48,15 +56,17 @@ namespace RootsDance.Editor.Environment
             Scene environment = FindLoadedEnvironmentScene();
             Transform atmosphere = ReplaceAtmosphereRoot(environment);
             Material blockerMaterial = EnsureBlockerMaterial();
+            Material ceilingMaterial = EnsureCeilingMaterial();
             Texture3D fogNoise = EnsureFogNoise();
             VolumeProfile profile = EnsureProfile();
 
             CreateLightBlockers(atmosphere, blockerMaterial, environment);
             CreateOpaqueLeakCaps(atmosphere, blockerMaterial, environment);
+            AssignCeilingMaterial(environment, ceilingMaterial);
             CreateInteriorVolume(atmosphere, profile);
             CreateRoomFog(atmosphere, fogNoise);
             ConfigureSun(environment);
-            CreateRoofShaftLights(atmosphere);
+            CreateRoofShaftLights(atmosphere, environment);
             ConfigureLabFillLights(environment);
 
             EditorSceneManager.SaveScene(environment);
@@ -336,7 +346,7 @@ namespace RootsDance.Editor.Environment
 
             Exposure exposure = GetOrAdd<Exposure>(profile);
             Set(exposure.mode, ExposureMode.Fixed);
-            Set(exposure.fixedExposure, 7f);
+            Set(exposure.fixedExposure, 9f);
 
             // The laboratory look is local. It must inherit the sunny global sky from MainProfile so that
             // stepping outside never applies the abandoned-room exposure and palette to the exterior.
@@ -389,8 +399,8 @@ namespace RootsDance.Editor.Environment
             Set(tonemapping.mode, TonemappingMode.Neutral);
 
             Bloom bloom = GetOrAdd<Bloom>(profile);
-            Set(bloom.threshold, 0f);
-            Set(bloom.intensity, 0.08f);
+            Set(bloom.threshold, 1.2f);
+            Set(bloom.intensity, 0.05f);
             Set(bloom.scatter, 0.65f);
             bloom.highQualityFiltering = true;
 
@@ -441,6 +451,68 @@ namespace RootsDance.Editor.Environment
             HDMaterial.ValidateMaterial(material);
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static Material EnsureCeilingMaterial()
+        {
+            Material source = AssetDatabase.LoadAssetAtPath<Material>(k_SourceCeilingMaterialPath);
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(k_CeilingBaseMapPath);
+            Texture2D normalMap = AssetDatabase.LoadAssetAtPath<Texture2D>(k_CeilingNormalMapPath);
+
+            if (source == null || baseMap == null || normalMap == null)
+            {
+                throw new System.IO.FileNotFoundException(
+                    "A Briggs ceiling source asset is missing. Expected: "
+                    + k_SourceCeilingMaterialPath + ", " + k_CeilingBaseMapPath + ", " + k_CeilingNormalMapPath);
+            }
+
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_CeilingMaterialPath);
+
+            if (material == null)
+            {
+                EnsureFolder(System.IO.Path.GetDirectoryName(k_CeilingMaterialPath).Replace('\\', '/'));
+                material = new Material(source.shader) { name = "BriggsCeiling_Triplanar" };
+                AssetDatabase.CreateAsset(material, k_CeilingMaterialPath);
+            }
+
+            material.CopyPropertiesFromMaterial(source);
+            material.name = "BriggsCeiling_Triplanar";
+            material.SetTexture("_BaseColorMap", baseMap);
+            material.SetTexture("_NormalMap", normalMap);
+            material.SetColor("_BaseColor", new Color(0.72f, 0.78f, 0.70f, 1f));
+            material.SetFloat("_NormalScale", 0.55f);
+            material.SetFloat("_Smoothness", 0.17f);
+            material.SetFloat("_UVBase", 5f);
+            material.SetFloat("_TexWorldScale", 2.25f);
+            material.SetFloat("_InvTilingScale", 1f / 2.25f);
+            material.SetVector("_UVMappingMask", new Vector4(1f, 0f, 0f, 0f));
+            material.SetTextureScale("_BaseColorMap", Vector2.one);
+            material.SetTextureOffset("_BaseColorMap", Vector2.zero);
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static void AssignCeilingMaterial(Scene scene, Material material)
+        {
+            MeshRenderer[] renderers = scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<MeshRenderer>(true))
+                .Where(renderer => renderer.name == "Ceiling" || renderer.name.StartsWith("Ceiling_Beam"))
+                .ToArray();
+
+            if (renderers.Length != 3)
+            {
+                throw new System.InvalidOperationException(
+                    $"Expected Ceiling and two Ceiling_Beam renderers, found {renderers.Length}.");
+            }
+
+            foreach (MeshRenderer renderer in renderers)
+            {
+                renderer.sharedMaterials = Enumerable.Repeat(
+                    material,
+                    Mathf.Max(1, renderer.sharedMaterials.Length)).ToArray();
+                EditorUtility.SetDirty(renderer);
+            }
         }
 
         private static Texture3D EnsureFogNoise()
@@ -525,27 +597,34 @@ namespace RootsDance.Editor.Environment
             EditorUtility.SetDirty(data);
         }
 
-        private static void CreateRoofShaftLights(Transform parent)
+        private static void CreateRoofShaftLights(Transform parent, Scene scene)
         {
+            Light sun = FindLight(scene, "Sun");
+
+            if (sun == null)
+            {
+                throw new System.InvalidOperationException("BriggsInterior environment has no Sun light.");
+            }
+
             Transform shafts = CreateChild("RoofShaftLights", parent);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_Main",
-                new Vector3(0.1f, 4.18f, 2.5f),
-                Quaternion.Euler(70f, 180f, 0f),
-                4200f,
-                20f,
+                new Vector3(0.77f, 7.5f, -2.20f),
+                sun.transform.rotation,
+                3400f,
+                60f,
                 8f,
-                8f);
+                5.5f);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_West",
-                new Vector3(-5.35f, 4.18f, 3.75f),
-                Quaternion.Euler(74f, 165f, 0f),
-                2800f,
-                18f,
+                new Vector3(-4.70f, 7.5f, 0.23f),
+                sun.transform.rotation,
+                2100f,
+                50f,
                 7f,
-                4f);
+                3f);
         }
 
         private static void CreateRoofShaft(
@@ -566,13 +645,14 @@ namespace RootsDance.Editor.Environment
             light.type = LightType.Spot;
             light.spotAngle = outerAngle;
             light.innerSpotAngle = innerAngle;
-            light.range = 9f;
+            light.range = 14f;
             light.enableSpotReflector = true;
             light.lightUnit = LightUnit.Lumen;
             light.intensity = LightUnitUtils.ConvertIntensity(light, lumen, LightUnit.Lumen, LightUnit.Candela);
             light.color = new Color(1f, 0.88f, 0.72f);
-            // The light begins just below the ceiling shell so it can form a controllable art-directed shaft.
-            light.shadows = LightShadows.None;
+            // Start above the real Garage ceiling. Soft shadows make the authored hole boundary, beams and
+            // hanging vegetation cut the shaft instead of painting an unoccluded cone under solid roof mesh.
+            light.shadows = LightShadows.Soft;
 
             HDAdditionalLightData data = lightObject.GetComponent<HDAdditionalLightData>();
 
@@ -581,12 +661,17 @@ namespace RootsDance.Editor.Environment
                 data = lightObject.AddComponent<HDAdditionalLightData>();
             }
 
-            data.EnableShadows(false);
-            data.SetShadowResolutionOverride(false);
+            data.EnableShadows(true);
+            data.SetShadowResolutionOverride(true);
+            data.SetShadowResolution(1024);
+            data.SetShadowNearPlane(0.1f);
             data.SetShadowResolutionLevel((int)ScalableSettingLevelParameter.Level.Medium);
+            data.shadowDimmer = 1f;
+            data.normalBias = 0.15f;
+            data.slopeBias = 0.2f;
             data.affectsVolumetric = true;
             data.volumetricDimmer = volumetricDimmer;
-            data.volumetricShadowDimmer = 0f;
+            data.volumetricShadowDimmer = 1f;
         }
 
         private static void ConfigureLabFillLights(Scene scene)
