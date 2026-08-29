@@ -33,6 +33,7 @@
   "painter": {
     "fills": [
       "SteelBase(0.6,1.0):basecolor=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Roughness.jpg",
+      "PaintRemnant(0.3,0.28):basecolor=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_Roughness.jpg|~grunge_paint_peeled",
       "Oxidation(0.18,0.75):basecolor=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_diff_2k.jpg;normal=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_rough_2k.jpg|Surface Rust",
       "EdgeRust(0.45,0.25):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;normal=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Edge Rust",
       "RustRunoff(0.35,0.35):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Rust Drips",

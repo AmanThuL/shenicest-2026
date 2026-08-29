@@ -29,6 +29,9 @@ SRC = {
     "mud":      ("brown_mud_leaves_01/brown_mud_leaves_01_diff_2k.jpg",
                  "brown_mud_leaves_01/brown_mud_leaves_01_nor_gl_2k.jpg",
                  "brown_mud_leaves_01/brown_mud_leaves_01_rough_2k.jpg"),
+    "paint":    ("PaintedMetal006/PaintedMetal006_2K-JPG_Color.jpg",
+                 "PaintedMetal006/PaintedMetal006_2K-JPG_NormalGL.jpg",
+                 "PaintedMetal006/PaintedMetal006_2K-JPG_Roughness.jpg"),
     "concrete": ("concrete_wall_008/concrete_wall_008_diff_2k.jpg",
                  "concrete_wall_008/concrete_wall_008_nor_gl_2k.jpg",
                  "concrete_wall_008/concrete_wall_008_rough_2k.jpg"),
@@ -53,10 +56,15 @@ def tint(name, opacity, colour, rough, mask=None, metallic=None):
     return spec + ("|" + mask if mask else "")
 
 
-def vertical_iron(moss, lichen, lime, grime, damp, runoff, edgerust, edgewear):
+def vertical_iron(moss, lichen, lime, grime, damp, runoff, edgerust, edgewear,
+                  paint=0.45):
     """Wall, window band, columns: the piece stands up and sheds water."""
     return [
         photo("SteelBase", 0.6, 1.0, "steel"),
+        # a Victorian glasshouse was painted iron; the peeled-paint procedural
+        # has the hard-edged flake shapes a smart mask smears away, and the
+        # remnant sits right on the steel so everything later eats into it
+        photo("PaintRemnant", 0.30, paint, "paint", "~grunge_paint_peeled"),
         photo("Oxidation", 0.18, 0.75, "oxid", "Surface Rust"),
         photo("EdgeRust", 0.45, edgerust, "rust", "Edge Rust"),
         photo("RustRunoff", 0.35, runoff, "rust", "Rust Drips", normal=False),
@@ -123,15 +131,15 @@ NOTE = ("Layered per docs/architecture/废弃温室材质研究.md, dialled per 
 
 RECIPES = {
     # z 1.3-14.6, vertical panel, lower tier: some ground moss, moderate wash
-    "GreenHouse1Wall":      vertical_iron(0.28, 0.10, 0.30, 0.45, 0.35, 0.30, 0.45, 0.18),
+    "GreenHouse1Wall":      vertical_iron(0.28, 0.10, 0.30, 0.45, 0.35, 0.30, 0.45, 0.18, paint=0.45),
     # z 22-29.5, vertical panel, high up: rain scours it, little grows
-    "GreenHouse1Window":    vertical_iron(0.12, 0.06, 0.40, 0.50, 0.25, 0.35, 0.45, 0.22),
+    "GreenHouse1Window":    vertical_iron(0.12, 0.06, 0.40, 0.50, 0.25, 0.35, 0.45, 0.22, paint=0.28),
     # z 1.3-14.6, column, foot near the ground: strongest vertical runoff
-    "GreenHouse1Column":    vertical_iron(0.40, 0.12, 0.25, 0.65, 0.45, 0.35, 0.25, 0.18),
+    "GreenHouse1Column":    vertical_iron(0.40, 0.12, 0.25, 0.65, 0.45, 0.35, 0.25, 0.18, paint=0.50),
     # z 22-29.5, slim column, high up
-    "GreenHouse1WinColumn": vertical_iron(0.12, 0.06, 0.38, 0.60, 0.25, 0.35, 0.25, 0.20),
+    "GreenHouse1WinColumn": vertical_iron(0.12, 0.06, 0.38, 0.60, 0.25, 0.35, 0.25, 0.20, paint=0.28),
     # z 35.2-42.7, the crowning finial: most exposed, cleanest, most scoured
-    "GreenHouse1Top":       vertical_iron(0.06, 0.05, 0.45, 0.55, 0.20, 0.40, 0.50, 0.28),
+    "GreenHouse1Top":       vertical_iron(0.06, 0.05, 0.45, 0.55, 0.20, 0.40, 0.50, 0.28, paint=0.18),
     # z 14.6-22.4: the lower dome, 39 m across -- a sloped roof, not a deck
     "GreenHouse1Floor1":    sloped_roof(0.32, 0.14, 0.50, 0.62, 0.35, 0.28, 0.18, 0.30, 0.60),
     # z 29.5-35.3: the upper dome, higher and more scoured
