@@ -66,17 +66,11 @@ namespace RootsDance.Editor.Environment
         private static readonly StaticEditorFlags k_SolidStaticFlags =
             k_HeroStaticFlags | StaticEditorFlags.BatchingStatic;
 
-        // Anything painted with one of these palette keys is soft vegetation: it casts no shadow and stays
-        // out of the batching/occluder sets so it can be swayed or culled per instance later.
-        private static readonly HashSet<string> k_NoShadowMaterials = new HashSet<string>
-        {
-            "Niwl_Plants_General", "Niwl_Plants_Bunch"
-        };
-
-        private static readonly HashSet<string> k_RootScanLodKeys = new HashSet<string>
-        {
-            "pine_roots", "root_cluster_01", "root_cluster_02"
-        };
+        private const float k_GroundCoverCullDistance = 50f;
+        private const float k_SmallVegetationCullDistance = 60f;
+        private const float k_RootRockCullDistance = 100f;
+        private const float k_TreeCullDistance = 180f;
+        private const float k_AssumedVerticalFieldOfView = 60f;
 
         private static Dictionary<string, string> s_categoryByKey;
 
@@ -106,22 +100,7 @@ namespace RootsDance.Editor.Environment
         [MenuItem("RootsDance/Environment/Build Environment Prefabs")]
         public static void BuildAll()
         {
-            BuildEntries(null, "environment");
-        }
-
-        /// <summary>Rebuilds only the three photogrammetry root prefabs that own generated LODs.</summary>
-        [MenuItem("RootsDance/Environment/Build Root Scan LOD Prefabs")]
-        public static void BuildRootScanLods()
-        {
-            BuildEntries(k_RootScanLodKeys, "root-scan LOD");
-        }
-
-        private static void BuildEntries(HashSet<string> includedKeys, string label)
-        {
-            PrefabEntry[] entries = EnvironmentPrefabTable.Entries;
-            Dictionary<string, Material> palette = includedKeys == null
-                ? EnvironmentPalette.EnsureAll()
-                : LoadExistingPalette(entries, includedKeys);
+            Dictionary<string, Material> palette = EnvironmentPalette.EnsureAll();
 
             if (palette.Count == 0)
             {
@@ -129,6 +108,7 @@ namespace RootsDance.Editor.Environment
                 return;
             }
 
+            PrefabEntry[] entries = EnvironmentPrefabTable.Entries;
             EnsureCategoryFolders(entries);
 
             Scene preview = EditorSceneManager.NewPreviewScene();
@@ -139,11 +119,6 @@ namespace RootsDance.Editor.Environment
             {
                 for (int i = 0; i < entries.Length; i++)
                 {
-                    if (includedKeys != null && !includedKeys.Contains(entries[i].Key))
-                    {
-                        continue;
-                    }
-
                     if (BuildOne(entries[i], palette, preview))
                     {
                         built++;
@@ -160,59 +135,63 @@ namespace RootsDance.Editor.Environment
             }
 
             s_categoryByKey = null;
-
-            if (includedKeys == null)
-            {
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
-
-            Debug.Log($"EnvironmentPrefabBuilder: built {built} {label} prefabs under {k_PrefabRoot} "
-                + $"({failed} failed).");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"EnvironmentPrefabBuilder: built {built} prefabs under {k_PrefabRoot} ({failed} failed).");
         }
 
-        private static Dictionary<string, Material> LoadExistingPalette(
-            PrefabEntry[] entries,
-            HashSet<string> includedKeys)
+        /// <summary>
+        /// Applies the current outdoor rendering budget to already-built prefabs without rebuilding their
+        /// materials, colliders or nested model instances.
+        /// </summary>
+        [MenuItem("RootsDance/Environment/Apply Outdoor Prefab Performance Settings")]
+        public static void ApplyPerformanceSettingsToBuiltPrefabs()
         {
-            Dictionary<string, Material> palette = new Dictionary<string, Material>();
+            ApplyPerformanceSettingsToBuiltPrefabs(0, EnvironmentPrefabTable.Entries.Length);
+        }
 
-            foreach (PrefabEntry entry in entries)
+        /// <summary>Batch-friendly range overload for projects with expensive nested-prefab reimports.</summary>
+        public static void ApplyPerformanceSettingsToBuiltPrefabs(int startIndex, int count)
+        {
+            PrefabEntry[] entries = EnvironmentPrefabTable.Entries;
+            int updated = 0;
+            int endIndex = Mathf.Min(startIndex + count, entries.Length);
+
+            for (int i = Mathf.Max(startIndex, 0); i < endIndex; i++)
             {
-                if (!includedKeys.Contains(entry.Key))
+                PrefabEntry entry = entries[i];
+
+                if (entry.RenderClass == EnvironmentRenderClass.Default)
                 {
                     continue;
                 }
 
-                AddExistingMaterial(palette, entry.DefaultMaterial);
+                string path = PrefabPath(entry.Key);
+                GameObject root = PrefabUtility.LoadPrefabContents(path);
 
-                if (entry.Materials == null)
+                if (root == null)
                 {
+                    Debug.LogWarning($"EnvironmentPrefabBuilder: could not load '{path}' for performance tuning.");
                     continue;
                 }
 
-                foreach (MaterialRule rule in entry.Materials)
+                try
                 {
-                    AddExistingMaterial(palette, rule.MaterialKey);
+                    MeshRenderer[] renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+                    Bounds local = LocalBounds(root.transform, renderers);
+                    ApplyRenderPerformanceSettings(entry, root, renderers, local);
+                    PrefabUtility.SaveAsPrefabAsset(root, path);
+                    updated++;
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(root);
                 }
             }
 
-            return palette;
-        }
-
-        private static void AddExistingMaterial(Dictionary<string, Material> palette, string key)
-        {
-            if (palette.ContainsKey(key))
-            {
-                return;
-            }
-
-            Material material = EnvironmentPalette.Get(key);
-
-            if (material != null)
-            {
-                palette.Add(key, material);
-            }
+            AssetDatabase.SaveAssets();
+            Debug.Log($"EnvironmentPrefabBuilder: applied performance settings to {updated} outdoor prefabs "
+                + $"in table range [{startIndex}, {endIndex}).");
         }
 
         private static bool BuildOne(PrefabEntry entry, Dictionary<string, Material> palette, Scene preview)
@@ -252,28 +231,14 @@ namespace RootsDance.Editor.Environment
                     return false;
                 }
 
-                MeshRenderer[] lod0Renderers = instance.GetComponentsInChildren<MeshRenderer>(true);
-                MeshRenderer[][] lodRenderers = null;
-
-                if (HasLods(entry)
-                    && !TryAddLodModels(entry, instance, modelInstance, preview, out lodRenderers))
-                {
-                    return false;
-                }
-
                 MeshRenderer[] renderers = instance.GetComponentsInChildren<MeshRenderer>(true);
-                bool castShadows = !k_NoShadowMaterials.Contains(entry.DefaultMaterial);
-                string mapping = ApplyMaterials(entry, palette, renderers, castShadows);
+                string mapping = ApplyMaterials(entry, palette, renderers);
 
-                Bounds local = LocalBounds(instance.transform, lod0Renderers);
+                Bounds local = LocalBounds(instance.transform, renderers);
                 AddCollider(entry, instance, local);
+                ApplyRenderPerformanceSettings(entry, instance, renderers, local);
 
-                if (lodRenderers != null)
-                {
-                    AddLodGroup(instance, lodRenderers, entry.LodTransitionHeights);
-                }
-
-                ApplyStaticFlags(instance, StaticFlagsFor(entry));
+                ApplyStaticFlags(instance, StaticFlagsFor(entry.Category));
 
                 string path = PrefabPath(entry.Key);
                 bool saved;
@@ -294,82 +259,6 @@ namespace RootsDance.Editor.Environment
             {
                 UnityEngine.Object.DestroyImmediate(instance);
             }
-        }
-
-        private static bool HasLods(PrefabEntry entry)
-        {
-            return entry.LodModelPaths != null && entry.LodModelPaths.Length > 0;
-        }
-
-        private static bool TryAddLodModels(
-            PrefabEntry entry,
-            GameObject instance,
-            GameObject lod0,
-            Scene preview,
-            out MeshRenderer[][] lodRenderers)
-        {
-            int lodCount = entry.LodModelPaths.Length + 1;
-            lodRenderers = new MeshRenderer[lodCount][];
-
-            if (!string.IsNullOrEmpty(entry.SubObject))
-            {
-                Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: LOD entries cannot cut out a sub-object.");
-                return false;
-            }
-
-            if (entry.LodTransitionHeights == null || entry.LodTransitionHeights.Length != lodCount)
-            {
-                Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: expected {lodCount} LOD transitions.");
-                return false;
-            }
-
-            lod0.name = "LOD0";
-            lodRenderers[0] = lod0.GetComponentsInChildren<MeshRenderer>(true);
-
-            for (int i = 0; i < entry.LodModelPaths.Length; i++)
-            {
-                string path = entry.LodModelPaths[i];
-                GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-
-                if (model == null)
-                {
-                    Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: no LOD model at '{path}'.");
-                    return false;
-                }
-
-                GameObject lod = (GameObject)PrefabUtility.InstantiatePrefab(model, preview);
-
-                if (lod == null)
-                {
-                    Debug.LogError($"EnvironmentPrefabBuilder: {entry.Key}: could not instantiate '{path}'.");
-                    return false;
-                }
-
-                lod.name = "LOD" + (i + 1);
-                lod.transform.SetParent(instance.transform, false);
-                lodRenderers[i + 1] = lod.GetComponentsInChildren<MeshRenderer>(true);
-            }
-
-            return true;
-        }
-
-        private static void AddLodGroup(
-            GameObject instance,
-            MeshRenderer[][] renderers,
-            float[] transitionHeights)
-        {
-            LOD[] lods = new LOD[renderers.Length];
-
-            for (int i = 0; i < renderers.Length; i++)
-            {
-                lods[i] = new LOD(transitionHeights[i], renderers[i]);
-            }
-
-            LODGroup group = instance.AddComponent<LODGroup>();
-            group.fadeMode = LODFadeMode.CrossFade;
-            group.animateCrossFading = true;
-            group.SetLODs(lods);
-            group.RecalculateBounds();
         }
 
         /// <summary>
@@ -428,14 +317,14 @@ namespace RootsDance.Editor.Environment
             return true;
         }
 
-        private static StaticEditorFlags StaticFlagsFor(PrefabEntry entry)
+        private static StaticEditorFlags StaticFlagsFor(string category)
         {
-            if (entry.Category == EnvironmentPrefabTable.k_Vegetation)
+            if (category == EnvironmentPrefabTable.k_Vegetation)
             {
                 return k_SoftStaticFlags;
             }
 
-            if (entry.Category == EnvironmentPrefabTable.k_Heroes || HasLods(entry))
+            if (category == EnvironmentPrefabTable.k_Heroes)
             {
                 return k_HeroStaticFlags;
             }
@@ -444,7 +333,7 @@ namespace RootsDance.Editor.Environment
         }
 
         private static string ApplyMaterials(PrefabEntry entry, Dictionary<string, Material> palette,
-            MeshRenderer[] renderers, bool castShadows)
+            MeshRenderer[] renderers)
         {
             HashSet<string> seen = new HashSet<string>();
             StringBuilder mapping = new StringBuilder();
@@ -479,12 +368,65 @@ namespace RootsDance.Editor.Environment
                         mapping.Append(vendorName).Append("->").Append(paletteKey);
                     }
                 }
-
                 renderer.sharedMaterials = replaced;
-                renderer.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
             }
 
             return mapping.ToString();
+        }
+
+        private static void ApplyRenderPerformanceSettings(PrefabEntry entry, GameObject instance,
+            MeshRenderer[] renderers, Bounds local)
+        {
+            if (entry.RenderClass == EnvironmentRenderClass.Default)
+            {
+                return;
+            }
+
+            bool castShadows = entry.RenderClass == EnvironmentRenderClass.Tree;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                renderers[i].motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
+            }
+
+            float cullDistance = CullDistanceFor(entry.RenderClass);
+            LODGroup group = instance.GetComponent<LODGroup>();
+
+            if (group == null)
+            {
+                group = instance.AddComponent<LODGroup>();
+            }
+
+            group.fadeMode = LODFadeMode.None;
+            group.animateCrossFading = false;
+            group.localReferencePoint = local.center;
+            group.size = Mathf.Max(local.size.x, Mathf.Max(local.size.y, local.size.z));
+
+            float largestScale = Mathf.Max(Mathf.Abs(instance.transform.lossyScale.x),
+                Mathf.Max(Mathf.Abs(instance.transform.lossyScale.y), Mathf.Abs(instance.transform.lossyScale.z)));
+            float worldSize = group.size * largestScale;
+            float halfFovRadians = k_AssumedVerticalFieldOfView * Mathf.Deg2Rad * 0.5f;
+            float cullHeight = worldSize / (2f * cullDistance * Mathf.Tan(halfFovRadians));
+            cullHeight = Mathf.Clamp(cullHeight, 0.001f, 0.99f);
+            group.SetLODs(new[] { new LOD(cullHeight, renderers) });
+        }
+
+        private static float CullDistanceFor(EnvironmentRenderClass renderClass)
+        {
+            switch (renderClass)
+            {
+                case EnvironmentRenderClass.GroundCover:
+                    return k_GroundCoverCullDistance;
+                case EnvironmentRenderClass.SmallVegetation:
+                    return k_SmallVegetationCullDistance;
+                case EnvironmentRenderClass.RootRock:
+                    return k_RootRockCullDistance;
+                case EnvironmentRenderClass.Tree:
+                    return k_TreeCullDistance;
+                default:
+                    return 0f;
+            }
         }
 
         /// <summary>
