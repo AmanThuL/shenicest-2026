@@ -14,10 +14,15 @@ namespace RootsDance.UI
     /// </summary>
     public class InteractionPromptPresenter : MonoBehaviour
     {
-        private const float k_VerticalOffset = -60f;
+        private const float k_PromptHeight = 100f;
+        private const float k_VerticalOffset = -150f;
 
         [Header("Listens to")]
         [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [SerializeField] private VoidEventChannelSO m_conversationStarted;
+
+        [SerializeField] private VoidEventChannelSO m_conversationEnded;
 
         [Header("Widgets")]
         [SerializeField] private TextMeshProUGUI m_label;
@@ -31,6 +36,8 @@ namespace RootsDance.UI
         [SerializeField] private TerminalMotionProfile m_motion = new TerminalMotionProfile();
 
         private CanvasGroup m_labelGroup;
+        private string m_currentPrompt = string.Empty;
+        private bool m_isConversationActive;
 
         private void Awake()
         {
@@ -38,6 +45,7 @@ namespace RootsDance.UI
             {
                 RectTransform labelTransform = m_label.rectTransform;
                 labelTransform.anchoredPosition += Vector2.up * k_VerticalOffset;
+                labelTransform.sizeDelta = new Vector2(labelTransform.sizeDelta.x, k_PromptHeight);
                 m_labelGroup = TerminalMotion.EnsureCanvasGroup(m_label.gameObject);
             }
         }
@@ -50,6 +58,16 @@ namespace RootsDance.UI
             {
                 m_promptChanged.EventRaised += OnPromptChanged;
             }
+
+            if (m_conversationStarted != null)
+            {
+                m_conversationStarted.EventRaised += OnConversationStarted;
+            }
+
+            if (m_conversationEnded != null)
+            {
+                m_conversationEnded.EventRaised += OnConversationEnded;
+            }
         }
 
         private void OnDisable()
@@ -59,13 +77,40 @@ namespace RootsDance.UI
                 m_promptChanged.EventRaised -= OnPromptChanged;
             }
 
+            if (m_conversationStarted != null)
+            {
+                m_conversationStarted.EventRaised -= OnConversationStarted;
+            }
+
+            if (m_conversationEnded != null)
+            {
+                m_conversationEnded.EventRaised -= OnConversationEnded;
+            }
+
             TerminalMotion.Kill(m_labelGroup);
             TerminalMotion.Kill(FlashTarget());
         }
 
         private void OnPromptChanged(string text)
         {
-            Show(text);
+            m_currentPrompt = text;
+
+            if (!m_isConversationActive)
+            {
+                Show(text);
+            }
+        }
+
+        private void OnConversationStarted()
+        {
+            m_isConversationActive = true;
+            Show(string.Empty);
+        }
+
+        private void OnConversationEnded()
+        {
+            m_isConversationActive = false;
+            Show(m_currentPrompt);
         }
 
         private void Show(string text)

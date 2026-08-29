@@ -284,8 +284,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueRunner
   m_playRequested: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
-  m_conversationStarted: {fileID: 0}
-  m_conversationEnded: {fileID: 0}
+  m_conversationStarted: {fileID: 11400000, guid: 2e662b776bf054a1e858a1b1efe2ea44, type: 2}
+  m_conversationEnded: {fileID: 11400000, guid: 25b31884cfa2140a78d4b7fdaaa77fa2, type: 2}
   m_audioChannel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
   m_voiceCue: {fileID: 11400000, guid: f8442e9b7ad9e49119d674b6a3b6d586, type: 2}
   m_viewBehaviour: {fileID: 2084551497}
@@ -554,7 +554,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 200}
+  m_AnchoredPosition: {x: 0, y: 140}
   m_SizeDelta: {x: 1400, y: 120}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1557813502
