@@ -75,8 +75,18 @@ namespace RootsDance.Editor.Environment
         /// </summary>
         public string SubObject;
 
+        /// <summary>Project-owned lower-detail FBXs, ordered from LOD1 to the final visible LOD.</summary>
+        public string[] LodModelPaths;
+
+        /// <summary>
+        /// Screen-relative transition height for LOD0 and every entry in <see cref="LodModelPaths"/>.
+        /// The last value also becomes the culling threshold.
+        /// </summary>
+        public float[] LodTransitionHeights;
+
         public PrefabEntry(string key, string modelPath, string category, ColliderKind collider,
-            MaterialRule[] materials, string defaultMaterial, float scale, string subObject = null)
+            MaterialRule[] materials, string defaultMaterial, float scale, string subObject = null,
+            string[] lodModelPaths = null, float[] lodTransitionHeights = null)
         {
             Key = key;
             ModelPath = modelPath;
@@ -86,6 +96,8 @@ namespace RootsDance.Editor.Environment
             DefaultMaterial = defaultMaterial;
             Scale = scale;
             SubObject = subObject;
+            LodModelPaths = lodModelPaths;
+            LodTransitionHeights = lodTransitionHeights;
         }
     }
 
@@ -271,9 +283,9 @@ namespace RootsDance.Editor.Environment
             Scan("dry_branches_medium_01", k_Heroes, ColliderKind.None, k_NoRules, "Scan_DryBranchesMedium01"),
 
             // --- RootRock_Clutter (Poly Haven scans) ------------------------------------------------
-            Scan("pine_roots", k_Rocks, ColliderKind.MeshConvex, k_PineRootsRules, "Scan_PineRoots_A"),
-            Scan("root_cluster_01", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RootCluster01"),
-            Scan("root_cluster_02", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RootCluster02"),
+            LodScan("pine_roots", "PineRoots", k_PineRootsRules, "Scan_PineRoots_A"),
+            LodScan("root_cluster_01", "RootCluster01", k_NoRules, "Scan_RootCluster01"),
+            LodScan("root_cluster_02", "RootCluster02", k_NoRules, "Scan_RootCluster02"),
             Scan("single_root", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_SingleRoot"),
             Scan("rock_moss_set_01", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet01"),
             Scan("rock_moss_set_02", k_Rocks, ColliderKind.MeshConvex, k_NoRules, "Scan_RockMossSet02"),
@@ -388,6 +400,19 @@ namespace RootsDance.Editor.Environment
             string material)
         {
             return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", category, collider, rules, material, 1f);
+        }
+
+        private static PrefabEntry LodScan(string key, string derivedName, MaterialRule[] rules, string material)
+        {
+            const string lodRoot = "Assets/RootsDance/Meshes/Environment/Roots/";
+            string[] lodPaths =
+            {
+                lodRoot + derivedName + "_LOD1.fbx",
+                lodRoot + derivedName + "_LOD2.fbx",
+            };
+            float[] transitionHeights = { .18f, .06f, .015f };
+            return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", k_Rocks,
+                ColliderKind.MeshConvex, rules, material, 1f, null, lodPaths, transitionHeights);
         }
 
         /// <summary>One piece of the modular chain-link kit, cut out of <c>modular_chainlink_fence_1k.fbx</c>.</summary>

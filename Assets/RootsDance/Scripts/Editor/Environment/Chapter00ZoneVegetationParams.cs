@@ -247,9 +247,11 @@ namespace RootsDance.Editor.Environment
                 "bush01_summer", "bush02_summer", "bush03_summer",
                 "bush04_summer", "bush05_summer", "bush06_summer",
             };
+            // Photogrammetry root scans are hero-only. They have dedicated LOD prefabs, but never enter a
+            // procedural pool: hundreds of copies overwhelmed geometry and renderer budgets.
             string[] rootsAndRocks =
             {
-                "pine_roots", "root_cluster_01", "root_cluster_02", "single_root",
+                "single_root",
                 "rock_moss_01", "rock_moss_02", "rock_moss_03", "rock_moss_04",
                 "rock_moss_05", "rock_moss_06",
             };

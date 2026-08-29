@@ -276,13 +276,13 @@ namespace RootsDance.Editor.Environment
 
         private static readonly string[] k_Roots =
         {
-            "pine_roots", "root_cluster_01", "root_cluster_02", "single_root"
+            "single_root"
         };
 
         /// <summary>Roots that stay ankle-high: §S1's exit corridor must not get a 4 m root wall.</summary>
         private static readonly string[] k_LowRoots =
         {
-            "pine_roots", "root_cluster_02", "single_root"
+            "single_root"
         };
 
         private static readonly string[] k_DryGrowth =
@@ -400,7 +400,7 @@ namespace RootsDance.Editor.Environment
         private static readonly string[] k_GapFillers =
         {
             "rock_moss_01", "rock_moss_02", "rock_moss_03", "rock_moss_04", "rock_moss_05", "rock_moss_06",
-            "concrete_road_barrier", "root_cluster_01", "dead_tree_trunk_02",
+            "concrete_road_barrier", "dead_tree_trunk_02",
         };
 
         /// <summary>A short §S0 enclosure run: random 1-3 module gaps, each plugged by a big obstacle.</summary>
