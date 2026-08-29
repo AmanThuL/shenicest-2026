@@ -100,6 +100,12 @@ namespace RootsDance.EditorTools
 
         private const float k_GroundY = 4.72f;
 
+        // The greenhouse FBX instance in Main_Environment sits under "ResearchFacility_GaiaV7",
+        // not at the world origin. The statue shares the same baked Blender frame, so its root
+        // copies that node's transform verbatim; every anchor above is local to this frame.
+        private static readonly Vector3 k_RootPosition = new Vector3(0.9278145f, 5.5960455f, 61.911377f);
+        private static readonly Quaternion k_RootRotation = new Quaternion(0f, -0.21196891f, 0f, 0.97727644f);
+
         private static readonly Vector3 k_RightPalmSplash = new Vector3(26.68f, 17.08f, 66.97f);
         private static readonly Vector3 k_LeftPalmSplash = new Vector3(26.25f, 16.66f, 67.15f);
         private static readonly Vector3 k_GroundSplash = new Vector3(26.02f, 4.75f, 67.45f);
@@ -132,7 +138,9 @@ namespace RootsDance.EditorTools
             GameObject root = RebuildRoot(scene);
 
             GameObject statue = (GameObject)PrefabUtility.InstantiatePrefab(statuePrefab, scene);
-            statue.transform.SetParent(root.transform, true);
+            statue.transform.SetParent(root.transform, false);
+            statue.transform.localPosition = Vector3.zero;
+            statue.transform.localRotation = Quaternion.identity;
 
             GameObject waterRoot = new GameObject("StatueWater");
             SceneManager.MoveGameObjectToScene(waterRoot, scene);
@@ -200,6 +208,7 @@ namespace RootsDance.EditorTools
 
             GameObject root = new GameObject(k_RootName);
             SceneManager.MoveGameObjectToScene(root, scene);
+            root.transform.SetPositionAndRotation(k_RootPosition, k_RootRotation);
             return root;
         }
 
@@ -447,7 +456,7 @@ namespace RootsDance.EditorTools
         {
             GameObject holder = new GameObject(name);
             holder.transform.SetParent(parent.transform, false);
-            holder.transform.position = position;
+            holder.transform.localPosition = position;
 
             ParticleSystem system = holder.AddComponent<ParticleSystem>();
             ParticleSystemRenderer renderer = holder.GetComponent<ParticleSystemRenderer>();
