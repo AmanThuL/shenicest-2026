@@ -4,6 +4,7 @@ using RootsDance.Cameras;
 using RootsDance.Chase;
 using RootsDance.Core;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Player;
 using RootsDance.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -158,6 +159,7 @@ namespace RootsDance.Editor.Environment
 
             PanicViewShake shake = EnsurePanicShake(scene);
             Transform player = FindRequiredRoot(scene, "Player");
+            EnsureFreeFallView(scene, player);
             Transform chaseRoot = EnsureRoot(scene, "_Chase");
 
             Transform spawn = EnsureChild(chaseRoot, "MonsterSpawn");
@@ -197,6 +199,7 @@ namespace RootsDance.Editor.Environment
 
             PanicViewShake shake = EnsurePanicShake(scene);
             Transform player = FindRequiredRoot(scene, "Player");
+            EnsureFreeFallView(scene, player);
             Transform chaseRoot = EnsureRoot(scene, "_Chase");
 
             Transform resume = EnsureChild(chaseRoot, "ResumeSpawn");
@@ -298,6 +301,33 @@ namespace RootsDance.Editor.Environment
             }
 
             return shake;
+        }
+
+        /// <summary>The free-fall camera extension, wired to the scene's player controller.</summary>
+        private static void EnsureFreeFallView(Scene scene, Transform player)
+        {
+            Transform camera = FindTransform(scene, "FirstPersonCamera");
+
+            if (camera == null)
+            {
+                throw new InvalidOperationException(
+                    scene.name + " has no FirstPersonCamera to carry FreeFallView.");
+            }
+
+            FreeFallView fall = camera.GetComponent<FreeFallView>();
+
+            if (fall == null)
+            {
+                fall = camera.gameObject.AddComponent<FreeFallView>();
+            }
+
+            FirstPersonController controller = player.GetComponent<FirstPersonController>();
+
+            using (SerializedObject serialized = new SerializedObject(fall))
+            {
+                serialized.FindProperty("m_controller").objectReferenceValue = controller;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void EnsureChaseCheckpoint()
