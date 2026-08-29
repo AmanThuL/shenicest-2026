@@ -58,11 +58,18 @@ for obj in sorted(col.objects, key=lambda o: o.name):
     lat = centres @ across
 
     # the axis is whichever value pairs the most panes
+    # A twin has to match in size as well as position. Position alone calls a
+    # leftover twinned whenever it overlaps a smaller pane that is itself
+    # correctly mirrored -- the mirrored centroid lands a millimetre away --
+    # and that is exactly the pane the cull forgot.
+    ratio = areas[real][None, :] / np.maximum(areas[real][:, None], 1e-9)
+    same_size = (ratio > 0.7) & (ratio < 1.43)
     guess = 0.5 * ((fv @ across).min() + (fv @ across).max())
     best_mid, best_missing = guess, None
     for cand in np.arange(guess - SEARCH, guess + SEARCH, 0.005):
         mirrored = centres[real] + np.outer(2 * (cand - lat[real]), across)
         d = np.linalg.norm(centres[real][None, :, :] - mirrored[:, None, :], axis=2)
+        d = np.where(same_size, d, np.inf)
         missing = np.where(d.min(1) > TOL)[0]
         if best_missing is None or len(missing) < len(best_missing):
             best_mid, best_missing = cand, missing
@@ -79,7 +86,8 @@ for obj in sorted(col.objects, key=lambda o: o.name):
         i = real[k]
         near = np.linalg.norm(centres[real] - centres[i], axis=1)
         near[list(real).index(i)] = 1e9
-        if np.any((near < 0.06) & twinned[real]):
+        overlaps = (near < 0.06) & twinned[real]
+        if np.any(overlaps):
             leftovers.append(int(i))
     if leftovers:
         bm = bmesh.new(); bm.from_mesh(mesh)
