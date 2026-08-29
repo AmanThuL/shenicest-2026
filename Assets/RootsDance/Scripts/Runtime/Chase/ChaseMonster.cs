@@ -110,13 +110,22 @@ namespace RootsDance.Chase
             m_trail.Record(head);
 
             Vector3 pursuit;
-            m_trail.TryGetPursuitPoint(head, m_desiredGapMeters, out pursuit);
+            bool onTrail = m_trail.TryGetPursuitPoint(head, m_desiredGapMeters, out pursuit);
 
             float gap = Vector3.Distance(transform.position, head);
             float speed = ChasePacing.SpeedForGap(
                 gap, m_desiredGapMeters, m_baseSpeed, m_catchupPerMeter, m_maxSpeed);
+            float step = ChasePacing.StepDistance(
+                speed, Time.deltaTime, onTrail, gap, m_desiredGapMeters);
 
-            Vector3 next = Vector3.MoveTowards(transform.position, pursuit, speed * Time.deltaTime);
+            if (!onTrail)
+            {
+                // Nothing on the route to aim at yet — head for the player; StepDistance is what
+                // keeps it from closing past the gap it is supposed to hold.
+                pursuit = head;
+            }
+
+            Vector3 next = Vector3.MoveTowards(transform.position, pursuit, step);
             next.y = GroundHeightAt(next);
 
             Vector3 motion = next - transform.position;

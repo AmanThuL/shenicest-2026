@@ -46,5 +46,44 @@ namespace RootsDance.Tests.EditMode.Chase
 
             Assert.AreEqual(0f, onTop, 0.001f);
         }
+        // ---- StepDistance -------------------------------------------------------------------
+        // The reported bug: the boss stood at its spawn while the player ran, so nothing chased
+        // anyone. Off the trail the pursuit point is the boss's own position, so a step of
+        // speed * dt towards it is zero — these pin the replacement.
+
+        [Test]
+        public void StepDistance_OnTheTrail_IsJustSpeedByTime()
+        {
+            Assert.That(
+                ChasePacing.StepDistance(4.2f, 0.5f, true, 3f, 9f), Is.EqualTo(2.1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void StepDistance_OffTheTrailAndFarBehind_StillMoves()
+        {
+            // A leg that resumes with an empty trail: 20 m back, it must close, not freeze.
+            Assert.That(ChasePacing.StepDistance(4.2f, 0.5f, false, 20f, 9f), Is.EqualTo(2.1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void StepDistance_OffTheTrail_NeverClosesPastTheDesiredGap()
+        {
+            // 10 m back, moving fast enough to cover 4 m: it may only take the 1 m to its mark.
+            Assert.That(ChasePacing.StepDistance(8f, 0.5f, false, 10f, 9f), Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void StepDistance_OffTheTrailAndAlreadyTooClose_HoldsStill()
+        {
+            Assert.That(ChasePacing.StepDistance(4.2f, 0.5f, false, 3.5f, 9f), Is.EqualTo(0f).Within(1e-4f));
+        }
+
+        [Test]
+        public void StepDistance_IsNeverNegative()
+        {
+            Assert.That(ChasePacing.StepDistance(-5f, 0.5f, true, 3f, 9f), Is.EqualTo(0f).Within(1e-4f));
+            Assert.That(ChasePacing.StepDistance(4.2f, -0.5f, true, 3f, 9f), Is.EqualTo(0f).Within(1e-4f));
+        }
+
     }
 }
