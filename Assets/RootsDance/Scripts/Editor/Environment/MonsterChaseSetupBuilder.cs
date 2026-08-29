@@ -113,7 +113,7 @@ namespace RootsDance.Editor.Environment
             }
 
             Debug.Log("MonsterChaseSetupBuilder: wired the greenhouse leg, the forest leg and the "
-                + "03-03 checkpoint. Play it with RootsDance > Dev Play > Play Monster Chase (F9).");
+                + "03-03 checkpoint. Play it with RootsDance > Dev Play > Play Monster Chase (Cmd+Shift+M).");
         }
 
         /// <summary>The boss prefab: both blockout bodies under one ChaseMonster. Kept if it exists.</summary>
