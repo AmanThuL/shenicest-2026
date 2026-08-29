@@ -19,7 +19,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c6a8f3c93ef784947a41057a818c9bc6, type: 3}
   - {fileID: 8300000, guid: 1b7e14510c45b42818cb8ea9eef1bf7b, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
-  m_volume: 1
+  m_volume: 0.24
   m_volumeJitter: 0
   m_pitch: 1
   m_pitchJitter: 0.05
