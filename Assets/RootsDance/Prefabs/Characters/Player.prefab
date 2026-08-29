@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 155275765654697866}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.72, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -77,8 +77,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4362948099149765401}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.90663564, y: 0.021510443, z: 0.39527598, w: 0.14596632}
-  m_LocalPosition: {x: 0.22000019, y: -0.6169988, z: 0.3613224}
+  m_LocalRotation: {x: 0.8989665, y: 0.039659813, z: 0.39386913, w: 0.18749294}
+  m_LocalPosition: {x: 0.25000018, y: -0.9975928, z: 0.2535591}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -337,8 +337,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4722933661267582901}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.9066353, y: -0.021510176, z: -0.39527616, w: 0.14596723}
-  m_LocalPosition: {x: -0.22000028, y: -0.6169987, z: 0.3613224}
+  m_LocalRotation: {x: 0.8989662, y: -0.039659552, z: -0.39386937, w: 0.18749386}
+  m_LocalPosition: {x: -0.1900003, y: -0.9975927, z: 0.2535591}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -825,31 +825,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.011151342
+      value: 0.03
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.6669991
+      value: -2.0431547
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.36132264
+      value: 0.35000023
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.00000004371139
+      value: -0.00000004366517
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.000000002009553
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: 0.9989427
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.045973215
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ec496eb665e5b4550af68e5b63764abc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1686,43 +1686,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8022eee6f60e046a5acfe6bec9593595, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.ArmsViewOffset
-  m_positionOffset: {x: 0, y: 0, z: 0}
-  m_rotationOffset: {x: 0, y: 0, z: 0}
+  m_positionOffset: {x: 0.03, y: -0.3, z: 0.35}
+  m_rotationOffset: {x: 5.27, y: 0, z: 0}
   m_clips:
   - m_stateName: Neutral
-    m_correction: {x: 0.011151342, y: 0.07615566, z: 0.3613224}
-    m_referenceBonePosition: {x: 0, y: 1.7431548, z: 0}
+    m_correction: {x: 0, y: 0, z: 0}
+    m_referenceBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}
     m_animatesCameraBone: 0
     m_tweak: {x: 0, y: 0, z: 0}
   - m_stateName: GrabGround
-    m_correction: {x: 0.011151342, y: 0.07615566, z: 0.3613224}
-    m_referenceBonePosition: {x: 0, y: 1.7431548, z: 0}
+    m_correction: {x: 0, y: 0, z: 0}
+    m_referenceBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}
     m_animatesCameraBone: 1
     m_tweak: {x: 0, y: 0, z: 0}
   - m_stateName: KeypadPoke
-    m_correction: {x: 0.011151342, y: 0.07615566, z: 0.3613224}
-    m_referenceBonePosition: {x: 0, y: 1.7431548, z: 0}
+    m_correction: {x: 0, y: 0, z: 0}
+    m_referenceBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}
     m_animatesCameraBone: 0
     m_tweak: {x: 0, y: 0, z: 0}
   - m_stateName: Crawl
-    m_correction: {x: -0.0038486766, y: 0.08415556, z: 0.17332268}
-    m_referenceBonePosition: {x: -0.0150000015, y: 1.7351549, z: -0.18799973}
+    m_correction: {x: -0.015000018, y: 0.007999897, z: -0.18799973}
+    m_referenceBonePosition: {x: -0.0150000015, y: 1.7351549, z: -0.18799949}
     m_animatesCameraBone: 1
     m_tweak: {x: 0, y: 0, z: 0}
   - m_stateName: StandUp
-    m_correction: {x: -0.0038486645, y: 0.0841105, z: 0.17332268}
-    m_referenceBonePosition: {x: -0.014999989, y: 1.7351999, z: -0.18799973}
+    m_correction: {x: -0.015000006, y: 0.007954836, z: -0.18799973}
+    m_referenceBonePosition: {x: -0.014999989, y: 1.7351999, z: -0.18799949}
     m_animatesCameraBone: 1
     m_tweak: {x: 0, y: 0, z: 0}
   - m_stateName: HelmetOff
-    m_correction: {x: 0.011151342, y: 0.07615566, z: 0.3613224}
-    m_referenceBonePosition: {x: 0, y: 1.7431548, z: 0}
-    m_animatesCameraBone: 0
+    m_correction: {x: 0, y: 0, z: 0}
+    m_referenceBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}
+    m_animatesCameraBone: 1
     m_tweak: {x: 0, y: 0, z: 0}
   m_previewState: HelmetOff
   m_basePosition: {x: -2.693514e-15, y: -1.7431548, z: 0.00000023841858}
   m_baseRotation: {x: -0, y: 180, z: 0}
-  m_bindBonePosition: {x: -2.3536728e-14, y: 1.7431548, z: 0.00000023841858}
+  m_bindBonePosition: {x: -2.0843214e-14, y: 1.7431548, z: 0.00000023841858}
 --- !u!114 &6823761319067306463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1842,19 +1842,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1831678827762269545, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.00006696405
+      value: 0.00006696407
       objectReference: {fileID: 0}
     - target: {fileID: 1831678827762269545, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.00006696405
+      value: 0.00006696407
       objectReference: {fileID: 0}
     - target: {fileID: 1831678827762269545, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.00006696405
+      value: 0.00006696407
       objectReference: {fileID: 0}
     - target: {fileID: 1831678827762269545, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0006000001
+      value: -0.00059999974
       objectReference: {fileID: 0}
     - target: {fileID: 2513982842961644595, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_fontColor32.rgba
@@ -2034,7 +2034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8980463253643430528, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.10456109
+      value: -0.104561314
       objectReference: {fileID: 0}
     - target: {fileID: 9014528102066385887, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
       propertyPath: m_fontColor32.rgba

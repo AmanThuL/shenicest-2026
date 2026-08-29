@@ -34,6 +34,17 @@ namespace RootsDance.Scanner
         /// <summary>Every enabled target, in registration order. Do not hold across frames.</summary>
         public static IReadOnlyList<ScannableTarget> Active => s_active;
 
+        /// <summary>
+        /// Empties the registry. Called once per play session by
+        /// <see cref="RootsDance.App.PlaySessionReset"/>: with domain reload turned off this list
+        /// is the same object across sessions, and an entry left behind is a destroyed component
+        /// that every later search has to step over.
+        /// </summary>
+        public static void ResetRegistry()
+        {
+            s_active.Clear();
+        }
+
         public string DisplayName => m_displayName;
 
         public ScannerReportSectionSO RevealedSection => m_revealedSection;

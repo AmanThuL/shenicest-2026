@@ -458,6 +458,12 @@
       ]
     },
     {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/StMuerte.fbx",
+      "m_profile": "static_architecture_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/StMuerte.export.json",
+      "m_materials": []
+    },
+    {
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_LabCorridor01.fbx",
       "m_profile": "static_architecture_v7",
       "m_manifest": "SourceArt/Export/GAIA1/Briggs_LabCorridor01.export.json",

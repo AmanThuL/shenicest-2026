@@ -13,9 +13,9 @@ namespace RootsDance.Audio
     /// <see cref="AudioCueSO"/>, so beds and one-shots are mixed from the same assets.
     /// </para>
     /// <para>
-    /// The fade is a <c>MoveTowards</c> in Update rather than a tween: it has to survive being
+    /// The fade is <see cref="AudioBedFade"/> in Update rather than a tween: it has to survive being
     /// interrupted half-way by the player stepping back over the threshold, which is the normal
-    /// case at a doorway, and re-targeting a value is what MoveTowards already does.
+    /// case at a doorway, and re-targeting a value is what a move-towards already does.
     /// </para>
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
@@ -89,11 +89,8 @@ namespace RootsDance.Audio
                 return;
             }
 
-            float step = m_fadeSeconds <= 0f
-                ? Mathf.Abs(m_targetVolume - m_source.volume)
-                : m_fullVolume * Time.deltaTime / m_fadeSeconds;
-
-            m_source.volume = Mathf.MoveTowards(m_source.volume, m_targetVolume, step);
+            m_source.volume = AudioBedFade.Step(m_source.volume, m_targetVolume, m_fullVolume,
+                Time.deltaTime, m_fadeSeconds);
 
             // Silence costs nothing to leave running, but a bed that is out of earshot for a whole
             // level should not hold a voice; stopping it also resets the loop for the next entry.

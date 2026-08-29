@@ -44,12 +44,24 @@ namespace RootsDance.Editor.Audio
             {
                 string path = AudioRouting.k_Groups[i];
 
-                if (!HasGroup(mixer, path))
+                if (HasGroup(mixer, path))
                 {
-                    Debug.LogError($"[Audio] Mixer has no group '{path}'. Code routes cues to it by "
-                        + "this exact path.", mixer);
-                    problems++;
+                    continue;
                 }
+
+                if (AudioRouting.IsOptionalGroup(path))
+                {
+                    Debug.LogWarning($"[Audio] Mixer has no group '{path}' yet, so its cues come "
+                        + $"out of '{AudioRouting.k_FallbackGroup}' instead. To add it: open the "
+                        + "mixer, right-click Master > Add child group, name it exactly "
+                        + $"'{LeafOf(path)}', then re-run RootsDance/Audio/Build Audio Cue Library "
+                        + "so the cues pick it up.", mixer);
+                    continue;
+                }
+
+                Debug.LogError($"[Audio] Mixer has no group '{path}'. Code routes cues to it by "
+                    + "this exact path.", mixer);
+                problems++;
             }
 
             for (int i = 0; i < AudioRouting.k_ExposedParameters.Length; i++)
@@ -57,18 +69,33 @@ namespace RootsDance.Editor.Audio
                 string parameter = AudioRouting.k_ExposedParameters[i];
 
                 // GetFloat is the only public way to ask whether a name is exposed at all.
-                if (!mixer.GetFloat(parameter, out float _))
+                if (mixer.GetFloat(parameter, out float _))
                 {
-                    Debug.LogError($"[Audio] Mixer does not expose '{parameter}', so the volume "
-                        + "setting for it will do nothing at runtime.", mixer);
-                    problems++;
+                    continue;
                 }
+
+                if (AudioRouting.IsOptionalParameter(parameter))
+                {
+                    Debug.LogWarning($"[Audio] Mixer does not expose '{parameter}' yet, so that "
+                        + "slider does nothing. To expose it: select the group, right-click its "
+                        + "Volume in the Inspector > Expose to script, then rename it to "
+                        + $"'{parameter}' under Exposed Parameters.", mixer);
+                    continue;
+                }
+
+                Debug.LogError($"[Audio] Mixer does not expose '{parameter}', so the volume "
+                    + "setting for it will do nothing at runtime.", mixer);
+                problems++;
             }
 
             if (problems == 0)
             {
-                Debug.Log($"[Audio] Mixer at {AudioRouting.k_MixerAssetPath} matches AudioRouting: "
+                // Counted from the mixer, not from the expectation: saying "5 groups" while one of
+                // them is the group the warning above just said was missing is worse than silence.
+                Debug.Log($"[Audio] Mixer at {AudioRouting.k_MixerAssetPath} has everything "
+                    + $"AudioRouting requires: {Present(mixer, AudioRouting.k_Groups)} of "
                     + $"{AudioRouting.k_Groups.Length} groups, "
+                    + $"{Exposed(mixer, AudioRouting.k_ExposedParameters)} of "
                     + $"{AudioRouting.k_ExposedParameters.Length} exposed parameters.", mixer);
             }
         }
@@ -78,6 +105,38 @@ namespace RootsDance.Editor.Audio
         /// <paramref name="groupPath"/>. FindMatchingGroups matches loosely, so the leaf name is
         /// compared as well — otherwise "Master" would match every group in the asset.
         /// </summary>
+        private static int Present(AudioMixer mixer, string[] groups)
+        {
+            int count = 0;
+
+            for (int i = 0; i < groups.Length; i++)
+            {
+                count += HasGroup(mixer, groups[i]) ? 1 : 0;
+            }
+
+            return count;
+        }
+
+        private static int Exposed(AudioMixer mixer, string[] parameters)
+        {
+            int count = 0;
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                count += mixer.GetFloat(parameters[i], out float _) ? 1 : 0;
+            }
+
+            return count;
+        }
+
+        /// <summary>The group's own name, which is what the Audio Mixer window asks for.</summary>
+        private static string LeafOf(string groupPath)
+        {
+            int slash = groupPath.LastIndexOf('/');
+
+            return slash < 0 ? groupPath : groupPath.Substring(slash + 1);
+        }
+
         private static bool HasGroup(AudioMixer mixer, string groupPath)
         {
             AudioMixerGroup[] matches = mixer.FindMatchingGroups(groupPath);

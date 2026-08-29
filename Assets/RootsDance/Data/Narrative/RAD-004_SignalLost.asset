@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca1ed3469ff884cefa20714aea02c68c, type: 3}
+  m_Name: RAD-004_SignalLost
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Narrative.RadioSequenceSO
+  m_id: RAD-004
+  m_title: "\u4FE1\u53F7\u4E2D\u65AD\uFF0800-04\uFF09"
+  m_lines: []
+  m_startDelay: 0.5
+  m_voiceCue: {fileID: 11400000, guid: c0168eb5b716e4bf6b07b3d715d830c7, type: 2}

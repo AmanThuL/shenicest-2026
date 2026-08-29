@@ -61,6 +61,16 @@ namespace RootsDance.Editor.Content
             }
         }
 
+        public static void SetFloat(SerializedObject serialized, string field, float value)
+        {
+            SerializedProperty property = serialized.FindProperty(field);
+
+            if (property != null)
+            {
+                property.floatValue = value;
+            }
+        }
+
         public static void SetEnum(SerializedObject serialized, string field, int value)
         {
             SerializedProperty property = serialized.FindProperty(field);

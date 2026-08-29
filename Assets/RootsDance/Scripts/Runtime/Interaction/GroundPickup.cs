@@ -34,6 +34,17 @@ namespace RootsDance.Interaction
         /// <summary>Every pickup lying in the world. Do not hold across frames.</summary>
         public static IReadOnlyList<GroundPickup> Active => s_active;
 
+        /// <summary>
+        /// Empties the registry. Called once per play session by
+        /// <see cref="RootsDance.App.PlaySessionReset"/>: with domain reload turned off this list
+        /// is the same object across sessions, and an entry left behind is a destroyed component
+        /// that every later search has to step over.
+        /// </summary>
+        public static void ResetRegistry()
+        {
+            s_active.Clear();
+        }
+
         public string DisplayName => m_displayName;
 
         /// <summary>The item a socket takes hold of.</summary>
