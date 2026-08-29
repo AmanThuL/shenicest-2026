@@ -4,7 +4,7 @@ using UnityEngine;
 namespace RootsDance.Editor.DevPlay
 {
     /// <summary>
-    /// One key straight into the monster chase: F9 starts Play from the 02-13 checkpoint —
+    /// One key straight into the monster chase: F9 starts Play from the 03-03 checkpoint —
     /// standing at the greenhouse terminal, wrong choice made, boss waking up. In Play mode it
     /// re-applies the checkpoint instead (switching levels if needed), so retuning a run is
     /// F9, watch, F9 again. The checkpoint asset comes from
@@ -13,7 +13,7 @@ namespace RootsDance.Editor.DevPlay
     public static class MonsterChaseHotkey
     {
         private const string k_CheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-13_MonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-03_MonsterChase.asset";
 
         [MenuItem("RootsDance/Dev Play/Play Monster Chase _F9")]
         public static void PlayMonsterChase()

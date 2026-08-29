@@ -15,15 +15,16 @@ namespace RootsDance.Editor.Environment
 {
     /// <summary>
     /// Wires the wrong-cycle chase into both of its scenes: the boss and its director into the
-    /// Briggs greenhouse (with the exit portal at the north door), the resuming director, the boss
-    /// and the car-in-view victory volume into the outdoor level, plus the panic camera extension
-    /// on each first-person camera and the Dev Play checkpoint that starts the whole segment.
-    /// Repeatable: existing objects are found and re-pointed, never duplicated.
+    /// greenhouse interior (with the exit portal at the south entrance), the resuming director,
+    /// the boss and the car-in-view victory volume into the outdoor level, plus the panic and
+    /// free-fall camera extensions on each first-person camera and the Dev Play checkpoint that
+    /// starts the whole segment. Repeatable: existing objects are found and re-pointed, never
+    /// duplicated.
     /// </summary>
     public static class MonsterChaseSetupBuilder
     {
-        private const string k_BriggsGameplayPath =
-            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
+        private const string k_GreenhouseGameplayPath =
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity";
         private const string k_MainGameplayPath =
             "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
 
@@ -34,17 +35,22 @@ namespace RootsDance.Editor.Environment
         private const string k_FlagChannelPath = "Assets/RootsDance/Data/Events/FlagRaised.asset";
         private const string k_LevelChannelPath = "Assets/RootsDance/Data/Events/LoadLevelRequested.asset";
         private const string k_MainLevelPath = "Assets/RootsDance/Data/Levels/Main.asset";
-        private const string k_BriggsLevelPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
+        private const string k_GreenhouseLevelPath =
+            "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
 
         private const string k_CheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-13_MonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-03_MonsterChase.asset";
 
-        // Greenhouse leg: the player stands at the greenhouse checkpoint (6.8, 1, -3.2) facing
-        // -Z (yaw 180), so the birth happens right in front of them; the escape runs +Z through
-        // the lab and out the round door in the north wall (hole centre x 0, wall at z ~4.4-5).
-        private static readonly Vector3 k_BriggsMonsterSpawn = new Vector3(6.8f, 0f, -6.8f);
-        private static readonly Vector3 k_BriggsPortal = new Vector3(0f, 1.6f, 6.6f);
-        private static readonly Vector3 k_BriggsPortalSize = new Vector3(5f, 3.2f, 1.2f);
+        // Greenhouse leg: the chase checkpoint stands the player at the central greenhouse anchor
+        // (0, 1, 0) facing +Z (yaw 0), so the birth happens right in front of them; the escape
+        // turns round and runs -Z, out through the entrance the player came in by (anchor
+        // (0, 1.05, -10)) where the portal waits.
+        private static readonly Vector3 k_GreenhouseMonsterSpawn = new Vector3(0f, 0f, 3.5f);
+        private const float k_GreenhouseMonsterYaw = 180f;
+        private static readonly Vector3 k_GreenhousePortal = new Vector3(0f, 1.6f, -12f);
+        private static readonly Vector3 k_GreenhousePortalSize = new Vector3(6f, 3.2f, 1.2f);
+        private static readonly Vector3 k_ChaseCheckpointPosition = new Vector3(0f, 1f, 0f);
+        private const float k_ChaseCheckpointYaw = 0f;
 
         // Forest leg: resume in the maintenance-entrance pit (design anchor (+52, +4, 108)) facing
         // back along the chapter-00 route; the boss re-emerges up-slope behind the player, and the
@@ -93,7 +99,7 @@ namespace RootsDance.Editor.Environment
             try
             {
                 GameObject monsterPrefab = EnsureMonsterPrefab();
-                WireBriggsGameplay(monsterPrefab);
+                WireGreenhouseGameplay(monsterPrefab);
                 WireMainGameplay(monsterPrefab);
                 EnsureChaseCheckpoint();
                 AssetDatabase.SaveAssets();
@@ -107,7 +113,7 @@ namespace RootsDance.Editor.Environment
             }
 
             Debug.Log("MonsterChaseSetupBuilder: wired the greenhouse leg, the forest leg and the "
-                + "02-13 checkpoint. Play it with RootsDance > Dev Play > Play Monster Chase (F9).");
+                + "03-03 checkpoint. Play it with RootsDance > Dev Play > Play Monster Chase (F9).");
         }
 
         /// <summary>The boss prefab: both blockout bodies under one ChaseMonster. Kept if it exists.</summary>
@@ -153,9 +159,9 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        private static void WireBriggsGameplay(GameObject monsterPrefab)
+        private static void WireGreenhouseGameplay(GameObject monsterPrefab)
         {
-            Scene scene = EditorSceneManager.OpenScene(k_BriggsGameplayPath, OpenSceneMode.Single);
+            Scene scene = EditorSceneManager.OpenScene(k_GreenhouseGameplayPath, OpenSceneMode.Single);
 
             PanicViewShake shake = EnsurePanicShake(scene);
             Transform player = FindRequiredRoot(scene, "Player");
@@ -163,15 +169,16 @@ namespace RootsDance.Editor.Environment
             Transform chaseRoot = EnsureRoot(scene, "_Chase");
 
             Transform spawn = EnsureChild(chaseRoot, "MonsterSpawn");
-            spawn.SetPositionAndRotation(k_BriggsMonsterSpawn, Quaternion.identity);
+            spawn.SetPositionAndRotation(
+                k_GreenhouseMonsterSpawn, Quaternion.Euler(0f, k_GreenhouseMonsterYaw, 0f));
 
             ChaseMonster monster = EnsureMonsterInstance(chaseRoot, monsterPrefab, spawn);
 
             GameObject portal = EnsureChild(chaseRoot, "ExitPortal").gameObject;
-            portal.transform.position = k_BriggsPortal;
+            portal.transform.position = k_GreenhousePortal;
             BoxCollider portalBox = EnsureComponent<BoxCollider>(portal);
             portalBox.isTrigger = true;
-            portalBox.size = k_BriggsPortalSize;
+            portalBox.size = k_GreenhousePortalSize;
             ChaseExitPortal exitPortal = EnsureComponent<ChaseExitPortal>(portal);
 
             using (SerializedObject serialized = new SerializedObject(exitPortal))
@@ -342,12 +349,12 @@ namespace RootsDance.Editor.Environment
 
             using (SerializedObject serialized = new SerializedObject(checkpoint))
             {
-                serialized.FindProperty("m_label").stringValue = "02-13 Monster Chase";
+                serialized.FindProperty("m_label").stringValue = "03-03 Monster Chase";
                 serialized.FindProperty("m_level").objectReferenceValue =
-                    LoadRequired<UnityEngine.Object>(k_BriggsLevelPath);
-                serialized.FindProperty("m_anchorName").stringValue = "Checkpoint_Greenhouse";
-                serialized.FindProperty("m_position").vector3Value = new Vector3(6.8f, 1f, -3.2f);
-                serialized.FindProperty("m_yaw").floatValue = 180f;
+                    LoadRequired<UnityEngine.Object>(k_GreenhouseLevelPath);
+                serialized.FindProperty("m_anchorName").stringValue = "Checkpoint_CentralGreenhouse";
+                serialized.FindProperty("m_position").vector3Value = k_ChaseCheckpointPosition;
+                serialized.FindProperty("m_yaw").floatValue = k_ChaseCheckpointYaw;
                 serialized.FindProperty("m_snapToGround").boolValue = false;
                 serialized.FindProperty("m_groundClearance").floatValue = 0f;
                 serialized.FindProperty("m_timeOfDay").enumValueIndex = (int)CheckpointTimeOfDay.Night;
