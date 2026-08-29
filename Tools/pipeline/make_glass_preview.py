@@ -12,10 +12,13 @@ violet. Anything still white is a face with no material, which is itself
 worth seeing.
 """
 import bpy
+import sys
 
 ROOT = "/Users/yawen/projects/SheNicest/shenicest-2026-建模专用1"
 SRC = ROOT + "/SourceArt/Blender/GreenHouse1Glass/GreenHouse1Glass.blend"
 OUT = ROOT + "/SourceArt/Blender/GreenHouse1Glass/GreenHouse1Glass_Preview.blend"
+# the unbroken file has no damage to show, so it gets one colour
+FLAT = "--flat" in sys.argv
 
 STATE_COLOUR = {
     "Intact": (0.10, 0.85, 1.00),
@@ -76,9 +79,17 @@ for obj in bpy.data.objects:
     if obj.name in glass_names:
         glass_faces += len(obj.data.polygons)
         slots = [m for m in obj.data.materials if m is not None]
-        if not any(any(m.name.endswith(st) for st in STATE_COLOUR) for m in slots):
+        states_used = {int(p.material_index) for p in obj.data.polygons}
+        if FLAT or len(states_used) < 2 or not any(
+                any(m.name.endswith(st) for st in STATE_COLOUR) for m in slots):
+            # One colour when nothing here is actually broken. Keeping the
+            # three slots would paint panes amber and orange purely because a
+            # new face defaults to slot 1, which reads as damage that is not
+            # there.
             obj.data.materials.clear()
             obj.data.materials.append(fallback)
+            for poly in obj.data.polygons:
+                poly.material_index = 0
     else:
         frame_faces += len(obj.data.polygons)
         obj.data.materials.clear()
