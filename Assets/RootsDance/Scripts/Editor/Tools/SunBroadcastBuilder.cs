@@ -48,6 +48,16 @@ namespace RootsDance.EditorTools
 
                 scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Single);
             }
+            else if (scene.isDirty)
+            {
+                // This saves the scene, and a save writes everything in it -- including work
+                // somebody else has open and has not committed to yet. Refusing is the only safe
+                // answer. Leaving this check out once wrote another agent's half-finished
+                // greenhouse edits to disk.
+                Debug.LogError($"{k_LogPrefix}: '{scene.name}' has unsaved changes that are not "
+                    + "this builder's. Save or discard them, then run this again.");
+                return;
+            }
 
             Light sun = FindSun(scene);
 
