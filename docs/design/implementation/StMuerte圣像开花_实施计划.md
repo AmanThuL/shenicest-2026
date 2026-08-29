@@ -153,6 +153,25 @@
 - **`GrowthDriver.m_playOnEnable` 现在是 `false`。** 圣像所在的是 additive 场景，早在第二章就加载了；之前是 `true`，意味着那 45 秒的演出在玩家背后自己演完了。
 - **flag 已经抬起时才加载场景**（检查点跳过控制台、结局途中切关），`GrowthCue` 在第一个能问到 `WorldAccess.State` 的帧直接 `SetGrowth(1)`，不重放一遍玩家已经看过的演出。
 
+### 圣像的两拍
+
+到场和开花是两件事，各有自己的旗标和音乐：
+
+| 旗标 | 谁抬 | 结果 |
+|---|---|---|
+| `flow.entered_sacred_space` | `Main_Gameplay` 里的 `SacredSpaceVolume`（`22 × 12 × 22 m`，罩住圣像脚下） | `MUS_SacredGaia`（神圣盖亚） |
+| `flow.circulation_outer` | `DLG-008_CirculationConsole` 选对 Outer Boundary | 圣像开花 + 水流启动 + `MUS_EndingBloom`（生态复苏） |
+
+触发体放在 `Main_Gameplay` 而不是圣像的环境场景: 触发体归 gameplay 场景，`TriggerLayerTests` 也只扫 `*_Gameplay.unity`——层设错的触发体什么都不抬，而且不会有人知道。
+
+### 水流也等这一拍
+
+`StatueWater`（两条臂间水流 + 五道指缝落水 + 三处溅射 + 地面水雾）现在**建出来就是关的**，由圣像根下的 `EndingCue`（一个 `CueSequence`）在 `flow.circulation_outer` 抬起时打开，同时从水落地的位置放一次 `SFX_WaterTrickle`。
+
+一进场就有水在流的圣像，等于在说循环系统从来没坏过——那是整章的前提。用 `CueSequence` 而不是再写一个监听组件: 开关一个物体、放一次音效，本来就是 `CueStepKind` 五档里的两档；生长需要自己的组件只是因为 cue step 表达不了连续值。
+
+重跑顺序有依赖: `RootsDance > Build Statue Environment Scene` 会重建整个 `Statue` 根，把 `StatueBloom` 一起删掉，所以它之后必须再跑一次 `RootsDance > Build Statue Bloom`。
+
 ## 5.1 绽放动画怎么烘进顶点里
 
 Blender 的几何节点 / 粒子生长没有到 Unity 运行时的通路，顶点缓存（Alembic）的体积与开销不在本项目预算内，而且烘死之后就不能被剧情驱动。所以动画烘的是**姿态**，不是帧:

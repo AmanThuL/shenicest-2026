@@ -78,6 +78,14 @@ namespace RootsDance.Core
         /// <summary>Outer Boundary was started — the ecology's actual state (02-12).</summary>
         public const string k_CirculationOuter = "flow.circulation_outer";
 
+        /// <summary>
+        /// The player has walked into the space the StMuerte statue stands in (02-13). The one
+        /// beat the statue gets before the ending: arriving is not the same as the ecology coming
+        /// back, and the two want different music. <c>MusicWiring</c> scores this one with
+        /// MUS_SacredGaia and <see cref="k_CirculationOuter"/> with MUS_EndingBloom.
+        /// </summary>
+        public const string k_EnteredSacredSpace = "flow.entered_sacred_space";
+
         // ---- The chase: the wrong cycle wakes the boss --------------------------------------------
 
         /// <summary>The wrong circulation choice woke the boss in the greenhouse; the run is on.</summary>

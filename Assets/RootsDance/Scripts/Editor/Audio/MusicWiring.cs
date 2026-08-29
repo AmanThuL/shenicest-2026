@@ -45,8 +45,8 @@ namespace RootsDance.Editor.Audio
 
         // The chapter as the music hears it. Each row is a state the player can tell apart without
         // being told: the air is bad, the air is clean, the ground is alive, the thing is awake.
-        // Beats nobody raises a flag for yet (the sacred chamber, the credits roll) have their cue
-        // but no row — see 音频管线 §9.
+        // Beats nobody raises a flag for yet (the credits roll) have their cue but no row — see
+        // 音频管线 §9.
         public static readonly MusicBeat[] k_Beats =
         {
             // Chapter 00. The opening track carries the wake-up; the contaminated exterior takes
@@ -64,6 +64,10 @@ namespace RootsDance.Editor.Audio
             // starts coming back.
             new MusicBeat(WorldFlags.k_CirculationCore, "MUS_BossWarning"),
             new MusicBeat(WorldFlags.k_CirculationRing, "MUS_BossWarning"),
+            // The statue gets two beats, not one: walking into the space it stands in, and the
+            // ecology actually coming back. Arriving is quiet and enormous; the bloom is the
+            // ending. One track for both would flatten the first into a preview of the second.
+            new MusicBeat(WorldFlags.k_EnteredSacredSpace, "MUS_SacredGaia"),
             new MusicBeat(WorldFlags.k_CirculationOuter, "MUS_EndingBloom"),
 
             // The chase, and what is left after it.

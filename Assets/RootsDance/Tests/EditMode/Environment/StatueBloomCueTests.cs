@@ -1,8 +1,11 @@
 using NUnit.Framework;
 using RootsDance.Core;
 using RootsDance.Environment;
+using RootsDance.Sequencing;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RootsDance.Tests.EditMode.Environment
 {
@@ -18,6 +21,9 @@ namespace RootsDance.Tests.EditMode.Environment
     public class StatueBloomCueTests
     {
         private const string k_Prefab = "Assets/RootsDance/Prefabs/Environment/StatueBloom.prefab";
+
+        private const string k_StatueScene =
+            "Assets/RootsDance/Scenes/Levels/Main/Main_Environment_Statue.unity";
 
         private static GameObject Prefab()
         {
@@ -39,6 +45,76 @@ namespace RootsDance.Tests.EditMode.Environment
 
             Assert.IsNotNull(so.FindProperty("m_flagRaised").objectReferenceValue,
                 "the cue has no FlagRaised channel, so it never hears anything.");
+        }
+
+        /// <summary>
+        /// The water starts when the ecology does.
+        /// <para>
+        /// Water already pouring down the statue when the player first sees it says the
+        /// circulation was never broken, which is the premise of the whole chapter. It is also the
+        /// most invisible kind of wrong: the scene looks finished either way.
+        /// </para>
+        /// </summary>
+        [Test]
+        public void Water_WaitsForTheEcologyToComeBack()
+        {
+            Scene scene = EditorSceneManager.OpenScene(k_StatueScene, OpenSceneMode.Additive);
+
+            try
+            {
+                GameObject water = null;
+                CueSequence sequence = null;
+
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (child.name == "StatueWater")
+                        {
+                            water = child.gameObject;
+                        }
+                    }
+
+                    CueSequence found = root.GetComponentInChildren<CueSequence>(true);
+
+                    if (found != null)
+                    {
+                        sequence = found;
+                    }
+                }
+
+                Assert.IsNotNull(water, "the statue has no water.");
+                Assert.IsFalse(water.activeSelf,
+                    "the water is running before the circulation was ever repaired.");
+
+                Assert.IsNotNull(sequence, "nothing starts the water.");
+
+                SerializedObject so = new SerializedObject(sequence);
+                Assert.AreEqual(WorldFlags.k_CirculationOuter,
+                    so.FindProperty("m_startOnFlag").stringValue,
+                    "the water starts on a different beat than the bloom.");
+
+                SerializedProperty steps = so.FindProperty("m_steps");
+                bool switchesTheWaterOn = false;
+
+                for (int i = 0; i < steps.arraySize; i++)
+                {
+                    SerializedProperty step = steps.GetArrayElementAtIndex(i);
+
+                    if (step.FindPropertyRelative("m_target").objectReferenceValue == water
+                        && step.FindPropertyRelative("m_isActive").boolValue)
+                    {
+                        switchesTheWaterOn = true;
+                    }
+                }
+
+                Assert.IsTrue(switchesTheWaterOn,
+                    "the sequence never switches the water on, so it stays off for the whole game.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]

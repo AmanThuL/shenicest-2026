@@ -2,6 +2,7 @@ using System.IO;
 using RootsDance.Core;
 using RootsDance.Environment;
 using RootsDance.Events;
+using RootsDance.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -58,6 +59,23 @@ namespace RootsDance.EditorTools
         /// <summary>The bootstrap's FlagRaised channel — what tells the statue the ending began.</summary>
         private const string k_FlagChannel = "Assets/RootsDance/Data/Events/FlagRaised.asset";
 
+        private const string k_GameplayScene = "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
+
+        /// <summary>The volume that notices the player has arrived at the statue.</summary>
+        private const string k_SacredVolume = "SacredSpaceVolume";
+
+        /// <summary>
+        /// Where the water lands, from <c>StatueEnvironmentBuilder.k_GroundSplash</c> — the foot of
+        /// the statue, and the one point in the scene that is unambiguously "here".
+        /// </summary>
+        private static readonly Vector3 k_StatueFoot = new Vector3(26.02f, 4.75f, 67.45f);
+
+        /// <summary>
+        /// Big enough that the player cannot walk past the statue without the flag, small enough
+        /// that it is not raised from the far side of the terrain. The statue is 18.8 m tall.
+        /// </summary>
+        private static readonly Vector3 k_SacredVolumeSize = new Vector3(22f, 12f, 22f);
+
         /// <summary>The statue's root in the scene. The clumps go under it, so it carries them.</summary>
         private const string k_StatueRoot = "Statue";
 
@@ -88,6 +106,7 @@ namespace RootsDance.EditorTools
             }
 
             PlaceInScene(prefab);
+            PlaceSacredSpaceTrigger();
             AssetDatabase.SaveAssets();
             Debug.Log($"{k_LogPrefix}: done.");
         }
@@ -354,6 +373,106 @@ namespace RootsDance.EditorTools
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
             return renderer;
+        }
+
+        /// <summary>
+        /// Gives MUS_SacredGaia the beat it has been waiting for: the player walking into the
+        /// space the statue stands in.
+        /// <para>
+        /// In the gameplay scene rather than the statue's environment scene, because that is where
+        /// triggers live and where <c>TriggerLayerTests</c> looks — a volume on the wrong layer
+        /// raises nothing and says nothing about it.
+        /// </para>
+        /// </summary>
+        private static void PlaceSacredSpaceTrigger()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_GameplayScene);
+
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    if (SceneManager.GetSceneAt(i).isDirty)
+                    {
+                        Debug.LogError($"{k_LogPrefix}: a scene has unsaved changes. Save or "
+                            + "discard them, then run this again.");
+                        return;
+                    }
+                }
+
+                scene = EditorSceneManager.OpenScene(k_GameplayScene, OpenSceneMode.Additive);
+            }
+            else if (scene.isDirty)
+            {
+                Debug.LogError($"{k_LogPrefix}: '{scene.name}' has unsaved changes. Save or "
+                    + "discard them, then run this again.");
+                return;
+            }
+
+            int layer = LayerMask.NameToLayer("TriggerVolume");
+
+            if (layer < 0)
+            {
+                Debug.LogError($"{k_LogPrefix}: the TriggerVolume layer is not configured.");
+                return;
+            }
+
+            StringEventChannelSO channel =
+                AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(k_FlagChannel);
+
+            if (channel == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: {k_FlagChannel} not found.");
+                return;
+            }
+
+            GameObject volume = null;
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == k_SacredVolume)
+                {
+                    volume = root;
+                    break;
+                }
+            }
+
+            if (volume == null)
+            {
+                volume = new GameObject(k_SacredVolume);
+                SceneManager.MoveGameObjectToScene(volume, scene);
+            }
+
+            volume.layer = layer;
+            volume.transform.position = k_StatueFoot + new Vector3(0f, k_SacredVolumeSize.y * 0.5f, 0f);
+            volume.transform.rotation = Quaternion.identity;
+
+            BoxCollider box = volume.GetComponent<BoxCollider>();
+
+            if (box == null)
+            {
+                box = volume.AddComponent<BoxCollider>();
+            }
+
+            box.isTrigger = true;
+            box.center = Vector3.zero;
+            box.size = k_SacredVolumeSize;
+
+            TriggerVolume trigger = volume.GetComponent<TriggerVolume>();
+
+            if (trigger == null)
+            {
+                trigger = volume.AddComponent<TriggerVolume>();
+            }
+
+            SerializedObject so = new SerializedObject(trigger);
+            so.FindProperty("m_flagId").stringValue = WorldFlags.k_EnteredSacredSpace;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log($"{k_LogPrefix}: '{k_SacredVolume}' is in {scene.name}, raising "
+                + $"{WorldFlags.k_EnteredSacredSpace}.");
         }
 
         private static void PlaceInScene(GameObject prefab)

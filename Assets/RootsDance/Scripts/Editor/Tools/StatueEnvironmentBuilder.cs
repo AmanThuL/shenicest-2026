@@ -5,7 +5,11 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
+using RootsDance.Audio;
+using RootsDance.Core;
 using RootsDance.Environment;
+using RootsDance.Events;
+using RootsDance.Sequencing;
 
 namespace RootsDance.EditorTools
 {
@@ -38,6 +42,10 @@ namespace RootsDance.EditorTools
         private const string k_LevelAsset = "Assets/RootsDance/Data/Levels/Main.asset";
 
         private const string k_MeshFolder = "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/Generated";
+
+        private const string k_FlagRaisedChannel = "Assets/RootsDance/Data/Events/FlagRaised.asset";
+        private const string k_AudioChannel = "Assets/RootsDance/Data/Events/AudioCueRequested.asset";
+        private const string k_TrickleCue = "Assets/RootsDance/Data/Audio/SFX_WaterTrickle.asset";
         private const string k_MaterialFolder = "Assets/RootsDance/VFX";
 
         /// <summary>Lives beside the materials: the Textures/ pipeline owns only material map sets.</summary>
@@ -167,12 +175,84 @@ namespace RootsDance.EditorTools
                 radius: 0.45f, rate: 60f, speed: 2.6f, sizeMin: 0.08f, sizeMax: 0.28f, life: 0.8f);
             BuildMist(waterRoot, "Mist_Ground", k_GroundSplash + new Vector3(0f, 0.4f, 0f), mist);
 
+            BuildEndingCue(root, waterRoot, scene);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             RegisterScene();
             AssetDatabase.SaveAssets();
 
             Debug.Log($"{k_LogPrefix}: built and saved {k_ScenePath}.");
+        }
+
+        /// <summary>
+        /// The water is off until the ecology comes back.
+        /// <para>
+        /// A statue with water already running down it says the circulation was never broken,
+        /// which is the one thing the whole chapter is about. So <c>StatueWater</c> is built
+        /// switched off and a <see cref="CueSequence"/> switches it on when the player gets the
+        /// circulation console right — the same <see cref="WorldFlags.k_CirculationOuter"/> the
+        /// bloom and MUS_EndingBloom hang on, because it is one beat: the water starts, the statue
+        /// flowers, the music changes.
+        /// </para>
+        /// <para>
+        /// Data-driven rather than another listening component: switching an object on and sounding
+        /// a cue are two of the five things <see cref="CueStepKind"/> already does, and the growth
+        /// needed its own component only because a cue step cannot express a continuous value.
+        /// </para>
+        /// </summary>
+        private static void BuildEndingCue(GameObject root, GameObject waterRoot, Scene scene)
+        {
+            StringEventChannelSO flagRaised =
+                AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(k_FlagRaisedChannel);
+            AudioCueEventChannelSO audioChannel =
+                AssetDatabase.LoadAssetAtPath<AudioCueEventChannelSO>(k_AudioChannel);
+            AudioCueSO trickle = AssetDatabase.LoadAssetAtPath<AudioCueSO>(k_TrickleCue);
+
+            if (flagRaised == null || audioChannel == null || trickle == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: missing {k_FlagRaisedChannel}, {k_AudioChannel} or "
+                    + $"{k_TrickleCue}; the water would never start.");
+                return;
+            }
+
+            waterRoot.SetActive(false);
+
+            GameObject cueObject = new GameObject("EndingCue");
+            SceneManager.MoveGameObjectToScene(cueObject, scene);
+            cueObject.transform.SetParent(root.transform, false);
+
+            // Where the water lands, so the trickle comes from the foot of the statue rather than
+            // from wherever the sequence object happens to sit.
+            GameObject source = new GameObject("TrickleSource");
+            SceneManager.MoveGameObjectToScene(source, scene);
+            source.transform.SetParent(cueObject.transform, false);
+            source.transform.position = k_GroundSplash;
+
+            CueSequence sequence = cueObject.AddComponent<CueSequence>();
+            SerializedObject serialized = new SerializedObject(sequence);
+            serialized.FindProperty("m_playOn").enumValueIndex = (int)CueSequence.Moment.OnFlagRaised;
+            serialized.FindProperty("m_startOnFlag").stringValue = WorldFlags.k_CirculationOuter;
+            serialized.FindProperty("m_flagRaised").objectReferenceValue = flagRaised;
+            serialized.FindProperty("m_audioChannel").objectReferenceValue = audioChannel;
+            serialized.FindProperty("m_playsOnce").boolValue = true;
+
+            SerializedProperty steps = serialized.FindProperty("m_steps");
+            steps.arraySize = 2;
+
+            SerializedProperty on = steps.GetArrayElementAtIndex(0);
+            on.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.SetActive;
+            on.FindPropertyRelative("m_target").objectReferenceValue = waterRoot;
+            on.FindPropertyRelative("m_isActive").boolValue = true;
+            on.FindPropertyRelative("m_delay").floatValue = 0f;
+
+            SerializedProperty sound = steps.GetArrayElementAtIndex(1);
+            sound.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.PlayAudio;
+            sound.FindPropertyRelative("m_cue").objectReferenceValue = trickle;
+            sound.FindPropertyRelative("m_cueSource").objectReferenceValue = source.transform;
+            sound.FindPropertyRelative("m_delay").floatValue = 0f;
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // -------------------------------------------------------------------------------- scene
