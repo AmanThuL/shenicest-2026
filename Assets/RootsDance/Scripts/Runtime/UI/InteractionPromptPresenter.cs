@@ -14,6 +14,8 @@ namespace RootsDance.UI
     /// </summary>
     public class InteractionPromptPresenter : MonoBehaviour
     {
+        private const float k_VerticalOffset = -60f;
+
         [Header("Listens to")]
         [SerializeField] private StringEventChannelSO m_promptChanged;
 
@@ -34,6 +36,8 @@ namespace RootsDance.UI
         {
             if (m_label != null)
             {
+                RectTransform labelTransform = m_label.rectTransform;
+                labelTransform.anchoredPosition += Vector2.up * k_VerticalOffset;
                 m_labelGroup = TerminalMotion.EnsureCanvasGroup(m_label.gameObject);
             }
         }
