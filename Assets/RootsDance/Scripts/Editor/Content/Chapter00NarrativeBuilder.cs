@@ -101,17 +101,7 @@ namespace RootsDance.Editor.Content
             new Beat("DLG-110_MainEntranceSign", "DLG-110", "研究室入口指示牌（00-10）",
                 WorldFlags.k_MainEntranceSignRead),
             new Beat("DLG-111_FacilityPoster", "DLG-111", "研究所宣传海报（00-11）",
-                WorldFlags.k_ResearchFacilityPosterRead),
-            new Beat("DLG-112_AshleafVine", "DLG-112", "灰叶藤（00-12）",
-                WorldFlags.k_AshleafVineScanned),
-            new Beat("DLG-113_FineVeinedVine", "DLG-113", "细脉藤（00-13）",
-                WorldFlags.k_FineVeinedVineScanned),
-            new Beat("DLG-114_VineGrowthDirection", "DLG-114", "细脉藤的生长方向（00-14）",
-                WorldFlags.k_VineGrowthDirectionObserved),
-            new Beat("DLG-115_MaintenanceEntrance", "DLG-115", "露出的检修入口（00-15）",
-                WorldFlags.k_MaintenanceEntranceRevealed),
-            new Beat("DLG-116_InsideTunnel", "DLG-116", "进入检修通道（00-16）",
-                WorldFlags.k_EnteredMaintenanceTunnel)
+                WorldFlags.k_ResearchFacilityPosterRead)
         };
 
         [MenuItem("RootsDance/Content/Build Chapter 00 Narrative")]

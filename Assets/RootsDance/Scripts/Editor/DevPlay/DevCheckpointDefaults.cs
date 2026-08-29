@@ -23,10 +23,6 @@ namespace RootsDance.Editor.DevPlay
         private const string k_MainLevelPath = "Assets/RootsDance/Data/Levels/Main.asset";
         private const string k_SoilPath = "Assets/RootsDance/Data/Investigation/SO-001_Soil.asset";
         private const string k_TanmaoPath = "Assets/RootsDance/Data/Investigation/BOT-FL-041_Tanmao.asset";
-        private const string k_AshleafVinePath =
-            "Assets/RootsDance/Data/Investigation/BOT-FL-118_AshleafVine.asset";
-        private const string k_FineVeinedVinePath =
-            "Assets/RootsDance/Data/Investigation/BOT-FL-203_FineVeinedVine.asset";
         private const string k_ApplyChapter00MenuPath =
             "RootsDance/Dev Play/Apply Chapter 00 Checkpoint Defaults";
         private const int k_GroundLayerMask = 1 << 8;
@@ -165,8 +161,6 @@ namespace RootsDance.Editor.DevPlay
         {
             string[] noRecords = new string[0];
             string[] investigationRecords = { k_TanmaoPath, k_SoilPath };
-            string[] investigationAndAshleafRecords = Append(investigationRecords, k_AshleafVinePath);
-            string[] allPlantRecords = Append(investigationAndAshleafRecords, k_FineVeinedVinePath);
             string[] afterStart = { WorldFlags.k_LeftStartArea };
             string[] afterRadio =
             {
@@ -183,12 +177,6 @@ namespace RootsDance.Editor.DevPlay
             string[] afterBlockedEntrance = Append(afterInvestigation, WorldFlags.k_MainEntranceBlocked);
             string[] afterEntranceSign = Append(afterBlockedEntrance, WorldFlags.k_MainEntranceSignRead);
             string[] afterFacilityPoster = Append(afterEntranceSign, WorldFlags.k_ResearchFacilityPosterRead);
-            string[] afterAshleafScan = Append(afterFacilityPoster, WorldFlags.k_AshleafVineScanned);
-            string[] afterFineVeinedScan = Append(afterAshleafScan, WorldFlags.k_FineVeinedVineScanned);
-            string[] afterGrowthDirection = Append(
-                afterFineVeinedScan, WorldFlags.k_VineGrowthDirectionObserved);
-            string[] afterMaintenanceReveal = Append(
-                afterGrowthDirection, WorldFlags.k_MaintenanceEntranceRevealed);
 
             // Chapter 00 follows Main's authored polluted-day default. Keeping checkpoints on LevelDefault
             // prevents them from silently overriding later lighting revisions.
@@ -213,16 +201,6 @@ namespace RootsDance.Editor.DevPlay
                 Make("00-11_ResearchFacilityPoster", "00-11 Research facility poster",
                     "Anchor_00-11_ResearchFacilityPoster",
                     new Vector3(23f, 7.8f, 97.8f), 75f, afterEntranceSign, investigationRecords),
-                Make("00-12_AshleafVine", "00-12 Ashleaf vine", "Anchor_00-12_AshleafVine",
-                    new Vector3(33.8f, 7.8f, 97.5f), 330f, afterFacilityPoster, investigationRecords),
-                Make("00-13_FineVeinedVine", "00-13 Fine-veined vine", "Anchor_00-13_FineVeinedVine",
-                    new Vector3(35.8f, 7.8f, 100.8f), 330f, afterAshleafScan, investigationAndAshleafRecords),
-                Make("00-14_VineGrowthDirection", "00-14 Vine growth direction", "Anchor_00-14_VineGrowthDirection",
-                    new Vector3(36.4f, 7.8f, 104f), 340f, afterFineVeinedScan, allPlantRecords),
-                Make("00-15_ClearAshleafVine", "00-15 Clear ashleaf vine", "Anchor_00-15_ClearAshleafVine",
-                    new Vector3(37f, 7.8f, 106f), 340f, afterGrowthDirection, allPlantRecords, false, false),
-                Make("00-16_MaintenanceEntrance", "00-16 Maintenance entrance", "Anchor_00-16_MaintenanceEntrance",
-                    new Vector3(37f, 7.8f, 106f), 340f, afterMaintenanceReveal, allPlantRecords, false, false),
             };
         }
 

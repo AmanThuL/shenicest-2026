@@ -28,11 +28,6 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_MainEntranceBlocked,
                     WorldFlags.k_MainEntranceSignRead,
                     WorldFlags.k_ResearchFacilityPosterRead,
-                    WorldFlags.k_AshleafVineScanned,
-                    WorldFlags.k_FineVeinedVineScanned,
-                    WorldFlags.k_VineGrowthDirectionObserved,
-                    WorldFlags.k_MaintenanceEntranceRevealed,
-                    WorldFlags.k_EnteredMaintenanceTunnel,
 
                     // Chapter 02.
                     WorldFlags.k_SawUndergroundNetwork,

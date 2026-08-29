@@ -29,7 +29,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void DefaultRoute_UsesCorridor1Coordinates()
+        public void DefaultRoute_KeepsTraversalCorridorWithoutDeletedCheckpoints()
         {
             Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
 
@@ -40,8 +40,37 @@ namespace RootsDance.Tests.EditMode.Environment
                 new Vector2(0f, 66f), new Vector2(1.5f, 73.5f), new Vector2(8f, 82f),
                 new Vector2(16f, 88f), new Vector2(24f, 92.5f), new Vector2(30f, 96.2f),
             }, p.Routes[0]);
+            Assert.AreEqual(3, p.Routes.Length);
+            Assert.AreEqual(6, p.Checkpoints.Length);
             Assert.AreEqual(new Vector2(37f, 106f), p.Corridor1Route[p.Corridor1Route.Length - 1]);
             Assert.AreEqual(new Vector2(1.5f, 73.5f), p.DomeViewOrigins[0]);
+        }
+
+        [Test]
+        public void BlockedMainEntrancePrefab_KeepsInteractionWithoutBlockingPassage()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/RootsDance/Prefabs/Environment/Chapter00MidLate/BlockedMainEntrance.prefab");
+            Assert.IsNotNull(prefab);
+
+            BoxCollider interactionCollider = prefab.GetComponent<BoxCollider>();
+            Assert.IsNotNull(interactionCollider);
+            Assert.IsTrue(interactionCollider.enabled);
+            Assert.IsTrue(interactionCollider.isTrigger);
+
+            Collider[] colliders = prefab.GetComponentsInChildren<Collider>(true);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider collider = colliders[i];
+
+                if (collider.gameObject == prefab)
+                {
+                    continue;
+                }
+
+                Assert.IsFalse(collider.enabled, collider.name + " still blocks the entrance passage.");
+            }
         }
 
         [Test]
@@ -260,6 +289,33 @@ namespace RootsDance.Tests.EditMode.Environment
             }
             Assert.That(nonPhysicalPlantCount, Is.InRange(700, 750),
                 "Installed C vegetation must stay visually present without exceeding the 750-plant cap.");
+        }
+
+        [Test]
+        public void InstalledENaturalBlockers_LeaveTraversalCorridorOpen()
+        {
+            GameObject group = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/RootsDance/Prefabs/Environment/Chapter00ZoneVegetation/"
+                + "C00V_Group_ZoneE_NaturalBlockers.prefab");
+            Assert.IsNotNull(group);
+            Transform[] transforms = group.GetComponentsInChildren<Transform>(true);
+            Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
+
+            for (int transformIndex = 0; transformIndex < transforms.Length; transformIndex++)
+            {
+                Transform blocker = transforms[transformIndex];
+
+                if (!blocker.name.StartsWith("C00V_E_PhysicalBlocker_", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                Vector2 position = new Vector2(blocker.position.x, blocker.position.z);
+                Assert.GreaterOrEqual(
+                    Chapter00ZoneVegetationLayout.DistanceToRoute(p.Corridor1Route, position),
+                    p.CorridorVisualHalfWidth,
+                    "A physical blocker intrudes into the retained traversal corridor.");
+            }
         }
 
         [Test]

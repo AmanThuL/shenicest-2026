@@ -84,22 +84,5 @@ namespace RootsDance.Core
         /// <summary>The Briggs botanical-garden poster has been examined (node 00-11).</summary>
         public const string k_ResearchFacilityPosterRead = "flow.research_facility_poster_read";
 
-        /// <summary>Ashleaf vine has been scanned into the biological report (node 00-12).</summary>
-        public const string k_AshleafVineScanned = "flow.ashleaf_vine_scanned";
-
-        /// <summary>Fine-veined vine has been scanned into the biological report (node 00-13).</summary>
-        public const string k_FineVeinedVineScanned = "flow.fine_veined_vine_scanned";
-
-        /// <summary>The player connected the fine vine's growth direction to the service hardware (node 00-14).</summary>
-        public const string k_VineGrowthDirectionObserved = "flow.vine_growth_direction_observed";
-
-        /// <summary>The maintenance-entrance vine cover has been moved aside (node 00-15).</summary>
-        public const string k_MaintenanceEntranceRevealed = "flow.maintenance_entrance_revealed";
-
-        /// <summary>
-        /// The player is inside the service duct (node 00-16). The outdoor beds stop on it and the
-        /// enclosed ones start, which is the whole acoustic difference between outside and inside.
-        /// </summary>
-        public const string k_EnteredMaintenanceTunnel = "flow.entered_maintenance_tunnel";
     }
 }

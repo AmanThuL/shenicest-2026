@@ -181,7 +181,7 @@ namespace RootsDance.Editor.Terrain
         /// The Chapter-00 checkpoints around the Gaia v8 research facility. The wake spawn and the
         /// non-playable facility reference points are not checkpoint anchors.
         /// </summary>
-        /// <returns>A new array of the eleven Chapter-00 checkpoint anchors from 00-06 through 00-16.</returns>
+        /// <returns>A new array of the six active Chapter-00 checkpoint anchors from 00-06 through 00-11.</returns>
         public static AnchorDefinition[] CreateDefaultAnchors()
         {
             return new[]
@@ -192,11 +192,6 @@ namespace RootsDance.Editor.Terrain
                 new AnchorDefinition("Anchor_00-09_BlockedMainEntrance", new Vector3(30f, 0f, 96.2f)),
                 new AnchorDefinition("Anchor_00-10_MainEntranceSign", new Vector3(25.8f, 0f, 95.5f)),
                 new AnchorDefinition("Anchor_00-11_ResearchFacilityPoster", new Vector3(23f, 0f, 97.8f)),
-                new AnchorDefinition("Anchor_00-12_AshleafVine", new Vector3(33.8f, 0f, 97.5f)),
-                new AnchorDefinition("Anchor_00-13_FineVeinedVine", new Vector3(35.8f, 0f, 100.8f)),
-                new AnchorDefinition("Anchor_00-14_VineGrowthDirection", new Vector3(36.4f, 0f, 104f)),
-                new AnchorDefinition("Anchor_00-15_ClearAshleafVine", new Vector3(37f, 7.8f, 106f), true),
-                new AnchorDefinition("Anchor_00-16_MaintenanceEntrance", new Vector3(37f, 7.8f, 106f), true),
             };
         }
 

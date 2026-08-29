@@ -26,7 +26,7 @@ which only adds the missing defaults and never overwrites a tuned one).
 
 The defaults follow the opening route: `00-01 Wake` (nothing raised) → `00-04 Radio briefing` (left start area) →
 `00-05 Helmet unlock` (+ briefing started/finished, helmet removable) → `00-06 Grass belt` (+ helmet removed, entered
-grass belt) → `00-07 Grass platform`, `00-09 Main gate`, `00-10 Sign`, `00-11 Poster`, `00-16 Service entrance`
+grass belt) → `00-07 Grass platform`, `00-09 Main gate`, `00-10 Sign`, `00-11 Poster`
 (+ first investigation done, soil + 毯茅 recorded). Yaw is 0 everywhere — tune by eye and save the asset.
 
 Briggs Interior has four authored checkpoints under `Data/DevPlay/BriggsInterior/`. Their current anchors and fallback
@@ -59,7 +59,7 @@ Play and use **Play here** again. Teleporting into a `TriggerVolume` raises that
 **Time of day is the carve-out.** It is a discrete world-state *value*, not a flag, and it is not monotonic: **Go
 here** on a checkpoint whose Time of day is `Day` or `Night` really does switch the world, in both directions, as
 often as you like. `Level Default` is the opt-out and stays value 0, so a checkpoint authored before this field
-existed still means "leave the level alone". The 00-01 … 00-16 outdoor checkpoints use `Level Default`, which now
+existed still means "leave the level alone". The 00-01 … 00-11 outdoor checkpoints use `Level Default`, which now
 resolves to the Main level's yellow `PollutedDay` state; Briggs Interior checkpoints remain explicitly `Night`.
 `RootsDance > Dev Play > Set All Checkpoints To Level Default` rewrites the outdoor committed assets in place and
 skips the `BriggsInterior/` subfolder (Create Default Checkpoints never overwrites an existing one). The live section

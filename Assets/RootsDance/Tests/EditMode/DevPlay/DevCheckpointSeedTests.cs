@@ -165,8 +165,8 @@ namespace RootsDance.Tests.EditMode.DevPlay
             try
             {
                 checkpoint.Configure(
-                    "00-15 Clear ashleaf vine", null, "Anchor_00-15_ClearAshleafVine",
-                    new Vector3(20.7f, 7.8f, 135.8f), 32f, CheckpointTimeOfDay.Night,
+                    "Fixed height test", null, "FixedHeightAnchor",
+                    new Vector3(20f, 7.8f, 135f), 32f, CheckpointTimeOfDay.Night,
                     new string[0], new InvestigationTargetSO[0], false, 1 << 8, 1f, false);
 
                 Assert.IsFalse(checkpoint.SnapToGround);

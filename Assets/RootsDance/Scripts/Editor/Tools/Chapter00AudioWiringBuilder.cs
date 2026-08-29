@@ -63,17 +63,11 @@ namespace RootsDance.Editor.Tools
             new BedSpec("Bed_RadioStatic", "AMB_RadioStatic",
                 WorldFlags.k_RadioBriefingStarted, WorldFlags.k_RadioSignalLost),
             new BedSpec("Bed_LowContamination", "AMB_LowContamination",
-                WorldFlags.k_EnteredGrassBelt, WorldFlags.k_EnteredMaintenanceTunnel),
+                WorldFlags.k_EnteredGrassBelt, string.Empty),
             new BedSpec("Bed_FacilityExterior", "AMB_FacilityExterior",
-                WorldFlags.k_MainEntranceBlocked, WorldFlags.k_EnteredMaintenanceTunnel),
+                WorldFlags.k_MainEntranceBlocked, string.Empty),
             new BedSpec("Bed_PlantOnStructure", "AMB_PlantOnStructure",
-                WorldFlags.k_MainEntranceBlocked, WorldFlags.k_EnteredMaintenanceTunnel),
-            new BedSpec("Bed_VentFan", "AMB_VentFan",
-                WorldFlags.k_VineGrowthDirectionObserved, WorldFlags.k_EnteredMaintenanceTunnel),
-            new BedSpec("Bed_MaintenanceTunnel", "AMB_MaintenanceTunnel",
-                WorldFlags.k_EnteredMaintenanceTunnel, string.Empty),
-            new BedSpec("Bed_PipeHum", "AMB_PipeHum",
-                WorldFlags.k_EnteredMaintenanceTunnel, string.Empty)
+                WorldFlags.k_MainEntranceBlocked, string.Empty)
         };
 
         [MenuItem("RootsDance/Audio/Wire Chapter 00 Audio")]

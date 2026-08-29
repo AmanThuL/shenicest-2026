@@ -15,15 +15,6 @@ namespace RootsDance.Editor.Terrain
     [CreateAssetMenu(fileName = "TerrainDressingConfig", menuName = "RootsDance/Editor/Terrain Dressing Config")]
     public class TerrainDressingConfigSO : ScriptableObject
     {
-        /// <summary>Pit-floor height plus the pipe run's support gap, in world metres.</summary>
-        private const float k_ServicePipeY = 4.35f;
-
-        /// <summary>Z of the pipe run: just north of the service hut's back wall.</summary>
-        private const float k_ServicePipeZ = 109.6f;
-
-        /// <summary>X of the elbow that closes the pipe run; its west opening meets the last piece.</summary>
-        private const float k_ServicePipeBendX = 47.5f;
-
         [SerializeField, TitleGroup("General")]
         private int m_seed = 20260826;
 
@@ -350,9 +341,8 @@ namespace RootsDance.Editor.Terrain
 
         /// <summary>
         /// The hand-authored Chapter-00 props: the wake heroes that give the opening a foreground, the
-        /// landmarks along the route, and the facility props that make the 00-09 gate → 00-16 service
-        /// entrance clue chain legible. The service hut is a greybox stand-in for the service wing the
-        /// lab model does not have.
+        /// landmarks along the route, and the facility props that make the approach to the blocked main
+        /// entrance legible.
         /// </summary>
         /// <returns>A new array of the authored prop placements.</returns>
         public static PropPlacement[] CreateDefaultProps()
@@ -452,54 +442,6 @@ namespace RootsDance.Editor.Terrain
             {
                 HeightOffset = 0.79f
             });
-
-            // 00-14 exhaust fan: wall-mounted stand-ins on the lab's east face, which steps out from
-            // x 22.8 (z 100) to x 26.9 (z 103 onwards) — hence the two different X values.
-            props.Add(new PropPlacement("Fan", "RoofTile_Vents", new Vector3(27f, 11f, 103f), -90f, 1f, false));
-            props.Add(new PropPlacement("Fan", "Details_Vent_2", new Vector3(22.95f, 9f, 100f), -90f, 1f, false));
-            props.Add(new PropPlacement("Fan", "Details_Vent_3", new Vector3(27.03f, 9f, 106f), -90f, 1f, false));
-
-            // 00-16 service entrance: a three-wall hut with its door facing south into the pit.
-            props.Add(new PropPlacement("ServiceEntrance", "DoorSingle_Wall_SideA",
-                new Vector3(44f, 0f, 108.5f), 180f));
-            props.Add(new PropPlacement("ServiceEntrance", "Wall_Empty", new Vector3(41.5f, 0f, 108.5f), 180f));
-            props.Add(new PropPlacement("ServiceEntrance", "Wall_Empty", new Vector3(46.5f, 0f, 108.5f), 180f));
-            props.Add(new PropPlacement("ServiceEntrance", "Wall_Empty", new Vector3(48.5f, 0f, 106f), 90f));
-            // One continuous run along the hut's back (north) wall. Measured bounds: `pipe-large-long` is
-            // 2.000 m along its local +X at root scale 1, `pipe-large-valve` 1.000 m, so the pivots step
-            // by half of each neighbouring piece — 2 m between two longs, 1.5 m across the valve — and
-            // the run has neither a gap nor an overlap. It is pinned to the pit floor (4 m) plus a 0.35 m
-            // support gap rather than dropped, so it stays straight across the bowl's slope.
-            // The bend's two openings sit on its local -X and -Z faces (measured), so at yaw 0 it takes
-            // the run in from the west at k_ServicePipeBendX - 1 and turns south into the hut's back wall.
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-long",
-                new Vector3(38.5f, k_ServicePipeY, k_ServicePipeZ), 180f, 1f, false));
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-valve",
-                new Vector3(40f, k_ServicePipeY, k_ServicePipeZ), 180f, 1f, false));
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-long",
-                new Vector3(41.5f, k_ServicePipeY, k_ServicePipeZ), 180f, 1f, false));
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-long",
-                new Vector3(43.5f, k_ServicePipeY, k_ServicePipeZ), 180f, 1f, false));
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-long",
-                new Vector3(45.5f, k_ServicePipeY, k_ServicePipeZ), 180f, 1f, false));
-            props.Add(new PropPlacement("ServiceEntrance", "pipe-large-bend",
-                new Vector3(k_ServicePipeBendX, k_ServicePipeY, k_ServicePipeZ), 0f, 1f, false));
-            // Just proud of the hut wall's south face (z 108.24) so the plate is not swallowed by it.
-            props.Add(new PropPlacement("ServiceEntrance", "Details_Vent_1", new Vector3(44f, 6.2f, 108.15f), 180f,
-                1f, false));
-
-            // The stairs sit on the pit rim and step down into the bowl towards the door. Their run is
-            // 2 m long for 1.4 m of drop, so they are sunk by most of that: the top tread meets the rim
-            // and the bottom one lands on the floor, which is the only way a fixed staircase reads on a
-            // ramp the terrain generator makes continuous.
-            props.Add(new PropPlacement("ServiceEntrance", "catwalk-stairs", new Vector3(44f, 0f, 101f), 90f)
-            {
-                HeightOffset = -0.35f
-            });
-            props.Add(new PropPlacement("ServiceEntrance", "road_barrier", new Vector3(47f, 0f, 98f), 80f));
-            // Props are never slope-aligned — the builder always uses Euler(0, yaw, 0) — so this one
-            // stands upright on the pit ramp with the plain drop-to-ground default.
-            props.Add(new PropPlacement("ServiceEntrance", "construction-barrier", new Vector3(41f, 0f, 97f), -20f));
 
             return props.ToArray();
         }
