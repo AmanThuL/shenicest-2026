@@ -1,6 +1,5 @@
 using RootsDance.Scanner;
 using RootsDance.UI;
-using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -9,8 +8,8 @@ namespace RootsDance.EditorTools
 {
     /// <summary>
     /// Assembles the scanner prop prefab: the imported mesh, an anchor sitting on the middle of its
-    /// screen, the world-space report canvas on that anchor, and the camera that flies in to read
-    /// it.
+    /// screen, the world-space report canvas on that anchor, and the component that blows that
+    /// canvas up in front of the player when the report is read.
     /// <para>
     /// The anchor's orientation is measured from the mesh rather than typed in. The screen was
     /// separated out of the Body mesh in Blender as its own object with its origin on the centre of
@@ -26,7 +25,6 @@ namespace RootsDance.EditorTools
         private const string k_Prefab = "Assets/RootsDance/Prefabs/Props/Scanner.prefab";
         private const string k_ScreenObject = "Screen";
         private const string k_AnchorName = "ScreenAnchor";
-        private const string k_CameraName = "InspectCamera";
 
         [MenuItem("RootsDance/Build Scanner Prop")]
         public static void Build()
@@ -96,26 +94,20 @@ namespace RootsDance.EditorTools
             surfaceSerialized.ApplyModifiedPropertiesWithoutUndo();
             surface.Apply();
 
-            GameObject cameraGo = new GameObject(k_CameraName);
-            cameraGo.transform.SetParent(anchor, false);
-            CinemachineCamera camera = cameraGo.AddComponent<CinemachineCamera>();
-            camera.Priority = 30;
-
-            ScannerInspectFraming framing = root.AddComponent<ScannerInspectFraming>();
-            SerializedObject framingSerialized = new SerializedObject(framing);
-            framingSerialized.FindProperty("m_screenAnchor").objectReferenceValue = anchor;
-            framingSerialized.FindProperty("m_camera").objectReferenceValue = camera;
-            framingSerialized.FindProperty("m_surface").objectReferenceValue =
+            // No inspect camera any more: reading magnifies the report where the player is
+            // standing instead of flying the view onto the plate.
+            ScannerScreenMagnifier magnifier = root.AddComponent<ScannerScreenMagnifier>();
+            SerializedObject magnifierSerialized = new SerializedObject(magnifier);
+            magnifierSerialized.FindProperty("m_screenAnchor").objectReferenceValue = anchor;
+            magnifierSerialized.FindProperty("m_surface").objectReferenceValue =
                 canvas.GetComponent<ScannerScreenSurface>();
-            framingSerialized.ApplyModifiedPropertiesWithoutUndo();
-            framing.Apply();
+            magnifierSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             ScannerInspectController controller = root.AddComponent<ScannerInspectController>();
             SerializedObject controllerSerialized = new SerializedObject(controller);
             controllerSerialized.FindProperty("m_screenBehaviour").objectReferenceValue =
                 FindPresenter(canvas);
-            controllerSerialized.FindProperty("m_inspectCamera").objectReferenceValue = camera;
-            controllerSerialized.FindProperty("m_framing").objectReferenceValue = framing;
+            controllerSerialized.FindProperty("m_framing").objectReferenceValue = magnifier;
             controllerSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             root.AddComponent<ScannerDebugTrigger>();

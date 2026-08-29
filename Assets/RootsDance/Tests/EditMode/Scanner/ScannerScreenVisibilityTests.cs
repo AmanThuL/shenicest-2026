@@ -3,7 +3,6 @@ using NUnit.Framework;
 using RootsDance.Scanner;
 using RootsDance.UI;
 using RootsDance.UI.Kit;
-using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,13 +10,14 @@ namespace RootsDance.Tests.EditMode.Scanner
 {
     /// <summary>
     /// The report has to be <i>visible</i>, not merely present: on the outward face of the plate,
-    /// inside the inspect camera's frustum, facing it, and carrying text once the report is opened.
+    /// and once magnified, in front of the player's eye, facing it, inside the frustum and carrying
+    /// text.
     /// <para>
     /// <see cref="ScannerScreenFitTests"/> already checks that the canvas is the size of the plate,
     /// but a canvas can be exactly the right size and still draw nothing a player ever sees — behind
-    /// the plate, behind the camera, or empty. Each assertion here corresponds to one way the screen
+    /// the plate, behind the eye, or empty. Each assertion here corresponds to one way the screen
     /// has gone blank in play, and every one of them logs the numbers it measured, so a failure says
-    /// which of the four it was.
+    /// which of them it was.
     /// </para>
     /// </summary>
     public class ScannerScreenVisibilityTests
@@ -25,6 +25,8 @@ namespace RootsDance.Tests.EditMode.Scanner
         private const string k_Prefab = "Assets/RootsDance/Prefabs/Props/Scanner.prefab";
 
         private GameObject m_instance;
+        private GameObject m_eyeObject;
+        private Camera m_eye;
 
         [SetUp]
         public void SetUp()
@@ -34,17 +36,26 @@ namespace RootsDance.Tests.EditMode.Scanner
 
             m_instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
 
-            // The two components that write the pose are [ExecuteAlways] but their OnEnable does
-            // not run on an editor instantiate, so the poses are the ones serialized in the prefab
-            // until they are asked for again. Asking is the point: a stale serialized pose that
-            // disagrees with the code is exactly the bug class under test.
+            // The surface is [ExecuteAlways] but its OnEnable does not run on an editor
+            // instantiate, so the pose is the one serialized in the prefab until it is asked for
+            // again. Asking is the point: a stale serialized pose that disagrees with the code is
+            // exactly the bug class under test.
             Surface().Apply();
-            Framing().Apply();
+
+            m_eyeObject = new GameObject("Eye");
+            m_eye = m_eyeObject.AddComponent<Camera>();
+            m_eye.fieldOfView = 60f;
+            m_eye.aspect = 16f / 9f;
         }
 
         [TearDown]
         public void TearDown()
         {
+            if (m_eyeObject != null)
+            {
+                Object.DestroyImmediate(m_eyeObject);
+            }
+
             if (m_instance != null)
             {
                 Object.DestroyImmediate(m_instance);
@@ -73,67 +84,69 @@ namespace RootsDance.Tests.EditMode.Scanner
         }
 
         [Test]
-        public void InspectCamera_LooksAtTheFrontOfTheCanvas()
+        public void Magnified_SitsInFrontOfTheEyeAndFacesIt()
         {
-            CinemachineCamera camera = Camera();
-            Transform canvas = Surface().transform;
-            Transform eye = camera.transform;
+            Magnifier().MagnifyImmediate(m_eye);
 
-            Vector3 toCanvas = canvas.position - eye.position;
-            float distance = toCanvas.magnitude;
-            float alignment = Vector3.Dot(toCanvas.normalized, eye.forward);
+            Transform canvas = Surface().transform;
+            Transform eye = m_eye.transform;
+
+            Vector3 local = eye.InverseTransformPoint(canvas.position);
             float facing = Vector3.Dot(canvas.forward, eye.forward);
 
-            Debug.Log($"[scanner] camera at {eye.position} distance {distance:F4} m "
-                + $"alignment {alignment:F4} facing {facing:F4} fov {camera.Lens.FieldOfView}");
+            Debug.Log($"[scanner] magnified at {local:F4} m in view, facing {facing:F4}, "
+                + $"fov {m_eye.fieldOfView}");
 
-            Assert.Greater(alignment, 0.999f,
-                "The inspect camera is not pointed at the middle of the screen.");
-            Assert.Greater(facing, 0.9f,
-                "The camera is behind the canvas, so it sees the back of the report.");
-            Assert.Greater(distance, camera.Lens.NearClipPlane,
-                "The screen is closer than the near clip plane, so it is clipped away.");
+            Assert.Greater(local.z, m_eye.nearClipPlane,
+                "The report is closer than the near clip plane, so it is clipped away.");
+            Assert.Less(new Vector2(local.x, local.y).magnitude, 1e-3f,
+                "The report is off to one side of the view rather than centred in it.");
+            Assert.Greater(facing, 0.999f,
+                "The eye is behind the canvas, so it sees the back of the report.");
         }
 
         [Test]
-        public void Canvas_FitsInsideTheInspectCameraViewport()
+        public void Magnified_FillsMostOfTheViewportWithoutOverflowingIt()
         {
-            CinemachineCamera camera = Camera();
-            Transform eye = camera.transform;
+            ScannerScreenMagnifier magnifier = Magnifier();
+            magnifier.MagnifyImmediate(m_eye);
+
+            Transform eye = m_eye.transform;
             var rect = (RectTransform)Surface().transform;
             var corners = new Vector3[4];
             rect.GetWorldCorners(corners);
 
-            float halfFov = camera.Lens.FieldOfView * 0.5f * Mathf.Deg2Rad;
+            float halfFov = m_eye.fieldOfView * 0.5f * Mathf.Deg2Rad;
             float worst = 0f;
 
             for (int i = 0; i < corners.Length; i++)
             {
                 Vector3 local = eye.InverseTransformPoint(corners[i]);
-                Assert.Greater(local.z, 0f, $"Corner {i} is behind the camera.");
+                Assert.Greater(local.z, 0f, $"Corner {i} is behind the eye.");
 
                 float angle = Mathf.Atan2(Mathf.Abs(local.y), local.z);
                 worst = Mathf.Max(worst, angle / halfFov);
             }
 
-            Debug.Log($"[scanner] worst corner fills {worst * 100f:F1}% of the half-viewport");
+            Debug.Log($"[scanner] worst corner fills {worst * 100f:F1}% of the half-viewport, "
+                + $"asked for {magnifier.ScreenFill * 100f:F1}%");
 
-            Assert.Less(worst, 1f, "The screen overflows the viewport it is framed for.");
+            Assert.Less(worst, 1f, "The magnified report overflows the viewport.");
+            Assert.AreEqual(magnifier.ScreenFill, worst, 1e-2f,
+                "The report did not grow to the fill ratio it is set to, so it reads small.");
         }
 
         [Test]
-        public void InspectCamera_ReadsTheReportUprightHoweverTheScannerIsHeld()
+        public void Magnified_ReadsUprightHoweverTheScannerIsHeld()
         {
-            // The scanner is held in a hand, so the plate is never level with the world. A camera
-            // that keeps the world horizon level instead of the screen's own up lands with the
-            // report turned on its side — which is what a player sees as having to tilt their head.
+            // The scanner is held in a hand, so the plate is never level with the world. Lifting
+            // the report to the eye is what squares it to the player: on the plate it is at
+            // whatever angle the wrist is.
             m_instance.transform.rotation = Quaternion.Euler(23f, 41f, 57f);
 
-            ScannerInspectFraming framing = Framing();
-            framing.Apply();
+            Magnifier().MagnifyImmediate(m_eye);
 
-            CinemachineCamera camera = Camera();
-            Transform eye = camera.transform;
+            Transform eye = m_eye.transform;
             Vector3 screenUp = eye.InverseTransformDirection(Surface().transform.up);
             float tilt = Vector3.Angle(new Vector3(screenUp.x, screenUp.y, 0f), Vector3.up);
 
@@ -189,18 +202,11 @@ namespace RootsDance.Tests.EditMode.Scanner
             return surface;
         }
 
-        private ScannerInspectFraming Framing()
+        private ScannerScreenMagnifier Magnifier()
         {
-            var framing = m_instance.GetComponentInChildren<ScannerInspectFraming>(true);
-            Assert.IsNotNull(framing, "The scanner prefab has no inspect framing.");
-            return framing;
-        }
-
-        private CinemachineCamera Camera()
-        {
-            var camera = m_instance.GetComponentInChildren<CinemachineCamera>(true);
-            Assert.IsNotNull(camera, "The scanner prefab has no inspect camera.");
-            return camera;
+            var magnifier = m_instance.GetComponentInChildren<ScannerScreenMagnifier>(true);
+            Assert.IsNotNull(magnifier, "The scanner prefab has no screen magnifier.");
+            return magnifier;
         }
 
         private Transform Plate()

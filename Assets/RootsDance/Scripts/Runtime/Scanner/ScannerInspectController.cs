@@ -9,13 +9,20 @@ namespace RootsDance.Scanner
 {
     /// <summary>
     /// The read-the-scanner loop, start to finish: raise the arm, sweep the beam over the target,
-    /// fly the camera onto the screen, hand control to the UI, and on the player's word fly back
-    /// and lower the arm.
+    /// blow the report up in front of the player, hand control to the UI, and on the player's word
+    /// shrink it back onto the plate and lower the arm.
+    /// <para>
+    /// The camera never moves. An earlier version flew a Cinemachine camera onto the screen, which
+    /// took the view off the player's head and read as a cutscene; the read now magnifies the UI
+    /// instead — see <see cref="ScannerScreenMagnifier"/> — and the eye stays where the player put
+    /// it.
+    /// </para>
     /// <para>
     /// Five states and one gate. Nothing else may drive the left arm between
     /// <see cref="ScannerState.Raising"/> and <see cref="ScannerState.Lowering"/> — the arms
     /// contract says raise must be followed by lower — and the player's own movement and look are
-    /// suspended while reading, or the eye would fight the inspect camera for the same axes.
+    /// suspended while reading, so a stray mouse move cannot swing the world about behind a screen
+    /// that fills it.
     /// </para>
     /// </summary>
     public class ScannerInspectController : MonoBehaviour
@@ -39,11 +46,12 @@ namespace RootsDance.Scanner
         [Tooltip("Component implementing IScannerScreenView (the report canvas). Optional.")]
         [SerializeField] private MonoBehaviour m_screenBehaviour;
 
-        [Tooltip("The camera parked in front of the screen. Disabled until the player reads.")]
+        [Tooltip("Retired: the camera the read used to fly in. Kept wired only so it can be held "
+            + "switched off — a live Cinemachine camera on the prop would take the view for good.")]
         [SerializeField] private CinemachineCamera m_inspectCamera;
 
-        [Tooltip("Recomputes the camera pose from the fill ratio when reading starts.")]
-        [SerializeField] private ScannerInspectFraming m_framing;
+        [Tooltip("Lifts the report off the plate and scales it up to fill the view while reading.")]
+        [SerializeField] private ScannerScreenMagnifier m_framing;
 
         [Tooltip("The beam. Empty = the scan stage is skipped and the screen comes straight up.")]
         [SerializeField] private ScannerScanEffect m_scanEffect;
@@ -52,33 +60,21 @@ namespace RootsDance.Scanner
             + "on the close control.")]
         [SerializeField] private PlayerInputReader m_input;
 
-        [Tooltip("Suspended while reading — the look and move components on the player. One owner "
-            + "per axis: the inspect camera owns the view for as long as it is up.")]
+        [Tooltip("Suspended while reading — the look and move components on the player. The report "
+            + "covers the view, so nothing behind it is worth aiming at.")]
         [SerializeField] private Behaviour[] m_suspendedWhileReading = Array.Empty<Behaviour>();
 
         [Header("Timing")]
-        [Tooltip("Seconds the camera takes to fly in, and to fly back out. Short on purpose: this "
-            + "is the player raising something to look at it, not a cutscene.")]
-        [Range(0.1f, 4f)]
-        [SerializeField] private float m_zoomSeconds = 0.4f;
-
-        [Tooltip("Extra seconds to hold on the finished sweep before the camera flies in, so the "
-            + "beam is seen landing rather than being cut off by the zoom.")]
+        [Tooltip("Extra seconds to hold on the finished sweep before the report comes up, so the "
+            + "beam is seen landing rather than being cut off by the screen.")]
         [Range(0f, 2f)]
         [SerializeField] private float m_scanHoldSeconds = 0.25f;
-
-        [Tooltip("Priority given to the inspect camera while it is up. Above the first-person "
-            + "camera, below anything cinematic.")]
-        [SerializeField] private int m_activePriority = 30;
 
         [Tooltip("Show and unlock the cursor while reading, so the screen's controls are clickable.")]
         [SerializeField] private bool m_releaseCursorWhileReading = true;
 
         private IScannerView m_view;
         private IScannerScreenView m_screen;
-        private CinemachineBrain m_brain;
-        private CinemachineBlendDefinition m_previousBlend;
-        private bool m_hasStoredBlend;
         private ScannerState m_state = ScannerState.Idle;
         private ScannableTarget m_target;
 
@@ -91,7 +87,7 @@ namespace RootsDance.Scanner
         /// <summary>The object this run is reading, or null for a targetless debug run.</summary>
         public ScannableTarget Target => m_target;
 
-        /// <summary>Raised when the camera has arrived and the screen is readable.</summary>
+        /// <summary>Raised when the report is up and readable.</summary>
         public event Action ReadingStarted;
 
         /// <summary>Raised once the arm is back down and control is the player's again.</summary>
@@ -116,12 +112,12 @@ namespace RootsDance.Scanner
 
         private void Start()
         {
-            // Initialisation-time lookup: the brain lives in the bootstrap scene, so it cannot be a
-            // serialized reference from a level scene.
+            // The prop still carries the old fly-in camera. Nothing activates it any more, but a
+            // Cinemachine camera that is merely present and enabled outranks the first-person one
+            // and parks the view on the scanner for the rest of the session, so it is switched off
+            // here rather than left to whatever the prefab happens to be serialized with.
             if (m_inspectCamera != null)
             {
-                m_brain = CinemachineCore.FindPotentialTargetBrain(m_inspectCamera);
-                m_inspectCamera.Priority = m_activePriority;
                 m_inspectCamera.gameObject.SetActive(false);
             }
 
@@ -194,7 +190,6 @@ namespace RootsDance.Scanner
 
             m_target = target;
             m_state = ScannerState.Raising;
-            SetBlend(m_zoomSeconds);
 
             if (m_view == null)
             {
@@ -222,7 +217,11 @@ namespace RootsDance.Scanner
                 m_screen.Close();
             }
 
-            SetCameraActive(false);
+            if (m_framing != null)
+            {
+                m_framing.Restore();
+            }
+
             SuspendPlayer(false);
 
             if (m_view == null)
@@ -306,10 +305,9 @@ namespace RootsDance.Scanner
 
             if (m_framing != null)
             {
-                m_framing.Apply();
+                m_framing.Magnify();
             }
 
-            SetCameraActive(true);
             SuspendPlayer(true);
 
             if (m_screen != null)
@@ -329,18 +327,7 @@ namespace RootsDance.Scanner
 
             m_state = ScannerState.Idle;
             m_target = null;
-            RestoreBlend();
             ReadingEnded?.Invoke();
-        }
-
-        private void SetCameraActive(bool active)
-        {
-            if (m_inspectCamera == null)
-            {
-                return;
-            }
-
-            m_inspectCamera.gameObject.SetActive(active);
         }
 
         private void SuspendPlayer(bool suspended)
@@ -364,35 +351,6 @@ namespace RootsDance.Scanner
 
             Cursor.lockState = suspended ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = suspended;
-        }
-
-        /// <summary>
-        /// The fly-in and fly-out are Cinemachine blends, so the only place their duration lives is
-        /// the brain's default blend. It is stored and put back rather than left changed, because
-        /// the brain is shared with every other camera in the game.
-        /// </summary>
-        private void SetBlend(float seconds)
-        {
-            if (m_brain == null || m_hasStoredBlend)
-            {
-                return;
-            }
-
-            m_previousBlend = m_brain.DefaultBlend;
-            m_hasStoredBlend = true;
-            m_brain.DefaultBlend = new CinemachineBlendDefinition(
-                CinemachineBlendDefinition.Styles.EaseInOut, seconds);
-        }
-
-        private void RestoreBlend()
-        {
-            if (m_brain == null || !m_hasStoredBlend)
-            {
-                return;
-            }
-
-            m_brain.DefaultBlend = m_previousBlend;
-            m_hasStoredBlend = false;
         }
     }
 }

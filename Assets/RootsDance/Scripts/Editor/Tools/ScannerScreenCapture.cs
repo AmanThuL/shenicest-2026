@@ -11,8 +11,8 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.EditorTools
 {
     /// <summary>
-    /// Renders the scanner prop headlessly so the screen, its framing and the prop's orientation can
-    /// be checked without an interactive Editor — the same trick
+    /// Renders the scanner prop headlessly so the screen, its magnified reading size and the prop's
+    /// orientation can be checked without an interactive Editor — the same trick
     /// <see cref="RootsDance.Editor.Environment.OpeningAtmosphereCapture"/> uses for the opening
     /// route. Two shots: what the player sees while reading, and a three-quarter view of the prop.
     /// <para>
@@ -98,32 +98,34 @@ namespace RootsDance.EditorTools
                     label.ForceMeshUpdate();
                 }
 
-                Transform inspect = FindInspectCamera(prop.transform);
+                Transform anchor = FindScreenAnchor(prop.transform);
+                ScannerScreenMagnifier magnifier = prop.GetComponent<ScannerScreenMagnifier>();
 
-                if (inspect == null)
+                if (anchor == null || magnifier == null)
                 {
-                    Debug.LogError("ScannerScreenCapture: no InspectCamera under the prop.");
+                    Debug.LogError("ScannerScreenCapture: the prop carries no ScreenAnchor or no "
+                        + "ScannerScreenMagnifier — rebuild it with RootsDance > Build Scanner Prop.");
                     ok = false;
                 }
                 else
                 {
-                    ScannerInspectFraming framing = prop.GetComponent<ScannerInspectFraming>();
+                    // Reading no longer moves the view, so the witness shot is taken from where a
+                    // player's eye would be, with the report magnified in front of it exactly the
+                    // way the magnifier does it in play.
+                    camera.fieldOfView = 60f;
+                    camera.aspect = (float)k_Width / k_Height;
 
-                    if (framing != null)
-                    {
-                        framing.Apply();
-                    }
+                    Bounds held = Bound(prop);
+                    Vector3 eye = held.center + new Vector3(0.08f, 0.1f, -0.55f);
 
-                    camera.fieldOfView = 34f;
-                    Shoot(camera, target, readback, inspect.position, inspect.forward,
+                    magnifier.MagnifyImmediate(camera);
+                    Shoot(camera, target, readback, eye, (held.center - eye).normalized,
                         "scanner_inspect");
-                }
+                    magnifier.RestoreImmediate();
 
-                // Straight on to the screen from outside, far enough back to see the prop around
-                // it: this is the shot that says whether the anchor faces out or into the body.
-                if (inspect != null)
-                {
-                    Transform anchor = inspect.parent;
+                    // Straight on to the screen from outside, far enough back to see the prop
+                    // around it: this is the shot that says whether the anchor faces out or into
+                    // the body.
                     camera.fieldOfView = 40f;
                     Vector3 front = anchor.position - anchor.forward * 0.32f;
                     Shoot(camera, target, readback, front, anchor.forward, "scanner_screen_front");
@@ -194,7 +196,7 @@ namespace RootsDance.EditorTools
                 + $"  handedness (want +1) {handedness:F3}\n"
                 + $"  anchor->bodyCentre  {outward:F4}, dot(fwd, outward) "
                 + $"{Vector3.Dot(anchor.forward, outward.normalized):F3} (want < 0 = reads inward)\n"
-                + $"  canvas lossyScale   {anchor.GetChild(0).lossyScale:F6}");
+                + $"  canvas lossyScale   {CanvasScale(prop):F6}");
 
             Renderer[] renderers = prop.GetComponentsInChildren<Renderer>(true);
             System.Text.StringBuilder materials = new System.Text.StringBuilder("  materials:\n");
@@ -264,13 +266,24 @@ namespace RootsDance.EditorTools
             return text.Length <= 12 ? text : text.Substring(0, 12) + "…";
         }
 
-        private static Transform FindInspectCamera(Transform root)
+        /// <summary>
+        /// The report canvas's world scale, found by its own component rather than by child index:
+        /// the canvas leaves the anchor while it is magnified and comes back as its last child.
+        /// </summary>
+        private static Vector3 CanvasScale(GameObject prop)
+        {
+            var surface = prop.GetComponentInChildren<ScannerScreenSurface>(true);
+
+            return surface == null ? Vector3.zero : surface.transform.lossyScale;
+        }
+
+        private static Transform FindScreenAnchor(Transform root)
         {
             Transform[] all = root.GetComponentsInChildren<Transform>(true);
 
             for (int i = 0; i < all.Length; i++)
             {
-                if (all[i].name == "InspectCamera")
+                if (all[i].name == "ScreenAnchor")
                 {
                     return all[i];
                 }

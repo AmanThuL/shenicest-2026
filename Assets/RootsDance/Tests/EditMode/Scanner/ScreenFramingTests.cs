@@ -5,9 +5,10 @@ using UnityEngine;
 namespace RootsDance.Tests.EditMode.Scanner
 {
     /// <summary>
-    /// The framing distance is what the brief's adjustable border ratio actually means, so it is
-    /// worth pinning: the screen has to end up covering the asked-for fraction of the viewport on
-    /// whichever axis is tighter, on any aspect.
+    /// The fill ratio is what the brief's adjustable border actually means, so it is worth
+    /// pinning: whether the viewer stands back from the screen or the screen grows in front of the
+    /// viewer, it has to end up covering the asked-for fraction of the viewport on whichever axis
+    /// is tighter, on any aspect.
     /// </summary>
     public class ScreenFramingTests
     {
@@ -74,6 +75,58 @@ namespace RootsDance.Tests.EditMode.Scanner
             float loose = ScreenFraming.DistanceForFill(size, k_Fov, 16f / 9f, 0.6f);
 
             Assert.That(loose, Is.GreaterThan(tight));
+        }
+
+        [Test]
+        public void ScaleForFill_FullFill_RectangleCoversTheTightAxisExactly()
+        {
+            Vector2 size = ScannerScreenSurface.k_MeasuredActiveArea;
+            Vector2 viewport = ScreenFraming.ViewportSizeAt(0.6f, k_Fov, 16f / 9f);
+
+            float scale = ScreenFraming.ScaleForFill(size, viewport, 1f);
+
+            // The screen is 1.47:1 and the viewport 16:9, so height is the tight axis: at full
+            // fill the scaled height matches the viewport's and the width stays inside it.
+            Assert.That(size.y * scale, Is.EqualTo(viewport.y).Within(1e-5f));
+            Assert.That(size.x * scale, Is.LessThanOrEqualTo(viewport.x + 1e-5f));
+        }
+
+        [Test]
+        public void ScaleForFill_NarrowViewport_WidthBecomesTheTightAxis()
+        {
+            Vector2 size = ScannerScreenSurface.k_MeasuredActiveArea;
+            Vector2 square = ScreenFraming.ViewportSizeAt(0.6f, k_Fov, 1f);
+
+            float scale = ScreenFraming.ScaleForFill(size, square, 1f);
+
+            Assert.That(size.x * scale, Is.EqualTo(square.x).Within(1e-5f));
+        }
+
+        [Test]
+        public void ScaleForFill_IsTheInverseOfDistanceForFill()
+        {
+            Vector2 size = ScannerScreenSurface.k_MeasuredActiveArea;
+            const float k_Fill = 0.86f;
+
+            // Standing back far enough for the screen to fill 86% of the view, and growing the
+            // screen at that same distance until it fills 86%, must be the same framing: the
+            // screen is already the right size, so the scale comes back as 1.
+            float distance = ScreenFraming.DistanceForFill(size, k_Fov, 16f / 9f, k_Fill);
+            Vector2 viewport = ScreenFraming.ViewportSizeAt(distance, k_Fov, 16f / 9f);
+
+            Assert.That(ScreenFraming.ScaleForFill(size, viewport, k_Fill),
+                Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void ScaleForFill_ZeroFill_IsClampedInsteadOfCollapsing()
+        {
+            Vector2 viewport = ScreenFraming.ViewportSizeAt(0.6f, k_Fov, 1.6f);
+
+            float scale = ScreenFraming.ScaleForFill(Vector2.zero, viewport, 0f);
+
+            Assert.That(scale, Is.GreaterThan(0f));
+            Assert.That(float.IsInfinity(scale), Is.False);
         }
     }
 }
