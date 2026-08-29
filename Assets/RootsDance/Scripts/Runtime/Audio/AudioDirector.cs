@@ -174,9 +174,12 @@ namespace RootsDance.Audio
                 return;
             }
 
+            AudioClip requested = request.ClipOverride;
+
             // Not an error: wiring is authored before the clips exist, and a silent cue is how a
-            // scene stays playable in the meantime.
-            if (!cue.HasClips)
+            // scene stays playable in the meantime. A request carrying its own clip is exempt: a
+            // voice cue holds the mix for spoken lines and never holds the recordings themselves.
+            if (requested == null && !cue.HasClips)
             {
                 return;
             }
@@ -197,15 +200,20 @@ namespace RootsDance.Audio
                 return;
             }
 
-            int lastIndex = state.m_lastPlayTime > 0f ? state.m_lastClipIndex : AudioCuePicker.k_None;
-            AudioClip clip = cue.PickClip(ref lastIndex);
+            AudioClip clip = requested;
+
+            if (clip == null)
+            {
+                int lastIndex = state.m_lastPlayTime > 0f ? state.m_lastClipIndex : AudioCuePicker.k_None;
+                clip = cue.PickClip(ref lastIndex);
+                state.m_lastClipIndex = lastIndex;
+            }
 
             if (clip == null)
             {
                 return;
             }
 
-            state.m_lastClipIndex = lastIndex;
             state.m_lastPlayTime = now;
             m_cueStates[cue] = state;
 
