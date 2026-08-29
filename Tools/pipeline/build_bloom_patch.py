@@ -403,6 +403,9 @@ def build_patch(name, size, seed, surface, anchor, normal, order, spacing, lift=
     # does anyway.
     res = grid_res(size, spacing)
     span_limit = (size / res) * MAX_EDGE_STRETCH
+    # Triangulating a grid quad introduces a diagonal, which is root-2 times the spacing even
+    # on a perfectly flat patch. Judging it by the side limit condemns honest geometry.
+    diag_limit = span_limit * math.sqrt(2.0)
     min_tri_area = ((size / res) ** 2) * 0.5 * DEGENERATE_FRACTION
 
     for (i, j) in keep:
@@ -420,6 +423,8 @@ def build_patch(name, size, seed, surface, anchor, normal, order, spacing, lift=
         # stay that way. The short diagonal keeps the two halves from becoming slivers.
         d02 = (vs[0].co - vs[2].co).length
         d13 = (vs[1].co - vs[3].co).length
+        if min(d02, d13) > diag_limit:
+            continue
         pairs = (((0, 1, 2), (0, 2, 3)) if d02 <= d13 else ((0, 1, 3), (1, 2, 3)))
         for tri in pairs:
             t = [vs[i] for i in tri]
@@ -567,7 +572,8 @@ def audit_patch(ob, surface, size, spacing, lift=0.004):
         min_gap = min(min_gap, gap)
 
     res = grid_res(size, spacing)
-    span_limit = (size / res) * MAX_EDGE_STRETCH
+    # The mesh is triangulated, so its longest honest edge is a quad diagonal.
+    span_limit = (size / res) * MAX_EDGE_STRETCH * math.sqrt(2.0)
     bridged = 0
     for e in me.edges:
         a = mw @ me.vertices[e.vertices[0]].co
