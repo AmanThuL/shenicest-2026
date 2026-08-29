@@ -224,7 +224,7 @@ GameObject:
   m_Component:
   - component: {fileID: 601970114}
   m_Layer: 0
-  m_Name: Checkpoint_ChapterHouseBridge
+  m_Name: Checkpoint_FlowerSpriteEncounter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -349,7 +349,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1782408870}
   m_Layer: 0
-  m_Name: Checkpoint_ChapterHouseNave
+  m_Name: Checkpoint_CorridorEntrance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
