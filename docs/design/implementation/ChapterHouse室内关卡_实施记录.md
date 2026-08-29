@@ -6,8 +6,10 @@
 > 菜单: `RootsDance > Build Chapter House Interior`
 > 范围: 把处理过的 chapter house 做成可进入、可行走、可 Dev Play 的室内关卡
 
-**这一关目前没有剧情。** 素材先成为场景，剧本再决定它是什么——所以 checkpoint 不种任何旗标，
-`_Triggers` / `_Interactables` / `_Narrative` 三个根在本关内是空的，等内容进来。
+**这一关的剧情只有一处：桥上与小花的初次相遇（02-04）。** 它由
+`RootsDance > Content > Wire Narrative Runtime` 写进 `_Narrative`，本文件的生成器不碰它——
+关卡负责几何、锚点和 checkpoint，叙事挂在锚点上。`_Triggers` / `_Interactables` 仍是空的。
+相遇的三拍（现身 / 回头 / 台词）写在[对话与场景序列 2.3b](../../architecture/systems/对话与场景序列.md)。
 
 ---
 
@@ -44,10 +46,11 @@ ChapterHouseInterior_Environment
 └── _NavMesh      # 空，占位
 
 ChapterHouseInterior_Gameplay
-├── _Cameras/FirstPersonCamera   # CinemachineCamera，硬锁玩家头部
+├── _Cameras/FirstPersonCamera   # CinemachineCamera，硬锁玩家头部 + PanicViewShake（只用它的快速回头）
 ├── _Spawns/PlayerSpawn
 ├── _Anchors/Checkpoint_ChapterHouseNave · Checkpoint_ChapterHouseBridge
-├── _Triggers · _Interactables · _Narrative   # 空，等内容
+├── _Narrative                                # FirstMeeting（CueSequence）+ FlowerSprite（FollowCompanion）
+├── _Triggers · _Interactables                # 空，等内容
 └── Player
 ```
 
