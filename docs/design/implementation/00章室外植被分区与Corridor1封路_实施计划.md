@@ -1,7 +1,7 @@
 # 00章室外植被分区与 Corridor 1 封路实施计划
 
 > 设计依据: [00章室外环境设计](../00章室外环境设计_起始点至检修通道前.md)
-> 执行基线: `origin/develop@b487619`，Unity `6000.3.22f1`
+> 集成基线: `origin/develop@1100bd4b`，Unity `6000.3.22f1`
 > 工作分支: `review/ch00-aerial-overview`
 > 范围: A-E 可见区高密度植被、C 连续异色草毯、统一草高、A-E 后处理、E 区 Corridor 1 唯一路线、checkpoint 重绑与验证
 > 性能策略: 本轮不以帧率、draw call、实例数或贴图内存作为减配理由。先满足体验和设计，再单独优化。
@@ -177,8 +177,8 @@ Prefab World Builder
 - [x] `TEST-06` 生成统一俯视图和固定 C、圆顶、Corridor 1 评审截图。
 - [ ] `TEST-07` Unity console 无新增 Error，EditMode/PlayMode 全量测试通过。
 - [x] `DOC-03` 回填本文证据表，更新长期设计中因实测变化的参数。
-- [ ] `GIT-01` 只提交本轮文件，不夹带 Unity 首次导入产生的无关材质改写。
-- [ ] `GIT-02` 合并前同步最新 `origin/develop`，解决冲突并完成交付必需检查；按用户要求不重跑完整 Unity 验证。
+- [x] `GIT-01` 只提交本轮文件，不夹带 Unity 首次导入产生的无关材质改写。
+- [x] `GIT-02` 已同步 `origin/develop@1100bd4b` 并无冲突合并；按用户要求不重跑完整 Unity 验证。
 
 ## 5. 自动验证设计
 
@@ -226,7 +226,7 @@ Prefab World Builder
 | A-E Volume 实际参数 | MFP `9/13.5/19/25.5/33m`；blend `8/8/8/8/10m`；priority `6..10` |
 | EditMode/PlayMode 结果 | 最终相关 EditMode `14/14`；按用户要求缩减验证，未跑最终全量 PlayMode |
 | 评审截图路径 | `Logs/Captures/Chapter00RingOverview/` 下 topdown、C、dome、Corridor1 五图 |
-| 实现 commit 与 remote develop | 合并推送后回填 |
+| 实现 commit 与 remote develop | 实现 `ca798c03`；集成 merge `194fc196`；本回填提交随 HEAD 推送 `develop` |
 
 ### 未采用资产说明
 
