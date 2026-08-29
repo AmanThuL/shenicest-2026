@@ -215,6 +215,7 @@ GameObject:
   - component: {fileID: 797071109}
   - component: {fileID: 797071108}
   - component: {fileID: 797071107}
+  - component: {fileID: 797071113}
   m_Layer: 0
   m_Name: GameBootstrap
   m_TagString: Untagged
@@ -376,6 +377,49 @@ MonoBehaviour:
   m_maxVoices: 24
   m_pooledVoices: 12
   m_releaseMargin: 0.1
+--- !u!114 &797071113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a22d3d9de6b79427b8fa36ef3b36c30e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.FlagMusicCues
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_musicRequested: {fileID: 11400000, guid: efbf8f287de064d0fb6aed18a242ec16, type: 2}
+  m_openingMusic: {fileID: 11400000, guid: ded20c78c6d09429d9cb38867aef463e, type: 2}
+  m_bindings:
+  - m_flagId: flow.left_start_area
+    m_cue: {fileID: 11400000, guid: 58f99d49f030b4abdb1a874a408c2a06, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.helmet_removed
+    m_cue: {fileID: 11400000, guid: 3ba872710f0584c82afbfc8ea88305a6, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.saw_underground_network
+    m_cue: {fileID: 11400000, guid: 33a969e1617314e2ba24da4a3c51b203, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.entered_greenhouse
+    m_cue: {fileID: 11400000, guid: 1495e7ea1df014cd094dcc54611ddf94, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.circulation_core
+    m_cue: {fileID: 11400000, guid: 8c1584c7369ff41a48ea3ea847bb853e, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.circulation_ring
+    m_cue: {fileID: 11400000, guid: 8c1584c7369ff41a48ea3ea847bb853e, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.circulation_outer
+    m_cue: {fileID: 11400000, guid: 0144537093a724413898f6575d796686, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.chase_started
+    m_cue: {fileID: 11400000, guid: 4cb24652721b34b99b0993a63b8b0399, type: 2}
+    m_stopsMusic: 0
+  - m_flagId: flow.chase_escaped
+    m_cue: {fileID: 11400000, guid: 6d15b85afcfe4432bb0af6941235f2f5, type: 2}
+    m_stopsMusic: 0
 --- !u!1 &1237885287
 GameObject:
   m_ObjectHideFlags: 0
