@@ -1,6 +1,7 @@
 using System.IO;
 using RootsDance.Scanner;
 using RootsDance.UI;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -85,6 +86,16 @@ namespace RootsDance.EditorTools
                 if (presenter != null)
                 {
                     presenter.Open();
+                }
+
+                // Nothing has ticked, so the labels still carry whatever mesh was serialized with
+                // the prefab: without this the shot shows the authored text rather than the text
+                // the report just wrote, which is worse than no witness at all.
+                Canvas.ForceUpdateCanvases();
+
+                foreach (TMP_Text label in prop.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    label.ForceMeshUpdate();
                 }
 
                 Transform inspect = FindInspectCamera(prop.transform);
@@ -199,6 +210,58 @@ namespace RootsDance.EditorTools
             }
 
             Debug.Log(materials.ToString());
+            ReportLabels(prop);
+        }
+
+        /// <summary>
+        /// Prints what every label on the screen is actually drawn with. A diegetic screen fails
+        /// silently: the glyphs are laid out and submitted whatever material they carry, so a label
+        /// on TextMeshPro's own SDF shader is invisible at this canvas scale and looks like missing
+        /// content. The sub-meshes are listed too — they are the objects TMP spawns for glyphs the
+        /// primary face does not have, which on this screen is every Chinese character.
+        /// </summary>
+        private static void ReportLabels(GameObject prop)
+        {
+            var report = new System.Text.StringBuilder("  labels:\n");
+
+            foreach (TMP_Text label in prop.GetComponentsInChildren<TMP_Text>(true))
+            {
+                label.ForceMeshUpdate();
+
+                report.Append($"    {label.name} '{Trim(label.text)}' font ")
+                    .Append(label.font == null ? "<none>" : label.font.name)
+                    .Append(" / ")
+                    .Append(Shader(label.fontSharedMaterial))
+                    .Append('\n');
+            }
+
+            foreach (TMP_SubMeshUI sub in prop.GetComponentsInChildren<TMP_SubMeshUI>(true))
+            {
+                report.Append($"    ↳ sub {sub.name} font ")
+                    .Append(sub.fontAsset == null ? "<none>" : sub.fontAsset.name)
+                    .Append(" / ")
+                    .Append(Shader(sub.sharedMaterial))
+                    .Append('\n');
+            }
+
+            Debug.Log(report.ToString());
+        }
+
+        private static string Shader(Material material)
+        {
+            return material == null || material.shader == null
+                ? "<none>"
+                : material.shader.name;
+        }
+
+        private static string Trim(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            return text.Length <= 12 ? text : text.Substring(0, 12) + "…";
         }
 
         private static Transform FindInspectCamera(Transform root)
