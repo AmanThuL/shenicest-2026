@@ -9,8 +9,8 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Adds the textured automatic exit door and removes the superseded full-room overhead ivy
-    /// without rebuilding the rest of the Briggs interior.
+    /// Adds the textured automatic exit door and restores the pre-dressing roof vegetation
+    /// without rebuilding the rest of the Briggs interior or touching PWB props.
     /// </summary>
     public static class BriggsInteriorExitDoorBuilder
     {
@@ -23,6 +23,8 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
         private const string k_WallMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageWallWeathered.mat";
+        private const string k_IvyMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageIvy.mat";
         private const string k_TrimMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageTrim.mat";
         private const string k_GarageShellPath =
@@ -37,16 +39,17 @@ namespace RootsDance.Editor.Environment
             ApplyToLoadedScenes();
         }
 
-        /// <summary>One-shot entry point for cleaning an existing environment scene in a worktree.</summary>
-        public static void CleanupOverheadVegetationFromCommandLine()
+        /// <summary>One-shot entry point for restoring the 64792d1 ceiling and hanging vegetation.</summary>
+        public static void RestorePreDressingCeilingVegetationFromCommandLine()
         {
             Scene environment = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
             Transform props = FindRoot(environment, "_Props");
-            RemoveLegacyOverheadVegetation(environment, props);
+            Material ivyMaterial = LoadRequiredAsset<Material>(k_IvyMaterialPath);
+            RestorePreDressingCeilingVegetation(environment, props, ivyMaterial);
             EditorSceneManager.MarkSceneDirty(environment);
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorExitDoor] Removed IvyHanging and CeilingHoleVines from the scene.");
+            Debug.Log("[BriggsInteriorExitDoor] Restored the 64792d1 IvyHanging and CeilingHoleVines state.");
 
             if (Application.isBatchMode)
             {
@@ -59,13 +62,14 @@ namespace RootsDance.Editor.Environment
             Scene environment = FindLoadedScene(k_EnvironmentPath);
             Scene gameplay = FindLoadedScene(k_GameplayPath);
             Material wallMaterial = LoadRequiredAsset<Material>(k_WallMaterialPath);
+            Material ivyMaterial = LoadRequiredAsset<Material>(k_IvyMaterialPath);
             Material trimMaterial = LoadRequiredAsset<Material>(k_TrimMaterialPath);
             GameObject doorPrefab = EnsureDoorPrefab(wallMaterial);
 
             AssignRoundExitWallMaterial(environment, wallMaterial);
 
             Transform props = FindRoot(environment, "_Props");
-            RemoveLegacyOverheadVegetation(environment, props);
+            RestorePreDressingCeilingVegetation(environment, props, ivyMaterial);
             CreateClosedEntranceDoor(props, trimMaterial);
 
             Transform interactables = FindRoot(gameplay, "_Interactables");
@@ -77,7 +81,7 @@ namespace RootsDance.Editor.Environment
             EditorSceneManager.SaveScene(gameplay);
             AssetDatabase.SaveAssets();
             Debug.Log("[BriggsInteriorExitDoor] Applied textured round-exit wall and automatic door; "
-                + "removed the superseded overhead ivy pass.");
+                + "restored the pre-dressing ceiling and hanging vegetation.");
         }
 
         public static GameObject EnsureDoorPrefab(Material wallMaterial)
@@ -140,24 +144,95 @@ namespace RootsDance.Editor.Environment
             door.transform.localScale = Vector3.one;
         }
 
-        public static void RemoveLegacyOverheadVegetation(Scene environment, Transform propsRoot)
+        public static void RestorePreDressingCeilingVegetation(
+            Scene environment,
+            Transform propsRoot,
+            Material ivyMaterial)
         {
             GameObject ivy = environment.GetRootGameObjects()
                 .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
                 .Select(item => item.gameObject)
                 .FirstOrDefault(item => item.name == "IvyHanging");
 
-            if (ivy != null)
+            if (ivy == null)
             {
-                Object.DestroyImmediate(ivy);
+                GameObject ivyPrefab = LoadRequiredAsset<GameObject>(
+                    "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx");
+                ivy = (GameObject)PrefabUtility.InstantiatePrefab(ivyPrefab, environment);
             }
 
+            ivy.name = "IvyHanging";
+            ivy.transform.SetParent(FindGameObject(environment, "GarageSourceArt").transform, false);
+            ivy.transform.SetLocalPositionAndRotation(
+                new Vector3(-0.373f, -0.16892f, -0.488f),
+                new Quaternion(0f, 1f, 0f, -0.00000004371139f));
+            ivy.transform.localScale = new Vector3(3.0177207f, 2.110111f, 3.7525582f);
+
+            foreach (MeshRenderer renderer in ivy.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                renderer.sharedMaterial = ivyMaterial;
+            }
+
+            SetStatic(ivy);
+            CreateCeilingHoleVines(ivy, propsRoot, ivyMaterial);
+        }
+
+        public static void CreateCeilingHoleVines(
+            GameObject ivyRoot,
+            Transform propsRoot,
+            Material ivyMaterial)
+        {
             Transform vines = propsRoot.Find(k_VinesName);
 
             if (vines != null)
             {
                 Object.DestroyImmediate(vines.gameObject);
             }
+
+            vines = new GameObject(k_VinesName).transform;
+            vines.SetParent(propsRoot, false);
+            CreateVine(ivyRoot, vines, "Ivy_Hanging_09", "MainHoleVine_Left", -0.78f, 2.5f, 12f, ivyMaterial);
+            CreateVine(ivyRoot, vines, "Ivy_Hanging_10", "MainHoleVine_Right", 0.98f, 2.5f, -16f, ivyMaterial);
+        }
+
+        private static void CreateVine(
+            GameObject ivyRoot,
+            Transform parent,
+            string sourceName,
+            string name,
+            float targetX,
+            float targetZ,
+            float yawOffset,
+            Material material)
+        {
+            MeshRenderer source = ivyRoot.GetComponentsInChildren<MeshRenderer>(true)
+                .FirstOrDefault(renderer => renderer.name == sourceName);
+
+            if (source == null)
+            {
+                throw new System.InvalidOperationException("Ivy source mesh was not found: " + sourceName);
+            }
+
+            GameObject clone = Object.Instantiate(source.gameObject);
+            clone.name = name;
+            clone.transform.SetParent(parent, true);
+            clone.transform.localScale *= 0.9f;
+            clone.transform.rotation = Quaternion.Euler(0f, yawOffset, 0f) * source.transform.rotation;
+
+            MeshRenderer renderer = clone.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            Bounds bounds = renderer.bounds;
+            clone.transform.position += new Vector3(
+                targetX - bounds.center.x,
+                4.96f - bounds.max.y,
+                targetZ - bounds.center.z);
+
+            foreach (Collider collider in clone.GetComponentsInChildren<Collider>(true))
+            {
+                Object.DestroyImmediate(collider);
+            }
+
+            clone.isStatic = true;
         }
 
         public static void CreateClosedEntranceDoor(Transform propsRoot, Material trimMaterial)

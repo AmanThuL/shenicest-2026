@@ -13,13 +13,20 @@ namespace RootsDance.Editor.Environment
     {
         private const string k_ScenePath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
+        private const string k_MainEnvironmentPath =
+            "Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity";
         private const string k_OutputFolder = "Logs/VisualQA/briggs-interior-cleanup";
         private const int k_Width = 1600;
         private const int k_Height = 900;
 
         public static void CaptureFromCommandLine()
         {
-            Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Single);
+            // Reproduce the gameplay volume stack. Briggs deliberately inherits the sunny sky from the
+            // global MainProfile and only applies its abandoned-room look inside a local Box Volume.
+            Scene mainEnvironment = EditorSceneManager.OpenScene(k_MainEnvironmentPath, OpenSceneMode.Single);
+            KeepOnlyMainProfileAtmosphere(mainEnvironment);
+            Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Additive);
+            SceneManager.SetActiveScene(scene);
             Directory.CreateDirectory(k_OutputFolder);
 
             GameObject cameraObject = new GameObject("BriggsInteriorQaCamera");
@@ -45,16 +52,10 @@ namespace RootsDance.Editor.Environment
                 Capture(camera, target, readback, "04_inside_ceiling_light_axis",
                     new Vector3(-4.5f, 1.6f, -4.8f), new Vector3(0f, 3.6f, 1.2f));
 
-                Light exteriorQaFill = cameraObject.AddComponent<Light>();
-                exteriorQaFill.type = LightType.Point;
-                exteriorQaFill.intensity = 50000f;
-                exteriorQaFill.range = 50f;
-                exteriorQaFill.shadows = LightShadows.None;
                 Capture(camera, target, readback, "05_outside_southwest",
                     new Vector3(-15f, 3.5f, -12f), new Vector3(0f, 2f, -2f));
                 Capture(camera, target, readback, "06_outside_northeast",
                     new Vector3(15f, 3.5f, 12f), new Vector3(0f, 2f, 0f));
-                exteriorQaFill.enabled = false;
                 AuditPwbBounds(scene);
                 Debug.Log($"BriggsInteriorVisualQaCapture: wrote six views to '{k_OutputFolder}'.");
             }
@@ -70,6 +71,27 @@ namespace RootsDance.Editor.Environment
             if (Application.isBatchMode)
             {
                 EditorApplication.Exit(0);
+            }
+        }
+
+        private static void KeepOnlyMainProfileAtmosphere(Scene scene)
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Light light in root.GetComponentsInChildren<Light>(true))
+                {
+                    light.enabled = false;
+                }
+
+                foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+                {
+                    renderer.enabled = false;
+                }
+
+                foreach (UnityEngine.Terrain terrain in root.GetComponentsInChildren<UnityEngine.Terrain>(true))
+                {
+                    terrain.enabled = false;
+                }
             }
         }
 

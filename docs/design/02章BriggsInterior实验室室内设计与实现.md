@@ -37,9 +37,9 @@
 - 首轮共放置 160 个 Prefab 实例，包括家具、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
 - 第二轮重建后共 121 个 PWB prefab 实例。数量下降来自合并中央六柜台、移除阻塞北环路的服务台和清理重复器材，不是减少地面生态或桌面叙事密度。
 - 第二轮保留全部 `BI_Overgrowth_*`、`BI_Moss_*` 与既有地面生态坐标，只重做家具和台面层。
-- 第三轮可见性清理移除整包 `IvyHanging` 以及由它复制出的 `CeilingHoleVines`。该 FBX 按建筑壳体比例缩放后，
-  多片藤蔓横跨中央岛、天花破口与墙外，既遮挡主视线和顶光，也让场景外部难以辨认。其余墙边蕨类、地砖裂缝杂草、
-  青苔与苔藓岩块继续保留；除下述越界实例外，PWB 地面生态坐标不变。
+- 顶部结构和悬挂植物最终以首次室内布景前的 `64792d1` 为基线：`Ceiling`、两根梁、Mesh 内的 ceiling holes、
+  `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留原 Prefab、材质与 Transform。PWB 下 121 个室内 props
+  则严格保持 `55a362d` 的状态；两套基线互不覆盖。
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
   但不再穿墙或在室外形成难以辨认的轮廓。
@@ -49,10 +49,10 @@
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
 - 从本地 CC0 Lab Assets 增补显微镜、烧杯、过滤瓶、分液漏斗、酒精灯、铁架台、环架、坩埚、针筒、蒸发皿、药匙和折叠实验服。
 - 北墙中央 `abs(X) < 2.75` 且 `Z > 4.4` 的圆门预留区不放任何本轮 props。
-- 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor` 和入口封闭门；破顶藤蔓因
-  遮挡顶光和中央视线已在第三轮清理中移除。
+- 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门、破顶与悬挂藤蔓。
+  顶光不依赖删除植物，而由恢复后的 100000 lux Sun、窄角 RoofShaft 与局部体积雾维持可读性。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
-- 全局 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册。
+- 局部室内 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册；室外继续继承 `MainProfile` 的晴天天空。
 - 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
 - 截图中的 `Abandoned Lab Equipment`、`Mad Scientist Lab`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 本地没有可用源包；本轮只借构图，用项目原创低模 CRT、公告板和破表替代。`Chemical Lab Fallout 4` 与 Black Mesa 衍生素材不进入发布工程。
 
@@ -105,10 +105,10 @@
 
 | 对象 | 类型与位置 | 当前用途 | 后续处理 |
 |---|---|---|---|
-| `Sun` | Directional，约 100000 lux | 外部日光和破顶来源 | 保留，室内依靠 blocker 和破顶定向放光 |
+| `Sun` | Directional，100000 lux | 晴天外部日光和破顶来源 | 恢复 `64792d1` 的 6570 K 白色日光、体积参与度 0.22 和 0.5° 角直径 |
 | `CorridorFill` | Point，`(3, 3.2, -15)`，Range 10 | 廊道暗部托底 | 保持很弱，不得让玩家在拿到手电前看清全廊道 |
-| `LabFill_North` | Point，`(-3, 3.8, 3.5)`，10000 lm，Range 12 | 主室北半暗部托底 | 无阴影灰青绿填充，避免与可见灯具形成重复亮斑 |
-| `LabFill_South` | Point，`(4, 3.5, -3.5)`，8000 lm，Range 12 | 主室南半暗部托底 | 无阴影灰黄绿填充，主要托起中央岛和 S7 轮廓 |
+| `LabFill_North` | Point，`(-3, 3.8, 3.5)`，180 lm，Range 8 | 主室北半暗部托底 | 无阴影灰青绿填充，避免与可见灯具形成重复亮斑 |
+| `LabFill_South` | Point，`(4, 3.5, -3.5)`，160 lm，Range 8 | 主室南半暗部托底 | 无阴影灰青绿填充，主要托起中央岛和 S7 轮廓 |
 
 现有气氛资源：
 
@@ -117,7 +117,8 @@
 - `Assets/RootsDance/Materials/Environment/BriggsInterior/LabLightBlocker.mat`
 - `Assets/RootsDance/Scripts/Editor/Environment/BriggsInteriorAtmosphereBuilder.cs`
 
-场景已经有固定曝光 EV 4.5、冷绿色雾、局部体积雾、漏光遮挡、APV 和 `StaticLightingSky`。布景完成后再做一次 APV
+场景已经恢复固定曝光 EV 7、继承 `MainProfile` 晴天天空的局部室内 Volume、冷绿色雾、局部体积雾、漏光遮挡、APV 和 `StaticLightingSky`。
+局部雾恢复 `64792d1` 的 8.5 m Mean Free Path，由窄角高体积参与度的破顶 Spot 形成稳定的 God Ray / 丁达尔光柱。布景完成后再做一次 APV
 和 Reflection Probe 检查。不要在 props 尚未稳定时反复烘焙。
 
 ## 3. 艺术方向
@@ -136,8 +137,8 @@
 - 写实参考图只借用中央桌构图、斜向体积光、湿面和雾层，不追求全场高清 PBR。
 - 植物集中为 3 至 5 个生态入侵岛，不能平均撒满地面。
 
-参考图色彩被落实为黑绿色阴影、去饱和青灰绿中间调、略偏绿白的破顶光，以及少量锈褐和旧纸暖色。全局后处理采用
-`Contrast +20`、`Saturation -20`、轻微冷绿 Color Filter、`Temperature -6`、`Tint -12` 和克制 Bloom。PSX 参数为
+参考图色彩被落实为黑绿色阴影、去饱和青灰绿中间调、暖白破顶光，以及少量锈褐和旧纸暖色。局部后处理采用
+`Contrast +14`、`Saturation -8`、轻微冷绿 Color Filter 和克制 Bloom，不再用白平衡压暗室外。PSX 参数为
 `Pixel Scale 4`、`Color Levels 32`、`Dither 0.6`、`Interlace 0.1`，保留低模半写实轮廓，不把画面处理成高饱和霓虹。
 
 视觉层级从高到低：
@@ -568,14 +569,15 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 4. 手电是廊道和暗角的玩家主导光源。
 
 曝光保持固定或受控，不使用会因看向荧光物而剧烈跳变的自动曝光。Bloom 只让高亮边缘有轻微扩散，不做赛博霓虹。
-当前实现使用 Fixed Exposure EV 4.5。主破顶 Spot 为 1100 lm，西侧次光为 700 lm；两束光负责体积轮廓，不能替代室内填充。
+当前实现使用 Fixed Exposure EV 7。主破顶 Spot 为 4200 lm，西侧次光为 2800 lm；两束光恢复为首次室内布景前
+`64792d1` 的窄角艺术定向光，负责加强真实破顶日光在 PSX 后处理下的体积轮廓，不能替代室内填充。
 
 ### 8.2 破顶与顶部光
 
 推荐两束受控 Spot Light：
 
-- 主光束中心约 `(0.1, 4.18, 2.5)`，从北向南略倾斜，擦过中央桌北半和台面玻璃。
-- 西侧次光束约 `(-5.35, 4.18, 3.75)`，照到破损培养区和垂落根系。
+- 主光束中心约 `(0.1, 4.18, 2.5)`，使用首次室内布景前已经验证过的艺术定向轴，斜擦中央桌北半和台面玻璃。
+- 西侧次光束约 `(-5.35, 4.18, 3.75)`，从西侧破口照到破损培养区和残留低矮植物。
 
 这两个位置与 `BriggsInteriorAtmosphereBuilder` 中的 `RoofShaft_Main`、`RoofShaft_West` 一致。可见顶棚破口必须与光束
 入口一致。根系在光束中形成剪影，但不能完全堵住体积光。

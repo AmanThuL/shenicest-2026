@@ -27,6 +27,10 @@ namespace RootsDance.Editor.Environment
         private const string k_FogNoisePath =
             "Assets/RootsDance/Textures/Environment/Garage/LabFogNoise.asset";
 
+        private const float k_RoomWidth = 18f;
+        private const float k_RoomDepth = 14f;
+        private const float k_RoomHeight = 5f;
+
         [MenuItem("RootsDance/Environment/Apply Briggs Interior Atmosphere")]
         private static void ApplyFromMenu()
         {
@@ -57,7 +61,7 @@ namespace RootsDance.Editor.Environment
 
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorAtmosphere] Applied dark green interior grading, roof shafts, fog and PSX.");
+            Debug.Log("[BriggsInteriorAtmosphere] Restored the pre-dressing sunny exterior, local interior fog, roof shafts and PSX.");
         }
 
         /// <summary>Batch entry point for the standalone atmosphere pass.</summary>
@@ -65,6 +69,11 @@ namespace RootsDance.Editor.Environment
         {
             EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
             ApplyToLoadedScene();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
         }
 
         private static Scene FindLoadedEnvironmentScene()
@@ -275,13 +284,18 @@ namespace RootsDance.Editor.Environment
 
         private static void CreateInteriorVolume(Transform parent, VolumeProfile profile)
         {
-            GameObject volumeObject = new GameObject("Global Volume");
+            GameObject volumeObject = new GameObject("LabInteriorLook");
             volumeObject.transform.SetParent(parent, false);
+            volumeObject.transform.localPosition = new Vector3(0f, k_RoomHeight * 0.5f, 0f);
+
+            BoxCollider collider = volumeObject.AddComponent<BoxCollider>();
+            collider.isTrigger = true;
+            collider.size = new Vector3(k_RoomWidth + 0.4f, k_RoomHeight + 0.4f, k_RoomDepth + 0.4f);
 
             Volume volume = volumeObject.AddComponent<Volume>();
-            volume.isGlobal = true;
-            volume.priority = 0f;
-            volume.blendDistance = 0f;
+            volume.isGlobal = false;
+            volume.priority = 50f;
+            volume.blendDistance = 1.25f;
             volume.weight = 1f;
             volume.sharedProfile = profile;
         }
@@ -294,7 +308,7 @@ namespace RootsDance.Editor.Environment
 
             LocalVolumetricFog fog = fogObject.AddComponent<LocalVolumetricFog>();
             LocalVolumetricFogArtistParameters parameters =
-                new LocalVolumetricFogArtistParameters(new Color(0.50f, 0.64f, 0.56f), 13.5f, 0f);
+                new LocalVolumetricFogArtistParameters(new Color(0.58f, 0.66f, 0.61f), 8.5f, 0f);
             parameters.blendingMode = LocalVolumetricFogBlendingMode.Additive;
             parameters.priority = 10;
             parameters.size = new Vector3(17.2f, 4.6f, 13.2f);
@@ -322,36 +336,27 @@ namespace RootsDance.Editor.Environment
 
             Exposure exposure = GetOrAdd<Exposure>(profile);
             Set(exposure.mode, ExposureMode.Fixed);
-            Set(exposure.fixedExposure, 4.5f);
+            Set(exposure.fixedExposure, 7f);
 
-            VisualEnvironment environment = GetOrAdd<VisualEnvironment>(profile);
-            Set(environment.skyType, (int)SkyType.Gradient);
-            Set(environment.cloudType, 0);
-            Set(environment.skyAmbientMode, SkyAmbientMode.Dynamic);
-
-            GradientSky sky = GetOrAdd<GradientSky>(profile);
-            Set(sky.top, new Color(0.035f, 0.070f, 0.052f));
-            Set(sky.middle, new Color(0.090f, 0.140f, 0.105f));
-            Set(sky.bottom, new Color(0.015f, 0.025f, 0.020f));
-            Set(sky.gradientDiffusion, 1.4f);
-            Set(sky.skyIntensityMode, SkyIntensityMode.Exposure);
-            Set(sky.exposure, -1.2f);
-            Set(sky.multiplier, 1f);
+            // The laboratory look is local. It must inherit the sunny global sky from MainProfile so that
+            // stepping outside never applies the abandoned-room exposure and palette to the exterior.
+            RemoveComponent<VisualEnvironment>(profile);
+            RemoveComponent<GradientSky>(profile);
 
             Fog fog = GetOrAdd<Fog>(profile);
             Set(fog.enabled, true);
-            Set(fog.colorMode, FogColorMode.SkyColor);
-            Set(fog.tint, Color.white);
-            Set(fog.meanFreePath, 38f);
+            Set(fog.colorMode, FogColorMode.ConstantColor);
+            Set(fog.color, new Color(0.11f, 0.13f, 0.12f));
+            Set(fog.meanFreePath, 30f);
             Set(fog.baseHeight, 0f);
             Set(fog.maximumHeight, 6f);
             Set(fog.maxFogDistance, 70f);
             Set(fog.enableVolumetricFog, true);
-            Set(fog.albedo, new Color(0.62f, 0.72f, 0.65f));
-            Set(fog.anisotropy, 0.62f);
-            Set(fog.globalLightProbeDimmer, 0.04f);
+            Set(fog.albedo, new Color(0.67f, 0.72f, 0.68f));
+            Set(fog.anisotropy, 0.55f);
+            Set(fog.globalLightProbeDimmer, 0.08f);
             Set(fog.depthExtent, 40f);
-            Set(fog.multipleScatteringIntensity, 0.35f);
+            Set(fog.multipleScatteringIntensity, 0.45f);
             Set(fog.denoisingMode, FogDenoisingMode.Gaussian);
             Set(fog.quality, ScalableSettingLevelParameter.LevelCount);
             fog.fogControlMode = FogControl.Manual;
@@ -360,28 +365,25 @@ namespace RootsDance.Editor.Environment
             Set(fog.sliceDistributionUniformity, 0.65f);
 
             IndirectLightingController indirect = GetOrAdd<IndirectLightingController>(profile);
-            Set(indirect.indirectDiffuseLightingMultiplier, 0.25f);
-            Set(indirect.reflectionLightingMultiplier, 0.38f);
-            Set(indirect.reflectionProbeIntensityMultiplier, 0.45f);
+            Set(indirect.indirectDiffuseLightingMultiplier, 0.12f);
+            Set(indirect.reflectionLightingMultiplier, 0.22f);
+            Set(indirect.reflectionProbeIntensityMultiplier, 0.22f);
 
             HDShadowSettings shadows = GetOrAdd<HDShadowSettings>(profile);
             Set(shadows.maxShadowDistance, 50f);
             Set(shadows.cascadeShadowSplitCount, 4);
 
             ScreenSpaceAmbientOcclusion ao = GetOrAdd<ScreenSpaceAmbientOcclusion>(profile);
-            Set(ao.intensity, 0.9f);
-            Set(ao.directLightingStrength, 0.12f);
-            Set(ao.radius, 0.65f);
+            Set(ao.intensity, 0.85f);
+            Set(ao.directLightingStrength, 0.15f);
+            Set(ao.radius, 1.2f);
 
             ColorAdjustments color = GetOrAdd<ColorAdjustments>(profile);
-            Set(color.postExposure, -0.15f);
-            Set(color.contrast, 20f);
-            Set(color.saturation, -20f);
-            Set(color.colorFilter, new Color(0.84f, 0.94f, 0.90f));
-
-            WhiteBalance whiteBalance = GetOrAdd<WhiteBalance>(profile);
-            Set(whiteBalance.temperature, -6f);
-            Set(whiteBalance.tint, -12f);
+            Set(color.postExposure, -0.35f);
+            Set(color.contrast, 14f);
+            Set(color.saturation, -8f);
+            Set(color.colorFilter, new Color(0.92f, 0.97f, 0.94f));
+            RemoveComponent<WhiteBalance>(profile);
 
             Tonemapping tonemapping = GetOrAdd<Tonemapping>(profile);
             Set(tonemapping.mode, TonemappingMode.Neutral);
@@ -394,7 +396,7 @@ namespace RootsDance.Editor.Environment
 
             Vignette vignette = GetOrAdd<Vignette>(profile);
             Set(vignette.mode, VignetteMode.Procedural);
-            Set(vignette.intensity, 0.22f);
+            Set(vignette.intensity, 0.18f);
             Set(vignette.smoothness, 0.55f);
 
             PsxPostProcess psx = GetOrAdd<PsxPostProcess>(profile);
@@ -509,15 +511,16 @@ namespace RootsDance.Editor.Environment
             sun.shadowBias = 0.025f;
             sun.shadowNormalBias = 0.18f;
             sun.lightUnit = LightUnit.Lux;
-            sun.intensity = 18000f;
-            sun.color = new Color(0.88f, 0.97f, 0.85f);
-            sun.useColorTemperature = false;
+            sun.intensity = 100000f;
+            sun.color = Color.white;
+            sun.colorTemperature = 6570f;
+            sun.useColorTemperature = true;
+            sun.transform.rotation = new Quaternion(0.40821794f, -0.23456973f, 0.10938166f, 0.8754261f);
             data.affectsVolumetric = true;
-            // Keep the exterior sunlight on surfaces, but do not let it flatten the entire fog bank.
-            data.volumetricDimmer = 0.12f;
+            data.volumetricDimmer = 0.22f;
             data.volumetricShadowDimmer = 1f;
             data.shadowDimmer = 1f;
-            data.angularDiameter = 8f;
+            data.angularDiameter = 0.5f;
             EditorUtility.SetDirty(sun);
             EditorUtility.SetDirty(data);
         }
@@ -530,19 +533,19 @@ namespace RootsDance.Editor.Environment
                 "RoofShaft_Main",
                 new Vector3(0.1f, 4.18f, 2.5f),
                 Quaternion.Euler(70f, 180f, 0f),
-                1100f,
-                28f,
-                12f,
-                3.2f);
+                4200f,
+                20f,
+                8f,
+                8f);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_West",
                 new Vector3(-5.35f, 4.18f, 3.75f),
                 Quaternion.Euler(74f, 165f, 0f),
-                700f,
-                24f,
-                10f,
-                2.2f);
+                2800f,
+                18f,
+                7f,
+                4f);
         }
 
         private static void CreateRoofShaft(
@@ -567,7 +570,7 @@ namespace RootsDance.Editor.Environment
             light.enableSpotReflector = true;
             light.lightUnit = LightUnit.Lumen;
             light.intensity = LightUnitUtils.ConvertIntensity(light, lumen, LightUnit.Lumen, LightUnit.Candela);
-            light.color = new Color(0.78f, 0.98f, 0.82f);
+            light.color = new Color(1f, 0.88f, 0.72f);
             // The light begins just below the ceiling shell so it can form a controllable art-directed shaft.
             light.shadows = LightShadows.None;
 
@@ -588,11 +591,11 @@ namespace RootsDance.Editor.Environment
 
         private static void ConfigureLabFillLights(Scene scene)
         {
-            ConfigureFill(FindLight(scene, "LabFill_North"), 10000f, new Color(0.56f, 0.78f, 0.67f));
-            ConfigureFill(FindLight(scene, "LabFill_South"), 8000f, new Color(0.62f, 0.74f, 0.61f));
+            ConfigureFill(FindLight(scene, "LabFill_North"), 180f);
+            ConfigureFill(FindLight(scene, "LabFill_South"), 160f);
         }
 
-        private static void ConfigureFill(Light light, float lumen, Color color)
+        private static void ConfigureFill(Light light, float lumen)
         {
             if (light == null)
             {
@@ -601,8 +604,8 @@ namespace RootsDance.Editor.Environment
 
             light.lightUnit = LightUnit.Lumen;
             light.intensity = LightUnitUtils.ConvertIntensity(light, lumen, LightUnit.Lumen, LightUnit.Candela);
-            light.color = color;
-            light.range = 12f;
+            light.color = new Color(0.55f, 0.66f, 0.60f);
+            light.range = 8f;
             light.shadows = LightShadows.None;
             HDAdditionalLightData data = light.GetComponent<HDAdditionalLightData>();
 

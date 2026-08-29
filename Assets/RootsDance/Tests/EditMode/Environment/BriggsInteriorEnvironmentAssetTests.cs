@@ -86,7 +86,7 @@ namespace RootsDance.Tests.EditMode.Environment
         };
 
         [Test]
-        public void BriggsEnvironmentScene_ContainsPwbDressingAndGlobalVolume()
+        public void BriggsEnvironmentScene_ContainsPwbDressingAndLocalInteriorVolume()
         {
             string yaml = File.ReadAllText(k_EnvironmentPath);
             StringAssert.Contains("m_Name: Prefab World Builder", yaml);
@@ -95,14 +95,13 @@ namespace RootsDance.Tests.EditMode.Environment
             StringAssert.Contains("m_Name: LabArchives", yaml);
             StringAssert.Contains("m_Name: LabEcology", yaml);
             StringAssert.Contains("m_Name: LabDebris", yaml);
-            StringAssert.Contains("m_Name: Global Volume", yaml);
-            StringAssert.Contains("m_IsGlobal: 1", yaml);
-            StringAssert.DoesNotContain("m_Name: IvyHanging", yaml,
-                "The full-room ivy source mesh blocks the room sightline and ceiling light.");
-            StringAssert.DoesNotContain("m_Name: CeilingHoleVines", yaml,
-                "The extracted ceiling vines duplicate the removed overhead vegetation pass.");
-            StringAssert.DoesNotContain("m_Name: MainHoleVine_", yaml,
-                "No extracted overhead vine renderer should remain without its former parent.");
+            StringAssert.Contains("m_Name: LabInteriorLook", yaml);
+            StringAssert.Contains("m_IsGlobal: 0", yaml);
+            StringAssert.Contains("value: IvyHanging", yaml,
+                "The full hanging-ivy prefab must retain the pre-dressing 64792d1 ceiling state.");
+            StringAssert.Contains("m_Name: CeilingHoleVines", yaml);
+            Assert.AreEqual(1, CountOwnedObject(yaml, "MainHoleVine_Left"));
+            Assert.AreEqual(1, CountOwnedObject(yaml, "MainHoleVine_Right"));
 
             Assert.AreEqual(0, CountOwnedObjectsWithPrefix(yaml, "BI_CentralCounter_"),
                 "The superseded primitive central counters must not survive the rebuild.");
@@ -166,21 +165,79 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void BriggsEnvironmentScene_Retains647CeilingAndHangingVegetation()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform geometry = FindRoot(scene, "_Geometry");
+                Transform props = FindRoot(scene, "_Props");
+                Transform ivy = FindDescendant(geometry, "IvyHanging");
+                Transform ceiling = FindDescendant(geometry, "Ceiling");
+                Transform intactBeam = FindDescendant(geometry, "Ceiling_Beam");
+                Transform brokenBeam = FindDescendant(geometry, "Ceiling_Beam_Broken");
+                Transform vines = props.Find("CeilingHoleVines");
+
+                Assert.IsTrue(ivy != null);
+                Assert.AreEqual(
+                    "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx",
+                    PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(ivy.gameObject));
+                Assert.That(Vector3.Distance(ivy.localPosition, new Vector3(-0.373f, -0.16892f, -0.488f)),
+                    Is.LessThan(k_Tolerance));
+                Assert.That(Vector3.Distance(ivy.localScale, new Vector3(3.0177207f, 2.110111f, 3.7525582f)),
+                    Is.LessThan(k_Tolerance));
+                Assert.IsTrue(ceiling != null && intactBeam != null && brokenBeam != null,
+                    "The 64792d1 ceiling mesh and both beams must remain present.");
+                Assert.IsTrue(vines != null);
+
+                Transform left = vines.Find("MainHoleVine_Left");
+                Transform right = vines.Find("MainHoleVine_Right");
+                Assert.IsTrue(left != null && right != null);
+                Assert.That(Vector3.Distance(left.localPosition, new Vector3(-0.78f, 4.411204f, 2.5f)),
+                    Is.LessThan(0.001f));
+                Assert.That(Vector3.Distance(right.localPosition, new Vector3(0.98f, 4.4087205f, 2.5f)),
+                    Is.LessThan(0.001f));
+                Assert.AreEqual(0, vines.GetComponentsInChildren<Collider>(true).Length,
+                    "Hanging vines are visual ceiling dressing and must not affect player collision.");
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        [Test]
         public void BriggsProfile_ContainsReferenceLookAndPsxOverrides()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_ProfilePath);
             Assert.IsTrue(profile != null, k_ProfilePath);
             Assert.IsTrue(profile.TryGet(out Exposure exposure));
             Assert.AreEqual(ExposureMode.Fixed, exposure.mode.value);
-            Assert.That(exposure.fixedExposure.value, Is.EqualTo(4.5f).Within(k_Tolerance));
-            Assert.IsTrue(profile.TryGet(out VisualEnvironment environment));
-            Assert.AreEqual((int)SkyType.Gradient, environment.skyType.value);
-            Assert.IsTrue(profile.TryGet(out GradientSky _));
+            Assert.That(exposure.fixedExposure.value, Is.EqualTo(7f).Within(k_Tolerance));
+            Assert.IsFalse(profile.TryGet(out VisualEnvironment _),
+                "The local laboratory profile must inherit MainProfile's sunny exterior sky.");
+            Assert.IsFalse(profile.TryGet(out GradientSky _),
+                "A local sky override would make the exterior inherit the abandoned-room palette.");
+            Assert.IsTrue(profile.TryGet(out Fog fog));
+            Assert.IsTrue(fog.enableVolumetricFog.value);
+            Assert.AreEqual(FogColorMode.ConstantColor, fog.colorMode.value);
+            Assert.That(fog.meanFreePath.value, Is.EqualTo(30f).Within(k_Tolerance));
+            Assert.That(fog.anisotropy.value, Is.EqualTo(0.55f).Within(k_Tolerance));
             Assert.IsTrue(profile.TryGet(out Bloom bloom));
             Assert.That(bloom.intensity.value, Is.EqualTo(0.08f).Within(k_Tolerance));
-            Assert.IsTrue(profile.TryGet(out WhiteBalance _));
+            Assert.IsFalse(profile.TryGet(out WhiteBalance _));
             Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
-            Assert.That(color.saturation.value, Is.EqualTo(-20f).Within(k_Tolerance));
+            Assert.That(color.saturation.value, Is.EqualTo(-8f).Within(k_Tolerance));
             Assert.IsTrue(profile.TryGet(out PsxPostProcess psx));
             Assert.IsFalse(psx.grainMode.value);
             Assert.That(psx.intensity.value, Is.EqualTo(1f).Within(k_Tolerance));
@@ -188,6 +245,48 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.AreEqual(32, psx.colorLevels.value);
             Assert.That(psx.ditherStrength.value, Is.EqualTo(0.6f).Within(k_Tolerance));
             Assert.IsFalse(profile.TryGet(out FilmGrain _));
+        }
+
+        [Test]
+        public void BriggsEnvironmentScene_UsesSunnyVolumetricRoofLight()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform lighting = FindRoot(scene, "_Lighting");
+                Transform atmosphere = FindRoot(scene, "_LabAtmosphere");
+                Light sun = FindDescendant(lighting, "Sun").GetComponent<Light>();
+                HDAdditionalLightData sunData = sun.GetComponent<HDAdditionalLightData>();
+                LocalVolumetricFog roomFog = FindDescendant(atmosphere, "RoomSmoke_LocalVolumetricFog")
+                    .GetComponent<LocalVolumetricFog>();
+                Light mainShaft = FindDescendant(atmosphere, "RoofShaft_Main").GetComponent<Light>();
+                Light westShaft = FindDescendant(atmosphere, "RoofShaft_West").GetComponent<Light>();
+
+                Assert.That(sun.intensity, Is.EqualTo(100000f).Within(1f));
+                Assert.That(sunData.volumetricDimmer, Is.EqualTo(0.22f).Within(k_Tolerance));
+                Assert.That(sunData.angularDiameter, Is.EqualTo(0.5f).Within(k_Tolerance));
+                Assert.That(roomFog.parameters.meanFreePath, Is.EqualTo(8.5f).Within(k_Tolerance));
+                Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
+                    Is.EqualTo(8f).Within(k_Tolerance));
+                Assert.That(westShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
+                    Is.EqualTo(4f).Within(k_Tolerance));
+                Assert.That(mainShaft.spotAngle, Is.EqualTo(20f).Within(k_Tolerance));
+                Assert.That(westShaft.spotAngle, Is.EqualTo(18f).Within(k_Tolerance));
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
         }
 
         [Test]
