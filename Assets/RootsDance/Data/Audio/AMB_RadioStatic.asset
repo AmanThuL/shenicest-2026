@@ -15,7 +15,7 @@ MonoBehaviour:
   m_clips:
   - {fileID: 8300000, guid: c2bd9d662197841748d8dc887cd67855, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
-  m_volume: 1
+  m_volume: 0
   m_volumeJitter: 0
   m_pitch: 1
   m_pitchJitter: 0.05
