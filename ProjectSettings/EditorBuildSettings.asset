@@ -32,6 +32,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity
     guid: 6c2ccb4747c7745dc8bf310ba1b64d66
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity
+    guid: 472a69b3d9c1641db8de3c050de1acda
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity
+    guid: 463cc596c9bea4bff875854fa65e6679
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
