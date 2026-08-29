@@ -675,7 +675,7 @@ GameObject:
   - component: {fileID: 1031550876}
   - component: {fileID: 1031550878}
   - component: {fileID: 1031550877}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CirculationConsole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -811,7 +811,7 @@ GameObject:
   - component: {fileID: 1233466541}
   - component: {fileID: 1233466543}
   - component: {fileID: 1233466542}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: GaiaStatue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -884,7 +884,7 @@ GameObject:
   - component: {fileID: 1328764506}
   - component: {fileID: 1328764508}
   - component: {fileID: 1328764507}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: StaffPhotograph
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -983,6 +983,7 @@ Transform:
   - {fileID: 1031550876}
   - {fileID: 938780081}
   - {fileID: 1382714201}
+  - {fileID: 1460575683}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1376188969
@@ -996,7 +997,7 @@ GameObject:
   - component: {fileID: 1376188970}
   - component: {fileID: 1376188972}
   - component: {fileID: 1376188971}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: EnteredGreenhouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1119,6 +1120,97 @@ MonoBehaviour:
     m_cue: {fileID: 0}
     m_cueSource: {fileID: 0}
     m_conversation: {fileID: 0}
+--- !u!1001 &1460575682
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1373928231}
+    m_Modifications:
+    - target: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_Name
+      value: FlowerSprite
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -9
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1460575685}
+  m_SourcePrefab: {fileID: 100100000, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+--- !u!4 &1460575683 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1460575682}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1460575684 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1460575682}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1460575685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1460575684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243b13a9bd8364055970a21ecc651bad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Companion.FollowCompanion
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_appearOnFlag: flow.flower_sprite_appeared
+  m_followOnFlag: flow.met_flower_sprite
+  m_appearStandoff: 2.6
+  m_followDistance: 2.2
+  m_moveSpeed: 3.1
+  m_cutDistance: 18
+  m_turnDegreesPerSecond: 480
+  m_speedParameter: Speed
 --- !u!1 &1531887881
 GameObject:
   m_ObjectHideFlags: 0
@@ -1130,7 +1222,7 @@ GameObject:
   - component: {fileID: 1531887882}
   - component: {fileID: 1531887884}
   - component: {fileID: 1531887883}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BoundarySign
   m_TagString: Untagged
   m_Icon: {fileID: 0}

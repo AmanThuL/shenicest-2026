@@ -1,6 +1,8 @@
 using System;
 using RootsDance.App;
 using RootsDance.Audio;
+using RootsDance.Cameras;
+using RootsDance.Companion;
 using RootsDance.Core;
 using RootsDance.Dialogue;
 using RootsDance.Editor.Environment;
@@ -264,36 +266,151 @@ namespace RootsDance.Editor.Content
                     + "Interior before wiring the narrative into it.");
             }
 
+            // The sprite herself. Where she stands here is only where the scene view finds her:
+            // she puts herself behind whoever the player turns out to be the moment she appears,
+            // because "behind" is a fact about the player at that instant and not about the level.
+            Transform sprite = EnsureFlowerSprite(scene, root);
+            sprite.SetPositionAndRotation(
+                new Vector3(
+                    bridge.position.x,
+                    bridge.position.y - ChapterHouseInteriorLevelBuilder.k_EyeClearance,
+                    bridge.position.z),
+                Quaternion.Euler(0f, 180f, 0f));
+
             // Mid-bridge. The player crosses the catwalk to get anywhere, and the sprite meets
             // them out over the drop rather than on solid ground — CH-02 marks the same spot, so
             // the anchor is the placement and this only has to sit on it.
+            //
+            // A sequence rather than a plain dialogue trigger, because the meeting is three things
+            // in one second and their order is the beat: she is standing behind the player, the
+            // view whips round and finds her, and only then does anyone speak. The flag does the
+            // first two — she listens for it and so does the camera — and the quarter second before
+            // the first line is the turn.
             Transform meeting = EnsureChild(root, "FirstMeeting");
             meeting.position = bridge.position;
-            ConfigureVolumeTrigger(meeting.gameObject, "DLG-001_FirstMeeting", new Vector3(3f, 3f, 2.5f));
+            SetLayer(meeting.gameObject, "TriggerVolume");
+            BoxCollider meetingBox = EnsureComponent<BoxCollider>(meeting.gameObject);
+            meetingBox.isTrigger = true;
+            meetingBox.size = new Vector3(3f, 3f, 2.5f);
 
-            // And the sprite herself, standing on the deck a little further along, turned to face
-            // the way the player is coming. She is placed off the same anchor as the volume so the
-            // two cannot drift apart: walking into the trigger is walking up to her.
+            // The old wiring played the conversation straight off this volume. Whatever is left of
+            // it has to go, or DLG-001 plays twice over itself.
+            DialogueTrigger stale = meeting.GetComponent<DialogueTrigger>();
+
+            if (stale != null)
+            {
+                UnityEngine.Object.DestroyImmediate(stale, allowDestroyingAssets: false);
+            }
+
+            EnsureMeetingSequence(meeting);
+
+            // The look-behind. PanicViewShake owns the only scripted head turn in the project and
+            // it fires off a flag, so the friendly beat and the chase reuse the same one turn; the
+            // panic flags are left empty here, which leaves the shake at zero and the extension
+            // doing nothing at all until the flag goes up.
+            EnsureLookBackCamera(scene, WorldFlags.k_FlowerSpriteAppeared);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        /// <summary>
+        /// The prefab instance under <c>_Narrative</c>, plus the component that runs her. Shared by
+        /// both scenes she appears in: one per scene, each hidden until the flags say otherwise,
+        /// which is how she survives the level change without anything having to persist.
+        /// </summary>
+        private static Transform EnsureFlowerSprite(Scene scene, Transform root)
+        {
             Transform sprite = EnsureChild(root, "FlowerSprite");
-            GameObject spritePrefab = LoadRequired<GameObject>(k_FlowerSpritePrefabPath);
 
-            if (sprite.GetComponent<Animator>() == null)
+            if (sprite.GetComponentInChildren<Animator>() == null)
             {
                 UnityEngine.Object.DestroyImmediate(sprite.gameObject);
-                sprite = ((GameObject)PrefabUtility.InstantiatePrefab(spritePrefab, scene)).transform;
+                GameObject prefab = LoadRequired<GameObject>(k_FlowerSpritePrefabPath);
+                sprite = ((GameObject)PrefabUtility.InstantiatePrefab(prefab, scene)).transform;
                 sprite.name = "FlowerSprite";
                 sprite.SetParent(root, false);
             }
 
-            sprite.SetPositionAndRotation(
-                new Vector3(
-                    meeting.position.x,
-                    meeting.position.y - ChapterHouseInteriorLevelBuilder.k_EyeClearance,
-                    meeting.position.z + 1.1f),
-                Quaternion.Euler(0f, 180f, 0f));
+            FollowCompanion companion = EnsureComponent<FollowCompanion>(sprite.gameObject);
 
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            using (SerializedObject serialized = new SerializedObject(companion))
+            {
+                serialized.FindProperty("m_flagRaised").objectReferenceValue =
+                    LoadRequired<StringEventChannelSO>(k_EventsFolder + "/FlagRaised.asset");
+                serialized.FindProperty("m_appearOnFlag").stringValue =
+                    WorldFlags.k_FlowerSpriteAppeared;
+                serialized.FindProperty("m_followOnFlag").stringValue =
+                    WorldFlags.k_MetFlowerSprite;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            return sprite;
+        }
+
+        /// <summary>
+        /// Walking into the volume: she is there, and a quarter of a second later the first line
+        /// starts. The sequence does not wait for the conversation, so DLG-001's own
+        /// <c>Flag On Complete</c> is what later turns the following on.
+        /// </summary>
+        private static void EnsureMeetingSequence(Transform meeting)
+        {
+            CueSequence sequence = EnsureComponent<CueSequence>(meeting.gameObject);
+
+            using (SerializedObject serialized = new SerializedObject(sequence))
+            {
+                serialized.FindProperty("m_playOn").enumValueIndex = 3; // OnPlayerEnter
+                serialized.FindProperty("m_playsOnce").boolValue = true;
+                serialized.FindProperty("m_flagRaised").objectReferenceValue =
+                    LoadRequired<StringEventChannelSO>(k_EventsFolder + "/FlagRaised.asset");
+                serialized.FindProperty("m_dialogueChannel").objectReferenceValue =
+                    EnsureDialogueChannel();
+
+                SerializedProperty steps = serialized.FindProperty("m_steps");
+                steps.arraySize = 2;
+
+                SerializedProperty appear = steps.GetArrayElementAtIndex(0);
+                appear.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.RaiseFlag;
+                appear.FindPropertyRelative("m_delay").floatValue = 0f;
+                appear.FindPropertyRelative("m_flagId").stringValue =
+                    WorldFlags.k_FlowerSpriteAppeared;
+
+                // Long enough for the turn to be under way and short enough that the line still
+                // reads as a reaction to her rather than as a separate thought.
+                SerializedProperty line = steps.GetArrayElementAtIndex(1);
+                line.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.PlayDialogue;
+                line.FindPropertyRelative("m_delay").floatValue = 0.25f;
+                line.FindPropertyRelative("m_conversation").objectReferenceValue =
+                    LoadDialogue("DLG-001_FirstMeeting");
+
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        /// <summary>
+        /// Puts the shoulder-check extension on this scene's first-person camera, listening for one
+        /// flag and nothing else.
+        /// </summary>
+        private static void EnsureLookBackCamera(Scene scene, string lookBackFlag)
+        {
+            Transform cameras = EnsureRoot(scene, "_Cameras");
+            Transform camera = cameras.Find("FirstPersonCamera");
+
+            if (camera == null)
+            {
+                throw new InvalidOperationException(
+                    $"{scene.name} has no _Cameras/FirstPersonCamera; run its level builder first.");
+            }
+
+            PanicViewShake shake = EnsureComponent<PanicViewShake>(camera.gameObject);
+
+            using (SerializedObject serialized = new SerializedObject(shake))
+            {
+                serialized.FindProperty("m_flagRaised").objectReferenceValue =
+                    LoadRequired<StringEventChannelSO>(k_EventsFolder + "/FlagRaised.asset");
+                serialized.FindProperty("m_lookBackOnFlag").stringValue = lookBackFlag;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         // ---- Greenhouse interior ---------------------------------------------------------------
@@ -302,6 +419,13 @@ namespace RootsDance.Editor.Content
         {
             Scene scene = EditorSceneManager.OpenScene(k_GreenhouseGameplayPath, OpenSceneMode.Single);
             Transform root = EnsureRoot(scene, "_Narrative");
+
+            // She came in with the player. Her own instance, not a survivor of the chapter house:
+            // she reads the world on the first frame this scene is up, finds both her flags
+            // already raised, and steps in behind the player where they are now. Parked at the
+            // south entrance so the scene view has her somewhere sensible before that happens.
+            Transform sprite = EnsureFlowerSprite(scene, root);
+            sprite.SetPositionAndRotation(new Vector3(0f, 0f, -9f), Quaternion.identity);
 
             // Crossing the south entrance raises the flag DLG-004 hangs on.
             Transform entered = EnsureChild(root, "EnteredGreenhouse");

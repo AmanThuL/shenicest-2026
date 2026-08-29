@@ -5,6 +5,7 @@ using RootsDance.Chase;
 using RootsDance.Dialogue;
 using RootsDance.Environment;
 using RootsDance.Interaction;
+using RootsDance.Sequencing;
 using RootsDance.World;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -122,6 +123,19 @@ namespace RootsDance.Tests.EditMode.Interaction
                     }
 
                     return moment == (int)DialogueTrigger.Moment.OnInteract ? k_InteractableLayer : null;
+                }
+            }
+
+            // A sequence that starts on the player walking in is the same physics contract as a
+            // dialogue trigger that does, and the same silent failure when the layer is wrong.
+            if (component is CueSequence sequence)
+            {
+                using (SerializedObject serialized = new SerializedObject(sequence))
+                {
+                    return serialized.FindProperty("m_playOn").enumValueIndex
+                        == (int)CueSequence.Moment.OnPlayerEnter
+                        ? k_TriggerLayer
+                        : null;
                 }
             }
 

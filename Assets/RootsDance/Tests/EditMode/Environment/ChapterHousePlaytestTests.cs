@@ -1,8 +1,12 @@
 using NUnit.Framework;
 using RootsDance.App;
+using RootsDance.Cameras;
+using RootsDance.Companion;
+using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Dialogue;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Sequencing;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -198,21 +202,110 @@ namespace RootsDance.Tests.EditMode.Environment
                 BoxCollider box = meeting.GetComponent<BoxCollider>();
                 Assert.IsTrue(box != null && box.isTrigger, "The volume is not a trigger collider.");
 
-                DialogueTrigger trigger = meeting.GetComponent<DialogueTrigger>();
-                Assert.IsTrue(trigger != null, "The volume has no DialogueTrigger.");
+                // A sequence, not a plain dialogue trigger: the meeting is her appearing, the
+                // view whipping round to find her, and then the first line — in that order.
+                CueSequence sequence = meeting.GetComponent<CueSequence>();
+                Assert.IsTrue(sequence != null, "The volume has no CueSequence.");
+                Assert.IsTrue(meeting.GetComponent<DialogueTrigger>() == null,
+                    "A DialogueTrigger is still on the volume beside the sequence, so DLG-001 "
+                    + "would play twice over itself.");
 
-                using (SerializedObject serialized = new SerializedObject(trigger))
+                using (SerializedObject serialized = new SerializedObject(sequence))
                 {
                     Assert.AreEqual(
-                        (int)DialogueTrigger.Moment.OnPlayerEnter,
+                        (int)CueSequence.Moment.OnPlayerEnter,
                         serialized.FindProperty("m_playOn").enumValueIndex,
-                        "The trigger does not fire on walking in.");
+                        "The sequence does not fire on walking in.");
+                    Assert.IsTrue(serialized.FindProperty("m_dialogueChannel").objectReferenceValue != null,
+                        "The sequence has no dialogue channel to raise.");
+                    Assert.IsTrue(serialized.FindProperty("m_flagRaised").objectReferenceValue != null,
+                        "The sequence has no flag channel, so she is never told to appear.");
 
-                    Object conversation = serialized.FindProperty("m_conversation").objectReferenceValue;
+                    SerializedProperty steps = serialized.FindProperty("m_steps");
+                    Assert.AreEqual(2, steps.arraySize, "The meeting is two steps: she appears, "
+                        + "then the line starts.");
+
+                    SerializedProperty appear = steps.GetArrayElementAtIndex(0);
+                    Assert.AreEqual((int)CueStepKind.RaiseFlag,
+                        appear.FindPropertyRelative("m_kind").enumValueIndex,
+                        "The first step does not raise a flag.");
+                    Assert.AreEqual(WorldFlags.k_FlowerSpriteAppeared,
+                        appear.FindPropertyRelative("m_flagId").stringValue,
+                        "The first step raises the wrong flag; nothing would appear.");
+
+                    SerializedProperty line = steps.GetArrayElementAtIndex(1);
+                    Assert.AreEqual((int)CueStepKind.PlayDialogue,
+                        line.FindPropertyRelative("m_kind").enumValueIndex,
+                        "The second step does not play a conversation.");
+                    Object conversation = line.FindPropertyRelative("m_conversation").objectReferenceValue;
                     Assert.AreEqual(k_FirstMeetingPath, AssetDatabase.GetAssetPath(conversation),
-                        "The trigger does not point at the first-meeting conversation.");
-                    Assert.IsTrue(serialized.FindProperty("m_channel").objectReferenceValue != null,
-                        "The trigger has no channel to raise.");
+                        "The sequence does not point at the first-meeting conversation.");
+                    Assert.Greater(line.FindPropertyRelative("m_delay").floatValue, 0f,
+                        "The line starts on the same frame as she does, so the player is told "
+                        + "about her before the view has turned to find her.");
+                }
+            }
+            finally
+            {
+                Close(gameplay);
+            }
+        }
+
+        /// <summary>
+        /// The half of the meeting that is not dialogue: she has to be in the scene to be turned
+        /// round to, and the camera has to be the thing that turns. Both were missing from the
+        /// saved scene for a while — the code that places them existed and had simply never been
+        /// re-run — which is invisible until someone walks the bridge.
+        /// </summary>
+        [Test]
+        public void Step4b_TheSpriteAndTheLookBackAreInTheScene()
+        {
+            Scene gameplay = OpenAdditive(ScenePaths.k_ChapterHouseInteriorGameplay);
+
+            try
+            {
+                Transform sprite = Require(gameplay, "_Narrative", "FlowerSprite");
+                Assert.IsTrue(sprite.GetComponentInChildren<Animator>(true) != null,
+                    "The FlowerSprite object is an empty placeholder, not the prefab.");
+
+                FollowCompanion companion = sprite.GetComponent<FollowCompanion>();
+                Assert.IsTrue(companion != null, "She has no FollowCompanion, so she never "
+                    + "appears and never follows.");
+
+                using (SerializedObject serialized = new SerializedObject(companion))
+                {
+                    Assert.AreEqual(WorldFlags.k_FlowerSpriteAppeared,
+                        serialized.FindProperty("m_appearOnFlag").stringValue);
+                    Assert.AreEqual(WorldFlags.k_MetFlowerSprite,
+                        serialized.FindProperty("m_followOnFlag").stringValue);
+                    Assert.IsTrue(serialized.FindProperty("m_flagRaised").objectReferenceValue != null,
+                        "She has no flag channel to listen to.");
+                }
+
+                Transform camera = Require(gameplay, "_Cameras", "FirstPersonCamera");
+                PanicViewShake shake = camera.GetComponent<PanicViewShake>();
+                Assert.IsTrue(shake != null, "The camera cannot look behind, so she turns up "
+                    + "off screen.");
+
+                using (SerializedObject serialized = new SerializedObject(shake))
+                {
+                    Assert.AreEqual(WorldFlags.k_FlowerSpriteAppeared,
+                        serialized.FindProperty("m_lookBackOnFlag").stringValue,
+                        "The look-behind hangs on a different flag than the one the meeting "
+                        + "raises.");
+                    Assert.IsEmpty(serialized.FindProperty("m_panicOnFlag").stringValue,
+                        "This is a friendly beat; the panic run must stay off in this level.");
+                }
+
+                // The conversation's own completion flag is the other half of the pair: it is what
+                // turns the following on, and nothing else raises it.
+                DialogueSO conversation = AssetDatabase.LoadAssetAtPath<DialogueSO>(k_FirstMeetingPath);
+
+                using (SerializedObject serialized = new SerializedObject(conversation))
+                {
+                    Assert.AreEqual(WorldFlags.k_MetFlowerSprite,
+                        serialized.FindProperty("m_flagOnComplete").stringValue,
+                        "DLG-001 no longer raises the flag she starts following on.");
                 }
             }
             finally
@@ -234,13 +327,13 @@ namespace RootsDance.Tests.EditMode.Environment
 
             try
             {
-                DialogueTrigger trigger = Require(gameplay, "_Narrative", k_MeetingVolume)
-                    .GetComponent<DialogueTrigger>();
+                CueSequence sequence = Require(gameplay, "_Narrative", k_MeetingVolume)
+                    .GetComponent<CueSequence>();
                 Object raised;
 
-                using (SerializedObject serialized = new SerializedObject(trigger))
+                using (SerializedObject serialized = new SerializedObject(sequence))
                 {
-                    raised = serialized.FindProperty("m_channel").objectReferenceValue;
+                    raised = serialized.FindProperty("m_dialogueChannel").objectReferenceValue;
                 }
 
                 DialogueRunner runner = FindInScene<DialogueRunner>(bootstrap);

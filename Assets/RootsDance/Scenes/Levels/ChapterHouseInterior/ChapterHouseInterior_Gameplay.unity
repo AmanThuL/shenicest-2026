@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 271681121}
   - component: {fileID: 271681123}
-  - component: {fileID: 271681122}
+  - component: {fileID: 271681124}
   m_Layer: 10
   m_Name: FirstMeeting
   m_TagString: Untagged
@@ -152,25 +152,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1647896683}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &271681122
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271681120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65d434461f726426fb0d04e78b00fe2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
-  m_conversation: {fileID: 11400000, guid: 9c431b70a2a6747fbb8b2cbdaaec0af0, type: 2}
-  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
-  m_playOn: 1
-  m_flagId: 
-  m_flagRaised: {fileID: 0}
-  m_promptText: "\u4EA4\u8C08"
-  m_fireOnce: 1
 --- !u!65 &271681123
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -192,6 +173,41 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 3, z: 2.5}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &271681124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271681120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e566afdf2a04344c5b3b573513bee54d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Sequencing.CueSequence
+  m_playOn: 3
+  m_startOnFlag: 
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_playsOnce: 1
+  m_audioChannel: {fileID: 0}
+  m_dialogueChannel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
+  m_steps:
+  - m_kind: 1
+    m_delay: 0
+    m_flagId: flow.flower_sprite_appeared
+    m_target: {fileID: 0}
+    m_isActive: 0
+    m_cue: {fileID: 0}
+    m_cueSource: {fileID: 0}
+    m_conversation: {fileID: 0}
+  - m_kind: 4
+    m_delay: 0.25
+    m_flagId: 
+    m_target: {fileID: 0}
+    m_isActive: 0
+    m_cue: {fileID: 0}
+    m_cueSource: {fileID: 0}
+    m_conversation: {fileID: 11400000, guid: 9c431b70a2a6747fbb8b2cbdaaec0af0, type: 2}
 --- !u!1 &293072116
 GameObject:
   m_ObjectHideFlags: 0
@@ -287,6 +303,97 @@ Transform:
   m_Children: []
   m_Father: {fileID: 760990974}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1239128578
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1647896683}
+    m_Modifications:
+    - target: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_Name
+      value: FlowerSprite
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.13872959
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.104431
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.9086666
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000004371139
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1239128581}
+  m_SourcePrefab: {fileID: 100100000, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+--- !u!4 &1239128579 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1239128578}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1239128580 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1239128578}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1239128581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239128580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243b13a9bd8364055970a21ecc651bad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Companion.FollowCompanion
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_appearOnFlag: flow.flower_sprite_appeared
+  m_followOnFlag: flow.met_flower_sprite
+  m_appearStandoff: 2.6
+  m_followDistance: 2.2
+  m_moveSpeed: 3.1
+  m_cutDistance: 18
+  m_turnDegreesPerSecond: 480
+  m_speedParameter: Speed
 --- !u!1 &1355527048
 GameObject:
   m_ObjectHideFlags: 0
@@ -330,6 +437,7 @@ GameObject:
   - component: {fileID: 1399784522}
   - component: {fileID: 1399784521}
   - component: {fileID: 1399784520}
+  - component: {fileID: 1399784523}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -421,6 +529,40 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1399784523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1399784518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f2940d88eed845568008f5de9fa0146, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Cameras.PanicViewShake
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_panicOnFlag: 
+  m_calmOnFlag: 
+  m_lookBackOnFlag: flow.flower_sprite_appeared
+  m_controller: {fileID: 0}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
+  m_stepsPerSecond: 2.9
+  m_verticalMeters: 0.025
+  m_lateralMeters: 0.018
+  m_rollDegrees: 1.8
+  m_pitchDegrees: 1
+  m_jitterDegrees: 0.9
+  m_jitterHz: 7
+  m_riseSeconds: 0.35
+  m_fallSeconds: 1.2
+  m_lookBackDegrees: 150
+  m_overLeftShoulder: 1
+  m_turnOutSeconds: 0.5
+  m_holdSeconds: 0.45
+  m_returnSeconds: 0.4
+  m_shakeWhileLookingBack: 0.45
 --- !u!1 &1647896682
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,6 +593,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 271681121}
+  - {fileID: 1239128579}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1801338381
