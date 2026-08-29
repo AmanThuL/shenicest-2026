@@ -76,8 +76,12 @@ namespace RootsDance.Editor.Environment
         private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
         private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
 
-        /// <summary>Head clearance over a walkable surface for a spawn or an anchor.</summary>
-        private const float k_EyeClearance = 1.05f;
+        /// <summary>
+        /// Head clearance over a walkable surface for a spawn or an anchor. Public because the
+        /// narrative wiring places things at floor level off the same anchors and has to subtract
+        /// it back out; one constant beats two that drift apart.
+        /// </summary>
+        public const float k_EyeClearance = 1.05f;
 
         /// <summary>
         /// What <c>static_chapterhouse</c> imports at, and the reciprocal of the 0.662 the blockout

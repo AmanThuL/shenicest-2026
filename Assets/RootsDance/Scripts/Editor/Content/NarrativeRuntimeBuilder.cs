@@ -3,6 +3,7 @@ using RootsDance.App;
 using RootsDance.Audio;
 using RootsDance.Core;
 using RootsDance.Dialogue;
+using RootsDance.Editor.Environment;
 using RootsDance.Events;
 using RootsDance.Sequencing;
 using RootsDance.UI;
@@ -33,6 +34,8 @@ namespace RootsDance.Editor.Content
     {
         private const string k_BootstrapScenePath = "Assets/RootsDance/Scenes/Bootstrap.unity";
         private const string k_ChapterHouseGameplayPath = ScenePaths.k_ChapterHouseInteriorGameplay;
+        private const string k_FlowerSpritePrefabPath =
+            "Assets/RootsDance/Prefabs/Characters/FlowerSprite.prefab";
         private const string k_GreenhouseGameplayPath =
             "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity";
 
@@ -267,6 +270,27 @@ namespace RootsDance.Editor.Content
             Transform meeting = EnsureChild(root, "FirstMeeting");
             meeting.position = bridge.position;
             ConfigureVolumeTrigger(meeting.gameObject, "DLG-001_FirstMeeting", new Vector3(3f, 3f, 2.5f));
+
+            // And the sprite herself, standing on the deck a little further along, turned to face
+            // the way the player is coming. She is placed off the same anchor as the volume so the
+            // two cannot drift apart: walking into the trigger is walking up to her.
+            Transform sprite = EnsureChild(root, "FlowerSprite");
+            GameObject spritePrefab = LoadRequired<GameObject>(k_FlowerSpritePrefabPath);
+
+            if (sprite.GetComponent<Animator>() == null)
+            {
+                UnityEngine.Object.DestroyImmediate(sprite.gameObject);
+                sprite = ((GameObject)PrefabUtility.InstantiatePrefab(spritePrefab, scene)).transform;
+                sprite.name = "FlowerSprite";
+                sprite.SetParent(root, false);
+            }
+
+            sprite.SetPositionAndRotation(
+                new Vector3(
+                    meeting.position.x,
+                    meeting.position.y - ChapterHouseInteriorLevelBuilder.k_EyeClearance,
+                    meeting.position.z + 1.1f),
+                Quaternion.Euler(0f, 180f, 0f));
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
