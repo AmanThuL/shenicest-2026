@@ -9,8 +9,8 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Adds the textured automatic exit door and the small roof-opening vine dressing without
-    /// rebuilding the rest of the Briggs interior.
+    /// Adds the textured automatic exit door and removes the superseded full-room overhead ivy
+    /// without rebuilding the rest of the Briggs interior.
     /// </summary>
     public static class BriggsInteriorExitDoorBuilder
     {
@@ -23,8 +23,6 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
         private const string k_WallMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageWallWeathered.mat";
-        private const string k_IvyMaterialPath =
-            "Assets/RootsDance/Materials/Environment/Garage/GarageIvy.mat";
         private const string k_TrimMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageTrim.mat";
         private const string k_GarageShellPath =
@@ -33,10 +31,27 @@ namespace RootsDance.Editor.Environment
         private const string k_VinesName = "CeilingHoleVines";
         private const string k_EntranceDoorName = "BriggsClosedEntranceDoor";
 
-        [MenuItem("RootsDance/Environment/Apply Briggs Exit Door And Vines")]
+        [MenuItem("RootsDance/Environment/Apply Briggs Exit Door")]
         public static void ApplyFromMenu()
         {
             ApplyToLoadedScenes();
+        }
+
+        /// <summary>One-shot entry point for cleaning an existing environment scene in a worktree.</summary>
+        public static void CleanupOverheadVegetationFromCommandLine()
+        {
+            Scene environment = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
+            Transform props = FindRoot(environment, "_Props");
+            RemoveLegacyOverheadVegetation(environment, props);
+            EditorSceneManager.MarkSceneDirty(environment);
+            EditorSceneManager.SaveScene(environment);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[BriggsInteriorExitDoor] Removed IvyHanging and CeilingHoleVines from the scene.");
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
         }
 
         public static void ApplyToLoadedScenes()
@@ -44,15 +59,13 @@ namespace RootsDance.Editor.Environment
             Scene environment = FindLoadedScene(k_EnvironmentPath);
             Scene gameplay = FindLoadedScene(k_GameplayPath);
             Material wallMaterial = LoadRequiredAsset<Material>(k_WallMaterialPath);
-            Material ivyMaterial = LoadRequiredAsset<Material>(k_IvyMaterialPath);
             Material trimMaterial = LoadRequiredAsset<Material>(k_TrimMaterialPath);
             GameObject doorPrefab = EnsureDoorPrefab(wallMaterial);
 
             AssignRoundExitWallMaterial(environment, wallMaterial);
 
             Transform props = FindRoot(environment, "_Props");
-            GameObject ivy = FindGameObject(environment, "IvyHanging");
-            CreateCeilingHoleVines(ivy, props, ivyMaterial);
+            RemoveLegacyOverheadVegetation(environment, props);
             CreateClosedEntranceDoor(props, trimMaterial);
 
             Transform interactables = FindRoot(gameplay, "_Interactables");
@@ -63,7 +76,8 @@ namespace RootsDance.Editor.Environment
             EditorSceneManager.SaveScene(environment);
             EditorSceneManager.SaveScene(gameplay);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorExitDoor] Applied textured round-exit wall, automatic door and roof vines.");
+            Debug.Log("[BriggsInteriorExitDoor] Applied textured round-exit wall and automatic door; "
+                + "removed the superseded overhead ivy pass.");
         }
 
         public static GameObject EnsureDoorPrefab(Material wallMaterial)
@@ -126,22 +140,24 @@ namespace RootsDance.Editor.Environment
             door.transform.localScale = Vector3.one;
         }
 
-        public static void CreateCeilingHoleVines(
-            GameObject ivyRoot,
-            Transform propsRoot,
-            Material ivyMaterial)
+        public static void RemoveLegacyOverheadVegetation(Scene environment, Transform propsRoot)
         {
-            Transform existing = propsRoot.Find(k_VinesName);
+            GameObject ivy = environment.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                .Select(item => item.gameObject)
+                .FirstOrDefault(item => item.name == "IvyHanging");
 
-            if (existing != null)
+            if (ivy != null)
             {
-                Object.DestroyImmediate(existing.gameObject);
+                Object.DestroyImmediate(ivy);
             }
 
-            Transform vines = new GameObject(k_VinesName).transform;
-            vines.SetParent(propsRoot, false);
-            CreateVine(ivyRoot, vines, "Ivy_Hanging_09", "MainHoleVine_Left", -0.78f, 2.5f, 12f, ivyMaterial);
-            CreateVine(ivyRoot, vines, "Ivy_Hanging_10", "MainHoleVine_Right", 0.98f, 2.5f, -16f, ivyMaterial);
+            Transform vines = propsRoot.Find(k_VinesName);
+
+            if (vines != null)
+            {
+                Object.DestroyImmediate(vines.gameObject);
+            }
         }
 
         public static void CreateClosedEntranceDoor(Transform propsRoot, Material trimMaterial)
@@ -213,48 +229,6 @@ namespace RootsDance.Editor.Environment
             leaf.transform.localScale = new Vector3(2.3f, 4.6f, 0.28f);
             leaf.GetComponent<MeshRenderer>().sharedMaterial = material;
             return leaf;
-        }
-
-        private static void CreateVine(
-            GameObject ivyRoot,
-            Transform parent,
-            string sourceName,
-            string name,
-            float targetX,
-            float targetZ,
-            float yawOffset,
-            Material material)
-        {
-            MeshRenderer source = ivyRoot.GetComponentsInChildren<MeshRenderer>(true)
-                .FirstOrDefault(renderer => renderer.name == sourceName);
-
-            if (source == null)
-            {
-                throw new System.InvalidOperationException("Ivy source mesh was not found: " + sourceName);
-            }
-
-            GameObject clone = Object.Instantiate(source.gameObject);
-            clone.name = name;
-            clone.transform.SetParent(parent, true);
-            clone.transform.localScale *= 0.9f;
-            clone.transform.rotation = Quaternion.Euler(0f, yawOffset, 0f) * source.transform.rotation;
-
-            MeshRenderer renderer = clone.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = material;
-            Bounds bounds = renderer.bounds;
-            clone.transform.position += new Vector3(
-                targetX - bounds.center.x,
-                4.96f - bounds.max.y,
-                targetZ - bounds.center.z);
-
-            Collider[] colliders = clone.GetComponentsInChildren<Collider>(true);
-
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                Object.DestroyImmediate(colliders[i]);
-            }
-
-            clone.isStatic = true;
         }
 
         private static void AssignRoundExitWallMaterial(Scene scene, Material wallMaterial)

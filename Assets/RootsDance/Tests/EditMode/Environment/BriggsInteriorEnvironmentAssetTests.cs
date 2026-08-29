@@ -97,6 +97,12 @@ namespace RootsDance.Tests.EditMode.Environment
             StringAssert.Contains("m_Name: LabDebris", yaml);
             StringAssert.Contains("m_Name: Global Volume", yaml);
             StringAssert.Contains("m_IsGlobal: 1", yaml);
+            StringAssert.DoesNotContain("m_Name: IvyHanging", yaml,
+                "The full-room ivy source mesh blocks the room sightline and ceiling light.");
+            StringAssert.DoesNotContain("m_Name: CeilingHoleVines", yaml,
+                "The extracted ceiling vines duplicate the removed overhead vegetation pass.");
+            StringAssert.DoesNotContain("m_Name: MainHoleVine_", yaml,
+                "No extracted overhead vine renderer should remain without its former parent.");
 
             Assert.AreEqual(0, CountOwnedObjectsWithPrefix(yaml, "BI_CentralCounter_"),
                 "The superseded primitive central counters must not survive the rebuild.");

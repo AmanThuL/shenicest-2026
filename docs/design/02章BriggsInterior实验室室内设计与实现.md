@@ -37,13 +37,20 @@
 - 首轮共放置 160 个 Prefab 实例，包括家具、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
 - 第二轮重建后共 121 个 PWB prefab 实例。数量下降来自合并中央六柜台、移除阻塞北环路的服务台和清理重复器材，不是减少地面生态或桌面叙事密度。
 - 第二轮保留全部 `BI_Overgrowth_*`、`BI_Moss_*` 与既有地面生态坐标，只重做家具和台面层。
+- 第三轮可见性清理移除整包 `IvyHanging` 以及由它复制出的 `CeilingHoleVines`。该 FBX 按建筑壳体比例缩放后，
+  多片藤蔓横跨中央岛、天花破口与墙外，既遮挡主视线和顶光，也让场景外部难以辨认。其余墙边蕨类、地砖裂缝杂草、
+  青苔与苔藓岩块继续保留；除下述越界实例外，PWB 地面生态坐标不变。
+- 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
+  根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
+  但不再穿墙或在室外形成难以辨认的轮廓。
 - 原先六段双排黑柜改为约 `2.2 × 5.4 × 0.92 m` 的一体废弃实验岛。岛台由 CC0 同系列 sink、open shelves、outlet counter 组合，统一使用旧青灰烤漆、锈褐边缘和污渍台面材质。
 - 东侧 S7 工作台原位替换而不移动根须与植物；西侧档案区增加原创公告板；东北角增加由黄铜象限仪 Mesh 改造的旧式光学标定仪。
 - 小件与软植物通过项目内 `_NoCollision` Prefab Variant 关闭 Collider，不在场景实例上制造 Collider override。
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
 - 从本地 CC0 Lab Assets 增补显微镜、烧杯、过滤瓶、分液漏斗、酒精灯、铁架台、环架、坩埚、针筒、蒸发皿、药匙和折叠实验服。
 - 北墙中央 `abs(X) < 2.75` 且 `Z > 4.4` 的圆门预留区不放任何本轮 props。
-- 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门和破顶藤蔓。
+- 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor` 和入口封闭门；破顶藤蔓因
+  遮挡顶光和中央视线已在第三轮清理中移除。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
 - 全局 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册。
 - 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
@@ -75,7 +82,6 @@
 
 - `Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx`
 - `Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx`
-- `Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx`
 - `Assets/RootsDance/Materials/Environment/Garage/`
 
 `GarageShell` 只保留地面、天花板和梁。实验室四面墙由 `BriggsInteriorWalls` 提供，东西墙、南墙和
