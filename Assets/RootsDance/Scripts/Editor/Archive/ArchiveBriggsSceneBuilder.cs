@@ -71,9 +71,23 @@ namespace RootsDance.Editor.Archive
                 return;
             }
 
-            // Additive and empty: an environment part scene owns no camera and no listener, and
+            // Always additive: an environment part scene owns no camera and no listener, and
             // opening it single would throw away whatever the level owner has open right now.
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Scene scene = SceneManager.GetSceneByPath(k_ScenePath);
+            bool wasOpen = scene.IsValid() && scene.isLoaded;
+
+            if (!wasOpen)
+            {
+                scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(k_ScenePath) == null
+                    ? EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive)
+                    : EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Additive);
+            }
+
+            // Reopening rather than making a fresh scene each time keeps the lighting and the
+            // scene GUID; the contents are what gets rebuilt. It is also the only form that works
+            // in batch mode, where a new additive scene next to the untitled one throws.
+            ClearRoot(scene);
+
             GameObject root = new GameObject(k_RootName);
             SceneManager.MoveGameObjectToScene(root, scene);
 
@@ -106,7 +120,12 @@ namespace RootsDance.Editor.Archive
             }
 
             EditorSceneManager.SaveScene(scene, k_ScenePath);
-            EditorSceneManager.CloseScene(scene, true);
+
+            if (!wasOpen)
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+
             AssetDatabase.Refresh();
 
             Debug.Log($"[{k_LogPrefix}] Wrote {k_ScenePath} with {documents.Length} document(s) on "
@@ -161,6 +180,20 @@ namespace RootsDance.Editor.Archive
 
             Debug.Log($"[{k_LogPrefix}] Wired the reader and the proximity offer onto "
                 + $"'{playerName}' in {k_GameplayPath}.");
+        }
+
+        /// <summary>Drops what a previous build left behind, so a rebuild replaces rather than stacks.</summary>
+        private static void ClearRoot(Scene scene)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                if (roots[i].name == k_RootName)
+                {
+                    Object.DestroyImmediate(roots[i]);
+                }
+            }
         }
 
         /// <summary>The player in one scene, ignoring any other scene the Editor has open.</summary>
