@@ -19,6 +19,21 @@ fit in Unity or Blender.
 No mushroom or mycelium placeholder assets are included. Final fungal assets
 will be supplied separately.
 
+## Look Development
+
+The Blender source includes an initial blue-lighting pass:
+
+- dark blue architectural material;
+- dark metallic bridge material;
+- ice-blue emission on the cloth-like bottom terrain;
+- blue fill, bounce, and rim lights;
+- dark blue world lighting.
+
+The FBX carries meshes and basic material data only. Recreate emission bloom,
+volumetric lighting, exposure, and final color grading with the Unity URP
+Volume system; Blender lights and render post-processing are not the runtime
+lighting setup.
+
 ## Source Asset Attribution
 
 Both source models are licensed under Creative Commons Attribution 4.0.
