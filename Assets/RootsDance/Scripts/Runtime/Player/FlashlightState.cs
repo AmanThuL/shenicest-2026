@@ -27,10 +27,20 @@ namespace RootsDance.Player
         public bool IsHeld { get; private set; } = true;
 
         /// <summary>
-        /// True only when the switch is on *and* the torch is in a hand. This is what drives the
-        /// Light and the reveal: nothing in the world may react to a beam nobody is carrying.
+        /// True while the torch has something to burn. The one found in the corridor has a dead
+        /// cell: it is held, its switch works, and it stays dark until the bioluminescent algae is
+        /// dropped into it. Kept apart from <see cref="IsOn"/> for the same reason
+        /// <see cref="IsHeld"/> is - clicking a dead torch is still clicking it, and the switch has
+        /// to remember where it was left when the light finally arrives.
         /// </summary>
-        public bool IsLit => IsOn && IsHeld;
+        public bool HasPower { get; private set; } = true;
+
+        /// <summary>
+        /// True only when the switch is on, the torch is in a hand *and* it has power. This is what
+        /// drives the Light and the reveal: nothing in the world may react to a beam nobody is
+        /// carrying, or to one with nothing inside it.
+        /// </summary>
+        public bool IsLit => IsOn && IsHeld && HasPower;
 
         /// <summary>
         /// When false the phase is ignored entirely and only <see cref="Toggle"/> changes the beam —
@@ -62,6 +72,16 @@ namespace RootsDance.Player
         public void SetHeld(bool held)
         {
             IsHeld = held;
+        }
+
+        /// <summary>
+        /// Records whether the torch has a live light source in it. Turning power on does not turn
+        /// the switch on: a torch found switched off stays off until the player clicks it, which is
+        /// the beat the corridor wants - drop the algae in, then choose to light it.
+        /// </summary>
+        public void SetPower(bool powered)
+        {
+            HasPower = powered;
         }
 
         /// <summary>

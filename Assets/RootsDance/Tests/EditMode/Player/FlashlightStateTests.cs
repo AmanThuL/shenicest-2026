@@ -122,5 +122,81 @@ namespace RootsDance.Tests.EditMode.Player
             Assert.That(state.IsLit, Is.False);
         }
 
+        // ---- The corridor torch: found dead, lit by the algae ----------------------------------
+
+        [Test]
+        public void HasPower_ByDefault_IsTrue()
+        {
+            // Every torch that came before the corridor one has to keep working untouched.
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+
+            Assert.That(state.HasPower, Is.True);
+        }
+
+        [Test]
+        public void IsLit_SwitchedOnWithoutPower_IsFalse()
+        {
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.SetHeld(true);
+            state.SetPower(false);
+
+            state.Toggle();
+
+            Assert.That(state.IsOn, Is.True, "the switch still moves on a dead torch");
+            Assert.That(state.IsLit, Is.False);
+        }
+
+        [Test]
+        public void SetPower_AfterTheSwitchWasLeftOn_LightsTheBeam()
+        {
+            // The beat the corridor wants: click the dead torch, find the algae, and it comes up
+            // without having to be clicked again.
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.SetHeld(true);
+            state.SetPower(false);
+            state.Toggle();
+
+            state.SetPower(true);
+
+            Assert.That(state.IsLit, Is.True);
+        }
+
+        [Test]
+        public void SetPower_WithTheSwitchOff_LeavesTheBeamDark()
+        {
+            // Powering the torch is not the same as switching it on: dropping the algae in must
+            // not light a torch the player deliberately left off.
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.SetHeld(true);
+
+            state.SetPower(true);
+
+            Assert.That(state.IsLit, Is.False);
+        }
+
+        [Test]
+        public void IsLit_PoweredButNotHeld_IsFalse()
+        {
+            FlashlightState state = new FlashlightState(autoOnAtNight: false);
+            state.SetPower(true);
+            state.Toggle();
+            state.SetHeld(false);
+
+            Assert.That(state.IsLit, Is.False);
+        }
+
+        [Test]
+        public void OnPhase_Night_DoesNotLightADeadTorch()
+        {
+            // Auto-on-at-night moves the switch, never the power. A dead torch stays dark at dusk.
+            FlashlightState state = new FlashlightState(autoOnAtNight: true);
+            state.SetHeld(true);
+            state.SetPower(false);
+
+            state.OnPhase(TimeOfDay.Night);
+
+            Assert.That(state.IsOn, Is.True);
+            Assert.That(state.IsLit, Is.False);
+        }
     }
 }

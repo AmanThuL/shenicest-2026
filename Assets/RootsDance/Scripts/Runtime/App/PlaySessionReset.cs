@@ -33,6 +33,7 @@ namespace RootsDance.App
         {
             ScannableTarget.ResetRegistry();
             GroundPickup.ResetRegistry();
+            HarvestPoint.ResetRegistry();
             FlashlightBeamBroadcaster.ResetBeam();
 
             // DOTween keeps its tween pool and its driver GameObject in statics. The GameObject is

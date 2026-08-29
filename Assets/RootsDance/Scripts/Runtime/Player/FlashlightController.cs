@@ -48,6 +48,14 @@ namespace RootsDance.Player
         [Tooltip("Night switches the beam on and daylight switches it off. Off = the button is the only control.")]
         [SerializeField] private bool m_autoOnAtNight;
 
+        [Tooltip("On for the corridor torch: the beam stays dark, however the switch is used, " +
+                 "until the flag below is raised. Off keeps every other torch working the moment " +
+                 "it is switched on.")]
+        [SerializeField] private bool m_needsPowerSource;
+
+        [Tooltip("World flag that powers the torch. Only read while the box above is ticked.")]
+        [SerializeField] private string m_powerFlag = WorldFlags.k_FlashlightPowered;
+
         [Tooltip("Seconds for the beam to fade from off to full brightness, and back.")]
         [SerializeField] private float m_fadeSeconds = 0.15f;
 
@@ -189,6 +197,7 @@ namespace RootsDance.Player
 
             SeedFromWorldState();
             m_state.SetHeld(IsHeld);
+            m_state.SetPower(ReadPower());
 
             if (m_input.FlashlightPressedThisFrame)
             {
@@ -236,6 +245,23 @@ namespace RootsDance.Player
 
             m_isSeeded = true;
             m_state.OnPhase(state.TimeOfDay);
+        }
+
+        /// <summary>
+        /// Whether the torch has a light source in it. A torch that was never meant to run dry is
+        /// always powered; the corridor one waits on its flag. Read every frame rather than latched,
+        /// so loading a checkpoint on either side of the moment lands in the right state.
+        /// </summary>
+        private bool ReadPower()
+        {
+            if (!m_needsPowerSource || string.IsNullOrEmpty(m_powerFlag))
+            {
+                return true;
+            }
+
+            IWorldStateReader state = WorldAccess.State;
+
+            return state != null && state.HasFlag(m_powerFlag);
         }
 
         private void Fade()

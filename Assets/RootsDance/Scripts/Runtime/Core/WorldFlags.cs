@@ -101,5 +101,26 @@ namespace RootsDance.Core
         /// enclosed ones start, which is the whole acoustic difference between outside and inside.
         /// </summary>
         public const string k_EnteredMaintenanceTunnel = "flow.entered_maintenance_tunnel";
+
+        // ---- Chapter 01: the lab corridor ------------------------------------------------------
+
+        /// <summary>
+        /// The dead torch has been taken off the corridor floor. Raised by the pickup, not by the
+        /// torch: the torch only reports whether it is in a hand, and a hand can put it down again.
+        /// </summary>
+        public const string k_FlashlightRecovered = "flow.flashlight_recovered";
+
+        /// <summary>
+        /// BOT-AL-017 has been read into the biological report. Set as the recorded flag on the
+        /// algae's InvestigationTargetSO, and as the required flag on its report section - that
+        /// pair is what puts the section on the scanner screen.
+        /// </summary>
+        public const string k_AlgaeScanned = "flow.algae_scanned";
+
+        /// <summary>
+        /// Algae has been dropped into the torch and the beam works from here on. Read by
+        /// <see cref="RootsDance.Player.FlashlightController"/>, which stays dark without it.
+        /// </summary>
+        public const string k_FlashlightPowered = "flow.flashlight_powered";
     }
 }
