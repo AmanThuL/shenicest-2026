@@ -17,6 +17,8 @@ namespace RootsDance.Player
         private const string k_InteractAction = "Player/Interact";
         private const string k_FlashlightAction = "Player/Flashlight";
         private const string k_FlipAction = "Player/Attack";
+        private const string k_PointAction = "UI/Point";
+        private const string k_ClickAction = "UI/Click";
 
         private InputAction m_move;
         private InputAction m_look;
@@ -25,10 +27,15 @@ namespace RootsDance.Player
         private InputAction m_interact;
         private InputAction m_flashlight;
         private InputAction m_flip;
+        private InputAction m_point;
+        private InputAction m_click;
 
         public Vector2 MoveInput => m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
 
         public Vector2 LookInput => m_look == null ? Vector2.zero : m_look.ReadValue<Vector2>();
+
+        /// <summary>Current screen-space pointer position, used by close-up physical interfaces.</summary>
+        public Vector2 PointerPosition => m_point == null ? Vector2.zero : m_point.ReadValue<Vector2>();
 
         /// <summary>True while the look-around input (right mouse button) is held.</summary>
         public bool IsLookHeld => m_lookHold != null && m_lookHold.IsPressed();
@@ -48,6 +55,9 @@ namespace RootsDance.Player
         /// </summary>
         public bool FlipPressedThisFrame => m_flip != null && m_flip.WasPressedThisFrame();
 
+        /// <summary>True on the frame the UI pointer button went down. Read from Update only.</summary>
+        public bool ClickPressedThisFrame => m_click != null && m_click.WasPressedThisFrame();
+
         private void Awake()
         {
             m_move = Resolve(k_MoveAction);
@@ -57,6 +67,8 @@ namespace RootsDance.Player
             m_interact = Resolve(k_InteractAction);
             m_flashlight = Resolve(k_FlashlightAction);
             m_flip = Resolve(k_FlipAction);
+            m_point = Resolve(k_PointAction);
+            m_click = Resolve(k_ClickAction);
         }
 
         private void OnEnable()
@@ -70,6 +82,8 @@ namespace RootsDance.Player
             Enable(m_interact);
             Enable(m_flashlight);
             Enable(m_flip);
+            Enable(m_point);
+            Enable(m_click);
         }
 
         private InputAction Resolve(string actionPath)

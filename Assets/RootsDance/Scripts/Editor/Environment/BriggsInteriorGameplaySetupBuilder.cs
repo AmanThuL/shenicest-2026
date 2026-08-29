@@ -19,14 +19,12 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
         private const string k_PlayerPrefabPath = "Assets/RootsDance/Prefabs/Characters/Player.prefab";
         private const string k_CheckpointFolder = "Assets/RootsDance/Data/DevPlay/BriggsInterior";
+        private const string k_LegacyEntranceAnchorName = "Checkpoint_LaboratoryEntrance";
+        private const string k_LegacyEntranceAssetPath =
+            k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset";
 
         private static readonly CheckpointPlacement[] k_Checkpoints =
         {
-            new CheckpointPlacement(
-                "Checkpoint_LaboratoryEntrance",
-                k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset",
-                new Vector3(3f, 1f, -22.5f),
-                0f),
             new CheckpointPlacement(
                 "Checkpoint_PlantResearchLab",
                 k_CheckpointFolder + "/02-01_PlantResearchLab.asset",
@@ -79,7 +77,7 @@ namespace RootsDance.Editor.Environment
                 }
             }
 
-            Debug.Log("BriggsInteriorGameplaySetupBuilder: aligned player, four checkpoints and Ground layers.");
+            Debug.Log("BriggsInteriorGameplaySetupBuilder: aligned player, three checkpoints and Ground layers.");
         }
 
         private static void FixPlayerPrefab()
@@ -124,9 +122,11 @@ namespace RootsDance.Editor.Environment
         private static void FixGameplayScene()
         {
             Scene scene = EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Single);
-            CheckpointPlacement entrance = k_Checkpoints[0];
+            CheckpointPlacement defaultSpawn = k_Checkpoints[0];
             Transform anchors = EnsureRoot(scene, "_Anchors");
             Transform spawns = EnsureRoot(scene, "_Spawns");
+
+            RemoveDirectChild(anchors, k_LegacyEntranceAnchorName);
 
             for (int i = 0; i < k_Checkpoints.Length; i++)
             {
@@ -138,7 +138,9 @@ namespace RootsDance.Editor.Environment
             }
 
             Transform spawn = EnsureDirectChild(spawns, "PlayerSpawn");
-            spawn.SetPositionAndRotation(entrance.Position, Quaternion.Euler(0f, entrance.Yaw, 0f));
+            spawn.SetPositionAndRotation(
+                defaultSpawn.Position,
+                Quaternion.Euler(0f, defaultSpawn.Yaw, 0f));
 
             Transform player = FindRoot(scene, "Player");
 
@@ -147,7 +149,9 @@ namespace RootsDance.Editor.Environment
                 throw new InvalidOperationException("Briggs gameplay scene is missing the Player prefab instance.");
             }
 
-            player.SetPositionAndRotation(entrance.Position, Quaternion.Euler(0f, entrance.Yaw, 0f));
+            player.SetPositionAndRotation(
+                defaultSpawn.Position,
+                Quaternion.Euler(0f, defaultSpawn.Yaw, 0f));
             RevertCharacterControllerHeightOverride(player.gameObject);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -155,6 +159,8 @@ namespace RootsDance.Editor.Environment
 
         private static void FixCheckpointAssets()
         {
+            DeleteLegacyCheckpointAsset();
+
             for (int i = 0; i < k_Checkpoints.Length; i++)
             {
                 CheckpointPlacement checkpoint = k_Checkpoints[i];
@@ -177,6 +183,20 @@ namespace RootsDance.Editor.Environment
                 }
 
                 EditorUtility.SetDirty(asset);
+            }
+        }
+
+        private static void DeleteLegacyCheckpointAsset()
+        {
+            if (AssetDatabase.LoadMainAssetAtPath(k_LegacyEntranceAssetPath) == null)
+            {
+                return;
+            }
+
+            if (!AssetDatabase.DeleteAsset(k_LegacyEntranceAssetPath))
+            {
+                throw new System.IO.IOException(
+                    "Could not delete the legacy Briggs checkpoint: " + k_LegacyEntranceAssetPath);
             }
         }
 
@@ -260,6 +280,16 @@ namespace RootsDance.Editor.Environment
             GameObject created = new GameObject(name);
             created.transform.SetParent(parent, false);
             return created.transform;
+        }
+
+        private static void RemoveDirectChild(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+
+            if (child != null)
+            {
+                UnityEngine.Object.DestroyImmediate(child.gameObject);
+            }
         }
 
         private static Transform FindRoot(Scene scene, string name)

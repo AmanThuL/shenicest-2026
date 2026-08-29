@@ -92,10 +92,28 @@ namespace RootsDance.App
             }
 
             m_isLoading = true;
-            ShowCover();
 
             try
             {
+                EnsureCover();
+
+                // A pure Bootstrap startup has no playable frame to preserve, so it goes straight
+                // to the boot screen. Any adopted or previously loaded content scene is already in
+                // front of the player and fades out before the cover replaces it.
+                if (HasPlayableSceneLoaded() && m_cover != null)
+                {
+                    await m_cover.FadeToBlackAsync(cancellationToken);
+                }
+
+                ShowCover();
+
+                if (m_cover != null)
+                {
+                    // The cover is opaque now. Removing the black overlay in the same frame reveals
+                    // it, never the outgoing world, and leaves the overlay ready for the next load.
+                    m_cover.HideBlackOverlay();
+                }
+
                 // Unload every loaded scene except Bootstrap — including a level adopted from the Editor.
                 List<Scene> scenesToUnload = new List<Scene>();
 
@@ -225,6 +243,21 @@ namespace RootsDance.App
             {
                 m_cover.Hide();
             }
+        }
+
+        private static bool HasPlayableSceneLoaded()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                if (scene.isLoaded && scene.path != ScenePaths.k_Bootstrap)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void EnsureCover()

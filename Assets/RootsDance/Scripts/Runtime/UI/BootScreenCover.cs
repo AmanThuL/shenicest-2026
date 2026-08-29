@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEngine;
 
 namespace RootsDance.UI
@@ -34,6 +35,11 @@ namespace RootsDance.UI
         [Tooltip("The camera that renders the low-resolution buffer. Off while the cover is down, or "
             + "it keeps filling the render texture nobody is looking at.")]
         [SerializeField] private Camera m_signalCamera;
+
+        [Header("Scene hand-off")]
+        [Tooltip("The independent black overlay used to hide the hand-off from a playable scene to "
+            + "this loading screen. Optional: without one scene changes still use the cover.")]
+        [SerializeField] private FullscreenFadePresenter m_fullscreenFade;
 
         /// <summary>False until the first Show, which is the one that plays the whole sequence.</summary>
         private bool m_hasPlayed;
@@ -78,6 +84,26 @@ namespace RootsDance.UI
             m_screen.Play();
         }
 
+        /// <summary>Fades the currently visible level to black before this cover is switched on.</summary>
+        public async Awaitable FadeToBlackAsync(CancellationToken cancellationToken)
+        {
+            if (m_fullscreenFade == null)
+            {
+                return;
+            }
+
+            await m_fullscreenFade.FadeToBlackAsync(cancellationToken);
+        }
+
+        /// <summary>Removes the hand-off overlay after the opaque boot screen is underneath it.</summary>
+        public void HideBlackOverlay()
+        {
+            if (m_fullscreenFade != null)
+            {
+                m_fullscreenFade.Hide();
+            }
+        }
+
         public void SetProgress(float fraction)
         {
             if (m_progressRule != null)
@@ -88,6 +114,7 @@ namespace RootsDance.UI
 
         public void Hide()
         {
+            HideBlackOverlay();
             IsVisible = false;
             SetSwitchedOn(false);
         }

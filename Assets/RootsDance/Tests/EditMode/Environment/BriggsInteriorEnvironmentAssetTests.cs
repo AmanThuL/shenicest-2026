@@ -668,7 +668,6 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(controller.radius, Is.EqualTo(0.5f).Within(k_Tolerance));
         }
 
-        [TestCase("02-01_LaboratoryEntrance.asset", 3f, 1f, -22.5f, 0f)]
         [TestCase("02-01_PlantResearchLab.asset", 3f, 1f, -5.5f, 0f)]
         [TestCase("02-02_SampleStorage.asset", -4.1f, 1f, -0.7f, 90f)]
         [TestCase("02-03_Greenhouse.asset", 6.8f, 1f, -3.2f, 180f)]
@@ -684,6 +683,60 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsTrue(checkpoint != null, fileName);
             Assert.That(Vector3.Distance(checkpoint.Position, new Vector3(x, y, z)), Is.LessThan(k_Tolerance));
             Assert.That(Mathf.Abs(Mathf.DeltaAngle(checkpoint.Yaw, yaw)), Is.LessThan(k_Tolerance));
+        }
+
+        [Test]
+        public void BriggsLegacyEntranceCheckpoint_AfterSetup_DoesNotExist()
+        {
+            const string path =
+                "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-01_LaboratoryEntrance.asset";
+
+            Object asset = AssetDatabase.LoadMainAssetAtPath(path);
+
+            Assert.That(asset, Is.Null);
+        }
+
+        [Test]
+        public void BriggsGameplayScene_AfterSetup_UsesPlantLabSpawnAndThreeCheckpointAnchors()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_GameplayPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform anchors = FindRoot(scene, "_Anchors");
+                Transform spawns = FindRoot(scene, "_Spawns");
+                Transform player = FindRoot(scene, "Player");
+                Vector3 expectedPosition = new Vector3(3f, 1f, -5.5f);
+
+                Assert.That(anchors, Is.Not.Null);
+                Assert.That(spawns, Is.Not.Null);
+                Assert.That(player, Is.Not.Null);
+                Assert.That(anchors.childCount, Is.EqualTo(3));
+                Assert.That(anchors.Find("Checkpoint_LaboratoryEntrance"), Is.Null);
+                Assert.That(anchors.Find("Checkpoint_PlantResearchLab"), Is.Not.Null);
+                Assert.That(anchors.Find("Checkpoint_SampleStorage"), Is.Not.Null);
+                Assert.That(anchors.Find("Checkpoint_Greenhouse"), Is.Not.Null);
+                Transform spawn = spawns.Find("PlayerSpawn");
+                Assert.That(spawn, Is.Not.Null);
+                Assert.That(Vector3.Distance(spawn.position, expectedPosition),
+                    Is.LessThan(k_Tolerance));
+                Assert.That(Vector3.Distance(player.position, expectedPosition), Is.LessThan(k_Tolerance));
+                Assert.That(Mathf.Abs(Mathf.DeltaAngle(spawn.eulerAngles.y, 0f)), Is.LessThan(k_Tolerance));
+                Assert.That(Mathf.Abs(Mathf.DeltaAngle(player.eulerAngles.y, 0f)), Is.LessThan(k_Tolerance));
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
         }
 
         private static int CountOccurrences(string haystack, string needle)

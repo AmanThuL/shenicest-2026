@@ -61,7 +61,7 @@
 - 北墙中央 `abs(X) < 2.75` 且 `Z > 4.4` 的圆门预留区不放任何本轮 props。
 - 已保留 `006b2dc` 状态下的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门、破顶与悬挂藤蔓。
   顶光不依赖删除植物，而由恢复后的 18000 lux 青绿色 Sun、较宽 RoofShaft 与较浓局部体积雾维持洞口和多束 God Ray 的可读性。
-- 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
+- 玩家、PlayerSpawn、三个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
 - `006b2dc` 的 `_LabAtmosphere/Global Volume` 直接使用 `BriggsInteriorProfile`，包含暗绿色 Gradient Sky、Bloom、白平衡与
   本地 `PsxPostProcess`。该 Volume 是这一历史画面的一部分，不得改成继承 `MainProfile` 的局部 Box Volume。
 - 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`
@@ -568,7 +568,7 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 
 - 主实验台四周最窄处不少于 1.2 m，推荐 1.5 m。
 - S2、S3、S7、S8、S9 每个交互站位前保留半径 0.8 m 的空区。
-- 四个 Dev Play Checkpoint 周围保留半径 1.2 m 的无 prop 落地区。
+- 三个 Dev Play Checkpoint 周围保留半径 1.2 m 的无 prop 落地区。
 - 门开启动画播放中，玩家不能被移动门板或菌丝 Collider 推入墙体。
 - 每轮布景后用玩家胶囊完整走一遍，不能只用 Scene View 俯视判断。
 
@@ -690,21 +690,21 @@ S9 之后的北墙圆形出口已经可以通行，但当前布景和验收不�
 
 ## 11. 玩家出生与 Dev Play Checkpoint
 
-策划案和俯视图没有定义运行时 Checkpoint。当前工程已有 4 个 Briggs Dev Play Checkpoint 资产，因此按现有工具语义将其
+策划案和俯视图没有定义运行时 Checkpoint。当前工程维护 3 个 Briggs Dev Play Checkpoint 资产，因此按现有工具语义将其
 重新映射到当前 18 × 14 m 布局。它们用于编辑器快速测试，不等同于正式存档系统。
 
 | 资产 | 场景锚点 | Position | Yaw | 对应位置 |
 |---|---|---:|---:|---|
-| `02-01_LaboratoryEntrance.asset` | `Checkpoint_LaboratoryEntrance` | `(3, 1, -22.5)` | `0` | S1 廊道入口 |
 | `02-01_PlantResearchLab.asset` | `Checkpoint_PlantResearchLab` | `(3, 1, -5.5)` | `0` | S6 主实验室入口内侧 |
 | `02-02_SampleStorage.asset` | `Checkpoint_SampleStorage` | `(-4.1, 1, -0.7)` | `90` | S9 西侧档案区外缘 |
 | `02-03_Greenhouse.asset` | `Checkpoint_Greenhouse` | `(6.8, 1, -3.2)` | `180` | S7 东侧根须区外缘 |
 
 接线要求：
 
-- `_Anchors` 下必须存在四个同名 Transform。
+- `_Anchors` 下必须存在三个同名 Transform；旧 `Checkpoint_LaboratoryEntrance` 必须删除。
 - 每个资产的 fallback Position 和 Yaw 必须与对应锚点一致，锚点丢失时也不能回退到旧 GAIA 地图坐标。
-- 场景 `Player`、`PlayerSpawn` 和入口锚点在普通 Play 时保持一致。
+- 废弃的 `02-01_LaboratoryEntrance.asset` 必须由 builder 主动删除，不得在重建后回生。
+- 场景 `Player`、`PlayerSpawn` 和 `Checkpoint_PlantResearchLab` 在普通 Play 时统一为 `(3, 1, -5.5)`、Yaw `0`。
 - Cinemachine `FirstPersonCamera.Follow` 与 `LookAt` 保持连接到 `Player/Head`。
 - Checkpoint 周围 1.2 m 半径不得用 PWB 放置 props。
 - 两块地面 Collider 必须使用 `Ground` layer，否则视觉上站在地面但 `FirstPersonController.IsGrounded` 会失败。
@@ -723,7 +723,7 @@ S9 之后的北墙圆形出口已经可以通行，但当前布景和验收不�
 ### P0 灰盒与接线
 
 1. 锁定主室、廊道和南门尺寸，北墙正中心只保留圆门净空。
-2. 修正 Ground layer、PlayerSpawn、玩家位置和四个 Dev Play anchors。
+2. 修正 Ground layer、PlayerSpawn、玩家位置和三个 Dev Play anchors，清理废弃入口 checkpoint。
 3. 创建根级 `Prefab World Builder`。
 4. 用候选 CC0 counters 和 cabinets 做 LabFurniture prefab。
 5. 摆中央桌、S7 操作台、档案桌和两组落地设备。
@@ -744,7 +744,7 @@ S9 之后的北墙圆形出口已经可以通行，但当前布景和验收不�
 2. 加积水、滴水、局部 Decal、旧纸和破损细节。
 3. 加 APV、Reflection Probe 和体积光验证。
 4. 做手电与菌丝联动、地下波前、屏幕轻微震动。
-5. 以正常入口和四个 Dev Play Checkpoint 分别跑一遍。
+5. 以默认 Plant Research Lab 出生点和三个 Dev Play Checkpoint 分别跑一遍。
 
 ## 13. 待策划与美术确认
 
@@ -765,8 +765,8 @@ S9 之后的北墙圆形出口已经可以通行，但当前布景和验收不�
 
 ## 14. 验收清单
 
-- [x] 普通 Play 从廊道入口开始，玩家和相机位置正确。
-- [x] 四个 Dev Play Checkpoint 都落在当前 Briggs 地图内，不使用旧 GAIA 坐标。
+- [x] 普通 Play 从 Plant Research Lab `(3, 1, -5.5)` 开始，玩家和相机位置正确。
+- [x] 三个 Dev Play Checkpoint 都落在当前 Briggs 地图内，废弃入口 checkpoint 不存在。
 - [x] 两块行走地面使用 `Ground` layer，玩家胶囊恢复为合法站立尺寸。
 - [x] 所有本轮 PWB props 都位于 `Prefab World Builder/<Palette>/PIN`。
 - [x] `_Props` 下没有散落的 PWB 家具和实验小件。
