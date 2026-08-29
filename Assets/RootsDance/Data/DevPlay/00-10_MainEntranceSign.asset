@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-10 Main entrance sign
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-10_MainEntranceSign
-  m_position: {x: 7.03, y: 7.299, z: 115.759}
-  m_yaw: 0
+  m_position: {x: 25.8, y: 7.8, z: 95.5}
+  m_yaw: 70
   m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2

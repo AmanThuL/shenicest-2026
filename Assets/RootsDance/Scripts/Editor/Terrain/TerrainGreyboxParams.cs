@@ -205,14 +205,14 @@ namespace RootsDance.Editor.Terrain
                 // short of the (-7, 4) ridge node, so the first climb and its slope test are untouched.
                 new FlatSpot { Center = new Vector2(1.5f, -11f), Radius = 9.5f, Blend = 5.5f, Height = 3f },
                 new FlatSpot { Center = new Vector2(-12f, 39f), Radius = 4f, Blend = 6f, Height = 6f },
-                // The maintenance entrance sits below Greenhouse Door12's main floor. A local cut at Y=5
-                // makes the sign's "down" clue spatially true without moving any building in the Gaia group.
-                new FlatSpot { Center = new Vector2(21.8f, 137.5f), Radius = 3f, Blend = 6f, Height = 5f },
+                // Corridor 1 is the only reachable facility foot. This small apron supports the blocked door,
+                // clue sequence and covered/revealed maintenance access without opening the central courtyard.
+                new FlatSpot { Center = new Vector2(30f, 102f), Radius = 8f, Blend = 6f, Height = 7f },
             };
 
             // Nodes up to (0, 66) are the opening route and stay bit-identical. From there the path is
             // checkpoint-led: the facility-view station frames the fixed Gaia complex, then the route
-            // approaches the blocked main entrance without exposing the maintenance clue branch early.
+            // bends east to Corridor 1 without exposing any other facility foot.
             HeightPath mainRoute = new HeightPath
             {
                 HalfWidth = 2.5f,
@@ -227,9 +227,10 @@ namespace RootsDance.Editor.Terrain
                     new PathNode { Position = new Vector2(-6f, 52f),  Height = 5f },
                     new PathNode { Position = new Vector2(0f, 66f),   Height = 6.4f },
                     new PathNode { Position = new Vector2(1.5f, 73.5f), Height = 6.8f },
-                    new PathNode { Position = new Vector2(4f, 88f), Height = 7f },
-                    new PathNode { Position = new Vector2(7f, 103f), Height = 7f },
-                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
+                    new PathNode { Position = new Vector2(8f, 82f), Height = 7f },
+                    new PathNode { Position = new Vector2(16f, 88f), Height = 7f },
+                    new PathNode { Position = new Vector2(24f, 92.5f), Height = 7f },
+                    new PathNode { Position = new Vector2(30f, 96.2f), Height = 7f },
                 }
             };
 
@@ -242,10 +243,9 @@ namespace RootsDance.Editor.Terrain
                 Blend = 3f,
                 Nodes = new[]
                 {
-                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
-                    new PathNode { Position = new Vector2(7.03f, 115.759f), Height = 7f },
-                    new PathNode { Position = new Vector2(1f, 113.8f), Height = 7f },
-                    new PathNode { Position = new Vector2(-4.637f, 114.699f), Height = 7f },
+                    new PathNode { Position = new Vector2(30f, 96.2f), Height = 7f },
+                    new PathNode { Position = new Vector2(25.8f, 95.5f), Height = 7f },
+                    new PathNode { Position = new Vector2(23f, 97.8f), Height = 7f },
                 }
             };
 
@@ -258,12 +258,11 @@ namespace RootsDance.Editor.Terrain
                 Blend = 3f,
                 Nodes = new[]
                 {
-                    new PathNode { Position = new Vector2(9.505f, 118.941f), Height = 7f },
-                    new PathNode { Position = new Vector2(12.334f, 123.184f), Height = 7f },
-                    new PathNode { Position = new Vector2(15f, 127.8f), Height = 6.8f },
-                    new PathNode { Position = new Vector2(19.435f, 133.774f), Height = 6.3f },
-                    new PathNode { Position = new Vector2(20.7f, 135.8f), Height = 6f },
-                    new PathNode { Position = new Vector2(21.8f, 137.5f), Height = 5f },
+                    new PathNode { Position = new Vector2(30f, 96.2f), Height = 7f },
+                    new PathNode { Position = new Vector2(33.8f, 97.5f), Height = 7f },
+                    new PathNode { Position = new Vector2(35.8f, 100.8f), Height = 7f },
+                    new PathNode { Position = new Vector2(36.4f, 104f), Height = 7f },
+                    new PathNode { Position = new Vector2(37f, 106f), Height = 7f },
                 }
             };
 

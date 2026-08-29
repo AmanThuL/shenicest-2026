@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-12 Ashleaf vine
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-12_AshleafVine
-  m_position: {x: 12.334, y: 7.299, z: 123.184}
-  m_yaw: 16
+  m_position: {x: 33.8, y: 7.8, z: 97.5}
+  m_yaw: 330
   m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2

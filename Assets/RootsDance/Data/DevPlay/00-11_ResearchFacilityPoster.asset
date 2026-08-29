@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-11 Research facility poster
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-11_ResearchFacilityPoster
-  m_position: {x: -4.637, y: 7.299, z: 114.699}
-  m_yaw: 0
+  m_position: {x: 23, y: 7.8, z: 97.8}
+  m_yaw: 75
   m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2

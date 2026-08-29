@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-16 Maintenance entrance
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-16_MaintenanceEntrance
-  m_position: {x: 20.7, y: 7.8, z: 135.8}
-  m_yaw: 32
+  m_position: {x: 37, y: 7.8, z: 106}
+  m_yaw: 340
   m_snapToGround: 0
   m_groundLayers:
     serializedVersion: 2

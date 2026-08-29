@@ -70,10 +70,10 @@ MonoBehaviour:
       Radius: 4
       Blend: 6
       Height: 6
-    - Center: {x: 21.8, y: 137.5}
-      Radius: 3
+    - Center: {x: 30, y: 102}
+      Radius: 8
       Blend: 6
-      Height: 5
+      Height: 7
     Paths:
     - Nodes:
       - Position: {x: 0, y: -10}
@@ -92,38 +92,36 @@ MonoBehaviour:
         Height: 6.4
       - Position: {x: 1.5, y: 73.5}
         Height: 6.8
-      - Position: {x: 4, y: 88}
+      - Position: {x: 8, y: 82}
         Height: 7
-      - Position: {x: 7, y: 103}
+      - Position: {x: 16, y: 88}
         Height: 7
-      - Position: {x: 9.505, y: 118.941}
+      - Position: {x: 24, y: 92.5}
+        Height: 7
+      - Position: {x: 30, y: 96.2}
         Height: 7
       HalfWidth: 2.5
       Blend: 4
     - Nodes:
-      - Position: {x: 9.505, y: 118.941}
+      - Position: {x: 30, y: 96.2}
         Height: 7
-      - Position: {x: 7.03, y: 115.759}
+      - Position: {x: 25.8, y: 95.5}
         Height: 7
-      - Position: {x: 1, y: 113.8}
-        Height: 7
-      - Position: {x: -4.637, y: 114.699}
+      - Position: {x: 23, y: 97.8}
         Height: 7
       HalfWidth: 2
       Blend: 3
     - Nodes:
-      - Position: {x: 9.505, y: 118.941}
+      - Position: {x: 30, y: 96.2}
         Height: 7
-      - Position: {x: 12.334, y: 123.184}
+      - Position: {x: 33.8, y: 97.5}
         Height: 7
-      - Position: {x: 15, y: 127.8}
-        Height: 6.8
-      - Position: {x: 19.435, y: 133.774}
-        Height: 6.3
-      - Position: {x: 20.7, y: 135.8}
-        Height: 6
-      - Position: {x: 21.8, y: 137.5}
-        Height: 5
+      - Position: {x: 35.8, y: 100.8}
+        Height: 7
+      - Position: {x: 36.4, y: 104}
+        Height: 7
+      - Position: {x: 37, y: 106}
+        Height: 7
       HalfWidth: 2.25
       Blend: 3
     DetailNoiseAmplitude: 0.5
@@ -155,28 +153,28 @@ MonoBehaviour:
     m_specPosition: {x: 1.5, y: 0, z: 73.5}
     m_useSpecHeight: 0
   - m_name: Anchor_00-09_BlockedMainEntrance
-    m_specPosition: {x: 9.505, y: 0, z: 118.941}
+    m_specPosition: {x: 30, y: 0, z: 96.2}
     m_useSpecHeight: 0
   - m_name: Anchor_00-10_MainEntranceSign
-    m_specPosition: {x: 7.03, y: 0, z: 115.759}
+    m_specPosition: {x: 25.8, y: 0, z: 95.5}
     m_useSpecHeight: 0
   - m_name: Anchor_00-11_ResearchFacilityPoster
-    m_specPosition: {x: -4.637, y: 0, z: 114.699}
+    m_specPosition: {x: 23, y: 0, z: 97.8}
     m_useSpecHeight: 0
   - m_name: Anchor_00-12_AshleafVine
-    m_specPosition: {x: 12.334, y: 0, z: 123.184}
+    m_specPosition: {x: 33.8, y: 0, z: 97.5}
     m_useSpecHeight: 0
   - m_name: Anchor_00-13_FineVeinedVine
-    m_specPosition: {x: 15, y: 0, z: 127.8}
+    m_specPosition: {x: 35.8, y: 0, z: 100.8}
     m_useSpecHeight: 0
   - m_name: Anchor_00-14_VineGrowthDirection
-    m_specPosition: {x: 19.435, y: 0, z: 133.774}
+    m_specPosition: {x: 36.4, y: 0, z: 104}
     m_useSpecHeight: 0
   - m_name: Anchor_00-15_ClearAshleafVine
-    m_specPosition: {x: 20.7, y: 7, z: 135.8}
+    m_specPosition: {x: 37, y: 7.8, z: 106}
     m_useSpecHeight: 1
   - m_name: Anchor_00-16_MaintenanceEntrance
-    m_specPosition: {x: 20.7, y: 7, z: 135.8}
+    m_specPosition: {x: 37, y: 7.8, z: 106}
     m_useSpecHeight: 1
   m_layers:
   - m_name: AshDry

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RootsDance.Editor.Terrain;
 using Unity.Collections;
@@ -10,7 +11,7 @@ namespace RootsDance.Editor.Environment
 {
     /// <summary>
     /// Places the opening段's props into <c>Main_Environment</c> so the three concept images of
-    /// <c>docs/design/00章前段环境设计_起始点至异色草带.md</c> §5/§6 read in-engine: the contamination zone at
+    /// <c>docs/design/00章室外环境设计_起始点至检修通道前.md</c> reads in-engine: the contamination zone at
     /// the wake lowland, the abandoned survey camp, and the threshold in front of the anomalous grass band.
     /// </summary>
     /// <remarks>
@@ -40,6 +41,21 @@ namespace RootsDance.Editor.Environment
         public static void Build()
         {
             BuildWith(OpeningPropsParams.CreateDefault());
+        }
+
+        /// <summary>Batch entry for an explicit rebuild followed by a scene save.</summary>
+        public static void BuildAndSaveFromCommandLine()
+        {
+            OpeningPropsParams p = OpeningPropsParams.CreateDefault();
+            int placed = BuildWith(p);
+            Scene scene = SceneManager.GetSceneByPath(p.ScenePath);
+
+            if (placed <= 0 || !scene.IsValid() || !scene.isLoaded || !EditorSceneManager.SaveScene(scene))
+            {
+                throw new InvalidOperationException("OpeningPropsBuilder: build/save failed.");
+            }
+
+            Debug.Log($"OpeningPropsBuilder: saved {placed} opening props after route-clearance rebuild.");
         }
 
         /// <summary>Runs the pass against explicit parameters. Returns the number of props placed.</summary>

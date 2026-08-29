@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-14 Vine growth direction
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-14_VineGrowthDirection
-  m_position: {x: 19.435, y: 7.299, z: 133.774}
-  m_yaw: 34
+  m_position: {x: 36.4, y: 7.8, z: 104}
+  m_yaw: 340
   m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2

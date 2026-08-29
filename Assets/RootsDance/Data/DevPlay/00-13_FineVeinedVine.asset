@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 00-13 Fine-veined vine
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-13_FineVeinedVine
-  m_position: {x: 15, y: 7.8, z: 127.8}
-  m_yaw: 24
+  m_position: {x: 35.8, y: 7.8, z: 100.8}
+  m_yaw: 330
   m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2
