@@ -1,4 +1,5 @@
 using RootsDance.Events;
+using RootsDance.Player;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -40,6 +41,23 @@ namespace RootsDance.Cameras
 
         [Tooltip("Flag that fires one shoulder check.")]
         [SerializeField] private string m_lookBackOnFlag;
+
+        // ---- Locomotion ------------------------------------------------------------------------
+        [Header("Locomotion")]
+        [Tooltip("The player, so the run cycle only plays while the player is actually running. "
+            + "Left empty this is resolved once from the loaded scenes.")]
+        [SerializeField] private FirstPersonController m_controller;
+
+        [Tooltip("Horizontal speed at which the run cycle plays at full strength, in m/s. Match "
+            + "the sprint speed in PlayerConfig — panicked running is sprinting.")]
+        [Min(0.1f)]
+        [SerializeField] private float m_fullStrideSpeed = 4.4f;
+
+        [Tooltip("Horizontal speed at which the run cycle starts coming in, in m/s. Match the walk "
+            + "speed in PlayerConfig: walking is not running, so a walking player gets no bob at "
+            + "all and the layer belongs entirely to the sprint.")]
+        [Min(0f)]
+        [SerializeField] private float m_runOnsetSpeed = 2.6f;
 
         // ---- Run --------------------------------------------------------------------------------
         [Header("Run")]
@@ -124,6 +142,7 @@ namespace RootsDance.Cameras
         private float m_intensityTarget;
         private float m_lastEvaluationTime;
         private float m_seed;
+        private bool m_controllerSearched;
 
         /// <summary>0..1 — how far into the panic the view currently is. Read by tests and tools.</summary>
         public float Intensity => m_intensity;
@@ -150,6 +169,7 @@ namespace RootsDance.Cameras
         protected override void OnEnable()
         {
             base.OnEnable();
+            EnsureController();
 
             if (m_flagRaised != null)
             {
@@ -168,7 +188,28 @@ namespace RootsDance.Cameras
         /// <summary>Starts or ends the panic run. The change is eased, not instant.</summary>
         public void SetPanic(bool isPanicking)
         {
+            if (isPanicking)
+            {
+                // The player can load after this camera does, so try once more on the way in.
+                EnsureController();
+            }
+
             m_intensityTarget = isPanicking ? 1f : 0f;
+        }
+
+        /// <summary>
+        /// Finds the player once when the reference was left unwired. Searched at most once: a
+        /// miss must not turn into a per-frame scene scan.
+        /// </summary>
+        private void EnsureController()
+        {
+            if (m_controller != null || m_controllerSearched)
+            {
+                return;
+            }
+
+            m_controllerSearched = true;
+            m_controller = FindFirstObjectByType<FirstPersonController>();
         }
 
         /// <summary>Fires one shoulder check. Ignored while one is already playing.</summary>
@@ -217,7 +258,18 @@ namespace RootsDance.Cameras
 
             float shake = m_intensity * (m_isLookingBack ? m_shakeWhileLookingBack : 1f);
 
-            if (shake <= 0.0001f && Mathf.Abs(lookBackYaw) <= 0.0001f)
+            // Every part of this layer is something a running body does, so all of it is gated on
+            // the player actually running. Panic alone used to be enough, which meant that once the
+            // chase started the view kept bobbing at 2.9 footfalls a second everywhere the player
+            // went, standing still included, for the rest of the session — the panic only stands
+            // down on the escape. A stopped player gets a still camera.
+            float stride = m_controller != null
+                ? PanicRunGate.StrideFactor(m_controller.HorizontalSpeed, m_fullStrideSpeed, m_runOnsetSpeed)
+                : 1f;
+            float run = shake * stride;
+
+            // The shoulder check still turns the view while standing: it is a head turn, not a step.
+            if (run <= 0.0001f && Mathf.Abs(lookBackYaw) <= 0.0001f)
             {
                 return;
             }
@@ -231,7 +283,7 @@ namespace RootsDance.Cameras
             Vector3 offset = new Vector3(
                 Mathf.Sin(stridePhase) * m_lateralMeters,
                 Mathf.Sin(stepPhase) * m_verticalMeters,
-                0f) * shake;
+                0f) * run;
 
             // A quarter turn out of phase with the bob, so the nod happens between footfalls
             // instead of on them, which is what stops the two reading as one motion.
@@ -243,9 +295,9 @@ namespace RootsDance.Cameras
             float jitterPitch = (Mathf.PerlinNoise(m_seed, jitterTime) - 0.5f) * 2f * m_jitterDegrees;
 
             Quaternion rotation = Quaternion.Euler(
-                (pitch + jitterPitch) * shake,
-                jitterYaw * shake + lookBackYaw,
-                roll * shake);
+                (pitch + jitterPitch) * run,
+                jitterYaw * run + lookBackYaw,
+                roll * run);
 
             state.PositionCorrection += state.RawOrientation * offset;
             state.OrientationCorrection = state.OrientationCorrection * rotation;
