@@ -1,7 +1,7 @@
 using CurvedUIUtility;
+using RootsDance.UI;
 using RootsDance.EditorTools;
 using RootsDance.Player;
-using RootsDance.UI;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -37,6 +37,14 @@ namespace RootsDance.Editor.Tools
         private const int k_SortingOrder = 40;
 
         private static readonly Color k_TextColor = new Color(0.78f, 0.86f, 0.80f, 0.92f);
+
+        /// <summary>The canvas scaler's reference resolution; the layout is authored in these units.</summary>
+        private static readonly Vector2 k_Canvas = new Vector2(1920f, 1080f);
+
+        private static readonly Vector2 k_ReadoutSize = new Vector2(520f, 140f);
+
+        /// <summary>How far in from the side a corner readout starts. Taste, not geometry.</summary>
+        private const float k_ReadoutInset = 90f;
 
         [MenuItem("RootsDance/Build Helmet HUD (Test)")]
         public static void Build()
@@ -347,6 +355,9 @@ namespace RootsDance.Editor.Tools
         /// </param>
         private static void BuildInteractPrompt(Transform parent, string placeholder)
         {
+            // Keeps its authored height: the prompt is centred, and the opening does not intrude
+            // at the bottom middle — only the two bottom corners are framed. VisorOpening exists
+            // for the widgets that actually collide, and this is not one of them.
             CreateLabel(parent, "InteractPrompt", placeholder,
                 new Vector2(0.5f, 0f), new Vector2(0f, 170f), TextAlignmentOptions.Bottom);
         }
@@ -355,9 +366,31 @@ namespace RootsDance.Editor.Tools
         private static void BuildSampleReadouts(Transform parent)
         {
             CreateLabel(parent, "ContamReadout", "CONTAM 072\nAIR / SOIL / BIO",
-                new Vector2(0f, 1f), new Vector2(90f, -70f), TextAlignmentOptions.TopLeft);
+                new Vector2(0f, 1f), TopReadoutPosition(0f), TextAlignmentOptions.TopLeft);
             CreateLabel(parent, "SystemReadout", "HELMET SYS  OK\nEXT. SIGNAL  WEAK",
-                new Vector2(1f, 1f), new Vector2(-90f, -70f), TextAlignmentOptions.TopRight);
+                new Vector2(1f, 1f), TopReadoutPosition(1f), TextAlignmentOptions.TopRight);
+        }
+
+        /// <summary>
+        /// Where a top-corner readout sits, given the helmet's opening rather than the screen's
+        /// corner. The inward offset is a design choice; the drop is not — it is whatever
+        /// <see cref="VisorOpening"/> says the frame reaches at the widest point the label occupies.
+        /// <para>
+        /// This is the fix for readouts drawn over the moulded frame: the opening is not a
+        /// rectangle, it dips deepest a little inboard of each side, and that is exactly where
+        /// these two labels live. Anchoring them a fixed 70 px below the screen edge put both of
+        /// them inside the frame while the middle of the visor stayed clear.
+        /// </para>
+        /// </summary>
+        private static Vector2 TopReadoutPosition(float anchorX01)
+        {
+            VisorOpening.SpanFor(anchorX01, k_ReadoutInset, k_ReadoutSize.x, k_Canvas.x,
+                out float x0, out float x1);
+
+            float drop = VisorOpening.TopPixels(x0, x1, k_Canvas.y);
+            float inward = anchorX01 < 0.5f ? k_ReadoutInset : -k_ReadoutInset;
+
+            return new Vector2(inward, -drop);
         }
 
         private static void CreateLabel(Transform parent, string name, string text,
@@ -370,7 +403,7 @@ namespace RootsDance.Editor.Tools
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
             rect.pivot = anchor;
-            rect.sizeDelta = new Vector2(520f, 140f);
+            rect.sizeDelta = k_ReadoutSize;
             rect.anchoredPosition = anchoredPosition;
 
             CurvedTextMeshPro label = go.AddComponent<CurvedTextMeshPro>();
