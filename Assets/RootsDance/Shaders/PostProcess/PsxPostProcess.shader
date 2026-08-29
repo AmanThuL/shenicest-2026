@@ -48,6 +48,8 @@ Shader "Hidden/RootsDance/PsxPostProcess"
     float _GrainSize;
     float _GrainSeed;
     float _GrainShadowBias;
+    float2 _ShakeOffsetPixels;
+    float _ShakeOverscan;
     TEXTURE2D_X(_MainTex);
 
     // Grain amplitude at _GrainIntensity = 1, as a fraction of the sRGB range.
@@ -85,10 +87,12 @@ Shader "Hidden/RootsDance/PsxPostProcess"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 uv = input.texcoord.xy;
+        float2 shakeOffset = _ShakeOffsetPixels * _PostProcessScreenSize.zw;
+        float2 shakenUv = (uv - 0.5) * (1.0 - _ShakeOverscan) + 0.5 + shakeOffset;
 
         // Untouched source for the intensity blend (bilinear, RTHandle-safe).
         float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler,
-            ClampAndScaleUVForBilinearPostProcessTexture(uv)).xyz;
+            ClampAndScaleUVForBilinearPostProcessTexture(shakenUv)).xyz;
 
         // 1. Pixelate: _PixelScale is authored for 1080p, then scaled with output height. This keeps the
         // virtual resolution and the perceived dither/interlace granularity stable from 1080p through 4K.
@@ -98,6 +102,7 @@ Shader "Hidden/RootsDance/PsxPostProcess"
         float2 virtualSize = max(floor(screenSize / effectivePixelScale), 1.0);
         float2 cell = floor(uv * virtualSize);
         float2 snappedUv = (cell + 0.5) / virtualSize;
+        snappedUv = (snappedUv - 0.5) * (1.0 - _ShakeOverscan) + 0.5 + shakeOffset;
         float3 psxColor = SAMPLE_TEXTURE2D_X(_MainTex, s_point_clamp_sampler,
             ClampAndScaleUVPostProcessTextureForPoint(snappedUv)).xyz;
 

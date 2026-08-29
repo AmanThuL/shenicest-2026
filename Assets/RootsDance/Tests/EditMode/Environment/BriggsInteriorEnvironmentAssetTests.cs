@@ -1,6 +1,8 @@
 using System.IO;
 using NUnit.Framework;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Editor.Environment;
+using RootsDance.Environment;
 using RootsDance.Rendering;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -273,6 +275,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform geometry = FindRoot(environment, "_Geometry");
                 Transform props = FindRoot(environment, "_Props");
                 Transform interactables = FindRoot(gameplay, "_Interactables");
+                Transform cameras = FindRoot(gameplay, "_Cameras");
                 Transform roundWall = FindDescendant(geometry, "Briggs_Wall_North_RoundExit");
                 Transform woodenDoor = props.Find("BriggsClosedEntranceDoor");
                 Transform automaticDoor = interactables.Find("BriggsAutomaticExitDoor");
@@ -297,6 +300,32 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.AreEqual(k_DoorPrefabPath,
                     PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(automaticDoor.gameObject));
                 Assert.IsTrue(automaticDoor.GetComponent("AutomaticSlidingDoor") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneInlay_Outer") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneGlow_Outer") != null);
+                Assert.IsTrue(automaticDoor.Find("RuneActivationLight") != null);
+                Assert.IsTrue(automaticDoor.Find(
+                    "DoorLeaf_Left/RuneInlay_Inner_LeftRoot/RuneInlay_Inner_Left") != null);
+                Assert.IsTrue(automaticDoor.Find(
+                    "DoorLeaf_Right/RuneInlay_Inner_RightRoot/RuneInlay_Inner_Right") != null);
+
+                for (int band = 0; band < BriggsCorridorGateRuneBuilder.InnerBandCount; band++)
+                {
+                    Assert.IsTrue(automaticDoor.Find(
+                        $"DoorLeaf_Left/RuneInlay_Inner_LeftRoot/RuneGlow_Inner_{band:00}_Left") != null);
+                    Assert.IsTrue(automaticDoor.Find(
+                        $"DoorLeaf_Right/RuneInlay_Inner_RightRoot/RuneGlow_Inner_{band:00}_Right") != null);
+                }
+
+                AutomaticSlidingDoor doorController = automaticDoor.GetComponent<AutomaticSlidingDoor>();
+                GateFullscreenShake screenShake = FindDescendant(cameras, "FirstPersonCamera")
+                    .GetComponent<GateFullscreenShake>();
+                Assert.IsTrue(screenShake != null, "The Briggs camera needs the gate full-screen shake driver.");
+                Assert.AreEqual(1, doorController.ActivationStarted.GetPersistentEventCount());
+                Assert.AreSame(screenShake, doorController.ActivationStarted.GetPersistentTarget(0));
+                Assert.AreEqual("Play", doorController.ActivationStarted.GetPersistentMethodName(0));
+                Assert.AreEqual(1, doorController.OpeningFinished.GetPersistentEventCount());
+                Assert.AreSame(screenShake, doorController.OpeningFinished.GetPersistentTarget(0));
+                Assert.AreEqual("Stop", doorController.OpeningFinished.GetPersistentMethodName(0));
             }
             finally
             {
