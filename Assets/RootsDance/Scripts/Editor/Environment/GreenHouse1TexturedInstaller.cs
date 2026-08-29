@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Swaps the flat-shaded greenhouse in the main environment for the textured build.
+    /// Swaps the flat-shaded greenhouse for the textured build, everywhere it stands.
     /// <para>
     /// <c>Briggs_Greenhouse.fbx</c> holds three structures, not one: two long wings either side and
     /// the octagonal dome between them. Only the dome is what the module pipeline rebuilt, so this
@@ -15,12 +15,13 @@ namespace RootsDance.Editor.Environment
     /// the wings alone. Replacing the whole prefab instance would delete them.
     /// </para>
     /// <para>
-    /// The replacement is exported with the original building's coordinates baked in, so it goes in
-    /// at local identity beside the object it replaces rather than needing a placement offset. That
-    /// is the whole reason the export bakes the frame difference instead of the scene carrying it.
+    /// The replacement goes in beside each instance it replaces, carrying that instance's local
+    /// transform. Copying it rather than assuming identity is what lets one pass serve both scenes:
+    /// the main facility places the greenhouse at the origin of its parent, the greenhouse-interior
+    /// level places it offset and scaled by 1.198.
     /// </para>
-    /// Idempotent: running it again rebuilds the replacement in place. Nothing is deleted — the old
-    /// dome is only deactivated, so reverting is a matter of ticking it back on.
+    /// Idempotent, and nothing is deleted — the old dome is only deactivated, so reverting is a
+    /// matter of ticking it back on. Runs over every loaded scene.
     /// Menu: RootsDance > Environment > Install Textured GreenHouse1.
     /// </summary>
     public static class GreenHouse1TexturedInstaller
@@ -41,8 +42,6 @@ namespace RootsDance.Editor.Environment
         private const string k_ReferenceFbxPath =
             "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx";
 
-        private const string k_FacilityPath = "_Geometry/ResearchFacility_GaiaV7";
-        private const string k_OldGreenhouse = "Main";
         private const string k_Installed = "GreenHouse1_Textured";
 
         /// <summary>
@@ -54,15 +53,6 @@ namespace RootsDance.Editor.Environment
         [MenuItem("RootsDance/Environment/Install Textured GreenHouse1")]
         public static void Install()
         {
-            GameObject facility = Find(k_FacilityPath);
-
-            if (facility == null)
-            {
-                Debug.LogError($"GreenHouse1TexturedInstaller: '{k_FacilityPath}' is not in any open "
-                    + "scene. Open Main_Environment first.");
-                return;
-            }
-
             if (AssetDatabase.LoadAssetAtPath<GameObject>(k_FbxPath) == null)
             {
                 Debug.LogError($"GreenHouse1TexturedInstaller: {k_FbxPath} is missing. Export it "
@@ -73,41 +63,149 @@ namespace RootsDance.Editor.Environment
             MatchImportSettings();
 
             GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_FbxPath);
+            GameObject reference = AssetDatabase.LoadAssetAtPath<GameObject>(k_ReferenceFbxPath);
 
-            if (source == null)
+            if (source == null || reference == null)
             {
-                Debug.LogError($"GreenHouse1TexturedInstaller: {k_FbxPath} failed to reimport.");
+                Debug.LogError("GreenHouse1TexturedInstaller: could not load the meshes.");
                 return;
             }
 
-            Transform existing = facility.transform.Find(k_Installed);
+            List<GameObject> targets = FindOldGreenhouses(reference);
 
-            if (existing != null)
+            if (targets.Count == 0)
             {
-                Object.DestroyImmediate(existing.gameObject);
+                Debug.LogWarning("GreenHouse1TexturedInstaller: no instance of "
+                    + $"{System.IO.Path.GetFileName(k_ReferenceFbxPath)} in any open scene. Open "
+                    + "Main_Environment or GreenhouseInterior_Environment first.");
+                return;
             }
 
-            GameObject installed = (GameObject)PrefabUtility.InstantiatePrefab(source, facility.transform);
-            installed.name = k_Installed;
-            installed.transform.localPosition = Vector3.zero;
-            installed.transform.localRotation = Quaternion.identity;
-            installed.transform.localScale = Vector3.one;
+            foreach (GameObject old in targets)
+            {
+                Replace(source, old);
+            }
+        }
+
+        private static void Replace(GameObject source, GameObject old)
+        {
+            Transform parent = old.transform.parent;
+            Transform existing = FindSibling(old, k_Installed);
+            GameObject installed;
+
+            // Re-instantiating an already-correct replacement would rewrite its scene ids for no
+            // gain, so a scene that is already done is left byte-identical.
+            if (existing != null && IsAlreadyCorrect(existing, source, old.transform))
+            {
+                installed = existing.gameObject;
+            }
+            else
+            {
+                if (existing != null)
+                {
+                    Object.DestroyImmediate(existing.gameObject);
+                }
+
+                installed = (GameObject)PrefabUtility.InstantiatePrefab(source, parent);
+                installed.name = k_Installed;
+                installed.transform.SetParent(parent, false);
+
+                // The replacement mesh already carries the old building's own coordinates, so
+                // matching the instance transform lands it exactly where the dome was.
+                installed.transform.localPosition = old.transform.localPosition;
+                installed.transform.localRotation = old.transform.localRotation;
+                installed.transform.localScale = old.transform.localScale;
+                installed.transform.SetSiblingIndex(old.transform.GetSiblingIndex() + 1);
+                EditorSceneManager.MarkSceneDirty(old.scene);
+            }
 
             int assigned = AssignMaterials(installed);
-            int hidden = HideOldDome(facility);
+            int hidden = HideOldDome(old);
 
-            EditorSceneManager.MarkSceneDirty(facility.scene);
-            Selection.activeGameObject = installed;
+            if (hidden > 0)
+            {
+                EditorSceneManager.MarkSceneDirty(old.scene);
+            }
 
-            Debug.Log($"GreenHouse1TexturedInstaller: installed '{k_Installed}' under "
-                + $"{k_FacilityPath}; {assigned} renderer material slots bound, {hidden} objects of "
-                + $"the old dome deactivated. The wings either side are untouched.", installed);
+            Debug.Log($"GreenHouse1TexturedInstaller: [{old.scene.name}] replaced the dome of "
+                + $"'{old.name}'; {assigned} renderer material slots bound, {hidden} of its objects "
+                + $"deactivated. Placed at {installed.transform.localPosition:F3} scale "
+                + $"{installed.transform.localScale:F5}. The wings either side are untouched.",
+                installed);
+        }
+
+        /// <summary>Every prefab-instance root of the old greenhouse across the loaded scenes.</summary>
+        private static List<GameObject> FindOldGreenhouses(GameObject reference)
+        {
+            List<GameObject> found = new List<GameObject>();
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                if (!scene.isLoaded)
+                {
+                    continue;
+                }
+
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                    {
+                        GameObject go = t.gameObject;
+
+                        if (!PrefabUtility.IsAnyPrefabInstanceRoot(go))
+                        {
+                            continue;
+                        }
+
+                        Object asset = PrefabUtility.GetCorrespondingObjectFromOriginalSource(go);
+
+                        if (asset != null && AssetDatabase.GetAssetPath(asset) == k_ReferenceFbxPath)
+                        {
+                            found.Add(go);
+                        }
+                    }
+                }
+            }
+
+            return found;
+        }
+
+        /// <summary>True when this replacement is the right prefab already sitting on the right transform.</summary>
+        private static bool IsAlreadyCorrect(Transform existing, GameObject source, Transform old)
+        {
+            Object asset = PrefabUtility.GetCorrespondingObjectFromOriginalSource(existing.gameObject);
+
+            return asset != null
+                && AssetDatabase.GetAssetPath(asset) == k_FbxPath
+                && existing.localPosition == old.localPosition
+                && existing.localRotation == old.localRotation
+                && existing.localScale == old.localScale;
+        }
+
+        private static Transform FindSibling(GameObject of, string name)
+        {
+            if (of.transform.parent != null)
+            {
+                return of.transform.parent.Find(name);
+            }
+
+            foreach (GameObject root in of.scene.GetRootGameObjects())
+            {
+                if (root.name == name)
+                {
+                    return root.transform;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
         /// Makes the replacement import exactly as the building it stands in for. The scene places
-        /// it at local identity and the mesh already carries the old building's coordinates, so the
-        /// two only line up while the importers agree — scale above all.
+        /// it on the old instance's transform and the mesh already carries the old building's
+        /// coordinates, so the two only line up while the importers agree — scale above all.
         /// </summary>
         private static void MatchImportSettings()
         {
@@ -171,8 +269,6 @@ namespace RootsDance.Editor.Environment
 
                 for (int i = 0; i < slots.Length; i++)
                 {
-                    // The imported slot carries the name Blender exported, which is the material
-                    // name the assembly assigned; Unity appends nothing when it matches an asset.
                     string wanted = slots[i] == null
                         ? null
                         : slots[i].name.Replace(" (Instance)", string.Empty);
@@ -206,20 +302,11 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>Turns off the dome's objects inside the old FBX, leaving the two wings on.</summary>
-        private static int HideOldDome(GameObject facility)
+        private static int HideOldDome(GameObject old)
         {
-            Transform old = facility.transform.Find(k_OldGreenhouse);
-
-            if (old == null)
-            {
-                Debug.LogWarning($"GreenHouse1TexturedInstaller: no '{k_OldGreenhouse}' under "
-                    + $"{k_FacilityPath}; nothing was hidden, so the old dome may still be drawn.");
-                return 0;
-            }
-
             int hidden = 0;
 
-            foreach (Transform child in old)
+            foreach (Transform child in old.transform)
             {
                 if (!child.name.Contains(k_DomeGroup))
                 {
@@ -234,43 +321,6 @@ namespace RootsDance.Editor.Environment
             }
 
             return hidden;
-        }
-
-        private static GameObject Find(string path)
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-
-                if (!scene.isLoaded)
-                {
-                    continue;
-                }
-
-                foreach (GameObject root in scene.GetRootGameObjects())
-                {
-                    if (root.name == path)
-                    {
-                        return root;
-                    }
-
-                    Transform found = root.transform.Find(PathUnder(root.name, path));
-
-                    if (found != null)
-                    {
-                        return found.gameObject;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>The part of a slash path below the named root, or the path itself if unrelated.</summary>
-        private static string PathUnder(string rootName, string path)
-        {
-            string prefix = rootName + "/";
-            return path.StartsWith(prefix) ? path.Substring(prefix.Length) : path;
         }
     }
 }
