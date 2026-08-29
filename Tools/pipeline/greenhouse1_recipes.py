@@ -35,6 +35,9 @@ SRC = {
     "concrete": ("concrete_wall_008/concrete_wall_008_diff_2k.jpg",
                  "concrete_wall_008/concrete_wall_008_nor_gl_2k.jpg",
                  "concrete_wall_008/concrete_wall_008_rough_2k.jpg"),
+    "marble":   ("Marble012/Marble012_2K-JPG_Color.jpg",
+                 "Marble012/Marble012_2K-JPG_NormalGL.jpg",
+                 "Marble012/Marble012_2K-JPG_Roughness.jpg"),
 }
 
 
@@ -125,6 +128,31 @@ def stone_plinth():
     ]
 
 
+def marble_stair(moss, lichen, lime, grime, damp, silt, polish):
+    """The spiral stair is stone, not iron, so the chain starts one link later:
+    no paint, no oxidation, no rust.  What a marble stair loses first is its
+    polish -- feet take it off the nosings, standing water takes it off
+    everywhere else -- and calcite is soluble, so the wash leaves a dull bloom
+    rather than the runoff stains iron gives.  The treads are open (the swap
+    deleted the railings), so every one of them is a horizontal slab that
+    catches whatever comes through the broken glazing above."""
+    return [
+        photo("MarbleBase", 0.45, 1.0, "marble"),
+        # airborne grime settles over the whole slab before anything grows
+        tint("SootFilm", grime, "#3A3833", 0.72, "Dirt"),
+        # the nosings are the one place still walked on: the polish survives
+        # there and nowhere else, so this layer goes lighter *and* smoother
+        tint("TreadPolish", polish, "#B9BCBD", 0.22, "Edges Scratched"),
+        # marble dissolves; the wash redeposits calcite as a dull bloom
+        tint("LimeBloom", lime, "#C3BDAE", 0.92, "Dirt Leak Dry"),
+        tint("DampRecess", damp, "#1E1C19", 0.55, "Moisture"),
+        # treads are horizontal, so silt beds down instead of running off
+        photo("SiltBed", 0.25, silt, "mud", "Dirt Ground"),
+        photo("MossCarpet", 0.20, moss, "moss", "Moss From Top"),
+        photo("Lichen", 0.30, lichen, "lichen", "Moss"),
+    ]
+
+
 NOTE = ("Layered per docs/architecture/废弃温室材质研究.md, dialled per "
         "docs/architecture/废墟风化分层策略.md tier 1: the pattern belongs to "
         "the module, the position-driven amount is tier 2 in the shader.")
@@ -146,6 +174,9 @@ RECIPES = {
     "GreenHouse1Floor2":    sloped_roof(0.20, 0.10, 0.52, 0.60, 0.30, 0.28, 0.20, 0.20, 0.60),
     # z 0-1.3, the splash zone
     "GreenHouse1Ground":    stone_plinth(),
+    # z 1.4-22.9, the interior spiral: the one module that is stone rather
+    # than iron, and the only one whose faces are all walked on
+    "GreenHouse1SpiralStair": marble_stair(0.30, 0.15, 0.30, 0.35, 0.35, 0.25, 0.30),
 }
 
 for asset, fills in RECIPES.items():

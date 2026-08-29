@@ -181,6 +181,15 @@ namespace RootsDance.EditorTools
                 "GreenHouse1Floor2",
                 false),
 
+            // The spiral stair is the one GreenHouse1 module that is stone rather than iron:
+            // marble treads, so the mask carries a dielectric metallic and a smoothness that
+            // stays high wherever the polish survived. Same per-module unwrap as the ironwork.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1SpiralStair.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1SpiralStair",
+                false),
+
             // The plinth and the stair treads, which the assembly puts on one shared tiling
             // set rather than a per-module bake. World space for the same reason the glazing
             // uses it: a tiling source has no unwrap of its own to sample. 2 m matches the
