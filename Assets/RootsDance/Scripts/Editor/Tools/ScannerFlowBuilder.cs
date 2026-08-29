@@ -18,7 +18,7 @@ namespace RootsDance.EditorTools
     /// <summary>
     /// Assembles the whole scan loop in the open gameplay scene, so it can be played end to end:
     /// walk up to a sample, the hint appears, the key raises the scanner, the beam sweeps the
-    /// sample, the camera flies onto the screen, and closing the report lowers the arm again.
+    /// sample, the report comes up magnified in front of the player, and closing it lowers the arm.
     /// <para>
     /// Idempotent, and it never saves — a scene with other work in it can be looked at first.
     /// Everything it makes is named, so a second run finds and updates rather than duplicates.

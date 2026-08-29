@@ -22,6 +22,14 @@ namespace RootsDance.Interaction
     /// swap in one press — a silent swap loses track of what you were carrying, and a torch is
     /// exactly the thing you do not want to put down by accident in the dark.
     /// </para>
+    /// <para>
+    /// A pickup that names an arms action is taken by playing it: the prop stays exactly where it
+    /// lies until the clip's own Attach frame, and only then jumps into the hand. Whether a prop is
+    /// taken that way is the prop's decision, not this component's, because the clip has to match
+    /// the thing — the blue flask is lifted with the tube grab, which closes the fingers around a
+    /// cylinder. A pickup that names nothing goes straight into the hand, which is what the torch
+    /// has always done.
+    /// </para>
     /// </summary>
     [DisallowMultipleComponent]
     public class PickupProximityTrigger : MonoBehaviour
@@ -35,6 +43,16 @@ namespace RootsDance.Interaction
 
         [Tooltip("Supplies the pick button. Found on this object or a parent when empty.")]
         [SerializeField] private PlayerInputReader m_input;
+
+        [Tooltip("Plays the grab for pickups that name one. Found on this object or a parent "
+            + "when empty.")]
+        [SerializeField] private ArmsDirector m_director;
+
+        [Tooltip("Optional. While that trigger offers a throw, this one keeps quiet: both write "
+            + "to the prompt channel below, and both only write when their own text changes, so "
+            + "two of them taking turns leaves the loser's string stuck on screen. Found on this "
+            + "object when empty.")]
+        [SerializeField] private ThrowProximityTrigger m_throwTrigger;
 
         [Header("Broadcasts on")]
         [Tooltip("Prompt text for the HUD. An empty string means 'hide the hint'.")]
@@ -61,6 +79,7 @@ namespace RootsDance.Interaction
         private readonly List<Vector3> m_points = new List<Vector3>();
         private GroundPickup m_inReach;
         private GroundPickup m_held;
+        private GroundPickup m_taking;
         private string m_lastPrompt = string.Empty;
 
         /// <summary>What the pick button would take right now, or null.</summary>
@@ -68,6 +87,9 @@ namespace RootsDance.Interaction
 
         /// <summary>What the hand is holding, as a pickup, or null.</summary>
         public GroundPickup Held => m_held;
+
+        /// <summary>True while a grab animation is playing and the hand has not closed yet.</summary>
+        public bool IsTaking => m_taking != null;
 
         public float Range
         {
@@ -87,6 +109,16 @@ namespace RootsDance.Interaction
                 m_input = GetComponentInParent<PlayerInputReader>();
             }
 
+            if (m_director == null)
+            {
+                m_director = GetComponentInParent<ArmsDirector>();
+            }
+
+            if (m_throwTrigger == null)
+            {
+                m_throwTrigger = GetComponent<ThrowProximityTrigger>();
+            }
+
             if (m_socket == null)
             {
                 Log.Error("PickupProximityTrigger found no HandSocket; nothing can be picked up.",
@@ -95,14 +127,33 @@ namespace RootsDance.Interaction
             }
         }
 
+        private void OnEnable()
+        {
+            if (m_director != null)
+            {
+                m_director.ActionFinished += OnActionFinished;
+            }
+        }
+
         private void OnDisable()
         {
+            if (m_director != null)
+            {
+                m_director.ActionFinished -= OnActionFinished;
+            }
+
             m_inReach = null;
+            m_taking = null;
             Broadcast(string.Empty);
         }
 
         private void Update()
         {
+            if (m_taking != null)
+            {
+                return;                                  // the grab is playing; nothing to offer
+            }
+
             // Found even while the hand is full: the hint has to be able to say what you would be
             // picking up if you put down what you are holding.
             m_inReach = FindNearestInRange();
@@ -121,6 +172,14 @@ namespace RootsDance.Interaction
         /// <summary>Puts the right hint on the channel for the state the hand is actually in.</summary>
         private void Offer()
         {
+            if (m_throwTrigger != null && m_throwTrigger.HasOfferNow())
+            {
+                // The rune wall is right there and the hand is full of the thing it wants. "[G]
+                // 放下" is true but useless next to it, and writing it would take the throw hint
+                // off screen for good.
+                return;
+            }
+
             if (!m_socket.IsCarrying)
             {
                 Broadcast(m_inReach == null
@@ -150,6 +209,14 @@ namespace RootsDance.Interaction
                 return;
             }
 
+            string actionId = m_inReach.PickupActionId;
+
+            if (!string.IsNullOrEmpty(actionId) && m_director != null)
+            {
+                TakeWithAnimation(actionId, item);
+                return;
+            }
+
             m_held = m_inReach;
             m_inReach.EnterCarried();
             m_socket.Attach(item);
@@ -157,6 +224,58 @@ namespace RootsDance.Interaction
 
             Log.Info($"PickupProximityTrigger: picked up '{m_held.DisplayName}'.", this);
             Broadcast(string.Empty);
+        }
+
+        /// <summary>
+        /// Crouches, and lets the clip's own Attach frame close the hand. The prop is queued on the
+        /// socket rather than parented now, so it stays on the floor for the reach down — which is
+        /// the whole reason to play a clip instead of teleporting it.
+        /// </summary>
+        private void TakeWithAnimation(string actionId, CarriedItem item)
+        {
+            m_socket.SetPending(item);
+
+            if (!m_director.TryPlay(actionId))
+            {
+                // A refusal, not an error — the arm is still mid-action. Take the queued item back
+                // off the socket so a later, unrelated Attach frame cannot pick it up by surprise.
+                m_socket.SetPending(null);
+                return;
+            }
+
+            m_taking = m_inReach;
+            m_held = m_inReach;
+
+            // Off the floor registry now rather than at the Attach frame: for the second and a half
+            // the arm is reaching down, this must not still be offered to anyone.
+            m_inReach.EnterCarried();
+            m_inReach = null;
+            Broadcast(string.Empty);
+        }
+
+        private void OnActionFinished(string actionId)
+        {
+            if (m_taking == null || actionId != m_taking.PickupActionId)
+            {
+                return;
+            }
+
+            GroundPickup taken = m_taking;
+            m_taking = null;
+
+            if (m_socket.IsCarrying)
+            {
+                Log.Info($"PickupProximityTrigger: picked up '{taken.DisplayName}'.", this);
+                return;
+            }
+
+            // The clip played through without its Attach frame ever firing. Put the prop back on
+            // offer rather than leaving it in limbo — off the floor list and not in the hand.
+            Log.Warning($"'{actionId}' finished without an Attach event; '{taken.DisplayName}' is "
+                + "back on the floor.", this);
+            m_socket.SetPending(null);
+            taken.ExitCarried();
+            m_held = null;
         }
 
         private void TryDrop()

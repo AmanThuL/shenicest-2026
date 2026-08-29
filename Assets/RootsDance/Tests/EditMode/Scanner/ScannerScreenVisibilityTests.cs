@@ -28,6 +28,11 @@ namespace RootsDance.Tests.EditMode.Scanner
         private GameObject m_eyeObject;
         private Camera m_eye;
 
+        // Held rather than looked up again per test: magnifying moves the canvas out of the prop
+        // and onto the eye, so from that point on the prop no longer has a screen to find.
+        private ScannerScreenSurface m_surface;
+        private ScannerScreenMagnifier m_magnifier;
+
         [SetUp]
         public void SetUp()
         {
@@ -36,11 +41,23 @@ namespace RootsDance.Tests.EditMode.Scanner
 
             m_instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
 
+            // Magnifying reparents the report canvas onto the eye, and the Editor refuses to
+            // restructure a live prefab instance — in play there is no instance to refuse. Unpack
+            // so the test exercises the same move the player gets; nothing here is ever saved.
+            PrefabUtility.UnpackPrefabInstance(
+                m_instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+
+            m_surface = m_instance.GetComponentInChildren<ScannerScreenSurface>(true);
+            Assert.IsNotNull(m_surface, "The scanner prefab has no screen surface.");
+
+            m_magnifier = m_instance.GetComponentInChildren<ScannerScreenMagnifier>(true);
+            Assert.IsNotNull(m_magnifier, "The scanner prefab has no screen magnifier.");
+
             // The surface is [ExecuteAlways] but its OnEnable does not run on an editor
             // instantiate, so the pose is the one serialized in the prefab until it is asked for
             // again. Asking is the point: a stale serialized pose that disagrees with the code is
             // exactly the bug class under test.
-            Surface().Apply();
+            m_surface.Apply();
 
             m_eyeObject = new GameObject("Eye");
             m_eye = m_eyeObject.AddComponent<Camera>();
@@ -67,7 +84,7 @@ namespace RootsDance.Tests.EditMode.Scanner
         {
             Transform plate = Plate();
             Vector3 outward = OutwardNormal(plate);
-            Transform canvas = Surface().transform;
+            Transform canvas = m_surface.transform;
 
             float standoff = Vector3.Dot(canvas.position - plate.position, outward);
 
@@ -86,9 +103,9 @@ namespace RootsDance.Tests.EditMode.Scanner
         [Test]
         public void Magnified_SitsInFrontOfTheEyeAndFacesIt()
         {
-            Magnifier().MagnifyImmediate(m_eye);
+            m_magnifier.MagnifyImmediate(m_eye);
 
-            Transform canvas = Surface().transform;
+            Transform canvas = m_surface.transform;
             Transform eye = m_eye.transform;
 
             Vector3 local = eye.InverseTransformPoint(canvas.position);
@@ -108,11 +125,10 @@ namespace RootsDance.Tests.EditMode.Scanner
         [Test]
         public void Magnified_FillsMostOfTheViewportWithoutOverflowingIt()
         {
-            ScannerScreenMagnifier magnifier = Magnifier();
-            magnifier.MagnifyImmediate(m_eye);
+            m_magnifier.MagnifyImmediate(m_eye);
 
             Transform eye = m_eye.transform;
-            var rect = (RectTransform)Surface().transform;
+            var rect = (RectTransform)m_surface.transform;
             var corners = new Vector3[4];
             rect.GetWorldCorners(corners);
 
@@ -131,10 +147,10 @@ namespace RootsDance.Tests.EditMode.Scanner
             }
 
             Debug.Log($"[scanner] worst corner fills {worst * 100f:F1}% of the half-viewport, "
-                + $"asked for {magnifier.ScreenFill * 100f:F1}%");
+                + $"asked for {m_magnifier.ScreenFill * 100f:F1}%");
 
             Assert.Less(worst, 1f, "The magnified report overflows the viewport.");
-            Assert.AreEqual(magnifier.ScreenFill, worst, 1e-3f,
+            Assert.AreEqual(m_magnifier.ScreenFill, worst, 1e-3f,
                 "The report did not grow to the fill ratio it is set to, so it reads small.");
         }
 
@@ -146,10 +162,10 @@ namespace RootsDance.Tests.EditMode.Scanner
             // whatever angle the wrist is.
             m_instance.transform.rotation = Quaternion.Euler(23f, 41f, 57f);
 
-            Magnifier().MagnifyImmediate(m_eye);
+            m_magnifier.MagnifyImmediate(m_eye);
 
             Transform eye = m_eye.transform;
-            Vector3 screenUp = eye.InverseTransformDirection(Surface().transform.up);
+            Vector3 screenUp = eye.InverseTransformDirection(m_surface.transform.up);
             float tilt = Vector3.Angle(new Vector3(screenUp.x, screenUp.y, 0f), Vector3.up);
 
             Debug.Log($"[scanner] report tilt in view {tilt:F2}°");
@@ -184,7 +200,7 @@ namespace RootsDance.Tests.EditMode.Scanner
 
             // A label can hold text and still submit nothing: TMP needs the canvas to carry the
             // extra vertex channels its SDF shaders read.
-            var canvas = m_instance.GetComponentInChildren<Canvas>(true);
+            var canvas = m_surface.GetComponent<Canvas>();
             Assert.IsNotNull(canvas, "The report has no canvas.");
 
             const AdditionalCanvasShaderChannels k_Needed = AdditionalCanvasShaderChannels.TexCoord1
@@ -195,20 +211,6 @@ namespace RootsDance.Tests.EditMode.Scanner
 
             Assert.AreEqual(k_Needed, canvas.additionalShaderChannels & k_Needed,
                 "The canvas drops the vertex channels TextMeshPro reads, so no glyph is drawn.");
-        }
-
-        private ScannerScreenSurface Surface()
-        {
-            var surface = m_instance.GetComponentInChildren<ScannerScreenSurface>(true);
-            Assert.IsNotNull(surface, "The scanner prefab has no screen surface.");
-            return surface;
-        }
-
-        private ScannerScreenMagnifier Magnifier()
-        {
-            var magnifier = m_instance.GetComponentInChildren<ScannerScreenMagnifier>(true);
-            Assert.IsNotNull(magnifier, "The scanner prefab has no screen magnifier.");
-            return magnifier;
         }
 
         private Transform Plate()

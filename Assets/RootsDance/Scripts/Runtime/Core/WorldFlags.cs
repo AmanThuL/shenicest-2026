@@ -123,5 +123,14 @@ namespace RootsDance.Core
         /// <see cref="RootsDance.Player.FlashlightController"/>, which stays dark without it.
         /// </summary>
         public const string k_FlashlightPowered = "flow.flashlight_powered";
+
+        /// <summary>
+        /// The blue flask has been thrown at the Briggs exit rune and broken on it. This is what
+        /// unlocks the north round door: before it the door ignores anyone standing in front of
+        /// it, after it the door behaves like any other automatic door, so the player can walk
+        /// back through. Held in world state rather than on the door so a checkpoint reload gets
+        /// the answer right without a restore call.
+        /// </summary>
+        public const string k_BriggsExitRuneBroken = "flow.briggs_exit_rune_broken";
     }
 }

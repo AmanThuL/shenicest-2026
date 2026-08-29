@@ -8,12 +8,25 @@ namespace RootsDance.Environment
 {
     /// <summary>
     /// Opens a pair of door leaves away from their centre seam while a player trigger probe is nearby.
+    /// <para>
+    /// A door can also be locked shut: with <see cref="OpensOnApproach"/> off it ignores anyone
+    /// standing in the trigger until <see cref="Unlock"/> is called. That is one bool rather than a
+    /// second state, on purpose — the Briggs exit has to become an ordinary automatic door the
+    /// moment the rune breaks, so the player can walk back through, and a locked/unlocked pair of
+    /// code paths would have had to converge again anyway.
+    /// </para>
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BoxCollider))]
     public sealed class AutomaticSlidingDoor : MonoBehaviour
     {
         private static readonly int k_EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
+
+        [Header("Activation")]
+        [Tooltip("On: anyone stepping into the trigger opens it. Off: the trigger is ignored "
+            + "until something calls Unlock() — how the Briggs exit stays shut until the rune "
+            + "is broken.")]
+        [SerializeField] private bool m_opensOnApproach = true;
 
         [Header("Door Leaves")]
         [SerializeField] private Transform m_leftLeaf;
@@ -100,7 +113,7 @@ namespace RootsDance.Environment
                 EnterState(DoorState.Closing);
             }
 
-            if (m_occupants.Count > 0 && m_state == DoorState.Dormant)
+            if (m_opensOnApproach && m_occupants.Count > 0 && m_state == DoorState.Dormant)
             {
                 EnterState(DoorState.RevealingInner);
             }
@@ -220,6 +233,25 @@ namespace RootsDance.Environment
             {
                 trigger.isTrigger = true;
             }
+        }
+
+        /// <summary>False while the door refuses the trigger. See <see cref="Unlock"/>.</summary>
+        public bool OpensOnApproach => m_opensOnApproach;
+
+        /// <summary>
+        /// Makes the door answer its trigger from now on. Idempotent, and safe to call while the
+        /// player is already standing inside: the next frame finds an occupant against a dormant
+        /// door and starts the rune sequence, which is exactly the beat a broken rune wants.
+        /// </summary>
+        public void Unlock()
+        {
+            m_opensOnApproach = true;
+        }
+
+        /// <summary>Shuts the door back off the trigger. Only for tools and tests.</summary>
+        public void Lock()
+        {
+            m_opensOnApproach = false;
         }
 
         public void Configure(Transform leftLeaf, Transform rightLeaf, float openDistance, float speed)

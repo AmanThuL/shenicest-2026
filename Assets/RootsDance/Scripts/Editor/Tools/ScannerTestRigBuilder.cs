@@ -13,9 +13,9 @@ namespace RootsDance.Editor.Tools
     /// <summary>
     /// Wires the scanner into the arms rig already sitting in PlayerTest_Gameplay
     /// (<see cref="HelmetTestRigBuilder"/>), so the whole read loop can be judged in Play mode
-    /// (hotkey J via <see cref="ScannerDebugTrigger"/>): raise, camera zoom onto the screen, report,
-    /// interact/click X to exit, lower. Idempotent: running it again replaces the previous wiring
-    /// and saves the gameplay scene, so nothing needs placing or positioning by hand afterwards —
+    /// (hotkey J via <see cref="ScannerDebugTrigger"/>): raise, sweep, the report blown up in front
+    /// of the player, interact/click X to exit, lower. Idempotent: running it again replaces the
+    /// previous wiring and saves the gameplay scene, so nothing needs placing by hand afterwards —
     /// press Play and hit J.
     /// <para>
     /// The scanner's grip pose comes from <c>GameScanner</c>, the CHILD_OF-constrained empty
@@ -187,7 +187,7 @@ namespace RootsDance.Editor.Tools
         /// <summary>
         /// Points the standalone controller (built for the free-standing prop prefab) at the arm
         /// performance and the player's own look/move, so the raise actually plays and the player
-        /// cannot spin the camera against the inspect blend.
+        /// cannot spin the world about behind a report that fills the view.
         /// </summary>
         private static void WireController(ScannerInspectController controller,
             ScannerAnimatorView view, Scene gameplay)

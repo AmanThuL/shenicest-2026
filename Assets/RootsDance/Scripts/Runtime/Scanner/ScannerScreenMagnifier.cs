@@ -38,12 +38,12 @@ namespace RootsDance.Scanner
         [Range(0.4f, 1f)]
         [SerializeField] private float m_screenFill = 0.86f;
 
-        [Tooltip("How far in front of the eye the magnified report hangs, in metres. Only the "
-            + "apparent size matters to the player, so this is really a depth-sorting knob: far "
-            + "enough to clear the near clip plane and the helmet, near enough to sit in front of "
-            + "the arm holding the scanner.")]
+        [Tooltip("How far in front of the eye the magnified report hangs, in metres. It is scaled "
+            + "to the same apparent size whatever this is, so it is really a depth knob: far enough "
+            + "to clear the near clip plane, near enough that the arm holding the scanner does not "
+            + "poke through the page.")]
         [Range(0.2f, 2f)]
-        [SerializeField] private float m_readDistanceMeters = 0.6f;
+        [SerializeField] private float m_readDistanceMeters = 0.5f;
 
         [Tooltip("Fraction of the viewport the report is offset by, from the centre of the view. "
             + "Zero is dead centre.")]
@@ -161,10 +161,12 @@ namespace RootsDance.Scanner
         private LocalPose MagnifiedPose(Camera eye, RectTransform canvas)
         {
             float eyeScale = Mathf.Max(Mathf.Abs(eye.transform.lossyScale.x), 1e-9f);
-            float distance = Mathf.Max(m_readDistanceMeters, eye.nearClipPlane * 1.5f);
-            float aspect = eye.aspect;
 
-            Vector2 viewport = ScreenFraming.ViewportSizeAt(distance, eye.fieldOfView, aspect);
+            // Never inside the near clip plane, whatever the field is set to: a page the camera
+            // clips away is the one failure the player cannot read past.
+            float distance = Mathf.Max(m_readDistanceMeters, eye.nearClipPlane * 1.05f);
+
+            Vector2 viewport = ScreenFraming.ViewportSizeAt(distance, eye.fieldOfView, eye.aspect);
             Vector2 reference = canvas.sizeDelta;
             float scale = ScreenFraming.ScaleForFill(reference, viewport, m_screenFill);
 

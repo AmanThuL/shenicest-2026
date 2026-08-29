@@ -1,4 +1,5 @@
 using CurvedUIUtility;
+using RootsDance.Events;
 using RootsDance.UI;
 using RootsDance.EditorTools;
 using RootsDance.Player;
@@ -42,6 +43,12 @@ namespace RootsDance.Editor.Tools
         private static readonly Vector2 k_Canvas = new Vector2(1920f, 1080f);
 
         private static readonly Vector2 k_ReadoutSize = new Vector2(520f, 140f);
+
+        /// <summary>The suit's line. Named here because two builders look it up.</summary>
+        private const string k_NoticeName = "SuitNotice";
+
+        /// <summary>Wide enough for a sentence of device Chinese without wrapping to three lines.</summary>
+        private static readonly Vector2 k_NoticeSize = new Vector2(1240f, 120f);
 
         /// <summary>How far in from the side a corner readout starts. Taste, not geometry.</summary>
         private const float k_ReadoutInset = 90f;
@@ -117,6 +124,7 @@ namespace RootsDance.Editor.Tools
             BuildVisorGlass(visorRoot, visorMaterial);
 
             BuildInteractPrompt(visorRoot, withSampleReadouts ? "[E]  INSPECT" : string.Empty);
+            BuildSuitNotice(visorRoot);
 
             if (withSampleReadouts)
             {
@@ -124,6 +132,7 @@ namespace RootsDance.Editor.Tools
             }
 
             WireHudView(canvasGo, visorRoot);
+            WireNoticePresenter(canvasGo, visorRoot);
 
             EditorSceneManager.MarkSceneDirty(gameplay);
             EditorSceneManager.SaveScene(gameplay);
@@ -315,6 +324,34 @@ namespace RootsDance.Editor.Tools
         }
 
         /// <summary>
+        /// Binds the suit's line to the two channels the helmet talks on. The channels are created
+        /// here if they are missing, so a HUD built on a fresh clone is wired rather than silent;
+        /// <see cref="Chapter00HelmetSealBuilder"/> wires the other end, on the player prefab.
+        /// </summary>
+        private static void WireNoticePresenter(GameObject canvasGo, RectTransform visorRoot)
+        {
+            Transform label = visorRoot.Find(k_NoticeName);
+
+            if (label == null)
+            {
+                Debug.LogWarning($"HelmetHudBuilder: no {k_NoticeName} label; the suit's notices "
+                    + "and warnings will have nowhere to go.");
+                return;
+            }
+
+            EventChannelAssets.EnsureHelmetChannels(out StringEventChannelSO notice,
+                out StringEventChannelSO warning);
+
+            HelmetNoticePresenter presenter = canvasGo.AddComponent<HelmetNoticePresenter>();
+            SerializedObject serialized = new SerializedObject(presenter);
+            serialized.FindProperty("m_noticeRequested").objectReferenceValue = notice;
+            serialized.FindProperty("m_warningRequested").objectReferenceValue = warning;
+            serialized.FindProperty("m_label").objectReferenceValue =
+                label.GetComponent<TextMeshProUGUI>();
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
         /// The glass is a plain Image, not a curved one: the shader works in screen UV across a
         /// four-vertex quad, so curving it would only shear those corners and drag the whole effect
         /// off-screen. The curvature belongs to the readouts drawn on it.
@@ -362,6 +399,17 @@ namespace RootsDance.Editor.Tools
                 new Vector2(0.5f, 0f), new Vector2(0f, 170f), TextAlignmentOptions.Bottom);
         }
 
+        /// <summary>
+        /// The suit's own line, above the interaction hint: the standing "seal may be released"
+        /// and the refusals that answer a press on a locked seal. Built empty in both rigs — it is
+        /// driven, never authored — and wide, because it carries a sentence rather than a verb.
+        /// </summary>
+        private static void BuildSuitNotice(Transform parent)
+        {
+            CreateLabel(parent, k_NoticeName, string.Empty, new Vector2(0.5f, 0f),
+                new Vector2(0f, 300f), TextAlignmentOptions.Bottom, k_NoticeSize);
+        }
+
         /// <summary>Specimen readouts, for judging the curvature. Test rig only.</summary>
         private static void BuildSampleReadouts(Transform parent)
         {
@@ -396,6 +444,12 @@ namespace RootsDance.Editor.Tools
         private static void CreateLabel(Transform parent, string name, string text,
             Vector2 anchor, Vector2 anchoredPosition, TextAlignmentOptions alignment)
         {
+            CreateLabel(parent, name, text, anchor, anchoredPosition, alignment, k_ReadoutSize);
+        }
+
+        private static void CreateLabel(Transform parent, string name, string text,
+            Vector2 anchor, Vector2 anchoredPosition, TextAlignmentOptions alignment, Vector2 size)
+        {
             GameObject go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
 
@@ -403,7 +457,7 @@ namespace RootsDance.Editor.Tools
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
             rect.pivot = anchor;
-            rect.sizeDelta = k_ReadoutSize;
+            rect.sizeDelta = size;
             rect.anchoredPosition = anchoredPosition;
 
             CurvedTextMeshPro label = go.AddComponent<CurvedTextMeshPro>();

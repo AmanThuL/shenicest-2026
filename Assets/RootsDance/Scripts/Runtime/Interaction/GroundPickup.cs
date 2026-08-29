@@ -28,6 +28,12 @@ namespace RootsDance.Interaction
         [Tooltip("Where the player is measured to. Empty = this object's own origin.")]
         [SerializeField] private Transform m_grabPoint;
 
+        [Tooltip("Arms action played to take this. Empty = it goes straight into the hand with no "
+            + "animation, which is what the torch does. The clip has to suit the prop — the blue "
+            + "flask uses 'grabGroundTube', whose fingers close around a cylinder — and it has to "
+            + "carry an Attach hand event, because that frame is what actually takes it.")]
+        [SerializeField] private string m_pickupActionId = string.Empty;
+
         private CarriedItem m_item;
         private bool m_isCarried;
 
@@ -46,6 +52,9 @@ namespace RootsDance.Interaction
         }
 
         public string DisplayName => m_displayName;
+
+        /// <summary>Arms action id the taker plays, or empty for a straight-into-the-hand pickup.</summary>
+        public string PickupActionId => m_pickupActionId;
 
         /// <summary>The item a socket takes hold of.</summary>
         public CarriedItem Item => m_item;

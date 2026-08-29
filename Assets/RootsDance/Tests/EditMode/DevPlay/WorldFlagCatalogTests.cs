@@ -49,6 +49,9 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_FlashlightRecovered,
                     WorldFlags.k_AlgaeScanned,
                     WorldFlags.k_FlashlightPowered,
+
+                    // Chapter 02: the Briggs laboratory exit.
+                    WorldFlags.k_BriggsExitRuneBroken,
                 },
                 all);
         }

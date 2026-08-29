@@ -62,6 +62,12 @@ namespace RootsDance.EditorTools
             prop.transform.position = Vector3.zero;
             prop.transform.rotation = Quaternion.identity;
 
+            // Magnifying the report reparents its canvas onto the camera, and the Editor refuses
+            // to restructure a live prefab instance. The scene is a throwaway that is never saved,
+            // so unpacking here costs nothing and makes the shot the one a player sees.
+            PrefabUtility.UnpackPrefabInstance(
+                prop, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+
             GameObject lightObject = new GameObject("Key");
             Light light = lightObject.AddComponent<Light>();
             light.type = LightType.Directional;
@@ -116,11 +122,11 @@ namespace RootsDance.EditorTools
                     camera.aspect = (float)k_Width / k_Height;
 
                     Bounds held = Bound(prop);
-                    Vector3 eye = held.center + new Vector3(0.08f, 0.1f, -0.55f);
+                    Vector3 eyePosition = held.center + new Vector3(0.08f, 0.1f, -0.55f);
 
                     magnifier.MagnifyImmediate(camera);
-                    Shoot(camera, target, readback, eye, (held.center - eye).normalized,
-                        "scanner_inspect");
+                    Shoot(camera, target, readback, eyePosition,
+                        (held.center - eyePosition).normalized, "scanner_inspect");
                     magnifier.RestoreImmediate();
 
                     // Straight on to the screen from outside, far enough back to see the prop

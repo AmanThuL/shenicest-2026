@@ -148,7 +148,13 @@ namespace RootsDance.Editor.Audio
             new ClipBinding("SFX_StartleMovement", k_SfxFolder,
                 "Startle_Movement_01.ogg", "Startle_Movement_02.ogg"),
             new ClipBinding("SFX_HelmetOn", k_SfxFolder, "Helmet_On_01.ogg"),
-            new ClipBinding("SFX_HelmetOff", k_SfxFolder, "Helmet_Off_01.ogg")
+            new ClipBinding("SFX_HelmetOff", k_SfxFolder, "Helmet_Off_01.ogg"),
+
+            // Three of the five heavy glass impacts from the same Kenney pack the doors and the
+            // metal creaks came out of. Three rather than one because the rune can be re-thrown at
+            // from a checkpoint, and the picker refuses to repeat a variant.
+            new ClipBinding("SFX_GlassShatter", k_SfxFolder,
+                "Glass_Shatter_01.ogg", "Glass_Shatter_02.ogg", "Glass_Shatter_03.ogg")
         };
 
         [MenuItem("RootsDance/Audio/Bind Audio Clips")]

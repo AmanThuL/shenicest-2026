@@ -90,6 +90,11 @@ namespace RootsDance.Editor.Audio
             new CueSpec("SFX_StartleMovement", AudioRouting.k_SfxGroup, false, 1f, 20f, 0.5f),
             new CueSpec("SFX_WaterTrickle", AudioRouting.k_SfxGroup, false, 1f, 10f, 0f),
 
+            // The flask breaking on the Briggs exit rune. Positioned, and heard across the room —
+            // the throw is made from the far side of the laboratory, so a tight max distance would
+            // have the glass break silently in front of the player who threw it.
+            new CueSpec("SFX_GlassShatter", AudioRouting.k_SfxGroup, false, 1f, 30f, 0.2f),
+
             // Beds — looping, owned by an AmbienceZone rather than the one-shot pool.
             new CueSpec("AMB_Corridor", AudioRouting.k_SfxGroup, true, 0.4f, 30f, 0f),
             new CueSpec("AMB_Greenhouse", AudioRouting.k_SfxGroup, true, 0.4f, 40f, 0f),

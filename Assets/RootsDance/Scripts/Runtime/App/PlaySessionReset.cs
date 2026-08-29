@@ -19,7 +19,7 @@ namespace RootsDance.App
     /// statics — <see cref="WorldAccess"/> reads the bootstrap through
     /// <see cref="RootsDance.Core.PersistentSingleton{T}"/> every time rather than caching it, and
     /// that singleton re-finds itself because Unity's destroyed objects compare equal to null. What
-    /// is left is the two self-registration lists, the flashlight's last published beam, and
+    /// is left is the four self-registration lists, the flashlight's last published beam, and
     /// DOTween, whose own state outlives the component it drives.
     /// </para>
     /// <see cref="RuntimeInitializeLoadType.SubsystemRegistration"/> is the earliest hook and the
@@ -34,6 +34,7 @@ namespace RootsDance.App
             ScannableTarget.ResetRegistry();
             GroundPickup.ResetRegistry();
             HarvestPoint.ResetRegistry();
+            ThrowTarget.ResetRegistry();
             FlashlightBeamBroadcaster.ResetBeam();
 
             // DOTween keeps its tween pool and its driver GameObject in statics. The GameObject is
