@@ -54,6 +54,7 @@ Assets/RootsDance/Scripts/Editor/Pipeline/
 |---|---|
 | 手臂模型 + clip | `Assets/RootsDance/Meshes/Characters/Arms.fbx` |
 | 匍匐前进 clip | `Assets/RootsDance/Meshes/Characters/Arms_Crawl.fbx` |
+| 试管道具 | `Assets/RootsDance/Meshes/Props/Tube.fbx`(源 `SourceArt/Blender/Tube/Tube.blend`,由 `Tools/blender/build_tube_source.py` 从原始 FBX 生成) |
 | 头盔模型 | `Assets/RootsDance/Meshes/Props/Helmet.fbx` |
 | 材质 | `Assets/RootsDance/Materials/` |
 | provenance manifest | `SourceArt/Export/<Asset>.export.json` |
