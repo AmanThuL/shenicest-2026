@@ -99,6 +99,42 @@ namespace RootsDance.EditorTools
                     m_events = new[] { Event(27f / 74f, HandSide.Right, HandEventKind.Attach) },
                 },
 
+                // A tube is carried in the same raised forearm as anything else, but with the
+                // fingers closed around a cylinder rather than curled on nothing — so it is its own
+                // held pose, chained into by the tube grab and by nothing else.
+                new Row
+                {
+                    m_id = "holdTube", m_model = arms + "Arms_HoldTube.fbx", m_clip = "Arms_HoldTube",
+                    m_scope = ArmsScope.Right, m_loop = true, m_gate = false,
+                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.ForearmRaised,
+                    m_height = ArmsHeightBase.Standing, m_fadeIn = 0.18f, m_key = Key.None,
+                },
+
+                // The tube variant of the ground grab: the same 75 frames and the same hand at
+                // frame 28, chaining into holdTube instead of hold.
+                new Row
+                {
+                    m_id = "grabGroundTube", m_model = arms + "Arms_GrabGroundTube.fbx",
+                    m_clip = "Arms_GrabGroundTube",
+                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
+                    m_required = ArmsPose.HangLow, m_result = ArmsPose.ForearmRaised,
+                    m_chain = "holdTube", m_height = ArmsHeightBase.Standing,
+                    m_fadeIn = 0.25f, m_key = Key.C,
+                    m_events = new[] { Event(27f / 74f, HandSide.Right, HandEventKind.Attach) },
+                },
+
+                // Release at frame 24 of 40, where the hand is moving fastest — measured off the
+                // handIK.R curves in the clip, not eyeballed. Right arm only: the left hand does
+                // not move at all across the throw.
+                new Row
+                {
+                    m_id = "throw", m_model = arms + "Arms_Throw.fbx", m_clip = "Arms_Throw",
+                    m_scope = ArmsScope.Right, m_loop = false, m_gate = true,
+                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.HangLow,
+                    m_height = ArmsHeightBase.Standing, m_fadeIn = 0.08f, m_key = Key.T,
+                    m_events = new[] { Event(23f / 39f, HandSide.Right, HandEventKind.Detach) },
+                },
+
                 // Opens the hand across frames 4-7 of 28; the object is physics from there.
                 new Row
                 {
