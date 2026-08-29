@@ -42,7 +42,13 @@ namespace RootsDance.EditorTools
             "Assets/RootsDance/Prefabs/UI/CirculationConsoleScreen.prefab";
 
         private const string k_ThemeFolder = "Assets/RootsDance/Data/Config/UIThemes";
-        private const string k_Theme = "Phosphor";
+
+        /// <summary>
+        /// Phosphor's ramp on a bitmap face at half again the type size. The panel is read off a
+        /// wall through the game's low resolution buffer, and the screen-space Phosphor — SDF at
+        /// 16/24/40 — arrives there as grey mush; see <see cref="WallPixelFontBuilder"/>.
+        /// </summary>
+        private const string k_Theme = "PhosphorWall";
 
         // 1920x1080 reference, matching MainMenu and DialogueScreen.
         private const float k_ReferenceWidth = 1920f;
@@ -52,9 +58,9 @@ namespace RootsDance.EditorTools
         private const float k_ScreenWidth = 1180f;
         private const float k_ScreenHeight = 760f;
 
-        private const float k_HeaderHeight = 74f;
-        private const float k_StatusHeight = 96f;
-        private const float k_FooterHeight = 72f;
+        private const float k_HeaderHeight = 84f;
+        private const float k_StatusHeight = 110f;
+        private const float k_FooterHeight = 76f;
 
         private sealed class Cycle
         {
@@ -62,6 +68,11 @@ namespace RootsDance.EditorTools
             public string m_chinese;
             public string m_english;
             public string m_description;
+            /// <summary>
+            /// Not printed on the panel any more — see BuildCycle — but kept so the script's own
+            /// line is here beside the Chinese it was written with, and so the pair is one edit
+            /// away from a screen that has room for both.
+            /// </summary>
             public string m_descriptionEnglish;
             public string m_flag;
 
@@ -108,6 +119,32 @@ namespace RootsDance.EditorTools
                 m_density = 0.22f,
             },
         };
+
+        /// <summary>
+        /// Every character the panel can print. The font is baked static against exactly this, so
+        /// a word changed here and not re-baked prints a blank — which is why it is read from the
+        /// layout rather than copied into the font builder.
+        /// </summary>
+        internal static string AllText
+        {
+            get
+            {
+                System.Text.StringBuilder builder = new System.Text.StringBuilder();
+                builder.Append("GAIA 环境循环装置GAIA-CS状态 STATUS参数 PARAMETERS休眠偏差");
+                builder.Append("与预设模型的偏差当前环境参数与预设模型存在偏差。启动 ENGAGE");
+                builder.Append("启动中");
+
+                for (int i = 0; i < k_Cycles.Length; i++)
+                {
+                    builder.Append(k_Cycles[i].m_index);
+                    builder.Append(k_Cycles[i].m_chinese);
+                    builder.Append(k_Cycles[i].m_english);
+                    builder.Append(k_Cycles[i].m_description);
+                }
+
+                return builder.ToString();
+            }
+        }
 
         /// <summary>Batch entry point (-executeMethod).</summary>
         public static void BuildFromCommandLine()
@@ -213,9 +250,13 @@ namespace RootsDance.EditorTools
         private static void BuildHeader(RectTransform header)
         {
             PlaceLabel(header, "GAIA 环境循环装置", KitInk.Ink5, KitType.Display,
-                TextAlignmentOptions.Left, 18f, 320f);
-            PlaceLabel(header, "GAIA ENVIRONMENTAL CIRCULATION SYSTEM", KitInk.Ink3, KitType.Body,
-                TextAlignmentOptions.Right, -18f, 620f, fromRight: true);
+                TextAlignmentOptions.Left, 18f, 480f);
+
+            // The reference's full English title used to run along here. At this type size it
+            // would take the whole band, and at the panel's reading resolution nobody was going to
+            // read thirty-six characters of it anyway. The tag says the same thing in six.
+            PlaceLabel(header, "GAIA-CS", KitInk.Ink3, KitType.Body,
+                TextAlignmentOptions.Right, -18f, 260f, fromRight: true);
         }
 
         /// <summary>
@@ -230,17 +271,20 @@ namespace RootsDance.EditorTools
                 -1, 0f, true);
             FillParent(columns, band);
 
+            // The English moved up into the caption. As one string with the Chinese it ran past
+            // its own cell and printed over the deviation bar in the next one — a readout at this
+            // type size has room for one word, and the caption is where the other one lives.
             ThemedText status = Readout(ElectronicUIKitBuilder.Cell(columns, 0),
-                "系统状态 SYSTEM STATUS", "休眠 DORMANT", KitInk.Ink5);
+                "状态 STATUS", "休眠", KitInk.Ink5);
             Readout(ElectronicUIKitBuilder.Cell(columns, 1),
-                "环境参数 PARAMETERS", "偏差 DEVIATION", KitInk.Accent);
+                "参数 PARAMETERS", "偏差", KitInk.Accent);
 
             RectTransform bar = ElectronicUIKitBuilder.Cell(columns, 2);
-            PlaceLabel(bar, "预设模型偏差 MODEL DEVIATION", KitInk.Ink3, KitType.Micro,
-                TextAlignmentOptions.TopLeft, 16f, 300f, y: 12f);
+            PlaceLabel(bar, "与预设模型的偏差", KitInk.Ink3, KitType.Micro,
+                TextAlignmentOptions.TopLeft, 16f, 340f, y: 14f);
 
             GameObject segments = ElectronicUIKitBuilder.MakeSegmentBar("Deviation", 18, 0.72f);
-            Place(segments, bar, new Rect(16f, 48f, 300f, 26f));
+            Place(segments, bar, new Rect(16f, 58f, 340f, 32f));
 
             return status;
         }
@@ -300,24 +344,26 @@ namespace RootsDance.EditorTools
             RectTransform inner = (RectTransform)hit.transform;
 
             PlaceLabel(inner, cycle.m_index, KitInk.Ink3, KitType.Micro,
-                TextAlignmentOptions.TopLeft, 16f, 80f, y: 14f);
+                TextAlignmentOptions.TopLeft, 16f, 90f, y: 12f);
 
             GameObject mosaic = ElectronicUIKitBuilder.MakeChipMosaic("Flow", 12, 5);
             Sparse(mosaic, cycle.m_density);
-            Place(mosaic, inner, new Rect(16f, 52f, 296f, 84f));
+            Place(mosaic, inner, new Rect(16f, 46f, 330f, 76f));
 
-            // The stack bottoms out at 392, which is where the ENGAGE strip starts. The longest
-            // of the three cycle names wraps to two lines, so every block is given the room for
-            // two — otherwise the three columns stop lining up on the one that does.
+            // The stack bottoms out at 378, which is where the ENGAGE strip starts. Every block
+            // is given room for two lines whether or not its text needs them, so the three columns
+            // still line up on the one that wraps.
+            //
+            // The English descriptions used to sit under these. They are gone: four more lines of
+            // ten-pixel type is four lines nobody can read, and what they said the Chinese above
+            // already says. The cycle names keep theirs — that pair is the machine's own label.
             PlaceLabel(inner, cycle.m_chinese, KitInk.Ink5, KitType.Display,
-                TextAlignmentOptions.TopLeft, 16f, 300f, y: 150f, height: 44f);
+                TextAlignmentOptions.TopLeft, 16f, 340f, y: 130f, height: 62f);
             PlaceLabel(inner, cycle.m_english, KitInk.Ink4, KitType.Body,
-                TextAlignmentOptions.TopLeft, 16f, 300f, y: 196f, height: 56f, wrap: true);
+                TextAlignmentOptions.TopLeft, 16f, 340f, y: 194f, height: 84f, wrap: true);
 
             PlaceLabel(inner, cycle.m_description, KitInk.Ink3, KitType.Body,
-                TextAlignmentOptions.TopLeft, 16f, 300f, y: 258f, height: 72f, wrap: true);
-            PlaceLabel(inner, cycle.m_descriptionEnglish, KitInk.Ink2, KitType.Micro,
-                TextAlignmentOptions.TopLeft, 16f, 300f, y: 332f, height: 60f, wrap: true);
+                TextAlignmentOptions.TopLeft, 16f, 340f, y: 286f, height: 90f, wrap: true);
 
             // The affordance. Without it the three cells read as three paragraphs of a datasheet —
             // the player has to guess that the panel is asking them something. A filled strip on
@@ -330,7 +376,7 @@ namespace RootsDance.EditorTools
             strip.anchorMax = new Vector2(1f, 0f);
             strip.pivot = new Vector2(0.5f, 0f);
             strip.offsetMin = new Vector2(0f, 0f);
-            strip.offsetMax = new Vector2(0f, 46f);
+            strip.offsetMax = new Vector2(0f, 48f);
 
             GameObject engageLabel = ElectronicUIKitBuilder.MakeLabel("Label", "启动 ENGAGE",
                 KitInk.Ink0, KitType.Body, TextAlignmentOptions.Center);
@@ -342,12 +388,9 @@ namespace RootsDance.EditorTools
 
         private static void BuildFooter(RectTransform footer)
         {
+            // The English half of this line is gone for the same reason the title's is.
             PlaceLabel(footer, "当前环境参数与预设模型存在偏差。", KitInk.Ink3, KitType.Body,
-                TextAlignmentOptions.Left, 18f, 520f);
-            PlaceLabel(footer,
-                "Current environmental parameters deviate from the preset model.",
-                KitInk.Ink2, KitType.Micro, TextAlignmentOptions.Right, -18f, 560f,
-                fromRight: true);
+                TextAlignmentOptions.Left, 18f, 800f);
         }
 
         // ---------------------------------------------------------------------------- helpers

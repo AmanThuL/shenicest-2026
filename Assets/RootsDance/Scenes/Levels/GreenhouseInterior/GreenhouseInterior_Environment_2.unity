@@ -200,7 +200,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a140ff1f033dd4dd684c6c2741214b50, type: 3}
---- !u!1001 &2043263742
+--- !u!1001 &1605844737
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -252,10 +252,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: CirculationTerminal
       objectReference: {fileID: 0}
-    - target: {fileID: 7971818731161533757, guid: 8853ac4b9eab94b2c8d124622f17bfca, type: 3}
-      propertyPath: m_AdditionalShaderChannelsFlag
-      value: 25
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -266,4 +262,4 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1390809479}
-  - {fileID: 2043263742}
+  - {fileID: 1605844737}

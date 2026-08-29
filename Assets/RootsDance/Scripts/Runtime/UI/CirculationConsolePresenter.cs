@@ -46,9 +46,9 @@ namespace RootsDance.UI
         [Tooltip("The status readout's value — 'DORMANT' until a cycle is started.")]
         [SerializeField] private ThemedText m_statusValue;
 
-        [SerializeField] private string m_dormantText = "休眠 DORMANT";
+        [SerializeField] private string m_dormantText = "休眠";
 
-        [SerializeField] private string m_engagedText = "启动中 ENGAGING";
+        [SerializeField] private string m_engagedText = "启动中";
 
         [Tooltip("Seconds the started cycle stays on screen before the terminal closes itself.")]
         [Min(0f)]

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f91e91f69b64c4ba218737aa09deba, type: 3}
+  m_Name: UITheme_PhosphorWall
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.Kit.ElectronicUITheme
+  m_ramp:
+  - {r: 0.015686275, g: 0.05882353, b: 0.015686275, a: 1}
+  - {r: 0.19607843, g: 0.25882354, b: 0.18431373, a: 1}
+  - {r: 0.34901962, g: 0.5568628, b: 0.2784314, a: 1}
+  - {r: 0.5529412, g: 0.6901961, b: 0.5058824, a: 1}
+  - {r: 0.7254902, g: 0.83137256, b: 0.627451, a: 1}
+  - {r: 0.84313726, g: 0.9372549, b: 0.627451, a: 1}
+  m_accent: {r: 0.92941177, g: 0.98039216, b: 0.30980393, a: 1}
+  m_accentAlt: {r: 0.34901962, g: 0.5568628, b: 0.2784314, a: 1}
+  m_family: 1
+  m_unit: 4
+  m_rule: 1
+  m_ruleStrong: 2
+  m_padUnits: 3
+  m_gutterUnits: 4
+  m_rowUnits: 10
+  m_insetUnits: 16
+  m_cornerUnits: 4
+  m_interactiveRadiusUnits: 1.5
+  m_font: {fileID: 11400000, guid: b97e89c52354b4b60b6a06fa5dedc90d, type: 2}
+  m_boldText: 0
+  m_microSize: 26
+  m_bodySize: 36
+  m_displaySize: 56

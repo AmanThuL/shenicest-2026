@@ -95,6 +95,21 @@ namespace RootsDance.EditorTools
                 Hex(0x040F04), Hex(0x32422F), Hex(0x598E47), Hex(0x8DB081), Hex(0xB9D4A0), Hex(0xD7EFA0)
             }, Hex(0xEDFA4F), Hex(0x598E47), KitFamily.Terminal, 16f, 24f, 40f, false);
 
+            // Phosphor's ramp for a screen that is in the world rather than over it. Two things
+            // differ, and both are the same fact: a diegetic panel is read through the game's low
+            // resolution buffer, so it gets a fraction of the pixels a screen-space UI does.
+            //
+            // The face is Fusion Pixel baked SMOOTH at 24 pt (WallPixelFontBuilder) instead of the
+            // kit's SDF pair — SDF turns a pixel font's hard edges into a grey ramp, and at ten
+            // screen pixels a character that ramp is most of the glyph. The type sizes are half
+            // again the screen-space ones, which is what it takes to put the smallest text over
+            // the dozen pixels a Chinese character needs to be a character rather than a smudge.
+            BuildTheme("PhosphorWall", new[]
+            {
+                Hex(0x040F04), Hex(0x32422F), Hex(0x598E47), Hex(0x8DB081), Hex(0xB9D4A0), Hex(0xD7EFA0)
+            }, Hex(0xEDFA4F), Hex(0x598E47), KitFamily.Terminal, 26f, 36f, 56f, false,
+                WallPixelFontBuilder.EnsureFontAsset());
+
             // Amber is the odd one out on purpose: its ramp runs bright to dark, because it is
             // matched to a physical object rather than to a reference image. The scanner prop's
             // baked screen is a positive display — a lit amber field with near-black text — and the
@@ -109,7 +124,8 @@ namespace RootsDance.EditorTools
         }
 
         private static ElectronicUITheme BuildTheme(string name, Color[] ramp, Color accent,
-            Color accentAlt, KitFamily family, float micro, float body, float display, bool bold)
+            Color accentAlt, KitFamily family, float micro, float body, float display, bool bold,
+            TMP_FontAsset font = null)
         {
             string path = $"{ThemeFolder}/UITheme_{name}.asset";
             ElectronicUITheme theme = AssetDatabase.LoadAssetAtPath<ElectronicUITheme>(path);
@@ -132,7 +148,9 @@ namespace RootsDance.EditorTools
             serialized.FindProperty("m_accent").colorValue = accent;
             serialized.FindProperty("m_accentAlt").colorValue = accentAlt;
             serialized.FindProperty("m_family").enumValueIndex = (int)family;
-            serialized.FindProperty("m_font").objectReferenceValue = EnsureFont();
+            serialized.FindProperty("m_font").objectReferenceValue = font == null
+                ? EnsureFont()
+                : font;
             serialized.FindProperty("m_boldText").boolValue = bold;
 
             // Sizes are measured per reference: cap heights of 20-22 px on 40 px rows put the body
