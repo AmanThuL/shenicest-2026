@@ -67,6 +67,37 @@ for obj in sorted(col.objects, key=lambda o: o.name):
         if best_missing is None or len(missing) < len(best_missing):
             best_mid, best_missing = cand, missing
 
+    # Leftovers first, mirrors second. A pane the cull forgot sits on top of
+    # one that was kept, and the kept one has a twin across the arch; mirror
+    # it and the leftover gets copied to the good side instead of removed,
+    # which is the wrong half of the fix.
+    twinned = np.zeros(n, bool)
+    twinned[real] = True
+    twinned[real[best_missing]] = False
+    leftovers = []
+    for k in best_missing:
+        i = real[k]
+        near = np.linalg.norm(centres[real] - centres[i], axis=1)
+        near[list(real).index(i)] = 1e9
+        if np.any((near < 0.06) & twinned[real]):
+            leftovers.append(int(i))
+    if leftovers:
+        bm = bmesh.new(); bm.from_mesh(mesh)
+        bm.faces.ensure_lookup_table()
+        bmesh.ops.delete(bm, geom=[bm.faces[i] for i in leftovers], context='FACES')
+        bm.to_mesh(mesh); bm.free()
+        mesh.update()
+        # positions shifted, so everything downstream is recomputed
+        n = len(mesh.polygons)
+        centres = np.empty((n, 3)); mesh.polygons.foreach_get("center", centres.ravel())
+        centres = centres @ mw[:3, :3].T + mw[:3, 3]
+        areas = np.empty(n); mesh.polygons.foreach_get("area", areas)
+        real = np.where(areas > MIN_AREA)[0]
+        lat = centres @ across
+        mirrored = centres[real] + np.outer(2 * (best_mid - lat[real]), across)
+        d = np.linalg.norm(centres[real][None, :, :] - mirrored[:, None, :], axis=2)
+        best_missing = np.where(d.min(1) > TOL)[0]
+
     verts = np.empty((len(mesh.vertices), 3))
     mesh.vertices.foreach_get("co", verts.ravel())
     world = verts @ mw[:3, :3].T + mw[:3, 3]
@@ -107,36 +138,10 @@ for obj in sorted(col.objects, key=lambda o: o.name):
     bm.to_mesh(mesh); bm.free()
     mesh.update()
 
-    # Drop the leftovers that sit on top of a pane that already has a twin.
-    # The source glazes some openings twice at slightly different sizes, and
-    # only one of the pair is mirrored, so the duplicate is the whole reason
-    # a square reads solid on one side of the arch and glazed on the other.
-    n2 = len(mesh.polygons)
-    c2 = np.empty((n2, 3)); mesh.polygons.foreach_get("center", c2.ravel())
-    c2 = c2 @ mw[:3, :3].T + mw[:3, 3]
-    a2 = np.empty(n2); mesh.polygons.foreach_get("area", a2)
-    lat2 = c2 @ across
-    mirror = c2 + np.outer(2 * (best_mid - lat2), across)
-    twinned = np.linalg.norm(c2[None, :, :] - mirror[:, None, :], axis=2).min(1) <= TOL
-    duplicates = []
-    for i in range(n2):
-        if twinned[i] or a2[i] <= MIN_AREA:
-            continue
-        near = np.linalg.norm(c2 - c2[i], axis=1)
-        near[i] = 1e9
-        if np.any((near < 0.06) & twinned & (a2 > MIN_AREA)):
-            duplicates.append(i)
-    if duplicates:
-        bm = bmesh.new(); bm.from_mesh(mesh)
-        bm.faces.ensure_lookup_table()
-        bmesh.ops.delete(bm, geom=[bm.faces[i] for i in duplicates], context='FACES')
-        bm.to_mesh(bm_mesh := mesh); bm.free()
-        mesh.update()
-
     added_total += made
-    print("### %-14s panes=%3d  mirrored in %2d  skipped behind iron %2d  "
-          "duplicates dropped %2d"
-          % (obj.name, len(real), made, skipped, len(duplicates)))
+    print("### %-14s panes=%3d  leftovers deleted %2d  mirrored in %2d  "
+          "skipped behind iron %2d"
+          % (obj.name, len(real), len(leftovers), made, skipped))
 
 print("### total panes added by mirroring: %d" % added_total)
 bpy.ops.wm.save_mainfile()
