@@ -58,11 +58,24 @@ namespace RootsDance.Player
                 + Vector3.down * (m_controller.height * 0.5f - m_controller.radius);
             float radius = m_controller.radius * m_config.GroundCheckRadiusScale;
 
-            m_isGrounded = Physics.CheckSphere(
+            bool sphereFoundGround = Physics.CheckSphere(
                 origin + Vector3.down * m_config.GroundCheckDistance,
                 radius,
                 m_config.GroundLayers,
                 QueryTriggerInteraction.Ignore);
+
+            // ...but the sphere can still miss ground the capsule is demonstrably standing on: on
+            // the main terrain it sits about 13 cm short, so the check said "falling" while the
+            // capsule rested on the surface. Gravity then accumulated to Max Fall Speed and stayed
+            // there, which reads to FreeFallView as an endless terminal-velocity drop and shakes
+            // the view everywhere, forever, with the player standing still.
+            //
+            // A downward contact reported by the controller itself is proof of ground and cannot be
+            // spuriously true — it is only ever unreliably *false*, which is what the sphere covers.
+            // Trusting both means neither failure mode can strand the player mid-air.
+            bool restingOnSomething = (m_controller.collisionFlags & CollisionFlags.Below) != 0;
+
+            m_isGrounded = sphereFoundGround || restingOnSomething;
         }
 
         private void UpdateHorizontalVelocity(float deltaTime)
