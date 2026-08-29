@@ -3,10 +3,12 @@ using RootsDance.App;
 using RootsDance.Cameras;
 using RootsDance.Chase;
 using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Player;
 using RootsDance.World;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,8 +31,11 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
 
         private const string k_MonsterPrefabPath = "Assets/RootsDance/Prefabs/Characters/ChaseMonster.prefab";
-        private const string k_RootedFbxPath = "Assets/RootsDance/Meshes/Characters/Boss_Blockout_Rooted.fbx";
-        private const string k_UprootedFbxPath = "Assets/RootsDance/Meshes/Characters/Boss_Blockout_Uprooted.fbx";
+        private const string k_BossFbxPath = "Assets/RootsDance/Meshes/Characters/Boss.fbx";
+        private const string k_BossClipName = "Boss_Chase";
+        private const string k_BossControllerPath =
+            "Assets/RootsDance/Animations/Boss/Boss.controller";
+        private const string k_EnemyConfigPath = "Assets/RootsDance/Data/Config/EnemyConfig.asset";
 
         private const string k_FlagChannelPath = "Assets/RootsDance/Data/Events/FlagRaised.asset";
         private const string k_LevelChannelPath = "Assets/RootsDance/Data/Events/LoadLevelRequested.asset";
@@ -132,46 +137,147 @@ namespace RootsDance.Editor.Environment
                 + "03-03 checkpoint. Play it from RootsDance > Dev Play > Window.");
         }
 
-        /// <summary>The boss prefab: both blockout bodies under one ChaseMonster. Kept if it exists.</summary>
-        private static GameObject EnsureMonsterPrefab()
+        /// <summary>
+        /// The pursuit tuning asset. Created with the values the prefab used to carry inline, so
+        /// re-running this on an existing project changes no behaviour; kept untouched if present,
+        /// because after the first run this file is the designer's to edit.
+        /// </summary>
+        private static EnemyConfigSO EnsureEnemyConfig()
         {
-            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(k_MonsterPrefabPath);
+            EnemyConfigSO existing = AssetDatabase.LoadAssetAtPath<EnemyConfigSO>(k_EnemyConfigPath);
 
             if (existing != null)
             {
                 return existing;
             }
 
-            GameObject rootedModel = LoadRequired<GameObject>(k_RootedFbxPath);
-            GameObject uprootedModel = LoadRequired<GameObject>(k_UprootedFbxPath);
+            EnemyConfigSO config = ScriptableObject.CreateInstance<EnemyConfigSO>();
+            AssetDatabase.CreateAsset(config, k_EnemyConfigPath);
+            return config;
+        }
 
+        /// <summary>
+        /// A controller that just loops the boss's chase cycle. Speed is driven from code — the
+        /// clip is retimed by how fast the thing is actually travelling — so there is no state
+        /// machine here and nothing to parameterise.
+        /// </summary>
+        private static RuntimeAnimatorController EnsureBossController()
+        {
+            RuntimeAnimatorController existing =
+                AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(k_BossControllerPath);
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            AnimationClip clip = null;
+
+            foreach (UnityEngine.Object asset in AssetDatabase.LoadAllAssetsAtPath(k_BossFbxPath))
+            {
+                AnimationClip candidate = asset as AnimationClip;
+
+                if (candidate != null && candidate.name == k_BossClipName)
+                {
+                    clip = candidate;
+                    break;
+                }
+            }
+
+            if (clip == null)
+            {
+                throw new InvalidOperationException(
+                    k_BossFbxPath + " has no '" + k_BossClipName + "' clip to drive the boss.");
+            }
+
+            EnsureFolder(k_BossControllerPath);
+            return AnimatorController.CreateAnimatorControllerAtPathWithClip(k_BossControllerPath, clip);
+        }
+
+        /// <summary>
+        /// The boss prefab: the authored Boss mesh under one ChaseMonster, animated by its chase
+        /// cycle. Rebuilt when it is missing, and re-pointed at the config and controller when it
+        /// already exists, so an older prefab built from the blockout bodies is migrated in place.
+        /// </summary>
+        private static GameObject EnsureMonsterPrefab()
+        {
+            EnemyConfigSO config = EnsureEnemyConfig();
+            RuntimeAnimatorController controller = EnsureBossController();
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(k_MonsterPrefabPath);
+
+            if (existing != null && existing.GetComponentInChildren<SkinnedMeshRenderer>(true) != null)
+            {
+                WireMonster(existing, config, controller);
+                return existing;
+            }
+
+            GameObject bossModel = LoadRequired<GameObject>(k_BossFbxPath);
             GameObject root = new GameObject("ChaseMonster");
 
             try
             {
-                GameObject rooted = (GameObject)PrefabUtility.InstantiatePrefab(rootedModel);
-                rooted.name = "Rooted";
-                rooted.transform.SetParent(root.transform, false);
+                GameObject body = (GameObject)PrefabUtility.InstantiatePrefab(bossModel);
+                body.name = "Boss";
+                body.transform.SetParent(root.transform, false);
 
-                GameObject uprooted = (GameObject)PrefabUtility.InstantiatePrefab(uprootedModel);
-                uprooted.name = "Uprooted";
-                uprooted.transform.SetParent(root.transform, false);
-                uprooted.SetActive(false);
-
-                ChaseMonster monster = root.AddComponent<ChaseMonster>();
-
-                using (SerializedObject serialized = new SerializedObject(monster))
-                {
-                    serialized.FindProperty("m_rootedBody").objectReferenceValue = rooted;
-                    serialized.FindProperty("m_uprootedBody").objectReferenceValue = uprooted;
-                    serialized.ApplyModifiedPropertiesWithoutUndo();
-                }
+                root.AddComponent<ChaseMonster>();
+                WireMonster(root, config, controller);
 
                 return PrefabUtility.SaveAsPrefabAsset(root, k_MonsterPrefabPath);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        /// <summary>Points a ChaseMonster at its config and its animator, on a prefab or an instance.</summary>
+        private static void WireMonster(
+            GameObject monsterRoot, EnemyConfigSO config, RuntimeAnimatorController controller)
+        {
+            ChaseMonster monster = EnsureComponent<ChaseMonster>(monsterRoot);
+            Animator animator = monsterRoot.GetComponentInChildren<Animator>(true);
+
+            if (animator != null)
+            {
+                animator.runtimeAnimatorController = controller;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            }
+
+            using (SerializedObject serialized = new SerializedObject(monster))
+            {
+                serialized.FindProperty("m_config").objectReferenceValue = config;
+                serialized.FindProperty("m_animator").objectReferenceValue = animator;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            EditorUtility.SetDirty(monsterRoot);
+        }
+
+        /// <summary>Creates the folders an asset path needs, so CreateAsset does not fail on them.</summary>
+        private static void EnsureFolder(string assetPath)
+        {
+            string folder = System.IO.Path.GetDirectoryName(assetPath).Replace('\\', '/');
+
+            if (AssetDatabase.IsValidFolder(folder))
+            {
+                return;
+            }
+
+            string[] parts = folder.Split('/');
+            string built = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = built + "/" + parts[i];
+
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(built, parts[i]);
+                }
+
+                built = next;
             }
         }
 
