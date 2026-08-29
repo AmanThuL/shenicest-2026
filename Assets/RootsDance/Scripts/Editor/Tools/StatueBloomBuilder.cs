@@ -36,9 +36,6 @@ namespace RootsDance.EditorTools
         private const string k_Material = "Assets/RootsDance/Materials/Environment/StatueBloom.mat";
         private const string k_Prefab = "Assets/RootsDance/Prefabs/Environment/StatueBloom.prefab";
 
-        /// <summary>The merged object build_bloom_patch.py writes. Found by name, not by index.</summary>
-        private const string k_MeshName = "BloomPatches";
-
         /// <summary>The statue's root in the scene. The clumps go under it, so it carries them.</summary>
         private const string k_StatueRoot = "Statue";
 
@@ -103,22 +100,37 @@ namespace RootsDance.EditorTools
 
         private static GameObject EnsurePrefab(Material material)
         {
-            Mesh mesh = LoadMesh();
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_Fbx);
 
-            if (mesh == null)
+            if (source == null)
             {
+                Debug.LogError($"{k_LogPrefix}: {k_Fbx} not found.");
                 return null;
             }
 
             EnsureFolder(Path.GetDirectoryName(k_Prefab));
 
-            GameObject root = new GameObject(k_InstanceName);
+            // Instantiate the imported model rather than hanging its mesh on a fresh GameObject.
+            // The importer leaves the Blender-to-Unity axis conversion on this FBX's root as a 90°
+            // rotation about X instead of baking it into the vertices, and the mesh's local origin
+            // is tens of metres from the statue — so dropping that rotation does not merely tip the
+            // clumps over, it throws them ~93 m away. Taking the model's own root keeps whatever
+            // transform the importer decided on, for this export and for every future one.
+            GameObject root = (GameObject)PrefabUtility.InstantiatePrefab(source);
+            PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+            root.name = k_InstanceName;
 
             try
             {
-                root.AddComponent<MeshFilter>().sharedMesh = mesh;
+                MeshRenderer renderer = root.GetComponentInChildren<MeshRenderer>();
 
-                MeshRenderer renderer = root.AddComponent<MeshRenderer>();
+                if (renderer == null)
+                {
+                    Debug.LogError($"{k_LogPrefix}: no MeshRenderer in {k_Fbx}.");
+                    return null;
+                }
+
                 renderer.sharedMaterial = material;
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
@@ -139,23 +151,6 @@ namespace RootsDance.EditorTools
             {
                 Object.DestroyImmediate(root);
             }
-        }
-
-        private static Mesh LoadMesh()
-        {
-            Object[] all = AssetDatabase.LoadAllAssetsAtPath(k_Fbx);
-
-            for (int i = 0; i < all.Length; i++)
-            {
-                if (all[i] is Mesh mesh && mesh.name == k_MeshName)
-                {
-                    return mesh;
-                }
-            }
-
-            Debug.LogError($"{k_LogPrefix}: no mesh named '{k_MeshName}' in {k_Fbx}.");
-
-            return null;
         }
 
         private static void PlaceInScene(GameObject prefab)
@@ -197,8 +192,21 @@ namespace RootsDance.EditorTools
 
             if (existing != null)
             {
-                Debug.Log($"{k_LogPrefix}: '{k_InstanceName}' is already under '{k_StatueRoot}'; "
-                    + "left as it is.");
+                // Re-running must not stack a second copy. It must, however, repair a pose left by
+                // an earlier build: an instance placed at identity is the 93 m bug, and telling
+                // somebody it is "already there" while it sits in the sky is worse than useless.
+                if (PoseMatches(existing, prefab.transform))
+                {
+                    Debug.Log($"{k_LogPrefix}: '{k_InstanceName}' is already under "
+                        + $"'{k_StatueRoot}'; left as it is.");
+                    return;
+                }
+
+                ApplyPrefabPose(existing, prefab.transform);
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+                Debug.Log($"{k_LogPrefix}: corrected the pose of '{k_InstanceName}' to the "
+                    + "prefab's own.");
                 return;
             }
 
@@ -206,15 +214,33 @@ namespace RootsDance.EditorTools
             instance.name = k_InstanceName;
 
             // The mesh carries the statue's own world coordinates, exported in place from the same
-            // blend the statue came from. Anything but identity here moves the growth off the robe.
+            // blend the statue came from, so the clumps land on the robe as long as the prefab's
+            // own transform is left alone. Forcing identity here is exactly what put them 93 m off
+            // the statue: it discards the axis conversion the importer parked on the model's root.
             instance.transform.SetParent(statue.transform, false);
-            instance.transform.localPosition = Vector3.zero;
-            instance.transform.localRotation = Quaternion.identity;
-            instance.transform.localScale = Vector3.one;
+            ApplyPrefabPose(instance.transform, prefab.transform);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log($"{k_LogPrefix}: placed '{k_InstanceName}' under '{k_StatueRoot}'.");
+        }
+
+        /// <summary>
+        /// Give <paramref name="target"/> the pose the prefab itself carries. That pose is not
+        /// identity: it holds the axis conversion the model importer left on the FBX root.
+        /// </summary>
+        private static void ApplyPrefabPose(Transform target, Transform prefabRoot)
+        {
+            target.localPosition = prefabRoot.localPosition;
+            target.localRotation = prefabRoot.localRotation;
+            target.localScale = prefabRoot.localScale;
+        }
+
+        private static bool PoseMatches(Transform target, Transform prefabRoot)
+        {
+            return target.localPosition == prefabRoot.localPosition
+                && Quaternion.Angle(target.localRotation, prefabRoot.localRotation) < 0.01f
+                && target.localScale == prefabRoot.localScale;
         }
 
         private static void EnsureFolder(string folder)
