@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-007_StaffPhotograph
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-007
+  m_title: "\u7814\u7A76\u4EBA\u5458\u5408\u7167"
+  m_choices:
+  - m_chinese: "\u4F60\u4E0D\u662F\u4E00\u76F4\u5728\u8FD9\u91CC\u5417\uFF1F"
+    m_english: 
+    m_response:
+    - m_speaker: 1
+      m_chinese: "\u5BF9\u5440\uFF01\u6211\u53EF\u662F\u4E00\u76F4\u966A\u7740\u5979\u5462\uFF01\u6211\u73B0\u5728\u8FD8\u5728\u8FD9\u91CC\u7B49\u5979\uFF01"
+      m_english: 
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: 1dc61831abdb14224babcdcf1fb6edea, type: 3}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: 
+    m_voice: {fileID: 8300000, guid: 7004cfc2d96464465a586d150ea9b710, type: 3}
+  - m_chinese: "\u90A3\u5979\u53BB\u54EA\u4E86\uFF1F"
+    m_english: 
+    m_response:
+    - m_speaker: 1
+      m_chinese: "\u2026\u2026\u55EF\u3002\u6211\u5FD8\u8BB0\u4E86\u3002"
+      m_english: 
+      m_holdSeconds: 0
+      m_voice: {fileID: 8300000, guid: 5fd97f612a40841459235c4fd354590c, type: 3}
+    m_follow: {fileID: 0}
+    m_flagOnChosen: 
+    m_voice: {fileID: 8300000, guid: d69d0646e61ba4ad295c1a5229abc2fa, type: 3}
+  m_choicesRepeat: 1
+  m_requiredFlag: 
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 0
+    m_chinese: "\u6CA1\u6709\u5979\u3002\u81F3\u5C11\uFF0C\u6CA1\u6709\u4E00\u4E2A\u770B\u8D77\u6765\u50CF\u5979\u7684\u4EBA\u3002"
+    m_english: 
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 2a493334ed076434586d074ff578e9f2, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u8FD9\u4E9B\u4EBA\u6211\u4E00\u4E2A\u90FD\u6CA1\u89C1\u8FC7\u3002\u4E0D\u77E5\u9053\u662F\u8C01\u3002"
+    m_english: 
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 59ebd9381d848462884b0f2c8d2f7dd9, type: 3}
+  m_flagOnComplete: flow.saw_staff_photograph

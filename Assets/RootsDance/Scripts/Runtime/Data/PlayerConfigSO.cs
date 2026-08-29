@@ -31,6 +31,13 @@ namespace RootsDance.Data
         private float m_gravity = -19.6f;
 
         [SerializeField, TitleGroup("Gravity")]
+        [Tooltip("Fastest the player can fall, in metres per second. This is what keeps the "
+            + "greenhouse drop readable: gravity sets how fast a fall starts, this caps where it "
+            + "ends. A human's real terminal velocity is far higher, but past about 12 m/s a "
+            + "first-person fall reads as a cut, not a fall.")]
+        private float m_maxFallSpeed = 11f;
+
+        [SerializeField, TitleGroup("Gravity")]
         [Tooltip("Downward velocity kept while grounded so the controller stays glued to slopes.")]
         private float m_groundedStickVelocity = -2f;
 
@@ -66,6 +73,7 @@ namespace RootsDance.Data
         public float Acceleration => m_acceleration;
         public float Deceleration => m_deceleration;
         public float Gravity => m_gravity;
+        public float MaxFallSpeed => m_maxFallSpeed;
         public float GroundedStickVelocity => m_groundedStickVelocity;
         public float GroundCheckRadiusScale => m_groundCheckRadiusScale;
         public float GroundCheckDistance => m_groundCheckDistance;

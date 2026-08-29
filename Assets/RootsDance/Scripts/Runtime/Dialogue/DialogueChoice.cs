@@ -35,10 +35,18 @@ namespace RootsDance.Dialogue
         [Tooltip("World flag raised when this option is taken. Empty raises nothing.")]
         private string m_flagOnChosen;
 
+        [SerializeField]
+        [Tooltip("The player saying this option aloud. Optional: plays after the pick, before the "
+            + "reply — the question is heard, then answered.")]
+        private AudioClip m_voice;
+
         public string Chinese => m_chinese;
         public string English => m_english;
         public DialogueLine[] Response => m_response;
         public DialogueSO Follow => m_follow;
         public string FlagOnChosen => m_flagOnChosen;
+
+        /// <summary>The spoken option, or null for a silent pick.</summary>
+        public AudioClip Voice => m_voice;
     }
 }

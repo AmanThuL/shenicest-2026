@@ -11,5 +11,9 @@ namespace RootsDance.App
             "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity";
         public const string k_GreenhouseInteriorGameplay =
             "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity";
+        public const string k_ChapterHouseInteriorEnvironment =
+            "Assets/RootsDance/Scenes/Levels/ChapterHouseInterior/ChapterHouseInterior_Environment.unity";
+        public const string k_ChapterHouseInteriorGameplay =
+            "Assets/RootsDance/Scenes/Levels/ChapterHouseInterior/ChapterHouseInterior_Gameplay.unity";
     }
 }
