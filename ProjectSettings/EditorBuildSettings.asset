@@ -44,6 +44,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/RootsDance/Scenes/Levels/Main/Main_DevGround.unity
     guid: bf8d0492b59664fff9f4754c046dd261
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/ChapterHouseInterior/ChapterHouseInterior_Environment.unity
+    guid: 341f1659d405b4e199dfd9bc0880bbd5
+  - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/ChapterHouseInterior/ChapterHouseInterior_Gameplay.unity
+    guid: 39bcd322a242c43bf8d690c9229746ed
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

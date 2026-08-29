@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8965567991180232105}
   - component: {fileID: 5973336839871167534}
+  - component: {fileID: 2390710219589854958}
   m_Layer: 0
   m_Name: tree05_winter
   m_TagString: Untagged
@@ -56,6 +57,26 @@ CapsuleCollider:
   m_Height: 4.1946635
   m_Direction: 1
   m_Center: {x: 0, y: 2.0973318, z: 0}
+--- !u!205 &2390710219589854958
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 623798767640828398}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.0000019073486, y: 1.9026682, z: 0}
+  m_Size: 4.1946635
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.020181585
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 6018832254809105781}
+    - renderer: {fileID: 8322304381842392992}
+  m_Enabled: 1
 --- !u!1001 &4919801793521514993
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105,6 +126,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: ea2bc6f2d514648fd85619752a4161ff, type: 2}
@@ -115,6 +140,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 3979042523313700433, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3979042523313700433, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -132,5 +161,15 @@ PrefabInstance:
 --- !u!4 &4885311406650465818 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
+  m_PrefabInstance: {fileID: 4919801793521514993}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6018832254809105781 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
+  m_PrefabInstance: {fileID: 4919801793521514993}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &8322304381842392992 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3979042523313700433, guid: 1c759ab70495946e597f3b9c654836ed, type: 3}
   m_PrefabInstance: {fileID: 4919801793521514993}
   m_PrefabAsset: {fileID: 0}

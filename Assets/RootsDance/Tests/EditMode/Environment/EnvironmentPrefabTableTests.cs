@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using RootsDance.Editor.Environment;
+using UnityEditor;
 using UnityEngine;
 
 namespace RootsDance.Tests.EditMode.Environment
@@ -25,6 +26,11 @@ namespace RootsDance.Tests.EditMode.Environment
             "tree01_summer", "tree02_summer", "tree03_summer", "tree04_summer", "tree05_summer",
             "tree06_summer", "tree07_summer", "tree08_summer", "M3D_alder_1", "M3D_alder_2",
             "M3D_alder_3", "M3D_birch-tree-1", "M3D_birch-tree-2", "M3D_birch-tree-3", "M3D_pine",
+        };
+
+        private static readonly string[] k_RootHeroKeys =
+        {
+            "pine_roots", "root_cluster_01", "root_cluster_02",
         };
 
         [Test]
@@ -72,6 +78,9 @@ namespace RootsDance.Tests.EditMode.Environment
             {
                 Assert.IsTrue(byKey.ContainsKey(key), key + " is missing");
                 Assert.AreEqual(ColliderKind.None, byKey[key].Collider, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.Default, byKey[key].RenderClass, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.Tree, byKey[key].RenderClass, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.RootRock, byKey[key].RenderClass, key);
             }
         }
 
@@ -84,6 +93,54 @@ namespace RootsDance.Tests.EditMode.Environment
             {
                 Assert.IsTrue(byKey.ContainsKey(key), key + " is missing");
                 Assert.AreEqual(ColliderKind.TrunkCapsule, byKey[key].Collider, key);
+                Assert.AreEqual(EnvironmentRenderClass.Tree, byKey[key].RenderClass, key);
+            }
+        }
+
+        [Test]
+        public void RockCategory_UsesRootRockRenderBudget()
+        {
+            foreach (PrefabEntry entry in EnvironmentPrefabTable.Entries)
+            {
+                if (entry.Category == EnvironmentPrefabTable.k_Rocks)
+                {
+                    Assert.AreEqual(EnvironmentRenderClass.RootRock, entry.RenderClass, entry.Key);
+                }
+            }
+        }
+
+        [Test]
+        public void RootHeroes_DeclareValidThreeLevelLods()
+        {
+            Dictionary<string, PrefabEntry> byKey = ByKey();
+
+            foreach (string key in k_RootHeroKeys)
+            {
+                PrefabEntry entry = byKey[key];
+                Assert.AreEqual(2, entry.LodModelPaths.Length, key);
+                Assert.AreEqual(3, entry.LodTransitionHeights.Length, key);
+                Assert.Greater(entry.LodTransitionHeights[0], entry.LodTransitionHeights[1], key);
+                Assert.Greater(entry.LodTransitionHeights[1], entry.LodTransitionHeights[2], key);
+
+                foreach (string path in entry.LodModelPaths)
+                {
+                    Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<GameObject>(path), path);
+                }
+            }
+        }
+
+        [Test]
+        public void RootHeroLodMeshes_StayInsideTriangleBudgets()
+        {
+            Dictionary<string, PrefabEntry> byKey = ByKey();
+
+            foreach (string key in k_RootHeroKeys)
+            {
+                PrefabEntry entry = byKey[key];
+                int lod1Triangles = TriangleCount(entry.LodModelPaths[0]);
+                int lod2Triangles = TriangleCount(entry.LodModelPaths[1]);
+                Assert.That(lod1Triangles, Is.InRange(20000, 31000), key + " LOD1");
+                Assert.That(lod2Triangles, Is.InRange(3000, 8000), key + " LOD2");
             }
         }
 
@@ -97,6 +154,26 @@ namespace RootsDance.Tests.EditMode.Environment
             }
 
             return result;
+        }
+
+        private static int TriangleCount(string path)
+        {
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.IsNotNull(model, path);
+            int triangles = 0;
+
+            foreach (MeshFilter filter in model.GetComponentsInChildren<MeshFilter>(true))
+            {
+                Mesh mesh = filter.sharedMesh;
+                Assert.IsNotNull(mesh, filter.name);
+
+                for (int subMesh = 0; subMesh < mesh.subMeshCount; subMesh++)
+                {
+                    triangles += (int)mesh.GetIndexCount(subMesh) / 3;
+                }
+            }
+
+            return triangles;
         }
     }
 }

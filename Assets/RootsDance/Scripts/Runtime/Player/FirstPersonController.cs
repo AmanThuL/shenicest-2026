@@ -23,6 +23,9 @@ namespace RootsDance.Player
         /// <summary>Metres per second on the ground plane; drives head bob and footstep cadence.</summary>
         public float HorizontalSpeed => m_horizontalVelocity.magnitude;
 
+        /// <summary>Metres per second along Y, negative while falling; drives the free-fall camera.</summary>
+        public float VerticalVelocity => m_verticalVelocity;
+
         private void Awake()
         {
             m_controller = GetComponent<CharacterController>();
@@ -84,6 +87,10 @@ namespace RootsDance.Player
             }
 
             m_verticalVelocity += m_config.Gravity * deltaTime;
+
+            // Terminal velocity. Without a cap a long drop keeps accelerating and reads as being
+            // thrown at the floor; a real body stops accelerating once drag balances gravity.
+            m_verticalVelocity = Mathf.Max(m_verticalVelocity, -m_config.MaxFallSpeed);
         }
     }
 }

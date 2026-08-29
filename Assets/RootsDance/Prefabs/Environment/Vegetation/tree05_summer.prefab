@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4078395730782208576}
   - component: {fileID: 7585104432271514287}
+  - component: {fileID: 7634980616850171879}
   m_Layer: 0
   m_Name: tree05_summer
   m_TagString: Untagged
@@ -56,6 +57,26 @@ CapsuleCollider:
   m_Height: 4.1946635
   m_Direction: 1
   m_Center: {x: 0, y: 2.0973318, z: 0}
+--- !u!205 &7634980616850171879
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4870363920426394728}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.0000019073486, y: 1.9026682, z: 0}
+  m_Size: 4.1946635
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.020181585
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 8830267065682131218}
+    - renderer: {fileID: 6517441668096695239}
+  m_Enabled: 1
 --- !u!1001 &7875384788624008598
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105,6 +126,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 8bc68713294154efbab135b0d85f7d93, type: 2}
@@ -115,6 +140,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 3979042523313700433, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3979042523313700433, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -129,8 +158,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
+--- !u!23 &6517441668096695239 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3979042523313700433, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
+  m_PrefabInstance: {fileID: 7875384788624008598}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7692224855119200893 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
+  m_PrefabInstance: {fileID: 7875384788624008598}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &8830267065682131218 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: abccac949a77b485bb2897f6f893aea9, type: 3}
   m_PrefabInstance: {fileID: 7875384788624008598}
   m_PrefabAsset: {fileID: 0}

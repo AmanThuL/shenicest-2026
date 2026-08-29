@@ -9,8 +9,8 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Adds the textured automatic exit door and restores the pre-dressing roof vegetation
-    /// without rebuilding the rest of the Briggs interior or touching PWB props.
+    /// Adds the textured automatic exit door, fits the Garage ceiling meshes to the laboratory,
+    /// and restores the pre-dressing roof vegetation without touching PWB props.
     /// </summary>
     public static class BriggsInteriorExitDoorBuilder
     {
@@ -27,11 +27,14 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Materials/Environment/Garage/GarageIvy.mat";
         private const string k_TrimMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageTrim.mat";
+        private const string k_CeilingMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat";
         private const string k_GarageShellPath =
             "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx";
         private const string k_DoorName = "BriggsAutomaticExitDoor";
         private const string k_VinesName = "CeilingHoleVines";
         private const string k_EntranceDoorName = "BriggsClosedEntranceDoor";
+        private const string k_CeilingAssemblyName = "BriggsCeilingAssembly";
 
         [MenuItem("RootsDance/Environment/Apply Briggs Exit Door")]
         public static void ApplyFromMenu()
@@ -39,7 +42,7 @@ namespace RootsDance.Editor.Environment
             ApplyToLoadedScenes();
         }
 
-        /// <summary>Restores the 64792d1 wall and both door scenes without touching PWB dressing.</summary>
+        /// <summary>Restores the wall, room-scale ceiling and both door scenes without touching PWB dressing.</summary>
         public static void ApplyFromCommandLine()
         {
             EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
@@ -52,7 +55,7 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        /// <summary>One-shot entry point for restoring the 64792d1 ceiling and hanging vegetation.</summary>
+        /// <summary>One-shot entry point for fitting the ceiling and restoring hanging vegetation.</summary>
         public static void RestorePreDressingCeilingVegetationFromCommandLine()
         {
             Scene environment = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
@@ -62,7 +65,7 @@ namespace RootsDance.Editor.Environment
             EditorSceneManager.MarkSceneDirty(environment);
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorExitDoor] Restored the 64792d1 IvyHanging and CeilingHoleVines state.");
+            Debug.Log("[BriggsInteriorExitDoor] Fitted the room-scale ceiling and restored hanging vegetation.");
 
             if (Application.isBatchMode)
             {
@@ -94,7 +97,7 @@ namespace RootsDance.Editor.Environment
             EditorSceneManager.SaveScene(gameplay);
             AssetDatabase.SaveAssets();
             Debug.Log("[BriggsInteriorExitDoor] Applied textured round-exit wall and automatic door; "
-                + "restored the pre-dressing ceiling and hanging vegetation.");
+                + "fitted the room-scale ceiling and restored hanging vegetation.");
         }
 
         public static GameObject EnsureDoorPrefab(Material wallMaterial)
@@ -162,7 +165,7 @@ namespace RootsDance.Editor.Environment
             Transform propsRoot,
             Material ivyMaterial)
         {
-            Restore647CeilingPlacement(environment);
+            RestoreRoomScaleCeiling(environment);
 
             GameObject ivy = environment.GetRootGameObjects()
                 .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
@@ -211,50 +214,96 @@ namespace RootsDance.Editor.Environment
             vines.localPosition = Vector3.zero;
         }
 
-        private static void Restore647CeilingPlacement(Scene environment)
+        private static void RestoreRoomScaleCeiling(Scene environment)
         {
+            Transform geometry = FindRoot(environment, "_Geometry");
             Transform shell = FindGameObject(environment, "GarageShell").transform;
-            shell.SetLocalPositionAndRotation(
-                new Vector3(0f, 0.0000011920929f, 0f),
-                new Quaternion(0f, 1f, 0f, -0.00000004371139f));
-            shell.localScale = new Vector3(2.8658316f, 2.003904f, 3.563683f);
+            Transform existingAssembly = geometry.Find(k_CeilingAssemblyName);
 
-            SetHistoricalRoofPart(
-                shell,
-                "Ceiling",
-                new Vector3(-0.000000000000001f, 2.28f, 0.201f),
-                new Vector3(183.52277f, 322.36707f, 322.36707f));
-            SetHistoricalRoofPart(
-                shell,
-                "Ceiling_Beam",
-                new Vector3(2.2463758f, 2.2016478f, 0f),
-                new Vector3(10.94717f, 181.54106f, 10.94717f));
-            SetHistoricalRoofPart(
-                shell,
-                "Ceiling_Beam_Broken",
-                new Vector3(-0.443f, 2.412f, -0.073f),
-                new Vector3(10.94717f, 181.54106f, 10.94717f));
-        }
-
-        private static void SetHistoricalRoofPart(
-            Transform shell,
-            string name,
-            Vector3 position,
-            Vector3 scale)
-        {
-            Transform part = shell.Find(name);
-
-            if (part == null)
+            if (existingAssembly != null)
             {
-                throw new System.InvalidOperationException(
-                    $"The 64792d1 GarageShell roof part '{name}' is missing.");
+                Object.DestroyImmediate(existingAssembly.gameObject);
             }
 
-            part.gameObject.SetActive(true);
-            part.SetLocalPositionAndRotation(
-                position,
-                new Quaternion(0.7071069f, 0f, 0f, 0.7071067f));
-            part.localScale = scale;
+            string[] roofPartNames = { "Ceiling", "Ceiling_Beam", "Ceiling_Beam_Broken" };
+
+            foreach (string roofPartName in roofPartNames)
+            {
+                Transform legacyPart = shell.Find(roofPartName);
+
+                if (legacyPart != null)
+                {
+                    Object.DestroyImmediate(legacyPart.gameObject);
+                }
+            }
+
+            GameObject source = LoadRequiredAsset<GameObject>(k_GarageShellPath);
+            Material ceilingMaterial = LoadRequiredAsset<Material>(k_CeilingMaterialPath);
+            Transform assembly = new GameObject(k_CeilingAssemblyName).transform;
+            assembly.SetParent(geometry, false);
+
+            CreateFittedRoofPart(
+                source,
+                assembly,
+                "Ceiling",
+                new Vector3(0f, 5f, 0f),
+                new Vector3(18.8f, 0.26f, 14.8f),
+                ceilingMaterial);
+            CreateFittedRoofPart(
+                source,
+                assembly,
+                "Ceiling_Beam",
+                new Vector3(-6.45f, 4.82f, 0f),
+                new Vector3(0.34f, 0.30f, 14.6f),
+                ceilingMaterial);
+            CreateFittedRoofPart(
+                source,
+                assembly,
+                "Ceiling_Beam_Broken",
+                new Vector3(1.27f, 4.82f, 0.26f),
+                new Vector3(0.42f, 0.34f, 14.6f),
+                ceilingMaterial);
+
+            SetStatic(assembly.gameObject);
+        }
+
+        private static void CreateFittedRoofPart(
+            GameObject source,
+            Transform parent,
+            string name,
+            Vector3 targetCenter,
+            Vector3 targetSize,
+            Material material)
+        {
+            MeshFilter sourceFilter = source.GetComponentsInChildren<MeshFilter>(true)
+                .FirstOrDefault(filter => filter.name == name);
+
+            if (sourceFilter == null || sourceFilter.sharedMesh == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"The GarageShell roof mesh '{name}' is missing.");
+            }
+
+            GameObject part = new GameObject(name);
+            part.transform.SetParent(parent, false);
+            MeshFilter filter = part.AddComponent<MeshFilter>();
+            filter.sharedMesh = sourceFilter.sharedMesh;
+            MeshRenderer renderer = part.AddComponent<MeshRenderer>();
+            renderer.sharedMaterials = Enumerable.Repeat(
+                material,
+                Mathf.Max(1, sourceFilter.sharedMesh.subMeshCount)).ToArray();
+
+            Bounds meshBounds = sourceFilter.sharedMesh.bounds;
+            Quaternion rotation = Quaternion.Euler(90f, 0f, 0f);
+            Vector3 scale = new Vector3(
+                targetSize.x / Mathf.Max(0.0001f, meshBounds.size.x),
+                targetSize.z / Mathf.Max(0.0001f, meshBounds.size.y),
+                targetSize.y / Mathf.Max(0.0001f, meshBounds.size.z));
+            part.transform.localRotation = rotation;
+            part.transform.localScale = scale;
+            part.transform.localPosition = targetCenter
+                - rotation * Vector3.Scale(meshBounds.center, scale);
+            part.isStatic = true;
         }
 
         private static void CreateVine(

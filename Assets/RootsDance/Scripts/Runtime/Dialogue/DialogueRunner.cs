@@ -259,6 +259,24 @@ namespace RootsDance.Dialogue
             }
         }
 
+        /// <summary>
+        /// The player saying the option they picked, heard before the answer comes back. The choice
+        /// list is already gone from the view, so nothing is on screen during it — the beat where
+        /// the question hangs in the air is the point. Silent options cost nothing.
+        /// </summary>
+        private async Awaitable PickedLineAsync(DialogueChoice chosen, CancellationToken cancellationToken)
+        {
+            AudioClip voice = chosen.Voice;
+
+            if (voice == null || m_voiceCue == null || m_audioChannel == null)
+            {
+                return;
+            }
+
+            m_audioChannel.RaiseEvent(AudioCueRequest.Voice(m_voiceCue, voice));
+            await HoldAsync(voice.length + DialogueTiming.k_VoiceTailSeconds, false, cancellationToken);
+        }
+
         private async Awaitable ChoicesAsync(DialogueSO conversation, CancellationToken cancellationToken)
         {
             DialogueChoice[] choices = conversation.Choices;
@@ -307,6 +325,7 @@ namespace RootsDance.Dialogue
                     WorldAccess.Enqueue(new RaiseFlagCommand(chosen.FlagOnChosen), this);
                 }
 
+                await PickedLineAsync(chosen, cancellationToken);
                 await LinesAsync(chosen.Response, cancellationToken);
 
                 if (chosen.Follow != null)

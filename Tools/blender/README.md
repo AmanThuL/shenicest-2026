@@ -11,6 +11,7 @@ checklist. This file only says how to run the code.
 
 ```
 export_fbx.py              the exporter; knows no asset names
+generate_static_lod.py     deterministic FBX decimation for static-mesh LODs
 validate_wrist.py          per-frame joint-rotation validator; knows no asset names
 profiles/fps_arms.json     skinned + animated: bake every frame, no decimation
 profiles/static_prop.json  static prop: no animation baked
@@ -97,3 +98,20 @@ limits, so a regression means someone removed or muted the constraints.
   breaks the asset naming rule in guidelines/02. Rename such Actions in Blender before delivery.
 * The source `.blend` is opened read-only; the exporter never writes back to it.
 * Requires Blender 4.5.3 LTS. No third-party Python packages.
+
+## Generate a static-mesh LOD
+
+`generate_static_lod.py` imports an FBX, applies the same proportional Decimate ratio to every mesh,
+triangulates the result and exports only the mesh objects. Object and material names remain intact so
+Unity-side material remapping continues to work.
+
+```bash
+blender --background --factory-startup --python Tools/blender/generate_static_lod.py -- \
+  --project-root . \
+  --source Assets/ThirdParty/Environment/PolyHaven/Models/root_cluster_01/root_cluster_01_1k.fbx \
+  --output Assets/RootsDance/Meshes/Environment/Roots/RootCluster01_LOD1.fbx \
+  --target-triangles 25000
+```
+
+The script fails when the result differs from the target by more than 10%. Inspect silhouette, UVs,
+normals and thin disconnected pieces in Blender or Unity before accepting an automatically generated LOD.

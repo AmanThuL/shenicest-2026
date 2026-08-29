@@ -351,11 +351,11 @@ Material:
     - _MotionBaseDelayValue: 0
     - _MotionBaseIntensityValue: 0
     - _MotionBaseMaskMode: 4
-    - _MotionBaseNoiseValue: 0.82
-    - _MotionBasePhaseValue: 0.8866811
+    - _MotionBaseNoiseValue: 0.5
+    - _MotionBasePhaseValue: 0
     - _MotionBasePivotValue: 0.8
     - _MotionBasePushValue: 0
-    - _MotionBaseSpeedValue: 0.6505371
+    - _MotionBaseSpeedValue: 5
     - _MotionBaseTillingValue: 5
     - _MotionCategory: 0
     - _MotionDistValue: 100
@@ -368,16 +368,16 @@ Material:
     - _MotionSmallDelayValue: 0
     - _MotionSmallIntensityValue: 0
     - _MotionSmallMaskMode: 4
-    - _MotionSmallNoiseValue: 0.88
-    - _MotionSmallPhaseValue: 0.7868651
+    - _MotionSmallNoiseValue: 0.5
+    - _MotionSmallPhaseValue: 0
     - _MotionSmallPivotValue: 0.2
-    - _MotionSmallPushValue: 0.35
-    - _MotionSmallSpeedValue: 1.064746
+    - _MotionSmallPushValue: 9.588676
+    - _MotionSmallSpeedValue: 5
     - _MotionSmallTillingValue: 5
     - _MotionTinyIntensityValue: 0
     - _MotionTinyMaskMode: 4
     - _MotionTinyNoiseValue: 1
-    - _MotionTinySpeedValue: 1.7320086
+    - _MotionTinySpeedValue: 10
     - _MotionTinyTillingValue: 50
     - _ObjectCategory: 1
     - _ObjectCoordMode: 0

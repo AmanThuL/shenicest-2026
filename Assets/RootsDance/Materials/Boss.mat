@@ -88,7 +88,7 @@ Material:
     - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BulgeAmp: 0.0158
+    - _BulgeAmp: 0.0316
     - _BulgeFreq: 0.53
     - _BumpScale: 1
     - _ClearCoatMask: 0

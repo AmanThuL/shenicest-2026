@@ -67,6 +67,14 @@ namespace RootsDance.Core
         /// <summary>Outer Boundary was started — the ecology's actual state (02-12).</summary>
         public const string k_CirculationOuter = "flow.circulation_outer";
 
+        // ---- The chase: the wrong cycle wakes the boss --------------------------------------------
+
+        /// <summary>The wrong circulation choice woke the boss in the greenhouse; the run is on.</summary>
+        public const string k_ChaseStarted = "flow.chase_started";
+
+        /// <summary>The car came back into view at the end of the run; the chase stands down.</summary>
+        public const string k_ChaseEscaped = "flow.chase_escaped";
+
         /// <summary>The player confirmed that the research facility's main entrance is blocked (node 00-09).</summary>
         public const string k_MainEntranceBlocked = "flow.main_entrance_blocked";
 

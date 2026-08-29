@@ -80,6 +80,34 @@ namespace RootsDance.Tests.EditMode.Environment
             }
         }
 
+        [Test]
+        public void ProceduralPools_ExcludePhotogrammetryRootHeroes()
+        {
+            string[] heroKeys = { "pine_roots", "root_cluster_01", "root_cluster_02" };
+            OpeningPropsParams p = Params();
+
+            foreach (ScatterPatch patch in p.Patches)
+            {
+                foreach (string heroKey in heroKeys)
+                {
+                    CollectionAssert.DoesNotContain(patch.Prefabs, heroKey, patch.Name);
+                }
+            }
+
+            foreach (FenceRun run in p.Fences)
+            {
+                if (run.GapFillers == null)
+                {
+                    continue;
+                }
+
+                foreach (string heroKey in heroKeys)
+                {
+                    CollectionAssert.DoesNotContain(run.GapFillers, heroKey, run.Name);
+                }
+            }
+        }
+
         private static void AssertPrefabExists(string key)
         {
             string path = EnvironmentPrefabBuilder.PrefabPath(key);

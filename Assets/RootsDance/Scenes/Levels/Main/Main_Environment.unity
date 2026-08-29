@@ -836,11 +836,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_006
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -896,11 +896,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -1556,19 +1556,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_011
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -2134,7 +2134,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4554799998368843483, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4646229990442737493, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
@@ -2142,15 +2142,15 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-1_003
       objectReference: {fileID: 0}
     - target: {fileID: 4814220552889774295, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5573652001576767933, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 6475025623543428430, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -2312,19 +2312,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_008
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -4075,11 +4075,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_001
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -4135,11 +4135,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -6105,19 +6105,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_015
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -7499,11 +7499,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_001
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -7559,11 +7559,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -9315,7 +9315,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -9323,15 +9323,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_002
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -9357,19 +9357,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_016
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -10483,7 +10483,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -10491,15 +10491,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_006
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -11713,11 +11713,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_005
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -11773,11 +11773,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -12021,7 +12021,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -12077,7 +12077,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -12085,11 +12085,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_008
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -12959,7 +12959,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -13015,7 +13015,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -13023,11 +13023,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_006
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -13101,7 +13101,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -13109,15 +13109,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_005
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -14959,11 +14959,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_010
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -15019,11 +15019,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -15197,11 +15197,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_002
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -15257,11 +15257,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -17785,7 +17785,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -17793,15 +17793,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_003
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -18156,7 +18156,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4554799998368843483, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4646229990442737493, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
@@ -18164,15 +18164,15 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-1_001
       objectReference: {fileID: 0}
     - target: {fileID: 4814220552889774295, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5573652001576767933, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 6475025623543428430, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -19274,19 +19274,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_006
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -21039,19 +21039,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_004
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -21129,11 +21129,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_004
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -21189,11 +21189,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -21725,11 +21725,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_005
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -21785,11 +21785,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -22157,7 +22157,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -22213,7 +22213,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -22221,11 +22221,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_002
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -23223,19 +23223,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_001
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -24091,11 +24091,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_013
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -24151,11 +24151,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -24477,19 +24477,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_000
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -25353,7 +25353,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -25409,7 +25409,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -25417,11 +25417,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_005
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -27516,11 +27516,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -27580,11 +27580,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_000
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -28141,7 +28141,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -28197,7 +28197,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -28205,11 +28205,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_003
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -29271,11 +29271,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_007
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -29331,11 +29331,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -29485,11 +29485,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_002
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -29545,11 +29545,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -30291,11 +30291,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -30355,11 +30355,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_004
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -30459,19 +30459,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_013
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -30671,7 +30671,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -30679,15 +30679,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_010
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -34342,19 +34342,19 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 121464361380341473, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 1144685252393617564, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 3006864651919645121, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 5403762708762614603, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 7760561443872685198, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
@@ -34507,11 +34507,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_000
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -34567,11 +34567,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -34719,7 +34719,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4554799998368843483, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4646229990442737493, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
@@ -34727,15 +34727,15 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-1_002
       objectReference: {fileID: 0}
     - target: {fileID: 4814220552889774295, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5573652001576767933, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 6475025623543428430, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -37005,11 +37005,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -37069,11 +37069,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_001
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -37235,11 +37235,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_011
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -37295,11 +37295,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -37395,7 +37395,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -37451,7 +37451,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -37459,11 +37459,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_007
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -38687,19 +38687,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_010
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -40903,19 +40903,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_007
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -42274,7 +42274,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -42282,15 +42282,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_007
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -44558,7 +44558,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -44614,7 +44614,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -44622,11 +44622,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_010
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -44924,11 +44924,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_008
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -44984,11 +44984,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -46002,11 +46002,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_006
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -46062,11 +46062,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -46442,19 +46442,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_005
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -46952,11 +46952,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_012
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -47012,11 +47012,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -47396,11 +47396,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -47460,11 +47460,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_005
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -48258,7 +48258,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -48266,15 +48266,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_001
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -49448,19 +49448,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_017
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -49608,7 +49608,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -49664,7 +49664,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -49672,11 +49672,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_004
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -49772,19 +49772,19 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 121464361380341473, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 1144685252393617564, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 3006864651919645121, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 5403762708762614603, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 7760561443872685198, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
@@ -51284,7 +51284,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -51292,15 +51292,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_000
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -51322,7 +51322,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -51378,7 +51378,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -51386,11 +51386,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_000
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -53205,11 +53205,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_003
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -53265,11 +53265,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -53439,19 +53439,19 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 121464361380341473, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 1144685252393617564, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 3006864651919645121, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 5403762708762614603, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 7760561443872685198, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
@@ -53581,7 +53581,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -53589,15 +53589,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_011
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -54974,68 +54974,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6419838125006201701, guid: 25317225ad206456b8cde28e17cafbb9, type: 3}
   m_PrefabInstance: {fileID: 1465499500}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1466250113
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1753820937}
-    m_Modifications:
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 23
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 6.9994507
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 99.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.13052626
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.9914449
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8095971655394804723, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-      propertyPath: m_Name
-      value: C00M_ResearchPoster
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
---- !u!4 &1466250114 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3494677704523454182, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
-  m_PrefabInstance: {fileID: 1466250113}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1466761747
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56259,19 +56197,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_002
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -56559,11 +56497,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_009
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -56619,11 +56557,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -58267,19 +58205,19 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 121464361380341473, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 1144685252393617564, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 3006864651919645121, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 5403762708762614603, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 7760561443872685198, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
@@ -59187,7 +59125,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -59195,15 +59133,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_012
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -59257,7 +59195,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -59313,7 +59251,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -59321,11 +59259,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_009
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -59346,9 +59284,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1753820937}
     m_Modifications:
+    - target: {fileID: 3291652470645561148, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3291652470645561148, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 5075594089870570949, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
       propertyPath: m_Name
       value: C00M_MainEntranceSign
+      objectReference: {fileID: 0}
+    - target: {fileID: 5247964874669679106, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5247964874669679106, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8370822820529575808, guid: 4d8de5fae477d4a19b674980fcc9dd7b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -61364,7 +61318,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -61372,15 +61326,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_004
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -62256,11 +62210,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -62320,11 +62274,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_003
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -63066,11 +63020,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_000
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -63126,11 +63080,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -63749,7 +63703,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 5447021027701296847, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 6272080173824554321, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
@@ -63805,7 +63759,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6870585735457776745, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7044296862589929862, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
@@ -63813,11 +63767,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-3_000
       objectReference: {fileID: 0}
     - target: {fileID: 9036816981783736362, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9180115291676496388, guid: 8969c25d1705141ab9a91e6e4184970b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -63893,11 +63847,11 @@ Terrain:
   m_Enabled: 1
   serializedVersion: 6
   m_TerrainData: {fileID: 15600000, guid: d2e35461c83ed43dc80b45232fa472eb, type: 2}
-  m_TreeDistance: 5000
+  m_TreeDistance: 180
   m_TreeBillboardDistance: 50
   m_TreeCrossFadeLength: 5
   m_TreeMaximumFullLODCount: 50
-  m_DetailObjectDistance: 80
+  m_DetailObjectDistance: 60
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 5
   m_SplatMapDistance: 2000
@@ -63933,11 +63887,11 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 249528232075978089, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2555923148284107989, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5074195699091959466, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
@@ -63997,11 +63951,11 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-2_002
       objectReference: {fileID: 0}
     - target: {fileID: 6015976980074525693, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7198603076891685529, guid: 77fddb7037c4a449e9d81e716e530985, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -65755,11 +65709,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_003
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -65815,11 +65769,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -66277,11 +66231,11 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-1_008
       objectReference: {fileID: 0}
     - target: {fileID: 2258118804769184375, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2615048541676632049, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3692320799956005170, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
@@ -66337,11 +66291,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4283901373493463143, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7361090996331786552, guid: 54b0bb6ef4cf74640948d8e6d2f4cc6b, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -66883,7 +66837,6 @@ Transform:
   m_Children:
   - {fileID: 520732733}
   - {fileID: 1567336391}
-  - {fileID: 1466250114}
   m_Father: {fileID: 1134599406}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1760965916
@@ -67962,7 +67915,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4554799998368843483, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4646229990442737493, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
@@ -67970,15 +67923,15 @@ PrefabInstance:
       value: S5_LiveBushes_M3D_bush-1_000
       objectReference: {fileID: 0}
     - target: {fileID: 4814220552889774295, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 5573652001576767933, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 6475025623543428430, guid: ec5d7c0320dfe4bd5bae863c7c9b6430, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -71560,19 +71513,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_012
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -71826,7 +71779,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1386100261}
     m_Modifications:
     - target: {fileID: 697142028881066519, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 2010527703952159753, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -71882,7 +71835,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3491268122554543064, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 3939515388172075356, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
@@ -71890,11 +71843,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_6_001
       objectReference: {fileID: 0}
     - target: {fileID: 6603185015966359504, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8644912072008991087, guid: e67e2e93a854e490488c91c07e8733c3, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -73936,19 +73889,19 @@ PrefabInstance:
     m_TransformParent: {fileID: 564104542}
     m_Modifications:
     - target: {fileID: 121464361380341473, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 1144685252393617564, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 3006864651919645121, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 5403762708762614603, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 454ce1c35ef284648b66f7fdcd9e5383, type: 2}
     - target: {fileID: 7760561443872685198, guid: e197a00ce04004a66afbfdc432fb3905, type: 3}
@@ -74796,11 +74749,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_007
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -74856,11 +74809,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -75466,19 +75419,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_009
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -75678,7 +75631,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -75686,15 +75639,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_008
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -76066,11 +76019,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_009
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -76126,11 +76079,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -78213,7 +78166,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1706609212720524162, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4753371296762209619, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
@@ -78221,15 +78174,15 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_8_009
       objectReference: {fileID: 0}
     - target: {fileID: 7300106735117866885, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7363839688947731689, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8968866022208454952, guid: c1ecf1fd219bb4e228f80ac066ecf30f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -79024,19 +78977,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_014
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
@@ -79696,11 +79649,11 @@ PrefabInstance:
       value: S5_DryTufts_M3D_grass_patch_7_004
       objectReference: {fileID: 0}
     - target: {fileID: 2181748833241487408, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4467106537524928325, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 4621823922487292523, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
@@ -79756,11 +79709,11 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6525254434085864771, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 8962407877091415294, guid: d1a750045231a4b79bf789611f92ace4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     m_RemovedComponents: []
@@ -80790,19 +80743,19 @@ PrefabInstance:
       value: S5_Ferns_M3D_fern-2_003
       objectReference: {fileID: 0}
     - target: {fileID: 6132449345198198900, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7322224817541855871, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7373023737573316612, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 7832297442216582145, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
+      propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 8256ac3bc4187490eb7408ca098c385b, type: 2}
     - target: {fileID: 9086487816725021795, guid: 780c9d749968743fba33a01a90daf39f, type: 3}
