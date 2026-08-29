@@ -63,6 +63,9 @@ MAX_EDGE_STRETCH = 2.5
 # The most the relief noise can lift a vertex off the target. Matches `relief` below.
 RELIEF_CEILING = 0.011 + 0.0045
 
+# A triangle smaller than this fraction of a nominal grid triangle is degenerate.
+DEGENERATE_FRACTION = 1e-4
+
 # Below this clearance a patch risks z-fighting with the surface it sits on. Reported, not
 # failed: a crease legitimately brings the opposite wall this close.
 GRAZE_WARN = 0.0005
@@ -400,6 +403,7 @@ def build_patch(name, size, seed, surface, anchor, normal, order, spacing, lift=
     # does anyway.
     res = grid_res(size, spacing)
     span_limit = (size / res) * MAX_EDGE_STRETCH
+    min_tri_area = ((size / res) ** 2) * 0.5 * DEGENERATE_FRACTION
 
     for (i, j) in keep:
         corners = ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))
@@ -408,10 +412,31 @@ def build_patch(name, size, seed, surface, anchor, normal, order, spacing, lift=
         vs = [vmap[k] for k in corners]
         if any((vs[a].co - vs[(a + 1) % 4].co).length > span_limit for a in range(4)):
             continue
-        try:
-            bm.faces.new(vs)
-        except ValueError:
-            continue
+        # Triangles, not quads. A grid quad stays planar in the plane it was cut in; wrapped
+        # onto a fold its four corners stop being coplanar, and on strong curvature it can
+        # cross itself outright. Blender then derives a face normal that disagrees with the
+        # surface the clump lies on, HDRP culls that face, and the clump has a hole in it.
+        # Triangles are planar by construction, so each one can be wound to face outwards and
+        # stay that way. The short diagonal keeps the two halves from becoming slivers.
+        d02 = (vs[0].co - vs[2].co).length
+        d13 = (vs[1].co - vs[3].co).length
+        pairs = (((0, 1, 2), (0, 2, 3)) if d02 <= d13 else ((0, 1, 3), (1, 2, 3)))
+        for tri in pairs:
+            t = [vs[i] for i in tri]
+            cross = (t[1].co - t[0].co).cross(t[2].co - t[0].co)
+            # A sliver whose three corners wrapped onto nearly the same spot has no meaningful
+            # normal -- its winding is numerical noise, so it cannot be oriented and shows up
+            # as a stray back-face. It also draws nothing: these measure zero square
+            # millimetres against a 1300 mm2 median. Drop them rather than orient them.
+            if cross.length * 0.5 < min_tri_area:
+                continue
+            facing = sum((placed[corners[i]][1] for i in tri), Vector()) / 3.0
+            if cross.dot(facing) < 0.0:
+                t.reverse()
+            try:
+                bm.faces.new(t)
+            except ValueError:
+                continue
 
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
     drop_small_islands(bm)
@@ -555,6 +580,36 @@ def audit_patch(ob, surface, size, spacing, lift=0.004):
                 % (inside, grazing, floated, bridged, min_gap * 1000.0, worst_gap * 1000.0))
 
 
+
+def merge_patches(patches, name):
+    """Join every clump into one object.
+
+    They share a material, a growth scalar and a draw call; there is no reason for the scene
+    to carry sixty renderers. join() is used rather than a hand-rolled bmesh merge because it
+    is the path that keeps custom split normals, vertex colours and UVs intact -- rebuilding
+    those by hand is how the target's normals get quietly replaced by the patch's own.
+    """
+    if not patches:
+        return None
+    bpy.ops.object.select_all(action="DESELECT")
+    for ob in patches:
+        ob.select_set(True)
+    bpy.context.view_layer.objects.active = patches[0]
+    if len(patches) > 1:
+        bpy.ops.object.join()
+    merged = bpy.context.view_layer.objects.active
+    merged.name = name
+    merged.data.name = name
+    return merged
+
+
+def strip_to(keep):
+    """Delete everything except `keep`, so the source file holds only what is exported."""
+    for ob in list(bpy.data.objects):
+        if ob is not keep:
+            bpy.data.objects.remove(ob, do_unlink=True)
+
+
 def make_test_sphere(radius=1.5):
     """The §5 step-1 target: a surface whose curvature is known exactly."""
     bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, segments=64, ring_count=32)
@@ -583,6 +638,10 @@ def main():
     ap.add_argument("--seed-reach", type=float, default=6.0,
                     help="metres over which the bloom spreads out of a seed object")
     ap.add_argument("--seed", type=int, default=20260830, help="scatter RNG seed")
+    ap.add_argument("--merge", default="BloomPatches",
+                    help="join the clumps into one object under this name; empty keeps them apart")
+    ap.add_argument("--strip", action="store_true",
+                    help="delete everything else, leaving a source file holding only the clumps")
     args = ap.parse_args(argv)
 
     if args.self_test:
@@ -648,6 +707,16 @@ def main():
     print("AUDIT patches=%d clean=%d tris=%d order[%.2f,%.2f]"
           % (len(built), len(built) - len(failed), tris_total,
              min(orders) if orders else 0.0, max(orders) if orders else 0.0))
+
+    patches = [o for o in bpy.data.objects if o.name.startswith("Bloom_Patch_")]
+    if args.merge and patches:
+        merged = merge_patches(patches, args.merge)
+        print("MERGED %d clumps into %s: %d verts %d tris"
+              % (len(patches), merged.name, len(merged.data.vertices),
+                 len(merged.data.loop_triangles) or sum(
+                     len(p.vertices) - 2 for p in merged.data.polygons)))
+        if args.strip:
+            strip_to(merged)
 
     out = os.path.abspath(args.out)
     os.makedirs(os.path.dirname(out), exist_ok=True)
