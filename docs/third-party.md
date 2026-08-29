@@ -235,7 +235,7 @@ the only derived data lives under `Assets/RootsDance/`.
 
 ## 音乐与音效素材 —— `Assets/RootsDance/Audio/`
 
-- **路径**：`Assets/RootsDance/Audio/{Music,Ambience,SFX}/`（46 个片段，2026-08-30 导入）。
+- **路径**：`Assets/RootsDance/Audio/{Music,Ambience,SFX}/`（70 个片段，2026-08-30 导入）。
   完整试听库（723 个文件）在分支 `content/music-and-sounds` 的 `SourceArt/music and sounds/` 下，
   `Assets/` 里只放最终选中的那些。选择结果记录在 `roots-dance-audio-selections.json`，
   片段与 cue 的对照表在 `AudioClipBinder.k_Bindings` 与
@@ -249,10 +249,11 @@ the only derived data lives under `Assets/RootsDance/`.
   入库曲目：I Can Feel It Coming、Nightmare Machine。制作人员表里需要：
   `Music: I Can Feel It Coming, Nightmare Machine by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0, http://creativecommons.org/licenses/by/4.0/`
 - **Kenney —— CC0 1.0**（<https://kenney.nl>）：Impact Sounds（脚步）、Interface Sounds、UI Audio、
-  RPG Audio（门）。无需署名，仍列入制作人员表。
+  RPG Audio（门、金属异响、藤蔓与枝叶、摘戴头盔）。无需署名，仍列入制作人员表。
 - **OpenGameArt —— CC0 1.0**：`80 CC0 RPG SFX`（作者 rubberduck，植物能力与生物叫声）、
-  `7 Assorted Sound Effects`（作者 Joth，遗物音）。无需署名。
-- **自制补缺片段** —— `Ambience/` 下五个 `*_Loop.wav`（头盔呼吸两条、污染区三条），
-  2026-08-29 用噪声与包络在本地合成，循环边界按数学无缝构造，属项目自有资产。
+  `7 Assorted Sound Effects`（作者 Joth，遗物音）、`Metal and Wood SFX`（异常动静）。无需署名。
+- **自制片段** —— `Ambience/` 下十四个 `*_Loop.wav` 与 `SFX/` 下四段水声，属项目自有资产：
+  头盔呼吸两条与污染区三条 2026-08-29 合成；其余九张床与水声 2026-08-30 由仓库内的
+  `Tools/audio/generate_beds.py` 在频域生成（循环点按定义连续，见音频管线 §9.2）。
   **压缩导入后仍需在 Unity 里复听循环接缝**（见音频管线 §4：Ambience 走 Vorbis 0.6 流式）。
 - **两条 CC BY 是"必须做的事"，不只是仓库备注**：制作人员表还没有这些行之前，构建不满足授权条件。
