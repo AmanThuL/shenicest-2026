@@ -251,8 +251,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetController
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_unlockFlag: flow.helmet_removable
+  m_conversationStarted: {fileID: 11400000, guid: 2e662b776bf054a1e858a1b1efe2ea44, type: 2}
+  m_conversationEnded: {fileID: 11400000, guid: 25b31884cfa2140a78d4b7fdaaa77fa2, type: 2}
   m_noticeRequested: {fileID: 11400000, guid: a609440e92c16426eb84a8155d1561c4, type: 2}
   m_noticeText: "\u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u4F4E\u4E8E\u9632\u62A4\u9608\u503C\u3002\u53EF\u89E3\u9664\u73AF\u5883\u9694\u79BB\u3002"
+  m_hintRequested: {fileID: 11400000, guid: 4a8c180848d9c47aea371540330e1790, type: 2}
+  m_hintText: "[E]  \u89E3\u9664\u73AF\u5883\u9694\u79BB"
+  m_warningRequested: {fileID: 11400000, guid: b76d7caf91cd943deb49d3d348c6f10a, type: 2}
+  m_warningText: "[ ! ]  \u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u9AD8\u4E8E\u9632\u62A4\u9608\u503C\u3002\u73AF\u5883\u9694\u79BB\u5DF2\u9501\u5B9A\u3002"
   m_input: {fileID: 2523268967826309828}
   m_viewBehaviour: {fileID: 6408187968081166693}
 --- !u!114 &8163118375396427749
@@ -308,6 +314,8 @@ MonoBehaviour:
   m_socket: {fileID: 7863462782624755283}
   m_player: {fileID: 6772109266663148318}
   m_input: {fileID: 2523268967826309828}
+  m_director: {fileID: 0}
+  m_throwTrigger: {fileID: 0}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 3
   m_dropKey: 21
