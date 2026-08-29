@@ -36,6 +36,12 @@ namespace RootsDance.EditorTools
         private const string k_BuildingName = "GreenHouse1_Textured";
         private const string k_ObjectName = "GreenhouseSpiralStair";
 
+        private const string k_EnvironmentScene =
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity";
+
+        private const string k_PartScene =
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment_2.unity";
+
         /// <summary>
         /// Landmark objects inside the building, with the bounding-box centre each one has in the
         /// source blend (Blender axes, Z up, metres). Measured off
@@ -66,6 +72,19 @@ namespace RootsDance.EditorTools
         /// silently producing a squashed stair is worse than refusing.
         /// </summary>
         private const float k_ScaleTolerance = 0.02f;
+
+        /// <summary>
+        /// Batch entry point: opens the two interior scenes, places the stair and saves. The menu
+        /// version deliberately leaves saving alone, but a headless run has nobody to press save.
+        /// </summary>
+        public static void PlaceBatch()
+        {
+            Scene environment = EditorSceneManager.OpenScene(k_EnvironmentScene, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(k_PartScene, OpenSceneMode.Additive);
+            Place();
+            EditorSceneManager.SaveScene(environment);
+            Debug.Log("GreenhouseSpiralStairBuilder: batch placement saved.");
+        }
 
         [MenuItem("RootsDance/Place Greenhouse Spiral Stair")]
         public static void Place()
