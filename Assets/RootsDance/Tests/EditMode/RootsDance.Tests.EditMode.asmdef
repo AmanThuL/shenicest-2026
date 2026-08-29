@@ -4,6 +4,7 @@
     "references": [
         "RootsDance.Runtime",
         "RootsDance.Editor",
+        "Unity.Cinemachine",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.RenderPipelines.HighDefinition.Runtime",

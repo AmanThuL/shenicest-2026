@@ -43,6 +43,19 @@ namespace RootsDance.Scanner
             + "target build. In play mode the real screen aspect is used instead.")]
         [SerializeField] private float m_editorAspect = 16f / 9f;
 
+        /// <summary>
+        /// The up axis to level the camera against. World up nearly always, but a screen held flat
+        /// — face up or face down — leaves that parallel to the view direction, where it says
+        /// nothing about which way is up on the screen; the anchor's own up is the only answer
+        /// there, and rolling with the hand is better than a degenerate look rotation.
+        /// </summary>
+        private static Vector3 UprightFor(Transform anchor)
+        {
+            return Mathf.Abs(Vector3.Dot(anchor.forward.normalized, Vector3.up)) > 0.985f
+                ? anchor.up
+                : Vector3.up;
+        }
+
         /// <summary>Fraction of the viewport the screen covers. Serialized; see the class summary.</summary>
         public float ScreenFill => m_screenFill;
 
@@ -60,7 +73,11 @@ namespace RootsDance.Scanner
         {
             // Cheap, and it keeps the pose right while the anchor is dragged in the editor or the
             // game view is resized. Two float compares and a possible local-pose write.
-            if (!Application.isPlaying)
+            //
+            // It also runs while the screen is actually up: the anchor rides the arm, and the arm
+            // keeps animating during the read. Applying once on the way in would let the hand roll
+            // the view back over as it settled.
+            if (!Application.isPlaying || (m_camera != null && m_camera.gameObject.activeInHierarchy))
             {
                 Apply();
             }
@@ -91,12 +108,18 @@ namespace RootsDance.Scanner
                 camera.SetParent(m_screenAnchor, false);
             }
 
-            // Anchor forward is the reading direction, so standing back means -Z and the camera
-            // already looks the right way. The model's transform chain carries a hundredfold scale,
-            // so a distance in metres has to be converted before it is a local offset.
+            // Anchor forward is the reading direction, so standing back means -Z. The model's
+            // transform chain carries a hundredfold scale, so a distance in metres has to be
+            // converted before it is a local offset.
             float metresPerLocalUnit = Mathf.Max(Mathf.Abs(m_screenAnchor.lossyScale.x), 1e-9f);
             camera.localPosition = new Vector3(0f, 0f, -distance / metresPerLocalUnit);
-            camera.localRotation = Quaternion.identity;
+
+            // Face the screen, but keep the horizon level. Inheriting the anchor's rotation whole
+            // — which an identity local rotation does — also inherits its roll, and the anchor is
+            // on the arm, so the screen is held at whatever angle the hand is at. Blending into a
+            // rolled camera swings the whole view over on the way in and reads as the player lying
+            // down rather than raising something to look at it.
+            camera.rotation = Quaternion.LookRotation(m_screenAnchor.forward, UprightFor(m_screenAnchor));
 
             LensSettings lens = m_camera.Lens;
             lens.FieldOfView = m_fieldOfView;
