@@ -105,15 +105,16 @@
 
 ## 5. 执行顺序
 
-- [ ] 1. `build_bloom_patch.py`: 从 `build_algae_patch.py` 派生并加入 shrinkwrap 步骤，先用一个球面做靶子验证贴合与法线
-- [ ] 2. 用 `Robe` 做靶子生成五档 patch，检查最大档（`2.0 m`）在腰部曲率下不穿模
-- [ ] 3. 导出 `BloomPatch.fbx`，确认顶点色以 **LINEAR / DATA** 导入（沿用藻类的踩坑记录，见 `BioluminescentAlgae.shader` 文件头）
-- [ ] 4. `StatueBloom.shadergraph`: Lit + Alpha Clip，顶点色 B 驱动 `_Growth` 揭示
-- [ ] 5. `GrowthDriver.cs` + EditMode 测试
-- [ ] 6. `StatueBloomBuilder.cs`: 材质、prefab、在圣像上散布 patch 实例
+- [x] 1. `build_bloom_patch.py`: 贴合改用 BVH 投射 + barycentric 插值法线；球面靶子实测 clearance 恒为 `3.99 mm`（即 `lift`），法线与径向 `dot = 1.00000`
+- [x] 2. `Robe` 靶子: `119` 个 clump 全部通过内建审计，无穿模、无桥接；撕裂逻辑把最大边拉伸从 `39.7×` 降到阈值 `2.5×`
+- [x] 3. 导出 `BloomPatches.fbx`: `colors_type LINEAR`；round-trip 顶点色 `rms = 0.000000`，Unity 侧 B 通道四分位数与源一致（`0.125 / 0.039 / 0.255`）
+- [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
+- [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
+- [x] 6. `StatueBloomBuilder.cs`: 材质、prefab、场景放置；**尚未运行**，运行会打开并保存 `Main_Environment_Statue`
 - [ ] 7. L1 生长贴图与基底材质
 - [ ] 8. L3 焦点花与 `BloomBurst.cs`
-- [ ] 9. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
+- [ ] 9. `SunBroadcaster`: 把场景 Sun 写进 `_RootsSun*`，当前由 shader 内的固定主光兜底
+- [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
 
 ## 6. 风险与已知约束
 
@@ -125,9 +126,20 @@
 
 `materialLocation: 1` 意味着材质由 importer 生成，改不了。L1 需要先切成 External 提取出 `.mat`。该改动会动 `.fbx.meta`，属于可控范围，单独一个 commit。L2 与 L3 不受影响，因为它们是独立的 patch 与 prefab，不碰圣像本体。
 
-### 6.3 花的 shader 不能照抄藻类
+### 6.3 花的 shader 走 unlit，不走 Lit
 
-藻类走 Unlit ForwardOnly 并手写 `GetSurfaceAndBuiltinData`，因为它自发光且要读手电筒全局量。花需要被场景光正常照亮，走 Lit 路径。手写 HDRP Lit pass 的成本远高于 Shader Graph，且项目已有 `BossPulse.shadergraph` 先例。**只有生长揭示的数学复用藻类，pass 结构不复用。**
+原计划是 Shader Graph 做 Lit。落地时两条路都不成立:
+
+- HDRP 的 `Lit.shader` 是 `1534` 行、`20` 个 pass，手写一份自定义 Lit 不是可维护的东西。
+- `.shadergraph` 是 GUID 互链的多段 JSON（`BossPulse.shadergraph` 为 `64 KB`），无法在 Editor 外可靠生成，也无法在 diff 里评审。
+
+实际实现是手写 unlit + 一盏主光和一个环境项，结构照 `Environment/FluorescentReveal`。**代价: 花簇不接收阴影，也不投射阴影**（没有 ShadowCaster pass，prefab 上 `shadowCastingMode = Off`）。生长揭示的数学与藻类一致。若后续要 Lit，用 Shader Graph 在 Editor 里重做一遍，顶点色约定和 `_Growth` 语义不变。
+
+### 6.6 两个 unlit pass 都不带顶点色
+
+`UnlitSharePass.hlsl` 与 `UnlitDepthPass.hlsl` 都不定义 `ATTRIBUTES_NEED_COLOR` / `VARYINGS_NEED_COLOR`。不自己定义的话 `input.color` 恒为 0，`clip` 裁掉全部片元，画面上什么都没有且**没有任何 shader 报错**。`StatueBloom.shader` 显式声明了这两个宏。
+
+`Environment/BioluminescentAlgae` 目前没有声明它们，且把 `GetSurfaceAndBuiltinData` 放在 SubShader 级 `HLSLINCLUDE` 里（`SurfaceData` 要到 pass 内 include `Unlit.hlsl` 之后才存在），Console 里的 `unrecognized identifier 'SurfaceData'` 就是后者。两处都不在本轮范围内。
 
 ### 6.4 Timeline 包未安装
 
