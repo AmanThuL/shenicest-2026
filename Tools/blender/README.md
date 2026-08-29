@@ -13,9 +13,11 @@ checklist. This file only says how to run the code.
 export_fbx.py              the exporter; knows no asset names
 generate_static_lod.py     deterministic FBX decimation for static-mesh LODs
 generate_spider_silk.py    parameterised procedural spider silk (swept-tube geometry)
+generate_mycelium.py       parameterised procedural mycelium; fills a volume, breathes
 validate_wrist.py          per-frame joint-rotation validator; knows no asset names
 profiles/fps_arms.json     skinned + animated: bake every frame, no decimation
 profiles/static_prop.json  static prop: no animation baked
+profiles/shapekey_loop.json  no armature: bakes shape-key (blend shape) animation
 ```
 
 The Unity half lives in `Tools/unity/model_import_profiles.json` and
@@ -32,6 +34,21 @@ The Unity half lives in `Tools/unity/model_import_profiles.json` and
 flag (`--cone-depth`, `--droplet-dropout`, `--loose-ends`, …). The defaults produce a
 derelict web; the script header lists the numbers for a web still in service. Inside a
 running Blender, `exec(open(...).read())` then call `generate("web")`.
+
+## Generate procedural mycelium
+
+Grows into a measured volume, lands on whatever mesh is already there (raycast; the existing
+model is only read), branches, fuses, and breathes via two shape keys. Parameters are in
+**Unity world metres**; the layout knobs are documented in the script header.
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  SourceArt/Corridor/RootsDance_Corridor_Blockout.blend \
+  --python-expr "g={'__name__':'gen','__file__':'Tools/blender/generate_mycelium.py'}; exec(compile(open(g['__file__']).read(), g['__file__'], 'exec'), g); g['generate']()"
+```
+
+`--emit-cords 1` draws the rhizomorph scaffold as well; `--clip 0` lifts the containment that
+keeps growth out of the floor slab and out of `avoid_boxes` (the metal bridge, by default).
 
 ## Export one asset
 

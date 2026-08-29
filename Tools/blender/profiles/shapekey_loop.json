@@ -1,0 +1,26 @@
+{
+  "fbx": {
+    "apply_unit_scale": true,
+    "global_scale": 1.0,
+    "apply_scale_options": "FBX_SCALE_UNITS",
+    "bake_space_transform": false,
+    "axis_forward": "-Z",
+    "axis_up": "Y",
+    "mesh_smooth_type": "FACE",
+    "use_mesh_modifiers": false,
+    "add_leaf_bones": false,
+    "primary_bone_axis": "Y",
+    "secondary_bone_axis": "X",
+    "armature_nodetype": "NULL",
+    "path_mode": "AUTO"
+  },
+  "animation": {
+    "bake_anim": true,
+    "bake_anim_use_all_bones": false,
+    "bake_anim_use_nla_strips": false,
+    "bake_anim_use_all_actions": false,
+    "bake_anim_force_startend_keying": true,
+    "bake_anim_step": 1.0,
+    "bake_anim_simplify_factor": 0.0
+  }
+}
