@@ -124,15 +124,17 @@ namespace RootsDance.Tests.EditMode.Scanner
                 Vector3 local = eye.InverseTransformPoint(corners[i]);
                 Assert.Greater(local.z, 0f, $"Corner {i} is behind the eye.");
 
-                float angle = Mathf.Atan2(Mathf.Abs(local.y), local.z);
-                worst = Mathf.Max(worst, angle / halfFov);
+                // Measured as a height, not as an angle: the fill ratio is a fraction of the
+                // viewport rectangle, and atan would bend it by a couple of per cent.
+                float halfHeight = local.z * Mathf.Tan(halfFov);
+                worst = Mathf.Max(worst, Mathf.Abs(local.y) / halfHeight);
             }
 
             Debug.Log($"[scanner] worst corner fills {worst * 100f:F1}% of the half-viewport, "
                 + $"asked for {magnifier.ScreenFill * 100f:F1}%");
 
             Assert.Less(worst, 1f, "The magnified report overflows the viewport.");
-            Assert.AreEqual(magnifier.ScreenFill, worst, 1e-2f,
+            Assert.AreEqual(magnifier.ScreenFill, worst, 1e-3f,
                 "The report did not grow to the fill ratio it is set to, so it reads small.");
         }
 
