@@ -133,7 +133,7 @@ Prefab World Builder
 ### P3: C 异色草带
 
 - [x] `C-01` 保持现有 C Terrain 分界与 GrassBand 底色。
-- [x] `C-02` 第二轮复审将第一层 footprint overlap 降至 `12%`，中层 spacing 提高到 `2.10 m`，相对上一版再减少约三分之一。
+- [x] `C-02` 第三轮复审将 C 区非实体植物总量限制为最多 `1,500` 株；地被 footprint gap 约 `14%`，中层 spacing 提高到 `2.70 m`。
 - [x] `C-03` 路线中心铺 `0.25–0.55 m` 无碰撞低草，不再清空裸路。
 - [x] `C-04` 第二层使用 `0.55–0.85 m` meadow、蕨、低灌、低花和 Ivy。
 - [x] `C-05` 路线两侧与环界加入低量实体根石，常规植被不超过设计高度。
@@ -141,7 +141,7 @@ Prefab World Builder
 - [x] `C-06a` 将 C 材质 TVE 风速、幅度显著降低，并按材质写入确定性相位差，消除同步快速摆动。
 - [x] `C-06b` C 区全部非实体植物只使用暖石粉或冷粉紫材质变体。
 - [x] `C-06c` 在 00-07 路线侧放置一株高毯茅英雄草，增强冷粉紫自发光并接入 Scanner 与 `BOT-FL-041`。
-- [x] `C-07` 第二轮复审后 C 调整为 `2,165 + 331 + 37 = 2,533` 个实例，其中 mid 包含 1 株扫描英雄草；比上一版再减少约 `32.7%`。
+- [x] `C-07` 第三轮复审后 C 调整为 `1,282 + 198 = 1,480` 株非实体植物，其中 mid 包含 1 株扫描英雄草；另保留 `37` 个实体根石封边。非实体植物比上一版减少约 `40.7%`，并低于 `1,500` 株上限。
 - [x] `C-08` 已生成第一人称 C/D 过渡与统一俯视评审截图。
 
 ### P4: A、B、D 覆盖
@@ -222,9 +222,9 @@ Prefab World Builder
 |---|---|
 | 最终设施 root 与各建筑相对 Transform | root `(0.928,5.596,61.911)`，yaw `335.525°`；relative layout locked |
 | `00-08..00-16` 最终坐标 | 见长期设计 §3.2；00-15/16 固定 `(37,7.8,106)` |
-| C 可见包络、实例数和 coverage | ground `2,165`、mid `331`、physical `37`；12% footprint overlap；所有非实体植物通过双粉色材质审计 |
+| C 可见包络、实例数和 coverage | ground `1,282`、mid `198`，非实体植物合计 `1,480`；physical `37` 另计；14% footprint gap；所有非实体植物通过双粉色材质审计 |
 | A/B/D/E 各类实例数 | A `4,360/483/101`；B `5,701/503/209`；D `6,674/754/333`；E `15,930/2,611/3,675` |
-| 草高 bounds 审计 | builder 对全部 `43,867` 个实例按 role/zone 范围验证通过；英雄草 `1.25 m` 单独验证 |
+| 草高 bounds 审计 | builder 对全部 `42,851` 个实例按 role/zone 范围验证通过；英雄草 `1.25 m` 单独验证 |
 | Corridor 1 reachability 与其他建筑不可达证据 | full capsule C-E collision `none`；E flood target reached；unexpected cells `0` |
 | A-E Volume 实际参数 | MFP `9/13.5/19/25.5/33m`；blend `8/8/8/8/10m`；priority `6..10` |
 | EditMode/PlayMode 结果 | 原交付相关 EditMode `14/14`；本次 C 密度、双粉色与扫描英雄草定向测试 `11/11`；未跑最终全量 PlayMode |

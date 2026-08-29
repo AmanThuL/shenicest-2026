@@ -45,7 +45,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void CCarpet_UsesReducedOverlapAndNewPatchVariants()
+        public void CCarpet_UsesReducedDensityAndNewPatchVariants()
         {
             Chapter00VegetationLayerSpec c = FindLayer(
                 Chapter00ZoneVegetationParams.CreateDefault(),
@@ -53,7 +53,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Chapter00VegetationRole.WalkThroughGroundCover,
                 0);
 
-            Assert.That(c.FootprintOverlap, Is.InRange(.10f, .15f));
+            Assert.That(c.FootprintOverlap, Is.InRange(-.16f, -.12f));
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_viridian");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_violet");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_rose");
@@ -109,7 +109,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void CCarpet_CoversSyntheticVisibleEnvelopeWithoutBareHoles()
+        public void CCarpet_RetainsBroadCoverageWithIntentionalGaps()
         {
             Chapter00ZoneVegetationParams source = Chapter00ZoneVegetationParams.CreateDefault();
             Chapter00VegetationLayerSpec c = FindLayer(source, Chapter00VegetationZone.C,
@@ -133,16 +133,23 @@ namespace RootsDance.Tests.EditMode.Environment
             metrics.Add("test_patch", new Chapter00PrefabMetrics(1f, new Vector2(2.8f, 2.8f)));
             List<Chapter00VegetationPlacement> placements = Chapter00ZoneVegetationLayout.Build(p, metrics);
 
+            int covered = 0;
+            int sampled = 0;
             for (float z = 29f; z <= 39f; z += .4f)
             {
                 for (float x = -5f; x <= 5f; x += .4f)
                 {
                     Vector2 point = new Vector2(x, z);
                     if (Vector2.Distance(point, new Vector2(0f, 34f)) > 5f) continue;
-                    Assert.IsTrue(Chapter00ZoneVegetationLayout.IsCovered(
-                        point, placements, Chapter00VegetationZone.C), "uncovered C sample at " + point);
+                    sampled++;
+                    if (Chapter00ZoneVegetationLayout.IsCovered(
+                        point, placements, Chapter00VegetationZone.C)) covered++;
                 }
             }
+
+            float coverage = covered / (float)sampled;
+            Assert.That(coverage, Is.InRange(.50f, .75f),
+                "C carpet should remain visually dominant while exposing deliberate terrain gaps.");
         }
 
         [Test]
@@ -224,6 +231,19 @@ namespace RootsDance.Tests.EditMode.Environment
             Transform[] transforms = target.GetComponentsInChildren<Transform>(true);
             int scannableLayer = LayerMask.NameToLayer("Scannable");
             foreach (Transform child in transforms) Assert.AreEqual(scannableLayer, child.gameObject.layer);
+
+            Transform[] allGroupTransforms = group.GetComponentsInChildren<Transform>(true);
+            int nonPhysicalPlantCount = 0;
+            foreach (Transform child in allGroupTransforms)
+            {
+                if (child.name.StartsWith("C00V_C_WalkThroughGroundCover_", StringComparison.Ordinal)
+                    || child.name.StartsWith("C00V_C_MidLayer_", StringComparison.Ordinal))
+                {
+                    nonPhysicalPlantCount++;
+                }
+            }
+            Assert.That(nonPhysicalPlantCount, Is.InRange(1400, 1500),
+                "Installed C vegetation must stay visually present without exceeding the 1,500-plant cap.");
         }
 
         [Test]
