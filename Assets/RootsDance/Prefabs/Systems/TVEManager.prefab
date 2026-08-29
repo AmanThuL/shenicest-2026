@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 297058908193843082}
   - component: {fileID: 856307400260368154}
   - component: {fileID: 6161800216780627883}
+  - component: {fileID: 7885354380958047766}
   m_Layer: 0
   m_Name: TVEManager
   m_TagString: Untagged
@@ -158,3 +159,15 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6582764918723350454}
   m_Mesh: {fileID: 4300002, guid: 63ed98e640ad20243af2d4faedcaadad, type: 3}
+--- !u!114 &7885354380958047766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6582764918723350454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb697c32510d3426fa2863ec23af5b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.TveCameraBinder
