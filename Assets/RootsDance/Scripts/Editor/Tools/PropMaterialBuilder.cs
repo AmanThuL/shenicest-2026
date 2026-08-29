@@ -99,6 +99,47 @@ namespace RootsDance.EditorTools
                 0.50f,
                 1f,
                 colorMultiplier: 3f),
+
+            // GreenHouse1's glazing, tiled in world space at the 2 m the maps
+            // were authored at. Haze lives in the BaseMap alpha (per layer,
+            // per the research doc), so Opacity stays 1 and the map drives it.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1GlassIntact.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1GlassDirty",
+                true,
+                2.00f,
+                1f,
+                ior: 1.45f,
+                refractionModel: 3f),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1GlassCracked.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1GlassCracked",
+                true,
+                2.00f,
+                1f,
+                ior: 1.45f,
+                refractionModel: 3f),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1GlassShattered.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1GlassShattered",
+                true,
+                2.00f,
+                1f,
+                ior: 1.45f,
+                refractionModel: 3f),
+            // the chapel row: nearly opaque, colour does the talking
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1GlassStained.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1GlassStained",
+                true,
+                2.00f,
+                1f,
+                ior: 1.45f,
+                refractionModel: 0f),
         };
 
         [MenuItem("RootsDance/Build Prop Materials")]
