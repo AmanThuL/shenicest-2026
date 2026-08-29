@@ -35,6 +35,9 @@ namespace RootsDance.Editor.Archive
             public string FileLocation;
             public string FlagOnRead;
             public float DustAmount;
+
+            /// <summary>Project path to the clipped photograph. Empty leaves the plate blank.</summary>
+            public string PhotoPath;
         }
 
         private static readonly Recipe[] k_Recipes =
@@ -87,6 +90,29 @@ namespace RootsDance.Editor.Archive
                 FileLocation = "DESK",
                 FlagOnRead = "Archive.RingExpansionRead",
                 DustAmount = 0.7f
+            },
+            new Recipe
+            {
+                // The greenhouse's staff photograph: DLG-007_StaffPhotograph (Chapter02DialogueBuilder)
+                // already has Mrs. David and Verity looking for "her" in it and not finding her — this
+                // sheet is the thing they are looking at. No handwritten commentary is authored for it
+                // yet, so the body and margin blocks are left empty rather than invented; the title,
+                // strapline and stamp date are transcribed straight off the photograph's own caption.
+                FileName = "DOC-003_StaffPhotograph",
+                Id = "DOC-003",
+                Kind = ArchiveDocumentKind.ObservationRecord,
+                Title = "研究人员合照",
+                Subtitle = "Briggs Botanical Gardens — Research Division",
+                BodyLines = new string[0],
+                Transcription = string.Empty,
+                MarginNote = string.Empty,
+                StampText = "APRIL 17 1974",
+                Signature = string.Empty,
+                ArchiveCode = "S9-01",
+                FileLocation = "GREENHOUSE",
+                FlagOnRead = string.Empty,
+                DustAmount = 0.75f,
+                PhotoPath = "Assets/RootsDance/Textures/Props/StaffPhotograph_BaseMap.png"
             }
         };
 
@@ -143,6 +169,10 @@ namespace RootsDance.Editor.Archive
             serialized.FindProperty("m_fileLocation").stringValue = recipe.FileLocation;
             serialized.FindProperty("m_flagOnRead").stringValue = recipe.FlagOnRead;
             serialized.FindProperty("m_dustAmount").floatValue = recipe.DustAmount;
+
+            serialized.FindProperty("m_photo").objectReferenceValue = string.IsNullOrEmpty(recipe.PhotoPath)
+                ? null
+                : AssetDatabase.LoadAssetAtPath<Texture2D>(recipe.PhotoPath);
 
             SerializedProperty lines = serialized.FindProperty("m_bodyLines");
             lines.arraySize = recipe.BodyLines.Length;
