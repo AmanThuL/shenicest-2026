@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7287941888077887404}
   - component: {fileID: 2511779922148547064}
+  - component: {fileID: 6684444033981988234}
   m_Layer: 0
   m_Name: tree06_winter
   m_TagString: Untagged
@@ -56,6 +57,26 @@ CapsuleCollider:
   m_Height: 4.1324296
   m_Direction: 1
   m_Center: {x: 0, y: 2.0662148, z: 0}
+--- !u!205 &6684444033981988234
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5037881907094316096}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.00000023841858, y: 1.9337852, z: 0.00000011920929}
+  m_Size: 4.1324296
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.019882161
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 332710994473924786}
+    - renderer: {fileID: 624094079848270174}
+  m_Enabled: 1
 --- !u!1001 &1395996326233023542
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105,6 +126,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: fd3894a84f7c54454898c66f67c37c38, type: 2}
@@ -121,6 +146,10 @@ PrefabInstance:
       value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 2014983706717547880, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2014983706717547880, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 585d78c6f077f4c45b0ec9fd9a050c97, type: 2}
@@ -129,6 +158,16 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
+--- !u!23 &332710994473924786 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
+  m_PrefabInstance: {fileID: 1395996326233023542}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &624094079848270174 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2014983706717547880, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}
+  m_PrefabInstance: {fileID: 1395996326233023542}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1501152497956537309 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: da10fbb67d0f94369a686bdfff9fd9a4, type: 3}

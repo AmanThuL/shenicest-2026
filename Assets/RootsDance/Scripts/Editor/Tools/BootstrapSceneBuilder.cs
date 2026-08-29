@@ -33,6 +33,7 @@ namespace RootsDance.Editor.Tools
         private const string k_NoticePath = k_EventsFolder + "/Notice.asset";
         private const string k_InvestigationResultPath = k_EventsFolder + "/InvestigationResult.asset";
         private const string k_DialogueVoiceCuePath = "Assets/RootsDance/Data/Audio/VOX_Dialogue.asset";
+        private const float k_MainCameraFarClip = 250f;
 
         /// <summary>
         /// Batch entry point (-executeMethod). In batch mode
@@ -137,6 +138,8 @@ namespace RootsDance.Editor.Tools
             {
                 camera.tag = "MainCamera";
             }
+
+            camera.farClipPlane = k_MainCameraFarClip;
 
             if (camera.GetComponent<CinemachineBrain>() == null)
             {

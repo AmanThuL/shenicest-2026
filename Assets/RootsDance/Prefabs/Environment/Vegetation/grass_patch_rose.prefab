@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5371984018438266707}
+  - component: {fileID: 1271742800334607149}
   m_Layer: 0
   m_Name: grass_patch_rose
   m_TagString: Untagged
@@ -32,6 +33,25 @@ Transform:
   - {fileID: 8195112429299786188}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &1271742800334607149
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2677239868637948126}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0.25000006, z: 0}
+  m_Size: 2.1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.036373068
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 7057650278766647971}
+  m_Enabled: 1
 --- !u!1001 &8516406026498475559
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81,6 +101,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 55c5e73152c414e55b30178da7017fb0, type: 2}
@@ -97,6 +125,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}
+--- !u!23 &7057650278766647971 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}
+  m_PrefabInstance: {fileID: 8516406026498475559}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8195112429299786188 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 88a9c3185ebe34a20b1231911edfbcba, type: 3}

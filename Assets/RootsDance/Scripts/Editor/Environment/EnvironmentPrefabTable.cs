@@ -20,6 +20,25 @@ namespace RootsDance.Editor.Environment
         MeshConvex
     }
 
+    /// <summary>Rendering budget assigned to one generated outdoor dressing prefab.</summary>
+    public enum EnvironmentRenderClass
+    {
+        /// <summary>Keep the authored renderer settings and do not add distance culling.</summary>
+        Default,
+
+        /// <summary>Grass, ivy, meadow and flowers: no shadow, camera-only motion, 50 metre cull.</summary>
+        GroundCover,
+
+        /// <summary>Ferns and small bushes: no shadow, camera-only motion, 60 metre cull.</summary>
+        SmallVegetation,
+
+        /// <summary>Trees: keep shadows, use camera-only motion and cull at 180 metres.</summary>
+        Tree,
+
+        /// <summary>Root and rock clutter: no shadow, camera-only motion and cull at 100 metres.</summary>
+        RootRock
+    }
+
     /// <summary>
     /// Maps one vendor sub-material onto a palette key. Matching is case-insensitive "contains" against the
     /// vendor material name; the first rule that hits wins, otherwise <see cref="PrefabEntry.DefaultMaterial"/>.
@@ -68,6 +87,9 @@ namespace RootsDance.Editor.Environment
         /// <summary>Uniform scale applied to the prefab root so the model reads at real-world size.</summary>
         public float Scale;
 
+        /// <summary>Outdoor rendering budget applied by <see cref="EnvironmentPrefabBuilder"/>.</summary>
+        public EnvironmentRenderClass RenderClass;
+
         /// <summary>
         /// Name of the single renderer inside the vendor model this prefab is cut from, or null to keep the
         /// whole model. Vendor "kits" (the modular chain-link fence, the two moss-rock sets) ship every piece
@@ -76,7 +98,8 @@ namespace RootsDance.Editor.Environment
         public string SubObject;
 
         public PrefabEntry(string key, string modelPath, string category, ColliderKind collider,
-            MaterialRule[] materials, string defaultMaterial, float scale, string subObject = null)
+            MaterialRule[] materials, string defaultMaterial, float scale, EnvironmentRenderClass renderClass,
+            string subObject = null)
         {
             Key = key;
             ModelPath = modelPath;
@@ -85,6 +108,7 @@ namespace RootsDance.Editor.Environment
             Materials = materials;
             DefaultMaterial = defaultMaterial;
             Scale = scale;
+            RenderClass = renderClass;
             SubObject = subObject;
         }
     }
@@ -173,7 +197,8 @@ namespace RootsDance.Editor.Environment
             // export with both merged into one mesh, so it stays a static tree.
             PsxTree("tree01_winter", "Psx_Tree01_Winter"),
             new PrefabEntry("tree02_winter", k_Retro + "Trees/tree02_winter.obj", k_Vegetation,
-                ColliderKind.TrunkCapsule, k_NoRules, "Psx_Tree02_Winter_Trunk", 1f),
+                ColliderKind.TrunkCapsule, k_NoRules, "Psx_Tree02_Winter_Trunk", 1f,
+                EnvironmentRenderClass.Tree),
             PsxTree("tree03_winter", "Psx_Tree03_Winter"),
             PsxTree("tree04_winter", "Psx_Tree04_Winter"),
             PsxTree("tree05_winter", "Psx_Tree05_Winter"),
@@ -338,76 +363,85 @@ namespace RootsDance.Editor.Environment
         {
             MaterialRule[] rules = { new MaterialRule("_top", crownMaterial) };
             return new PrefabEntry(key, $"{k_Retro}Trees/{key}.fbx", k_Vegetation, ColliderKind.TrunkCapsule,
-                rules, crownMaterial + "_Trunk", 1f);
+                rules, crownMaterial + "_Trunk", 1f, EnvironmentRenderClass.Tree);
         }
 
         private static PrefabEntry PsxBush(string key, string material)
         {
             return new PrefabEntry(key, $"{k_Retro}Bushes/{key}.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, material, 1f);
+                k_NoRules, material, 1f, EnvironmentRenderClass.SmallVegetation);
         }
 
         private static PrefabEntry PsxGrass(string key, string material)
         {
             return new PrefabEntry(key, $"{k_Retro}Grass/{key}.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, material, 1f);
+                k_NoRules, material, 1f, EnvironmentRenderClass.GroundCover);
         }
 
         private static PrefabEntry PsxGrassVariant(string key, string model, string material)
         {
             return new PrefabEntry(key, $"{k_Retro}Grass/{model}.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, material, 1f);
+                k_NoRules, material, 1f, EnvironmentRenderClass.GroundCover);
         }
 
         private static PrefabEntry PsxSummerTree(string key, string model, string crownMaterial)
         {
             MaterialRule[] rules = { new MaterialRule("_top", crownMaterial) };
             return new PrefabEntry(key, $"{k_Retro}Trees/{model}.fbx", k_Vegetation,
-                ColliderKind.TrunkCapsule, rules, crownMaterial + "_Trunk", 1f);
+                ColliderKind.TrunkCapsule, rules, crownMaterial + "_Trunk", 1f, EnvironmentRenderClass.Tree);
         }
 
         private static PrefabEntry PsxSummerBush(string key, string model, string material)
         {
             return new PrefabEntry(key, $"{k_Retro}Bushes/{model}.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, material, 1f);
+                k_NoRules, material, 1f, EnvironmentRenderClass.SmallVegetation);
         }
 
         private static PrefabEntry Niwl(string key, string folder, string material)
         {
+            EnvironmentRenderClass renderClass = folder == "Ferns" || folder == "Bushes"
+                ? EnvironmentRenderClass.SmallVegetation
+                : EnvironmentRenderClass.GroundCover;
+
             return new PrefabEntry(key, $"{k_Niwl}{folder}/{key}.fbx", k_Vegetation, ColliderKind.None,
-                k_NoRules, material, 1f);
+                k_NoRules, material, 1f, renderClass);
         }
 
         private static PrefabEntry NiwlTree(string key, MaterialRule[] rules, string defaultMaterial)
         {
             return new PrefabEntry(key, $"{k_Niwl}Trees/{key}.fbx", k_Vegetation,
-                ColliderKind.TrunkCapsule, rules, defaultMaterial, 1f);
+                ColliderKind.TrunkCapsule, rules, defaultMaterial, 1f, EnvironmentRenderClass.Tree);
         }
 
         private static PrefabEntry Scan(string key, string category, ColliderKind collider, MaterialRule[] rules,
             string material)
         {
-            return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", category, collider, rules, material, 1f);
+            EnvironmentRenderClass renderClass = category == k_Rocks
+                ? EnvironmentRenderClass.RootRock
+                : EnvironmentRenderClass.Default;
+            return new PrefabEntry(key, $"{k_PolyHaven}{key}/{key}_1k.fbx", category, collider, rules, material, 1f,
+                renderClass);
         }
 
         /// <summary>One piece of the modular chain-link kit, cut out of <c>modular_chainlink_fence_1k.fbx</c>.</summary>
         private static PrefabEntry FencePiece(string key, string subObject)
         {
             return new PrefabEntry(key, $"{k_PolyHaven}modular_chainlink_fence/modular_chainlink_fence_1k.fbx",
-                k_Facility, ColliderKind.Box, k_FenceRules, "Scan_ChainlinkFence_Posts", 1f, subObject);
+                k_Facility, ColliderKind.Box, k_FenceRules, "Scan_ChainlinkFence_Posts", 1f,
+                EnvironmentRenderClass.Default, subObject);
         }
 
         /// <summary>One boulder cut out of a moss-rock set FBX.</summary>
         private static PrefabEntry RockPiece(string key, string setName, string subObject, string material)
         {
             return new PrefabEntry(key, $"{k_PolyHaven}{setName}/{setName}_1k.fbx", k_Rocks,
-                ColliderKind.MeshConvex, k_NoRules, material, 1f, subObject);
+                ColliderKind.MeshConvex, k_NoRules, material, 1f, EnvironmentRenderClass.RootRock, subObject);
         }
 
         private static PrefabEntry Lab(string key)
         {
             return new PrefabEntry(key, $"{k_Lab}{key}.fbx", k_Props, ColliderKind.Box, k_LabRules, "Lab_Palette",
-                k_LabScale);
+                k_LabScale, EnvironmentRenderClass.Default);
         }
     }
 }

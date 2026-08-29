@@ -72,6 +72,9 @@ namespace RootsDance.Tests.EditMode.Environment
             {
                 Assert.IsTrue(byKey.ContainsKey(key), key + " is missing");
                 Assert.AreEqual(ColliderKind.None, byKey[key].Collider, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.Default, byKey[key].RenderClass, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.Tree, byKey[key].RenderClass, key);
+                Assert.AreNotEqual(EnvironmentRenderClass.RootRock, byKey[key].RenderClass, key);
             }
         }
 
@@ -84,6 +87,19 @@ namespace RootsDance.Tests.EditMode.Environment
             {
                 Assert.IsTrue(byKey.ContainsKey(key), key + " is missing");
                 Assert.AreEqual(ColliderKind.TrunkCapsule, byKey[key].Collider, key);
+                Assert.AreEqual(EnvironmentRenderClass.Tree, byKey[key].RenderClass, key);
+            }
+        }
+
+        [Test]
+        public void RockCategory_UsesRootRockRenderBudget()
+        {
+            foreach (PrefabEntry entry in EnvironmentPrefabTable.Entries)
+            {
+                if (entry.Category == EnvironmentPrefabTable.k_Rocks)
+                {
+                    Assert.AreEqual(EnvironmentRenderClass.RootRock, entry.RenderClass, entry.Key);
+                }
             }
         }
 

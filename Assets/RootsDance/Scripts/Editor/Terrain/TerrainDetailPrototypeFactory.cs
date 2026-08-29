@@ -238,6 +238,7 @@ namespace RootsDance.Editor.Terrain
             // Detail instances are drawn by the terrain, not by this renderer; grass shadows are off
             // by project convention anyway.
             renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
 
             GameObject saved = PrefabUtility.SaveAsPrefabAsset(temporary, path);
             UnityEngine.Object.DestroyImmediate(temporary);
@@ -259,7 +260,9 @@ namespace RootsDance.Editor.Terrain
             return filter != null
                 && renderer != null
                 && filter.sharedMesh == mesh
-                && renderer.sharedMaterial == material;
+                && renderer.sharedMaterial == material
+                && renderer.shadowCastingMode == ShadowCastingMode.Off
+                && renderer.motionVectorGenerationMode == MotionVectorGenerationMode.Camera;
         }
     }
 }

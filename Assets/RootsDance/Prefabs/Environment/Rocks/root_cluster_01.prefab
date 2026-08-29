@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7479941823301030862}
+  - component: {fileID: 3942098395584465285}
   m_Layer: 0
   m_Name: root_cluster_01
   m_TagString: Untagged
@@ -32,6 +33,25 @@ Transform:
   - {fileID: 4959467631419448765}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!205 &3942098395584465285
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7891451487866705791}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0.003059864, y: 0.7092466, z: 0.34762573}
+  m_Size: 4.1227083
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.035703704
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 6095830265762031314}
+  m_Enabled: 1
 --- !u!1001 &4852955109211028054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -78,6 +98,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
+      propertyPath: m_MotionVectors
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
@@ -132,3 +160,8 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2577215502317724583, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
+--- !u!23 &6095830265762031314 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: e710ab380cba64acdb7524891e5065a5, type: 3}
+  m_PrefabInstance: {fileID: 4852955109211028054}
+  m_PrefabAsset: {fileID: 0}
