@@ -23,10 +23,10 @@ namespace RootsDance.Tests.EditMode.Environment
     public sealed class ChapterHouseInteriorLevelAssetTests
     {
         private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/ChapterHouseInterior.asset";
-        private const string k_NaveCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/CH-01_ChapterHouseNave.asset";
-        private const string k_BridgeCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/CH-02_ChapterHouseBridge.asset";
+        private const string k_CorridorEntranceCheckpointPath =
+            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
+        private const string k_FlowerSpriteEncounterCheckpointPath =
+            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04B_FlowerSpriteEncounter.asset";
         private const string k_ModelPath =
             "Assets/RootsDance/Meshes/Environment/ChapterHouse/ChapterHouseCorridor.fbx";
 
@@ -155,21 +155,21 @@ namespace RootsDance.Tests.EditMode.Environment
                 Bounds floor = FindPart(model.gameObject, k_FloorPart).GetComponent<Renderer>().bounds;
 
                 Transform anchors = FindRoot(gameplay, "_Anchors");
-                Transform nave = anchors.Find("Checkpoint_ChapterHouseNave");
-                Transform bridge = anchors.Find("Checkpoint_ChapterHouseBridge");
-                Assert.IsTrue(nave != null);
-                Assert.IsTrue(bridge != null);
+                Transform corridorEntrance = anchors.Find("Checkpoint_CorridorEntrance");
+                Transform flowerSpriteEncounter = anchors.Find("Checkpoint_FlowerSpriteEncounter");
+                Assert.IsTrue(corridorEntrance != null);
+                Assert.IsTrue(flowerSpriteEncounter != null);
 
                 // Head height above the floor, and inside its footprint — not under the building.
-                Assert.Greater(nave.position.y, floor.max.y);
-                Assert.Less(nave.position.y, floor.max.y + 2f);
-                Assert.That(nave.position.x, Is.InRange(floor.min.x, floor.max.x));
-                Assert.That(nave.position.z, Is.InRange(floor.min.z, floor.max.z));
-                Assert.Greater(bridge.position.y, floor.max.y);
+                Assert.Greater(corridorEntrance.position.y, floor.max.y);
+                Assert.Less(corridorEntrance.position.y, floor.max.y + 2f);
+                Assert.That(corridorEntrance.position.x, Is.InRange(floor.min.x, floor.max.x));
+                Assert.That(corridorEntrance.position.z, Is.InRange(floor.min.z, floor.max.z));
+                Assert.Greater(flowerSpriteEncounter.position.y, floor.max.y);
 
                 CharacterController player = FindRootComponent<CharacterController>(gameplay);
                 Assert.IsTrue(player != null);
-                Assert.That(player.transform.position, Is.EqualTo(nave.position));
+                Assert.That(player.transform.position, Is.EqualTo(corridorEntrance.position));
                 Assert.IsTrue(FindRoot(gameplay, "_Spawns").Find("PlayerSpawn") != null);
 
                 Component[] cameraComponents = FindRoot(gameplay, "_Cameras")
@@ -188,14 +188,27 @@ namespace RootsDance.Tests.EditMode.Environment
         public void Checkpoints_ReferenceLevelAndMatchAnchors()
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
-            AssertCheckpoint(k_NaveCheckpointPath, level, "Checkpoint_ChapterHouseNave");
-            AssertCheckpoint(k_BridgeCheckpointPath, level, "Checkpoint_ChapterHouseBridge");
+            AssertCheckpoint(
+                k_CorridorEntranceCheckpointPath,
+                "02-04A Corridor entrance",
+                level,
+                "Checkpoint_CorridorEntrance");
+            AssertCheckpoint(
+                k_FlowerSpriteEncounterCheckpointPath,
+                "02-04B Flower sprite encounter",
+                level,
+                "Checkpoint_FlowerSpriteEncounter");
         }
 
-        private static void AssertCheckpoint(string path, LevelSO level, string anchorName)
+        private static void AssertCheckpoint(
+            string path,
+            string label,
+            LevelSO level,
+            string anchorName)
         {
             DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
             Assert.IsTrue(checkpoint != null, path);
+            Assert.AreEqual(label, checkpoint.Label);
             Assert.AreSame(level, checkpoint.Level);
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);

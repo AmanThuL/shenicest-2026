@@ -12,7 +12,7 @@ namespace RootsDance.Player.Arms
     /// <para>
     /// Both scanner clips are left-arm only, so they run on the masked left layer and the right
     /// hand keeps whatever it was holding. The raise holds its end pose until the lower is asked
-    /// for, which the director enforces through the pose gate rather than by convention.
+    /// for.
     /// </para>
     /// </summary>
     [DisallowMultipleComponent]
@@ -140,7 +140,7 @@ namespace RootsDance.Player.Arms
 
             if (!m_isRaising)
             {
-                // Refused by the pose gate — put it away again rather than leaving it floating.
+                // Refused (the arm is busy) — put it away again rather than leaving it floating.
                 SetScannerVisible(false);
             }
         }

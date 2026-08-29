@@ -39,8 +39,6 @@ namespace RootsDance.EditorTools
             public string m_clip;
             public ArmsScope m_scope;
             public bool m_loop;
-            public bool m_gate;
-            public ArmsPose m_required;
             public ArmsPose m_result;
             public string m_chain;
             public bool m_hold;
@@ -74,8 +72,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "neutral", m_model = arms + "Arms_Neutral.fbx", m_clip = "Arms_Neutral",
-                    m_scope = ArmsScope.Both, m_loop = true, m_gate = false,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Both, m_loop = true,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.15f, m_key = Key.None,
                 },
 
@@ -83,8 +81,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "hold", m_model = arms + "Arms_Hold.fbx", m_clip = "Arms_Hold",
-                    m_scope = ArmsScope.Right, m_loop = true, m_gate = false,
-                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.ForearmRaised,
+                    m_scope = ArmsScope.Right, m_loop = true,
+                    m_result = ArmsPose.ForearmRaised,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.18f, m_key = Key.None,
                 },
 
@@ -92,8 +90,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "grabGround", m_model = arms + "Arms_GrabGround.fbx", m_clip = "Arms_GrabGround",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.ForearmRaised,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.ForearmRaised,
                     m_chain = "hold", m_height = ArmsHeightBase.Standing,
                     m_fadeIn = 0.25f, m_key = Key.G,
                     m_events = new[] { Event(27f / 74f, HandSide.Right, HandEventKind.Attach) },
@@ -105,8 +103,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "holdTube", m_model = arms + "Arms_HoldTube.fbx", m_clip = "Arms_HoldTube",
-                    m_scope = ArmsScope.Right, m_loop = true, m_gate = false,
-                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.ForearmRaised,
+                    m_scope = ArmsScope.Right, m_loop = true,
+                    m_result = ArmsPose.ForearmRaised,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.18f, m_key = Key.None,
                 },
 
@@ -116,8 +114,8 @@ namespace RootsDance.EditorTools
                 {
                     m_id = "grabGroundTube", m_model = arms + "Arms_GrabGroundTube.fbx",
                     m_clip = "Arms_GrabGroundTube",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.ForearmRaised,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.ForearmRaised,
                     m_chain = "holdTube", m_height = ArmsHeightBase.Standing,
                     m_fadeIn = 0.25f, m_key = Key.C,
                     m_events = new[] { Event(27f / 74f, HandSide.Right, HandEventKind.Attach) },
@@ -129,8 +127,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "throw", m_model = arms + "Arms_Throw.fbx", m_clip = "Arms_Throw",
-                    m_scope = ArmsScope.Right, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Right, m_loop = false,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.08f, m_key = Key.T,
                     m_events = new[] { Event(23f / 39f, HandSide.Right, HandEventKind.Detach) },
                 },
@@ -139,33 +137,33 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "drop", m_model = arms + "Arms_Drop.fbx", m_clip = "Arms_Drop",
-                    m_scope = ArmsScope.Right, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.ForearmRaised, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Right, m_loop = false,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.08f, m_key = Key.H,
                     m_events = new[] { Event(4.5f / 27f, HandSide.Right, HandEventKind.Detach) },
                 },
 
-                // Ends held on the aim pose; nothing else may take the left arm until it comes down.
+                // Ends held on the aim pose until it comes down.
                 new Row
                 {
                     m_id = "scannerRaise", m_model = arms + "Arms_ScannerRaise.fbx", m_clip = "Arms_ScannerRaise",
-                    m_scope = ArmsScope.Left, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.AimL,
+                    m_scope = ArmsScope.Left, m_loop = false,
+                    m_result = ArmsPose.AimL,
                     m_hold = true, m_height = ArmsHeightBase.Standing,
                     m_fadeIn = 0.1f, m_key = Key.J,
                 },
                 new Row
                 {
                     m_id = "scannerLower", m_model = arms + "Arms_ScannerLower.fbx", m_clip = "Arms_ScannerLower",
-                    m_scope = ArmsScope.Left, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.AimL, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Left, m_loop = false,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.08f, m_key = Key.K,
                 },
                 new Row
                 {
                     m_id = "keypadPoke", m_model = arms + "Arms_KeypadPoke.fbx", m_clip = "Arms_KeypadPoke",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.Standing, m_fadeIn = 0.12f, m_key = Key.P,
                 },
 
@@ -173,20 +171,20 @@ namespace RootsDance.EditorTools
                 // the last frame leaves the body exactly where the cycle began — press again for
                 // another stride, or stand up. Looping it instead would make the key a toggle,
                 // which is not what a single stride should feel like.
-                // No authored way into the crawl pose yet, so the gate is off for this one.
+                // No authored way into the crawl pose yet; it is entered straight from anywhere.
                 new Row
                 {
                     m_id = "crawl", m_model = arms + "Arms_Crawl.fbx", m_clip = "Arms_Crawl",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = false,
-                    m_required = ArmsPose.CrawlPose, m_result = ArmsPose.CrawlPose,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.CrawlPose,
                     m_hold = true, m_height = ArmsHeightBase.Ground,
                     m_fadeIn = 0.2f, m_key = Key.N,
                 },
                 new Row
                 {
                     m_id = "standUp", m_model = arms + "Arms_StandUp.fbx", m_clip = "Arms_StandUp",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.CrawlPose, m_result = ArmsPose.HangLow,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.HangLow,
                     m_height = ArmsHeightBase.GroundToStanding, m_fadeIn = 0.15f, m_key = Key.V,
                 },
 
@@ -195,8 +193,8 @@ namespace RootsDance.EditorTools
                 new Row
                 {
                     m_id = "helmetOff", m_model = k_RigModel, m_clip = "Arms_HelmetOff",
-                    m_scope = ArmsScope.Both, m_loop = false, m_gate = true,
-                    m_required = ArmsPose.HangLow, m_result = ArmsPose.ForearmRaised,
+                    m_scope = ArmsScope.Both, m_loop = false,
+                    m_result = ArmsPose.ForearmRaised,
                     m_chain = "hold", m_height = ArmsHeightBase.Standing,
                     m_fadeIn = 0.15f, m_key = Key.B,
                     m_events = new[] { Event(26f / 119f, HandSide.Right, HandEventKind.Attach) },
@@ -270,8 +268,6 @@ namespace RootsDance.EditorTools
             so.FindProperty("m_clip").objectReferenceValue = FindClip(row.m_model, row.m_clip);
             so.FindProperty("m_scope").enumValueIndex = (int)row.m_scope;
             so.FindProperty("m_loop").boolValue = row.m_loop;
-            so.FindProperty("m_requiredPoseEnforced").boolValue = row.m_gate;
-            so.FindProperty("m_requiredPose").enumValueIndex = (int)row.m_required;
             so.FindProperty("m_resultPose").enumValueIndex = (int)row.m_result;
             so.FindProperty("m_chainToId").stringValue = row.m_chain ?? string.Empty;
             so.FindProperty("m_holdAfterFinish").boolValue = row.m_hold;

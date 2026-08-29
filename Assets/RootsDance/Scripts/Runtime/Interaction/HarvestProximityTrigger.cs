@@ -17,7 +17,7 @@ namespace RootsDance.Interaction
     /// The grab animation is the whole point — the fiction is "reach down, scrape some off, feed it
     /// to the torch", and that is <c>grabGround</c>, the same clip a real pickup plays. Nothing is
     /// attached to the hand: the flag goes up when the action plays through, and the patch stays
-    /// where it is. If the arms refuse the action (busy, wrong pose) the flag does not go up and
+    /// where it is. If the arms refuse the action (busy) the flag does not go up and
     /// the offer stands, so a refused animation cannot silently skip the beat.
     /// </para>
     /// <para>
@@ -150,7 +150,7 @@ namespace RootsDance.Interaction
 
             if (!m_director.TryPlay(m_actionId))
             {
-                // A refusal, not an error — the arm is mid-action or in the wrong pose. The offer
+                // A refusal, not an error — the arm is still mid-action. The offer
                 // stays up so the next press can land.
                 return;
             }

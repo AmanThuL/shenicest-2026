@@ -80,8 +80,8 @@ namespace RootsDance.Editor.Environment
         private const string k_MyceliumControllerPath =
             k_AnimationFolder + "/MyceliumUndercroft.controller";
 
-        private const string k_NaveAnchor = "Checkpoint_ChapterHouseNave";
-        private const string k_GalleryAnchor = "Checkpoint_ChapterHouseBridge";
+        private const string k_CorridorEntranceAnchor = "Checkpoint_CorridorEntrance";
+        private const string k_FlowerSpriteEncounterAnchor = "Checkpoint_FlowerSpriteEncounter";
 
         /// <summary>The catwalk. The one piece that is not a part of the chapel.</summary>
         private const string k_BridgePart = "Bridge_Metal_Center.001";
@@ -894,14 +894,14 @@ namespace RootsDance.Editor.Environment
             return new[]
             {
                 new CheckpointPlacement(
-                    k_NaveAnchor,
+                    k_CorridorEntranceAnchor,
                     new Vector3(
                         bridge.center.x,
                         deck + k_EyeClearance,
                         bridge.min.z + 0.5f),
                     0f),
                 new CheckpointPlacement(
-                    k_GalleryAnchor,
+                    k_FlowerSpriteEncounterAnchor,
                     new Vector3(
                         bridge.center.x,
                         deck + k_EyeClearance,
@@ -1056,13 +1056,13 @@ namespace RootsDance.Editor.Environment
         private static void CreateCheckpointAssets(LevelSO level)
         {
             CreateCheckpoint(
-                k_CheckpointFolder + "/CH-01_ChapterHouseNave.asset",
-                "CH-01 Chapter house nave",
+                k_CheckpointFolder + "/02-04A_CorridorEntrance.asset",
+                "02-04A Corridor entrance",
                 level,
                 s_checkpointPlacements[0]);
             CreateCheckpoint(
-                k_CheckpointFolder + "/CH-02_ChapterHouseBridge.asset",
-                "CH-02 Chapter house bridge",
+                k_CheckpointFolder + "/02-04B_FlowerSpriteEncounter.asset",
+                "02-04B Flower sprite encounter",
                 level,
                 s_checkpointPlacements[1]);
         }

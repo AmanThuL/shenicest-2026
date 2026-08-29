@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
-  m_Name: CH-02_ChapterHouseBridge
+  m_Name: 02-04A_CorridorEntrance
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: CH-02 Chapter house bridge
+  m_label: 02-04A Corridor entrance
   m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
-  m_anchorName: Checkpoint_ChapterHouseBridge
-  m_position: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
-  m_yaw: 180
+  m_anchorName: Checkpoint_CorridorEntrance
+  m_position: {x: 0.13872959, y: 6.1544313, z: -2.023664}
+  m_yaw: 0
   m_snapToGround: 0
   m_groundLayers:
     serializedVersion: 2

@@ -144,15 +144,6 @@ namespace RootsDance.Player.Arms
                 return false;
             }
 
-            if (!ArmsPoseGate.Allows(action.Scope, action.RequiredPose,
-                action.RequiredPoseEnforced, m_leftPose, m_rightPose))
-            {
-                Log.Warning($"ArmsDirector: '{actionId}' refused — it starts from "
-                    + $"{action.RequiredPose}, the arms are in "
-                    + $"(L {m_leftPose} / R {m_rightPose}).", this);
-                return false;
-            }
-
             Begin(action);
             return true;
         }
@@ -300,8 +291,6 @@ namespace RootsDance.Player.Arms
 
             ArmsActionSO chain = m_actions.Find(action.ChainToId);
 
-            // The chained action's seam is authored, so it bypasses the pose gate the way a
-            // requested action cannot.
             if (chain != null && !IsBusy(chain.Scope))
             {
                 Begin(chain);

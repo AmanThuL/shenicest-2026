@@ -392,8 +392,7 @@ namespace RootsDance.Interaction
 
             if (m_rightSocket == null || m_rightSocket.Carried == null)
             {
-                return m_armsDirector.LeftPose == ArmsPose.HangLow
-                    && m_armsDirector.RightPose == ArmsPose.HangLow;
+                return true;
             }
 
             CarriedItem carried = m_rightSocket.Carried;
@@ -407,10 +406,8 @@ namespace RootsDance.Interaction
             m_stowedItem = carried;
             m_stowedItem.gameObject.SetActive(false);
 
-            // A carried torch can legitimately be present while the arms have already returned to
-            // HangLow. In that state the authored drop action's ForearmRaised pose gate refuses the
-            // animation. The keypad interaction must still proceed: keep the torch hidden and let
-            // RestoreStowedItem put it back when the close-up ends.
+            // The torch stays hidden for the close-up either way; RestoreStowedItem puts it back
+            // when it ends.
             await PlayArmsActionAsync(k_DropActionId, cancellationToken, false);
 
             return true;
