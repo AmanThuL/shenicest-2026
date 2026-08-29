@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 00-09 Blocked main entrance
   m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
   m_anchorName: Anchor_00-09_BlockedMainEntrance
-  m_position: {x: 9.505, y: 7.299, z: 118.941}
+  m_position: {x: 30, y: 7.8, z: 96.2}
   m_yaw: 0
   m_snapToGround: 1
   m_groundLayers:
@@ -23,7 +23,7 @@ MonoBehaviour:
     m_Bits: 256
   m_groundClearance: 1
   m_useAnchorHeight: 1
-  m_timeOfDay: 2
+  m_timeOfDay: 0
   m_flags:
   - flow.left_start_area
   - flow.radio_briefing_started

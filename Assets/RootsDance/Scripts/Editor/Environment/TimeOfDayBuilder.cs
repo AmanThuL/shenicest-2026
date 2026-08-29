@@ -17,7 +17,7 @@ namespace RootsDance.Editor.Environment
     /// Builds the discrete time-of-day presentation into Main_Environment: the TimeOfDayChanged event
     /// channel, the NightProfile volume profile, one preset asset per <see cref="TimeOfDay"/> value, and the
     /// <c>_Lighting/TimeOfDay</c> GameObject carrying the global Volume the controller fades. Re-runnable:
-    /// the scene objects and their wiring are rebuilt every time, while NightProfile and the two presets are
+    /// the scene objects and their wiring are rebuilt every time, while NightProfile and the presets are
     /// only seeded when missing — hand tuning in the Inspector survives a plain re-run and is reset only by
     /// the explicit overwrite entry, the same rule the Opening profiles follow.
     /// </summary>
@@ -35,6 +35,7 @@ namespace RootsDance.Editor.Environment
         private const string k_PresetFolder = "Assets/RootsDance/Data/Config/TimeOfDay";
         private const string k_DayPresetPath = k_PresetFolder + "/Day.asset";
         private const string k_NightPresetPath = k_PresetFolder + "/Night.asset";
+        private const string k_PollutedDayPresetPath = k_PresetFolder + "/PollutedDay.asset";
 
         // ---- scene object names --------------------------------------------------------------------------
 
@@ -126,7 +127,7 @@ namespace RootsDance.Editor.Environment
         public static void BuildOverwritingProfile()
         {
             if (!EditorUtility.DisplayDialog("Rebuild Time Of Day Profile",
-                "This resets NightProfile and both time-of-day presets to their seed values, discarding hand "
+                "This resets NightProfile and all time-of-day presets to their seed values, discarding hand "
                     + "tuning. Continue?",
                 "Overwrite", "Cancel"))
             {
@@ -164,7 +165,7 @@ namespace RootsDance.Editor.Environment
 
         /// <summary>
         /// One-shot batch install of the whole feature, in dependency order: the bootstrap wiring (channel
-        /// asset), this builder, the Player flashlight, and the Dev Play checkpoints set to Night.
+        /// asset), this builder, the Player flashlight, and the Dev Play checkpoints set to the level default.
         /// <c>-executeMethod RootsDance.Editor.Environment.TimeOfDayBuilder.BuildAllFromCommandLine</c>.
         /// Each step is idempotent; each throws on failure so the Editor exits with code 1.
         /// </summary>
@@ -173,7 +174,7 @@ namespace RootsDance.Editor.Environment
             RootsDance.Editor.Tools.BootstrapSceneBuilder.BuildFromCommandLine();
             BuildFromCommandLine();
             RootsDance.Editor.Tools.PlayerFlashlightInstaller.InstallFromCommandLine();
-            RootsDance.Editor.DevPlay.DevCheckpointDefaults.SetAllTimeOfDayToNight();
+            RootsDance.Editor.DevPlay.DevCheckpointDefaults.SetAllTimeOfDayToLevelDefault();
         }
 
         /// <summary>
@@ -240,13 +241,16 @@ namespace RootsDance.Editor.Environment
             // invalidated object silently serializes as "None" instead of failing.
             TimeOfDayPresetSO day = AssetDatabase.LoadAssetAtPath<TimeOfDayPresetSO>(k_DayPresetPath);
             TimeOfDayPresetSO night = AssetDatabase.LoadAssetAtPath<TimeOfDayPresetSO>(k_NightPresetPath);
+            TimeOfDayPresetSO pollutedDay =
+                AssetDatabase.LoadAssetAtPath<TimeOfDayPresetSO>(k_PollutedDayPresetPath);
             TimeOfDayEventChannelSO channel =
                 AssetDatabase.LoadAssetAtPath<TimeOfDayEventChannelSO>(k_TimeOfDayChangedPath);
 
-            if (day == null || night == null || channel == null)
+            if (day == null || night == null || pollutedDay == null || channel == null)
             {
-                Debug.LogError($"{k_LogPrefix}: could not load {k_DayPresetPath}, {k_NightPresetPath} or "
-                    + $"{k_TimeOfDayChangedPath}; the controller would be left unwired.");
+                Debug.LogError($"{k_LogPrefix}: could not load {k_DayPresetPath}, {k_NightPresetPath}, "
+                    + $"{k_PollutedDayPresetPath} or {k_TimeOfDayChangedPath}; the controller would be left "
+                    + "unwired.");
                 return false;
             }
 
@@ -254,7 +258,7 @@ namespace RootsDance.Editor.Environment
             Volume volume = EnsureVolume(holder);
             VolumeProfile nightBaseProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_NightBaseProfilePath);
             Volume baseVolume = EnsureBaseVolume(EnsureChild(holder, k_TimeOfDayBaseName), nightBaseProfile);
-            WireController(holder, volume, baseVolume, sun, day, night, channel);
+            WireController(holder, volume, baseVolume, sun, day, night, pollutedDay, channel);
 
             EditorSceneManager.MarkSceneDirty(scene);
 
@@ -265,7 +269,8 @@ namespace RootsDance.Editor.Environment
             }
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"{k_LogPrefix}: {k_NightProfilePath}, {k_DayPresetPath}, {k_NightPresetPath} and "
+            Debug.Log($"{k_LogPrefix}: {k_NightProfilePath}, {k_DayPresetPath}, {k_NightPresetPath}, "
+                + $"{k_PollutedDayPresetPath} and "
                 + $"{k_LightingRootName}/{k_TimeOfDayName} (global Volume, priority {k_VolumePriority}, weight 0) "
                 + $"are in place in {ScenePaths.k_MainEnvironment}.");
             return true;
@@ -383,6 +388,8 @@ namespace RootsDance.Editor.Environment
                 overwriteTuned);
             EnsurePreset(k_NightPresetPath, TimeOfDay.Night, nightProfile, k_NightSunLux, k_NightSunColor,
                 k_NightSunVolumetricMultiplier, overwriteTuned);
+            EnsurePreset(k_PollutedDayPresetPath, TimeOfDay.PollutedDay, null, dayLux, dayColor,
+                k_DaySunVolumetricMultiplier, overwriteTuned);
         }
 
         private static void EnsurePreset(string path, TimeOfDay phase, VolumeProfile profile, float sunIntensityLux,
@@ -545,7 +552,8 @@ namespace RootsDance.Editor.Environment
         }
 
         private static void WireController(Transform holder, Volume volume, Volume baseVolume, Light sun,
-            TimeOfDayPresetSO day, TimeOfDayPresetSO night, TimeOfDayEventChannelSO channel)
+            TimeOfDayPresetSO day, TimeOfDayPresetSO night, TimeOfDayPresetSO pollutedDay,
+            TimeOfDayEventChannelSO channel)
         {
             TimeOfDayController controller = holder.GetComponent<TimeOfDayController>();
             bool created = false;
@@ -558,13 +566,13 @@ namespace RootsDance.Editor.Environment
 
             SerializedObject serialized = new SerializedObject(controller);
 
-            // TimeOfDay is Day = 0, Night = 1, so the enum index and the value are the same number.
-            serialized.FindProperty("m_levelDefault").enumValueIndex = (int)TimeOfDay.Night;
+            serialized.FindProperty("m_levelDefault").enumValueIndex = (int)TimeOfDay.PollutedDay;
 
             SerializedProperty presets = serialized.FindProperty("m_presets");
-            presets.arraySize = 2;
+            presets.arraySize = 3;
             presets.GetArrayElementAtIndex(0).objectReferenceValue = day;
             presets.GetArrayElementAtIndex(1).objectReferenceValue = night;
+            presets.GetArrayElementAtIndex(2).objectReferenceValue = pollutedDay;
 
             serialized.FindProperty("m_volume").objectReferenceValue = volume;
             serialized.FindProperty("m_baseVolume").objectReferenceValue = baseVolume;

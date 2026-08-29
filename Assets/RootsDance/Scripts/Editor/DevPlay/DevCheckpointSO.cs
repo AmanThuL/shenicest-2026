@@ -101,7 +101,7 @@ namespace RootsDance.Editor.DevPlay
 
         /// <summary>
         /// Rewrites only the time of day on an already authored asset. Only Dev Play tooling calls this
-        /// (<see cref="DevCheckpointDefaults.SetAllTimeOfDayToNight"/>); the caller owns
+        /// (<see cref="DevCheckpointDefaults.SetAllTimeOfDayToLevelDefault"/>); the caller owns
         /// <c>EditorUtility.SetDirty</c> and saving.
         /// </summary>
         public void SetTimeOfDay(CheckpointTimeOfDay timeOfDay)

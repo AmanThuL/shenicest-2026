@@ -72,7 +72,7 @@ Installed as a normal UPM package (`com.yasirkula.ingamedebugconsole`, via the O
 
 - **Licence: CC0** (public domain). Source: drillimpact, "PSX First Person Arms" on itch.io.
 - **What is used:** `arms_rig_helmat.blend` — the rigged first-person arms, its 20 actions, and the
-  512px `arms_01.png` sheet. `Arms.fbx`, `Arms_HelmetOff` and `Assets/RootsDance/Textures/Characters/arms_01.png`
+  512px `arms_01.png` sheet. `Arms.fbx`, `Arms_HelmetOff` and `Assets/RootsDance/Textures/Characters/Arms_BaseMap.png`
   all derive from it.
 - **Local additions:** a non-deforming `helmet_socket` bone under `root`, driven by a Child Of
   constraint, added so the helmet hand-off is pure skeletal animation
@@ -106,8 +106,8 @@ the only derived data lives under `Assets/RootsDance/`.
 
 | Folder | Vendor | Licence | What |
 |---|---|---|---|
-| `RetroPSXNature/` | elegantcrow, *Retro PSX Nature Pack* (itch.io) | **No licence text on the saved page** — index lists CC0; confirm on the live page before the submission build | 6 winter trees (`tree02_winter` is the OBJ: the vendor FBX is empty), 6 winter bushes, `bush07`/`bush08`, their 128/256 px sheets |
-| `NiwlPlants/` | Niwl-Games / Khaleer, *Plants* (itch.io) | CC0 1.0 | 8 grass patches, 2 ferns, 4 bushes, ivy 1–4, the two `T_Plants_General*` atlases |
+| `RetroPSXNature/` | elegantcrow, *Retro PSX Nature Pack* (itch.io) | **No licence text on the saved page** — index lists CC0; confirm on the live page before the submission build | Existing winter trees/bushes plus 12 grass meshes, 8 ordinary summer trees, 6 ordinary summer bushes and selected summer/winter alpha sheets |
+| `NiwlPlants/` | Niwl-Games / Khaleer, *Plants* (itch.io) | CC0 1.0 | 8 grass patches, 2 ferns, 4 bushes, ivy 1–4/6–8, meadow, poppies, sunflower, 3 alder, 3 birch, pine and five shared atlases/bark maps |
 | `PolyHaven/` | Poly Haven | CC0 1.0 | `Models/`: dead_tree_trunk(_02), dry_branches_medium_01, pine_roots, root_cluster_01/02, single_root, rock_moss_set_01/02, modular_chainlink_fence, concrete_road_barrier, clipboard, binder_notebook (1K). `Textures/`: brown_mud_02, aerial_ground_rock (AO/rough/disp in `Source~/`, same convention as ambientCG) |
 | `LabAssetsCC0/` | MilkAndBanana via OpenGameArt *Lab Assets* | CC0 1.0 | 19 hand-held sampling/recording props (centimetre scale — the prefab table scales them by 0.01) |
 
@@ -122,8 +122,10 @@ the only derived data lives under `Assets/RootsDance/`.
 - **Materials and prefabs:** `RootsDance > Environment > Build Environment Prefabs` (`EnvironmentPalette` +
   `EnvironmentPrefabTable` + `EnvironmentPrefabBuilder`) writes one **The Visual Engine** material per vendor texture set
   to `Assets/RootsDance/Materials/Environment/` (`General Standard Lit` for trees/props/scans, `General Subsurface Lit`
-  for bush/plant cards; `TVEUtils.SetMaterialSettings` + the "The Visual Engine" label) and 64 prefabs to
-  `Assets/RootsDance/Prefabs/Environment/{Vegetation,Heroes,Rocks,Facility,Props}/`. TVE's own Asset Converter is not
+  for bush/plant cards; `TVEUtils.SetMaterialSettings` + the "The Visual Engine" label) and 133 prefabs to
+  `Assets/RootsDance/Prefabs/Environment/{Vegetation,Heroes,Rocks,Facility,Props}/`. The 2026-08-29 increment keeps
+  grass/flower meshes walk-through, gives ordinary trees a trunk capsule, and reuses the two Retro patch meshes for
+  several palette-tint variants rather than duplicating source geometry. TVE's own Asset Converter is not
   used: it needs the separately sold *TVE Conversion Presets* package and, without a preset, replaces materials with
   blank ones. `RootsDance > Environment > Create TVE Manager Prefab` builds `Prefabs/Systems/TVEManager.prefab`; every
   Environment scene that uses these prefabs needs one instance (materials read wind/tint/wetness from it).
@@ -139,7 +141,8 @@ the only derived data lives under `Assets/RootsDance/`.
 - **Not imported because of licence vs. public repo:** *Barriers Retro PSX* (gataki) and *PSX Large Terrain Rock Pack 2*
   (Caliber Creations) both forbid redistributing their files, and `AmanThuL/shenicest-2026` is public — committing the
   FBX would be redistribution. Poly Haven's `concrete_road_barrier` and `modular_chainlink_fence` cover the boundary pool;
-  rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it.
+  rocks come from the two `rock_moss_set` scans until the repo goes private or the authors OK it. This remains true
+  if the original rock materials/textures are discarded: the licence also protects the raw and modified meshes.
 
 ## Kenney Particle Pack (Kenney) — `Assets/ThirdParty/VFX/KenneyParticlePack/`
 

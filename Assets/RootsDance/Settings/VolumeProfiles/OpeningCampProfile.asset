@@ -115,8 +115,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.Fog
   active: 1
   quality:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 3
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -169,20 +169,20 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.1
   sliceDistributionUniformity:
-    m_OverrideState: 0
-    m_Value: 0.75
+    m_OverrideState: 1
+    m_Value: 0.5
   multipleScatteringIntensity:
     m_OverrideState: 1
     m_Value: 0.8
   m_FogControlMode:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   screenResolutionPercentage:
-    m_OverrideState: 0
-    m_Value: 12.5
+    m_OverrideState: 1
+    m_Value: 33
   volumeSliceCount:
-    m_OverrideState: 0
-    m_Value: 64
+    m_OverrideState: 1
+    m_Value: 128
   m_VolumetricFogBudget:
     m_OverrideState: 0
     m_Value: 0.25

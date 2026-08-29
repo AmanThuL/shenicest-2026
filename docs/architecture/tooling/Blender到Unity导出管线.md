@@ -145,7 +145,7 @@ FBX 导出器勾了 Baked Animation 后，会把约束求解后的姿态逐帧�
 - **Animation** — `importAnimation` 开、压缩 `Off`、clip 命名 `Arms_HelmetOff`
 - **Materials** — `External` + `BasedOnMaterialName` + `Everywhere`，材质重定向到 `Assets/RootsDance/Materials/`，避免 Unity 在 mesh 旁边另建 `Materials/`
 
-`static_blockout` profile（实验室白模）：同 `static_prop`，但 `m_globalScale = 0.4`（V2 建筑比例决策见 [全章节地形与场景空间设计方案](../../design/全章节地形与场景空间设计方案.md) §0 第 8 条）、`m_addCollider` 开（白模是可走的灰盒几何）、`m_materialImportMode = ImportViaMaterialDescription` + `m_materialLocation = InPrefab`（材质随 FBX 内嵌，不在 mesh 旁边另建 `Materials/`）、`m_doubleSidedMaterials` 开（见 §8.2）。
+`static_blockout` profile（实验室白模）：同 `static_prop`，但 `m_globalScale = 0.4`（V2 建筑比例的历史决策见 [归档总地形方案](../../design/archive/00章/2026-08-28_全章节地形与场景空间设计方案.md) §0 第 8 条）、`m_addCollider` 开（白模是可走的灰盒几何）、`m_materialImportMode = ImportViaMaterialDescription` + `m_materialLocation = InPrefab`（材质随 FBX 内嵌，不在 mesh 旁边另建 `Materials/`）、`m_doubleSidedMaterials` 开（见 §8.2）。
 
 ### 8.2 `m_doubleSidedMaterials`：建筑白模必须双面
 

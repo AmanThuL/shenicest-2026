@@ -27,7 +27,6 @@ namespace RootsDance.EditorTools
         private const string k_Scene = "Assets/RootsDance/Scenes/Levels/Main/Main_Environment_2.unity";
         private const string k_Car = "Assets/RootsDance/Meshes/Environment/CarRustyOpenDoor.fbx";
         private const string k_Flashlight = "Assets/RootsDance/Meshes/Props/Flashlight.fbx";
-        private const string k_Poster = "Assets/RootsDance/Meshes/Environment/BandPoster.fbx";
         private const string k_ScanPoster = "Assets/RootsDance/Meshes/Environment/SHA2017Poster.obj";
 
         /// <summary>
@@ -43,13 +42,6 @@ namespace RootsDance.EditorTools
         /// </summary>
         private const float k_CarYaw = -45f;
 
-        /// <summary>
-        /// Which way the poster's printed face looks after the FBX axis conversion. The Maya
-        /// source hangs it in the XY plane with the pushpins protruding towards -Z, so this is the
-        /// yaw that turns that face back towards the player spawn at (0, -10).
-        /// </summary>
-        private const float k_PosterYaw = 20f;
-
         /// <summary>Objects the default new-scene template ships that an additive part must not keep.</summary>
         private static readonly string[] k_TemplateObjects = { "Main Camera", "Directional Light" };
 
@@ -62,7 +54,6 @@ namespace RootsDance.EditorTools
 
             AssetDatabase.ImportAsset(k_Car, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(k_Flashlight, ImportAssetOptions.ForceUpdate);
-            AssetDatabase.ImportAsset(k_Poster, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(k_ScanPoster, ImportAssetOptions.ForceUpdate);
             AssetDatabase.Refresh();
 
@@ -90,12 +81,6 @@ namespace RootsDance.EditorTools
                 alignToSlope: false, levelToPivot: true);
             Place(scene, terrain, k_Flashlight, "Flashlight", new Vector2(0.8f, -7.5f), -25f, 0f);
 
-            // The poster is a flat sheet, so it is the one prop that must stay upright: laying it
-            // along the slope would tip a hanging print onto its face. It stands just left of the
-            // spawn, turned back towards it, with its bottom edge on the ground.
-            Place(scene, terrain, k_Poster, "BandPoster", new Vector2(-2.2f, -6.5f), k_PosterYaw, 0f,
-                alignToSlope: false);
-
             // The SHA2017 scan is not a sheet but a 3.7 x 2.4 x 2.4 m photogrammetry chunk that
             // stands on its own base, so it beds into the slope like the wreck does. It sits off
             // the path to the left, turned towards it.
@@ -105,9 +90,9 @@ namespace RootsDance.EditorTools
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
 
-            // Re-placing a prop destroys whatever was parented to it, so both overlays are rebuilt
-            // here rather than left for whoever notices the runes or the cabin walls have gone.
-            FluorescentRunesBuilder.Build();
+            // Re-placing a prop destroys whatever was parented to it, so the cabin walls are
+            // rebuilt here rather than left for whoever notices they have gone. The band posters
+            // hang on the lab corridor walls now, so CorridorPostersBuilder owns them.
             CarCabinColliderBuilder.Build();
 
             Debug.Log("TempPlaceEnvironment2: done.");

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using RootsDance.Editor.Terrain;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -8,7 +11,7 @@ namespace RootsDance.Editor.Environment
 {
     /// <summary>
     /// Places the opening段's props into <c>Main_Environment</c> so the three concept images of
-    /// <c>docs/design/00章前段环境设计_起始点至异色草带.md</c> §5/§6 read in-engine: the contamination zone at
+    /// <c>docs/design/00章室外环境设计_起始点至检修通道前.md</c> reads in-engine: the contamination zone at
     /// the wake lowland, the abandoned survey camp, and the threshold in front of the anomalous grass band.
     /// </summary>
     /// <remarks>
@@ -27,11 +30,32 @@ namespace RootsDance.Editor.Environment
     public static class OpeningPropsBuilder
     {
         private const string k_Menu = "RootsDance/Environment/Build Opening Props";
+        private const float k_GroundingTolerance = 0.002f;
+        private const string k_VegetationMaterialFolder =
+            "Assets/RootsDance/Materials/Environment/OpeningVegetation";
+        private static readonly Color k_PollutedPlantTint = new Color(0.42f, 0.42f, 0.26f);
+        private static readonly Color k_AnomalousPlantTint = new Color(0.56f, 0.66f, 0.55f);
+        private static readonly int k_TveColorId = Shader.PropertyToID("_MainColor");
 
         [MenuItem(k_Menu)]
         public static void Build()
         {
             BuildWith(OpeningPropsParams.CreateDefault());
+        }
+
+        /// <summary>Batch entry for an explicit rebuild followed by a scene save.</summary>
+        public static void BuildAndSaveFromCommandLine()
+        {
+            OpeningPropsParams p = OpeningPropsParams.CreateDefault();
+            int placed = BuildWith(p);
+            Scene scene = SceneManager.GetSceneByPath(p.ScenePath);
+
+            if (placed <= 0 || !scene.IsValid() || !scene.isLoaded || !EditorSceneManager.SaveScene(scene))
+            {
+                throw new InvalidOperationException("OpeningPropsBuilder: build/save failed.");
+            }
+
+            Debug.Log($"OpeningPropsBuilder: saved {placed} opening props after route-clearance rebuild.");
         }
 
         /// <summary>Runs the pass against explicit parameters. Returns the number of props placed.</summary>
@@ -55,8 +79,9 @@ namespace RootsDance.Editor.Environment
             TerrainSampler sampler = new TerrainSampler(terrain);
             List<PropInstance> instances = OpeningPropsLayout.Build(p, sampler);
             Dictionary<string, GameObject> prefabs = LoadPrefabs(instances);
+            Dictionary<string, Material> vegetationMaterials = EnsureVegetationMaterials();
 
-            if (prefabs == null)
+            if (prefabs == null || vegetationMaterials == null)
             {
                 return 0;
             }
@@ -65,6 +90,7 @@ namespace RootsDance.Editor.Environment
             Transform root = EnsurePwbRoot(scene);
             Dictionary<PropPool, Transform> parents = ResetPoolParents(root);
             Dictionary<string, Bounds> boundsCache = new Dictionary<string, Bounds>();
+            Dictionary<string, Vector3[]> vertexCache = new Dictionary<string, Vector3[]>();
             Dictionary<string, int> counters = new Dictionary<string, int>();
 
             int placed = 0;
@@ -72,7 +98,8 @@ namespace RootsDance.Editor.Environment
 
             for (int i = 0; i < instances.Count; i++)
             {
-                if (Place(instances[i], prefabs, parents, sampler, boundsCache, counters))
+                if (Place(instances[i], prefabs, parents, sampler, boundsCache, vertexCache, vegetationMaterials,
+                    counters))
                 {
                     placed++;
                 }
@@ -88,6 +115,7 @@ namespace RootsDance.Editor.Environment
             Undo.CollapseUndoOperations(undoGroup);
 
             EditorSceneManager.MarkSceneDirty(scene);
+            AssetDatabase.SaveAssets();
             Debug.Log($"OpeningPropsBuilder: placed {placed} props under "
                 + $"'{OpeningPropsParams.k_PwbRootName}' in {scene.name} ({skipped} off the terrain). "
                 + "The scene is dirty and has not been saved.");
@@ -125,7 +153,8 @@ namespace RootsDance.Editor.Environment
 
         private static bool Place(PropInstance instance, Dictionary<string, GameObject> prefabs,
             Dictionary<PropPool, Transform> parents, TerrainSampler sampler,
-            Dictionary<string, Bounds> boundsCache, Dictionary<string, int> counters)
+            Dictionary<string, Bounds> boundsCache, Dictionary<string, Vector3[]> vertexCache,
+            Dictionary<string, Material> vegetationMaterials, Dictionary<string, int> counters)
         {
             Vector3 groundNormal;
             float height;
@@ -158,9 +187,117 @@ namespace RootsDance.Editor.Environment
             go.transform.position = new Vector3(instance.Position.x,
                 height + baseOffset - instance.Sink, instance.Position.y);
 
+            // The rotated AABB is only a cheap first placement. Its lowest corner often is not a real mesh
+            // point, especially for roots and branches, which left hundreds of visible props hovering above
+            // sloped terrain. Measure the actual LOD0 vertices against the terrain under each vertex and lower
+            // the instance until its closest physical point touches. Existing intentional sink is preserved.
+            float clearance = GroundClearance(go, instance.Prefab, sampler, vertexCache);
+
+            if (clearance > k_GroundingTolerance)
+            {
+                go.transform.position += Vector3.down * clearance;
+            }
+
             go.name = UniqueName(instance, counters);
+            ApplyVegetationLook(go, instance.Group, vegetationMaterials);
             Undo.RegisterCreatedObjectUndo(go, "Build Opening Props");
             return true;
+        }
+
+        private static void ApplyVegetationLook(GameObject instance, string group,
+            Dictionary<string, Material> materials)
+        {
+            string suffix;
+
+            if (group.StartsWith("S5_", System.StringComparison.Ordinal))
+            {
+                suffix = "Polluted";
+            }
+            else if (group.StartsWith("S6_", System.StringComparison.Ordinal))
+            {
+                suffix = "Anomalous";
+            }
+            else
+            {
+                return;
+            }
+
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] assigned = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < assigned.Length; i++)
+                {
+                    Material material = assigned[i];
+                    Material replacement;
+
+                    if (material != null && materials.TryGetValue(material.name + suffix, out replacement))
+                    {
+                        assigned[i] = replacement;
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                {
+                    renderer.sharedMaterials = assigned;
+                }
+            }
+        }
+
+        private static Dictionary<string, Material> EnsureVegetationMaterials()
+        {
+            string[] sourceNames = { "Niwl_Plants_General", "Niwl_Plants_Bunch" };
+            Dictionary<string, Material> materials = new Dictionary<string, Material>();
+            TerrainSceneUtility.EnsureFolder(k_VegetationMaterialFolder);
+
+            for (int i = 0; i < sourceNames.Length; i++)
+            {
+                string sourcePath = EnvironmentPalette.k_MaterialFolder + "/" + sourceNames[i] + ".mat";
+                Material source = AssetDatabase.LoadAssetAtPath<Material>(sourcePath);
+
+                if (source == null)
+                {
+                    Debug.LogError("OpeningPropsBuilder: missing vegetation material '" + sourcePath + "'.");
+                    return null;
+                }
+
+                Material polluted = EnsureVegetationVariant(source, "Polluted", k_PollutedPlantTint);
+                Material anomalous = EnsureVegetationVariant(source, "Anomalous", k_AnomalousPlantTint);
+
+                if (polluted == null || anomalous == null)
+                {
+                    return null;
+                }
+
+                materials[source.name + "Polluted"] = polluted;
+                materials[source.name + "Anomalous"] = anomalous;
+            }
+
+            return materials;
+        }
+
+        private static Material EnsureVegetationVariant(Material source, string suffix, Color tint)
+        {
+            string name = source.name + "_" + suffix;
+            string path = k_VegetationMaterialFolder + "/" + name + ".mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (material == null)
+            {
+                material = new Material(source);
+                material.name = name;
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else
+            {
+                material.CopyPropertiesFromMaterial(source);
+            }
+
+            material.SetColor(k_TveColorId, tint);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         /// <summary>
@@ -211,6 +348,92 @@ namespace RootsDance.Editor.Environment
             }
 
             return -lowest;
+        }
+
+        private static float GroundClearance(GameObject instance, string key, TerrainSampler sampler,
+            Dictionary<string, Vector3[]> cache)
+        {
+            Vector3[] vertices;
+
+            if (!cache.TryGetValue(key, out vertices))
+            {
+                vertices = MeshVertices(instance);
+                cache[key] = vertices;
+            }
+
+            float minimum = float.MaxValue;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 world = instance.transform.TransformPoint(vertices[i]);
+                float groundY;
+                Vector3 groundNormal;
+
+                if (sampler.Sample(new Vector2(world.x, world.z), out groundY, out groundNormal))
+                {
+                    minimum = Mathf.Min(minimum, world.y - groundY);
+                }
+            }
+
+            return minimum == float.MaxValue ? 0f : minimum;
+        }
+
+        private static Vector3[] MeshVertices(GameObject prefab)
+        {
+            LODGroup group = prefab.GetComponentInChildren<LODGroup>(true);
+            HashSet<Renderer> lod0 = null;
+
+            if (group != null)
+            {
+                LOD[] lods = group.GetLODs();
+
+                if (lods.Length > 0)
+                {
+                    lod0 = new HashSet<Renderer>(lods[0].renderers);
+                }
+            }
+
+            Matrix4x4 worldToRoot = prefab.transform.worldToLocalMatrix;
+            List<Vector3> vertices = new List<Vector3>();
+
+            foreach (MeshRenderer renderer in prefab.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (lod0 != null && !lod0.Contains(renderer))
+                {
+                    continue;
+                }
+
+                MeshFilter filter = renderer.GetComponent<MeshFilter>();
+
+                if (filter == null || filter.sharedMesh == null)
+                {
+                    continue;
+                }
+
+                Matrix4x4 toRoot = worldToRoot * renderer.transform.localToWorldMatrix;
+                using (Mesh.MeshDataArray meshDataArray = Mesh.AcquireReadOnlyMeshData(filter.sharedMesh))
+                {
+                    Mesh.MeshData meshData = meshDataArray[0];
+                    NativeArray<Vector3> meshVertices = new NativeArray<Vector3>(meshData.vertexCount,
+                        Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                    try
+                    {
+                        meshData.GetVertices(meshVertices);
+
+                        for (int i = 0; i < meshVertices.Length; i++)
+                        {
+                            vertices.Add(toRoot.MultiplyPoint3x4(meshVertices[i]));
+                        }
+                    }
+                    finally
+                    {
+                        meshVertices.Dispose();
+                    }
+                }
+            }
+
+            return vertices.ToArray();
         }
 
         /// <summary>

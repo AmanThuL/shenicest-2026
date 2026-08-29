@@ -74,6 +74,15 @@ namespace RootsDance.UI
 
         private Sequence m_sequence;
 
+        /// <summary>
+        /// How long P1 to P5 takes. A cover that plays the sequence has to stay up at least this
+        /// long, or a fast load cuts the title card off halfway through.
+        /// </summary>
+        public float SequenceSeconds
+        {
+            get { return m_openSeconds + m_acquireSeconds + m_resolveSeconds + m_stabilizeSeconds; }
+        }
+
         private void Awake()
         {
             if (m_stageWindow != null)
@@ -158,6 +167,17 @@ namespace RootsDance.UI
 
             // P5 Lock — the tagline is the last thing to resolve, in reverse order of importance.
             m_sequence.AppendCallback(() => TerminalMotion.TerminalWrite(m_tagline, m_taglineText, m_motion));
+        }
+
+        /// <summary>
+        /// Jumps straight to the sequence's end state without replaying it. This is how the screen
+        /// comes up when it is being used as a between-scenes cover for the second time and after:
+        /// a one-second load should not be padded out to the full title card.
+        /// </summary>
+        public void ShowLocked()
+        {
+            KillMotion();
+            ApplyLockedState();
         }
 
         private void StartParallax()

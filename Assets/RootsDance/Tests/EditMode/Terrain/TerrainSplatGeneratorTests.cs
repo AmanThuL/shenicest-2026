@@ -35,7 +35,7 @@ namespace RootsDance.Tests.EditMode.Terrain
         [TestCase(12f, 52f, 3, TestName = "saddle is D Stable_Soil")]
         [TestCase(-20f, 130f, 4, TestName = "facility terrace is E Research_Ground")]
         [TestCase(-7f, 4f, 5, TestName = "main route node is Trail")]
-        [TestCase(15f, 127.8f, 5, TestName = "clue route node is Trail")]
+        [TestCase(35.8f, 104f, 5, TestName = "Corridor 1 clue route node is Trail")]
         public void DominantLayer_SpecPoint_IsExpectedLayer(float x, float z, int expectedLayer)
         {
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();

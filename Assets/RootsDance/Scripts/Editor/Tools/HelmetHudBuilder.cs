@@ -212,7 +212,7 @@ namespace RootsDance.Editor.Tools
                 "Assets/ThirdParty/Environment/AmbientCG/Fingerprints002/Fingerprints002_1K-JPG_Color.jpg");
 
             // The traced opening silhouette (SDF, linear data — the importer must not sRGB it).
-            const string shapePath = "Assets/RootsDance/Textures/UI/T_HelmetVisorShape.png";
+            const string shapePath = "Assets/RootsDance/UI/Sprites/HelmetVisorShape.png";
             EnsureLinearImporter(shapePath);
             AssignIfEmpty(material, "_ShapeTex", shapePath);
 

@@ -503,9 +503,16 @@ Rendering-side import rules (sRGB, normal-map type, POT, Read/Write off, mipmaps
 
 | Setting | Value | Why |
 |---|---|---|
-| Max Size | 2048 environment/hero, 1024 props, 512 UI icons **[project decision]**; never 4096 without a profile | Non-destructive, fastest memory win |
+| Max Size | 2048 environment/character/hero, 1024 props, 512 UI icons **[project decision]**; never 4096 without a profile | Non-destructive, fastest memory win |
 | Compression / Format (desktop) | Automatic, Normal quality → DXT1 for RGB, BC7 (or DXT5) for RGBA, BC6H for HDR | ¼ – ⅛ of uncompressed memory and bandwidth |
 | Mipmap Streaming (texture Import Settings > Advanced > Streaming Mipmaps) | on for large world textures, with **Quality > Textures > Mipmap Streaming** enabled | Only loads needed mip levels |
+
+Max Size is **derived, not typed in**, for every texture the pipeline owns — `Textures/**` named
+`<Asset>_<Map>` — where `TexturePipelinePostprocessor` sets it to the source file's own authored
+width, clamped to the 2048 ceiling ([02 §12](./02-project-structure.md#12-import-settings-are-applied-by-script-not-by-hand)).
+The tiers above are therefore an **authoring** budget: shrink the exported file, do not hand-set
+Max Size in the Inspector. A committed `.meta` that disagrees with the authored width is drift —
+the importer rewrites it on the next reimport and the file churns for every teammate.
 
 - *Source:* [Choose a GPU texture format by platform](../reference/performance/manual-texture-choose-format-by-platform.md) · [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (Texture import settings, Stream mipmaps) · [Mipmap streaming](../reference/performance/manual-texturestreaming.md) · [Quality settings reference](../reference/performance/manual-class-qualitysettings.md) (Textures > Mipmap Streaming)
 

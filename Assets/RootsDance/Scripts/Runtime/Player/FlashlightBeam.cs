@@ -14,7 +14,7 @@ namespace RootsDance.Player
     public readonly struct FlashlightBeam
     {
         public FlashlightBeam(Vector3 origin, Vector3 direction, float outerCos, float innerCos,
-            float range, float strength)
+            float range, float strength, float spillCos, float spillLevel)
         {
             Origin = origin;
             Direction = direction;
@@ -22,6 +22,8 @@ namespace RootsDance.Player
             InnerCos = innerCos;
             Range = range;
             Strength = strength;
+            SpillCos = spillCos;
+            SpillLevel = spillLevel;
         }
 
         /// <summary>Apex of the cone, in world space.</summary>
@@ -41,6 +43,16 @@ namespace RootsDance.Player
 
         /// <summary>Fade level of the beam itself, 0 while it is off and 1 at full brightness.</summary>
         public float Strength { get; }
+
+        /// <summary>
+        /// Cosine of the half-angle of the wash around the beam. A real torch does not stop at the
+        /// edge of its bright cone: there is a wide, weak spill around it, and it is what lets a
+        /// player notice a mark is there before the beam is squarely on it.
+        /// </summary>
+        public float SpillCos { get; }
+
+        /// <summary>How much of full strength the spill carries, 0..1. Well under half.</summary>
+        public float SpillLevel { get; }
 
         /// <summary>
         /// How much of the beam reaches a world point, 0..1 — the CPU twin of the shader's
@@ -69,6 +81,13 @@ namespace RootsDance.Player
             float axis = Vector3.Dot(toPoint / distance, Direction);
             float cone = Mathf.InverseLerp(OuterCos, InnerCos, axis);
             cone = cone * cone * (3f - 2f * cone); // smoothstep, matching the shader
+
+            // The wash outside the bright cone, faded from its own edge in to the cone's edge.
+            float spill = Mathf.InverseLerp(SpillCos, OuterCos, axis);
+            spill = spill * spill * (3f - 2f * spill) * Mathf.Clamp01(SpillLevel);
+
+            cone = Mathf.Max(cone, spill);
+
             float range = Mathf.Clamp01(Mathf.InverseLerp(Range * 0.75f, Range, distance));
             range = 1f - range * range * (3f - 2f * range);
 

@@ -76,7 +76,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DstBlend: 10
     - _EmissiveExposureWeight: 1
-    - _EmissiveIntensity: 3000
+    - _EmissiveIntensity: 1200
     - _EmissiveIntensityUnit: 0
     - _EnableFogOnTransparent: 0
     - _IncludeIndirectLighting: 1
@@ -100,11 +100,11 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 0.9, g: 0.85, b: 0.54999995, a: 0.85}
+    - _Color: {r: 0.54999995, g: 0.45, b: 0.15999997, a: 0.65}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 2362.237, g: 2076.2136, b: 789.82007, a: 3000}
-    - _EmissiveColorLDR: {r: 0.9, g: 0.85, b: 0.55, a: 0.85}
-    - _UnlitColor: {r: 0.9, g: 0.85, b: 0.55, a: 0.85}
+    - _EmissiveColor: {r: 315.92804, g: 204.77393, b: 26.377127, a: 1200}
+    - _EmissiveColorLDR: {r: 0.55, g: 0.45, b: 0.16, a: 0.65}
+    - _UnlitColor: {r: 0.55, g: 0.45, b: 0.16, a: 0.65}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &787907861831451108

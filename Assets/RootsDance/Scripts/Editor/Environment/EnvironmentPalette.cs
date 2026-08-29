@@ -39,6 +39,20 @@ namespace RootsDance.Editor.Environment
         // read of the dead ring with a tint (guideline: the source art is never the final look).
         private static readonly Color k_DeadTint = new Color(0.78f, 0.78f, 0.74f);
         private static readonly Color k_TransitionTint = new Color(0.50f, 0.60f, 0.54f);
+        private static readonly Color k_HealthyTint = new Color(0.72f, 0.82f, 0.68f);
+
+        // Retro's winter grass sheet is beige/near-neutral and preserves the authored alpha. It is a much
+        // better hue-shift base than the saturated summer green: these tints can therefore make C read as a
+        // genuinely anomalous multi-colour belt without a custom shader or a duplicated mesh/texture atlas.
+        private static readonly Color k_GrassViridian = new Color(0.30f, 0.92f, 0.70f);
+        private static readonly Color k_GrassTeal = new Color(0.20f, 0.78f, 0.82f);
+        private static readonly Color k_GrassCyan = new Color(0.28f, 0.82f, 1.00f);
+        private static readonly Color k_GrassViolet = new Color(0.78f, 0.42f, 1.00f);
+        private static readonly Color k_GrassMagenta = new Color(1.00f, 0.34f, 0.78f);
+        private static readonly Color k_GrassAmber = new Color(1.00f, 0.74f, 0.24f);
+        private static readonly Color k_GrassRose = new Color(1.00f, 0.46f, 0.52f);
+        private static readonly Color k_GrassSilver = new Color(0.68f, 0.84f, 0.96f);
+        private static readonly Color k_GrassChartreuse = new Color(0.65f, 1.00f, 0.22f);
         private const float k_ScanSmoothness = 0.15f;
         private const float k_PsxSmoothness = 0.05f;
         private const float k_MetalSmoothness = 0.45f;
@@ -175,10 +189,76 @@ namespace RootsDance.Editor.Environment
             TveSpec.Leaf("Psx_Bush07_Fall", k_RetroRoot + "/Textures/Bushes/bush7_fall.png", k_TransitionTint),
             TveSpec.Leaf("Psx_Bush08_Fall", k_RetroRoot + "/Textures/Bushes/bush8_fall.png", k_TransitionTint),
 
+            // Retro grass. Individual blades distribute the anomalous hues; the broad patch/corner variants
+            // let the layout overlap meshes until no terrain pinholes remain. Healthy variants retain the
+            // summer-green sheet for the E ring and other non-anomalous ecology.
+            TveSpec.Plant("Psx_Grass_Viridian", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassViridian),
+            TveSpec.Plant("Psx_Grass_Teal", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassTeal),
+            TveSpec.Plant("Psx_Grass_Cyan", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassCyan),
+            TveSpec.Plant("Psx_Grass_Violet", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassViolet),
+            TveSpec.Plant("Psx_Grass_Magenta", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassMagenta),
+            TveSpec.Plant("Psx_Grass_Amber", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassAmber),
+            TveSpec.Plant("Psx_Grass_Rose", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassRose),
+            TveSpec.Plant("Psx_Grass_Silver", k_RetroRoot + "/Textures/Grass/grass_winter.png", k_GrassSilver),
+            TveSpec.Plant("Psx_Grass_Chartreuse", k_RetroRoot + "/Textures/Grass/grass_winter.png",
+                k_GrassChartreuse),
+            TveSpec.Plant("Psx_GrassBush_Healthy", k_RetroRoot + "/Textures/Grass/grass_bush_summer.png",
+                k_HealthyTint),
+            TveSpec.Plant("Psx_GrassPatch_Healthy", k_RetroRoot + "/Textures/Grass/grass_patch_summer.png",
+                k_HealthyTint),
+            TveSpec.Plant("Psx_GrassPatch_Viridian", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassViridian),
+            TveSpec.Plant("Psx_GrassPatch_Cyan", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassCyan),
+            TveSpec.Plant("Psx_GrassPatch_Violet", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassViolet),
+            TveSpec.Plant("Psx_GrassPatch_Amber", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassAmber),
+            TveSpec.Plant("Psx_GrassPatch_Rose", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassRose),
+            TveSpec.Plant("Psx_GrassPatch_Silver", k_RetroRoot + "/Textures/Grass/grass_patch_winter.png",
+                k_GrassSilver),
+
+            // Healthy Retro summer trees/bushes are cheap silhouette mass for the E-ring route walls. As with
+            // the winter trees, crowns sway while the matching trunk material remains static.
+            TveSpec.Tree("Psx_Tree01_Summer", k_RetroRoot + "/Textures/Trees/tree01_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree01_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree01_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree02_Summer", k_RetroRoot + "/Textures/Trees/tree02_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree02_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree02_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree03_Summer", k_RetroRoot + "/Textures/Trees/tree03_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree03_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree03_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree04_Summer", k_RetroRoot + "/Textures/Trees/tree04_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree04_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree04_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree05_Summer", k_RetroRoot + "/Textures/Trees/tree05_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree05_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree05_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree06_Summer", k_RetroRoot + "/Textures/Trees/tree06_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree06_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree06_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree07_Summer", k_RetroRoot + "/Textures/Trees/tree07_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree07_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree07_summer.png",
+                k_HealthyTint),
+            TveSpec.Tree("Psx_Tree08_Summer", k_RetroRoot + "/Textures/Trees/tree08_summer.png", k_HealthyTint),
+            TveSpec.Trunk("Psx_Tree08_Summer_Trunk", k_RetroRoot + "/Textures/Trees/tree08_summer.png",
+                k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush01_Summer", k_RetroRoot + "/Textures/Bushes/bush1_summer.png", k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush02_Summer", k_RetroRoot + "/Textures/Bushes/bush2_summer.png", k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush03_Summer", k_RetroRoot + "/Textures/Bushes/bush3_summer.png", k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush04_Summer", k_RetroRoot + "/Textures/Bushes/bush4_summer.png", k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush05_Summer", k_RetroRoot + "/Textures/Bushes/bush5_summer.png", k_HealthyTint),
+            TveSpec.Leaf("Psx_Bush06_Summer", k_RetroRoot + "/Textures/Bushes/bush6_summer.png", k_HealthyTint),
+
             // Niwl Plants (Khaleer, CC0): two shared 2K atlases — General (grass, ferns, bushes 1-3) and
             // General_Bunch (bush 4, ivy). Ground plants: subsurface, both faces, secondary wind only.
             TveSpec.Plant("Niwl_Plants_General", k_NiwlRoot + "/Textures/T_Plants_General.png", k_TransitionTint),
             TveSpec.Plant("Niwl_Plants_Bunch", k_NiwlRoot + "/Textures/T_Plants_General_Bunch.png", k_TransitionTint),
+            TveSpec.Bark("Niwl_Tree_WillowBark", k_NiwlRoot + "/Textures/T_willow_bark.png", k_HealthyTint),
+            TveSpec.Bark("Niwl_Tree_BirchBark", k_NiwlRoot + "/Textures/T_birch_bark.png", k_HealthyTint),
+            TveSpec.Leaf("Niwl_TreeBranches", k_NiwlRoot + "/Textures/T_Plants-TreeBranches.png", k_HealthyTint),
 
             // Poly Haven scans (CC0): photogrammetry props keep their own colour; no wind (they are dead wood,
             // roots and rocks), but the global tint/wetness/coat layers still apply through TVE.
@@ -226,12 +306,49 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
+        /// Pure table lookup used by EditMode validation before any material assets are generated.
+        /// </summary>
+        public static bool HasMaterialKey(string key)
+        {
+            for (int i = 0; i < k_FlatSpecs.Length; i++)
+            {
+                if (k_FlatSpecs[i].Key == key)
+                {
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < k_TexturedSpecs.Length; i++)
+            {
+                if (k_TexturedSpecs[i].Key == key)
+                {
+                    return true;
+                }
+            }
+
+            if (key == k_GlassKey)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < k_TveSpecs.Length; i++)
+            {
+                if (k_TveSpecs[i].Key == key)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Creates or updates every palette material and returns them keyed by palette key. Safe to call
         /// repeatedly: an existing asset keeps its GUID so prefabs and scenes never lose their reference.
         /// </summary>
         public static Dictionary<string, Material> EnsureAll()
         {
-            Dictionary<string, Material> palette = new Dictionary<string, Material>(64);
+            Dictionary<string, Material> palette = new Dictionary<string, Material>(128);
             Shader lit = Shader.Find(k_LitShader);
             Shader tveStandard = Shader.Find(k_TveStandardShader);
             Shader tveSubsurface = Shader.Find(k_TveSubsurfaceShader);
@@ -533,6 +650,13 @@ namespace RootsDance.Editor.Environment
             public static TveSpec Trunk(string key, string albedoPath, Color tint)
             {
                 return new TveSpec(key, albedoPath, null, tint, k_PsxSmoothness, true, true, false,
+                    k_ObjectBark, 0f, 0f, 0f, 0f);
+            }
+
+            /// <summary>Opaque static tree bark: standard-lit, front faces, no wind.</summary>
+            public static TveSpec Bark(string key, string albedoPath, Color tint)
+            {
+                return new TveSpec(key, albedoPath, null, tint, k_PsxSmoothness, false, false, false,
                     k_ObjectBark, 0f, 0f, 0f, 0f);
             }
 

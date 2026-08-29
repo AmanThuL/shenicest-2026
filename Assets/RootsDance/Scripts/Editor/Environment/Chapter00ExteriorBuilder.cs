@@ -8,6 +8,7 @@ using RootsDance.Interaction;
 using RootsDance.Investigation;
 using RootsDance.Scanner;
 using TheVisualEngine;
+using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
@@ -94,25 +95,24 @@ namespace RootsDance.Editor.Environment
                 new Vector2(-6f, 52f),
                 new Vector2(0f, 66f),
                 new Vector2(1.5f, 73.5f),
-                new Vector2(4f, 88f),
-                new Vector2(7f, 103f),
-                new Vector2(9.505f, 118.941f),
+                new Vector2(8f, 82f),
+                new Vector2(16f, 88f),
+                new Vector2(24f, 92.5f),
+                new Vector2(30f, 96.2f),
             },
             new[]
             {
-                new Vector2(9.505f, 118.941f),
-                new Vector2(7.03f, 115.759f),
-                new Vector2(1f, 113.8f),
-                new Vector2(-4.637f, 114.699f),
+                new Vector2(30f, 96.2f),
+                new Vector2(25.8f, 95.5f),
+                new Vector2(23f, 97.8f),
             },
             new[]
             {
-                new Vector2(9.505f, 118.941f),
-                new Vector2(12.334f, 123.184f),
-                new Vector2(15f, 127.8f),
-                new Vector2(19.435f, 133.774f),
-                new Vector2(20.7f, 135.8f),
-                new Vector2(21.8f, 137.5f),
+                new Vector2(30f, 96.2f),
+                new Vector2(33.8f, 97.5f),
+                new Vector2(35.8f, 100.8f),
+                new Vector2(36.4f, 104f),
+                new Vector2(37f, 106f),
             },
         };
 
@@ -121,14 +121,14 @@ namespace RootsDance.Editor.Environment
             new Vector2(-16f, 28f),
             new Vector2(-12f, 39f),
             new Vector2(1.5f, 73.5f),
-            new Vector2(9.505f, 118.941f),
-            new Vector2(7.03f, 115.759f),
-            new Vector2(-4.637f, 114.699f),
-            new Vector2(12.334f, 123.184f),
-            new Vector2(15f, 127.8f),
-            new Vector2(19.435f, 133.774f),
-            new Vector2(20.7f, 135.8f),
-            new Vector2(20.7f, 135.8f),
+            new Vector2(30f, 96.2f),
+            new Vector2(25.8f, 95.5f),
+            new Vector2(23f, 97.8f),
+            new Vector2(33.8f, 97.5f),
+            new Vector2(35.8f, 100.8f),
+            new Vector2(36.4f, 104f),
+            new Vector2(37f, 106f),
+            new Vector2(37f, 106f),
         };
 
         private static readonly string[] k_GrassPrefabs =
@@ -180,8 +180,13 @@ namespace RootsDance.Editor.Environment
                 Scene sourceEnvironment =
                     EditorSceneManager.OpenScene(k_EnvironmentScenePath, OpenSceneMode.Single);
                 FacilitySnapshot facilitySnapshot = CaptureFacility(sourceEnvironment);
+                // Saving dependent assets or opening this large scene can unload the config even while a
+                // managed reference exists. Resolve it at the point of use, then again after the terrain
+                // builder reloads the scene, so a fake-null Unity object cannot silently skip the build.
+                config = LoadRequired<TerrainGreyboxConfigSO>(k_ConfigPath);
                 TerrainGreyboxBuilder.Build(config);
                 Scene environment = EditorSceneManager.OpenScene(k_EnvironmentScenePath, OpenSceneMode.Single);
+                config = LoadRequired<TerrainGreyboxConfigSO>(k_ConfigPath);
                 int environmentCount = BuildEnvironment(environment);
                 EditorSceneManager.SaveScene(environment);
 
@@ -656,31 +661,22 @@ namespace RootsDance.Editor.Environment
             GeneratedMaterials materials = EnsureMaterials();
             int count = 0;
 
-            count += FillRegion(pins[k_AnomalousPalette], terrain, new Rect(-31f, 30f, 62f, 56f),
-                3.25f, 41021, k_GrassPrefabs, materials.GrassTints, 4.1f, 0.58f, 1.42f);
-            count += FillRegion(pins[k_FacilityEcologyPalette], terrain, new Rect(-37f, 86f, 74f, 13f),
-                3.7f, 41031, k_GrassPrefabs, materials.GrassTints, 4.3f, 0.62f, 1.35f);
-            count += FillRegion(pins[k_FacilityEcologyPalette], terrain, new Rect(-49f, 101f, 7f, 52f),
-                4.1f, 41041, k_GroundEcologyPrefabs, null, 3.6f, 0.55f, 1.25f);
-            count += FillRegion(pins[k_FacilityEcologyPalette], terrain, new Rect(42f, 101f, 7f, 52f),
-                4.1f, 41051, k_GroundEcologyPrefabs, null, 3.6f, 0.55f, 1.25f);
-            count += FillRegion(pins[k_FacilityEcologyPalette], terrain, new Rect(-39f, 154f, 78f, 8f),
-                4.2f, 41061, k_GroundEcologyPrefabs, null, 3.6f, 0.55f, 1.2f);
-
+            // Vegetation moved to Chapter00ZoneVegetationBuilder. Keeping this builder focused on authored
+            // interaction props prevents the legacy rectangular scatter from double-filling the A-E pass.
             count += PlaceHero(pins[k_WayfindingPalette], terrain, k_BlockedEntrancePrefabPath,
-                "C00M_BlockedMainEntrance", new Vector2(10.8f, 121.8f), -24.47f, 1f);
+                "C00M_BlockedMainEntrance", new Vector2(30.7f, 99.1f), -24.47f, 1f);
             count += PlaceHero(pins[k_WayfindingPalette], terrain, k_MainSignPrefabPath,
-                "C00M_MainEntranceSign", new Vector2(5.5f, 118.5f), 156f, 1f);
+                "C00M_MainEntranceSign", new Vector2(27f, 99f), 156f, 1f);
             count += PlaceHero(pins[k_WayfindingPalette], terrain, k_PosterPrefabPath,
-                "C00M_ResearchPoster", new Vector2(-7.2f, 116.4f), 165f, 1f);
+                "C00M_ResearchPoster", new Vector2(23f, 99.2f), 165f, 1f);
             count += PlaceHero(pins[k_CluePalette], terrain, k_AshleafPrefabPath,
-                "C00M_AshleafVine", new Vector2(11.8f, 124.4f), 28f, 1.15f);
+                "C00M_AshleafVine", new Vector2(33.7f, 97.2f), 335f, 1.15f);
             count += PlaceHero(pins[k_CluePalette], terrain, k_FineVinePrefabPath,
-                "C00M_FineVeinedVine", new Vector2(16.8f, 129.4f), 34f, 1.1f);
+                "C00M_FineVeinedVine", new Vector2(36.5f, 101.3f), 335f, 1.1f);
             count += PlaceHero(pins[k_CluePalette], terrain, k_FanPrefabPath,
-                "C00M_GrowthDirectionFan", new Vector2(21.4f, 134.8f), 155.5f, 1f);
+                "C00M_GrowthDirectionFan", new Vector2(33.5f, 104.8f), 155.5f, 1f);
             count += PlaceHero(pins[k_ServicePalette], terrain, k_MaintenancePrefabPath,
-                "C00M_MaintenanceEntrance", new Vector2(21.8f, 137.5f), 155.5f, 1f);
+                "C00M_MaintenanceEntrance", new Vector2(34.2f, 108.8f), 155.5f, 1f);
 
             EditorSceneManager.MarkSceneDirty(scene);
             return count;
@@ -864,6 +860,7 @@ namespace RootsDance.Editor.Environment
             ValidateFacilityUnchanged(environment, before);
             int prefabInstanceCount = ValidatePwbOwnership(environment);
             ValidateTerrainContract(config);
+            ValidateSceneAnchors(environment);
             float targetSeparation = ValidateRouteClearance(environment);
             ValidateGameplayAlignment(gameplay);
 
@@ -1030,6 +1027,37 @@ namespace RootsDance.Editor.Environment
                     || anchor.UseSpecHeight != expectedAnchors[i].UseSpecHeight)
                 {
                     throw new InvalidOperationException("Chapter-00 anchor drifted from design: " + anchor.Name);
+                }
+            }
+        }
+
+        private static void ValidateSceneAnchors(Scene environment)
+        {
+            AnchorDefinition[] expectedAnchors = TerrainGreyboxConfigSO.CreateDefaultAnchors();
+
+            for (int i = 0; i < expectedAnchors.Length; i++)
+            {
+                AnchorDefinition expected = expectedAnchors[i];
+                GameObject marker = FindInScene(environment, expected.Name);
+
+                if (marker == null)
+                {
+                    throw new InvalidOperationException(
+                        "Chapter-00 scene anchor is missing: " + expected.Name);
+                }
+
+                Vector3 actual = marker.transform.position;
+                Vector3 spec = expected.SpecPosition;
+                bool planarMismatch = Mathf.Abs(actual.x - spec.x) > .01f
+                    || Mathf.Abs(actual.z - spec.z) > .01f;
+                bool fixedHeightMismatch = expected.UseSpecHeight
+                    && Mathf.Abs(actual.y - spec.y) > .01f;
+
+                if (planarMismatch || fixedHeightMismatch)
+                {
+                    throw new InvalidOperationException(
+                        $"Chapter-00 scene anchor drifted from design: {expected.Name}; "
+                        + $"expected={spec}, actual={actual}");
                 }
             }
         }
@@ -1389,8 +1417,105 @@ namespace RootsDance.Editor.Environment
 
             Vector3 position = instance.transform.position;
             float surface = terrain.SampleHeight(position) + terrain.transform.position.y;
-            position.y += surface - bounds.min.y + 0.015f;
+            position.y += surface - bounds.min.y;
             instance.transform.position = position;
+
+            float clearance = GroundClearance(instance, terrain);
+
+            if (clearance > 0.002f)
+            {
+                instance.transform.position += Vector3.down * clearance;
+            }
+        }
+
+        private static float GroundClearance(GameObject instance, UnityEngine.Terrain terrain)
+        {
+            float minimum = float.MaxValue;
+            Vector3 terrainPosition = terrain.transform.position;
+            Vector3 terrainSize = terrain.terrainData.size;
+
+            foreach (MeshRenderer renderer in instance.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (!IsLod0Renderer(renderer))
+                {
+                    continue;
+                }
+
+                MeshFilter filter = renderer.GetComponent<MeshFilter>();
+
+                if (filter == null || filter.sharedMesh == null)
+                {
+                    continue;
+                }
+
+                using (Mesh.MeshDataArray meshDataArray = Mesh.AcquireReadOnlyMeshData(filter.sharedMesh))
+                {
+                    Mesh.MeshData meshData = meshDataArray[0];
+
+                    if (!meshData.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Position))
+                    {
+                        continue;
+                    }
+
+                    NativeArray<Vector3> vertices = new NativeArray<Vector3>(meshData.vertexCount,
+                        Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                    try
+                    {
+                        meshData.GetVertices(vertices);
+
+                        for (int i = 0; i < vertices.Length; i++)
+                        {
+                            Vector3 world = filter.transform.TransformPoint(vertices[i]);
+                            Vector3 terrainLocal = world - terrainPosition;
+
+                            if (terrainLocal.x < 0f || terrainLocal.z < 0f
+                                || terrainLocal.x > terrainSize.x || terrainLocal.z > terrainSize.z)
+                            {
+                                continue;
+                            }
+
+                            float terrainY = terrain.SampleHeight(world) + terrainPosition.y;
+                            minimum = Mathf.Min(minimum, world.y - terrainY);
+                        }
+                    }
+                    finally
+                    {
+                        vertices.Dispose();
+                    }
+                }
+            }
+
+            return minimum == float.MaxValue ? 0f : minimum;
+        }
+
+        private static bool IsLod0Renderer(MeshRenderer renderer)
+        {
+            LODGroup group = renderer.GetComponentInParent<LODGroup>();
+
+            if (group == null)
+            {
+                return true;
+            }
+
+            LOD[] lods = group.GetLODs();
+
+            if (lods.Length == 0)
+            {
+                return true;
+            }
+
+            Renderer[] renderers = lods[0].renderers;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] == renderer)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void SavePrefab(GameObject root, string path)
