@@ -23,6 +23,6 @@ MonoBehaviour:
     m_chinese: "\u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u4F4E\u4E8E\u9632\u62A4\u9608\u503C\u3002\u53EF\u89E3\u9664\u73AF\u5883\u9694\u79BB\u3002"
     m_english: EXTERNAL CONTAMINATION LEVELS WITHIN SAFE LIMITS. ENVIRONMENTAL SEAL
       MAY BE RELEASED.
-    m_voice: {fileID: 0}
+    m_voice: {fileID: 8300000, guid: 54c44e1dafc834a138a198217a5d0856, type: 3}
     m_holdSeconds: 0
   m_flagOnComplete: 
