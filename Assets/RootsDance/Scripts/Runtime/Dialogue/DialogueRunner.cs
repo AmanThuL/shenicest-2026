@@ -327,6 +327,17 @@ namespace RootsDance.Dialogue
                     WorldAccess.Enqueue(new RaiseFlagCommand(chosen.FlagOnChosen), this);
                 }
 
+                // The player's own voice for the pick, heard before the answer. The choice list
+                // is already gone from the view, so nothing shows during it — the beat where the
+                // question hangs in the air is the point.
+                if (chosen.Voice != null && m_voiceSource != null)
+                {
+                    StopVoice();
+                    m_voiceSource.clip = chosen.Voice;
+                    m_voiceSource.Play();
+                    await HoldAsync(chosen.Voice.length + m_voiceTailSeconds, cancellationToken);
+                }
+
                 await LinesAsync(chosen.Response, cancellationToken);
 
                 if (chosen.Follow != null)
