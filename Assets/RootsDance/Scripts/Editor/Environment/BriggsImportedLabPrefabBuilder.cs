@@ -28,6 +28,10 @@ namespace RootsDance.Editor.Environment
 
         private const string k_LabModelRoot = "Assets/ThirdParty/Environment/LabAssetsCC0/Models";
         private const string k_ArtistPickRoot = "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
+        private const string k_KitchenDeskModelPath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Models/Kitchen_Lab_AbandonedDesk.fbx";
+        private const string k_KitchenDeskTexturePath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/Kitchen_Lab_Desk_BaseColor.png";
         private const string k_MaterialRoot =
             "Assets/RootsDance/Materials/Environment/BriggsInterior/ImportedLab";
 
@@ -162,6 +166,40 @@ namespace RootsDance.Editor.Environment
             EnsureAll();
         }
 
+        [MenuItem("RootsDance/Environment/Rebuild Briggs Abandoned Central Desk")]
+        public static void BuildCentralIslandOnly()
+        {
+            MaterialSet materials = EnsureMaterials();
+            EnsureOutputFolders();
+            Scene preview = EditorSceneManager.NewPreviewScene();
+
+            try
+            {
+                if (!BuildCentralIsland(materials, preview))
+                {
+                    throw new InvalidOperationException("Failed to rebuild the Briggs abandoned central desk.");
+                }
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(preview);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        /// <summary>Batch entry point that only refreshes the stable central-island prefab.</summary>
+        public static void BuildCentralIslandOnlyFromCommandLine()
+        {
+            BuildCentralIslandOnly();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
         private static bool BuildSourcePrefab(SourceSpec source, MaterialSet materials, Scene preview)
         {
             GameObject root = new GameObject(source.Key);
@@ -200,62 +238,55 @@ namespace RootsDance.Editor.Environment
 
         private static bool BuildCentralIsland(MaterialSet materials, Scene preview)
         {
-            const int modulesPerSide = 9;
-            const float targetLength = 5.4f;
-            const float targetDepth = 2.2f;
+            const float targetLength = 5.2f;
+            const float targetDepth = 2.0f;
             const float targetHeight = 0.92f;
+            const float kitchenDeskFbxUnitCompensation = 100f;
 
             GameObject root = new GameObject(k_CentralIslandKey);
             SceneManager.MoveGameObjectToScene(root, preview);
 
             try
             {
-                // One CC0 counter module measures approximately 0.62 x 0.77 x 0.70 m after import. Nine
-                // modules on each face are gently stretched to the requested 5.4 x 2.2 x 0.92 m envelope.
-                Vector3 moduleScale = new Vector3(0.968f, 1.324f, 1.434f) * k_LabScale;
-                float spacing = targetLength / modulesPerSide;
-                string[] variants =
+                // The former island repeated eighteen intact counter modules. This single low-poly desk keeps
+                // the same playable envelope and worktop height while providing an irregular old-wood silhouette,
+                // exposed framing and baked wear from the artist-selected Kitchen and Lab source.
+                GameObject desk = AddRecenteredModel(
+                    root.transform,
+                    k_KitchenDeskModelPath,
+                    Vector3.one,
+                    MaterialRole.WeatheredWood,
+                    materials,
+                    preview);
+
+                if (desk == null)
                 {
-                    "counter_counter",
-                    "counter_counter_2_shelves",
-                    "counter_counter_sink",
-                    "counter_counter_3_shelves"
-                };
-
-                for (int side = 0; side < 2; side++)
-                {
-                    float z = side == 0 ? -targetDepth * 0.25f : targetDepth * 0.25f;
-                    float yaw = side == 0 ? 0f : 180f;
-
-                    for (int column = 0; column < modulesPerSide; column++)
-                    {
-                        string key = variants[(column + side) % variants.Length];
-                        string face = side == 0 ? "South" : "North";
-                        GameObject bay = new GameObject($"Island_{face}_{column + 1:00}_{key}");
-                        bay.transform.SetParent(root.transform, false);
-                        bay.transform.localPosition = new Vector3(
-                            -targetLength * 0.5f + spacing * (column + 0.5f),
-                            0f,
-                            z);
-                        bay.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
-
-                        MaterialRole finish = column % 4 == 2 ? MaterialRole.Oxide : MaterialRole.Enamel;
-                        GameObject model = AddRecenteredModel(
-                            bay.transform,
-                            $"{k_LabModelRoot}/{key}.fbx",
-                            moduleScale,
-                            finish,
-                            materials,
-                            preview);
-
-                        if (model == null)
-                        {
-                            return false;
-                        }
-                    }
+                    return false;
                 }
 
-                // Three broad collision bands follow the island silhouette without creating eighteen tiny
+                // Bake this source's importer-owned unit node into the generated central prefab. Keeping this FBX
+                // nested causes Unity to reapply its hidden 0.01 scale when the generated prefab is loaded.
+                PrefabUtility.UnpackPrefabInstance(
+                    desk,
+                    PrefabUnpackMode.Completely,
+                    InteractionMode.AutomatedAction);
+
+                Bounds sourceBounds = LocalBounds(root.transform, root.GetComponentsInChildren<MeshRenderer>(true));
+
+                if (sourceBounds.size.x < 0.001f
+                    || sourceBounds.size.y < 0.001f
+                    || sourceBounds.size.z < 0.001f)
+                {
+                    Debug.LogError("BriggsImportedLabPrefabBuilder: abandoned desk has invalid bounds.");
+                    return false;
+                }
+
+                desk.transform.localScale = new Vector3(
+                    targetLength / sourceBounds.size.x,
+                    targetDepth / sourceBounds.size.z,
+                    targetHeight / sourceBounds.size.y) * kitchenDeskFbxUnitCompensation;
+
+                // Three broad collision bands follow the island silhouette without creating small
                 // seams that can catch the CharacterController.
                 float bandLength = targetLength / 3f;
 
@@ -413,7 +444,9 @@ namespace RootsDance.Editor.Environment
                 || sourceName.Contains("oxide")
                 || sourceName.Contains("wood"))
             {
-                return MaterialRole.Oxide;
+                return sourceName.Contains("kitchenlabdesk")
+                    ? MaterialRole.WeatheredWood
+                    : MaterialRole.Oxide;
             }
 
             if (sourceName.Contains("metal") || sourceName.Contains("steel"))
@@ -452,8 +485,39 @@ namespace RootsDance.Editor.Environment
                 new Color(0.34f, 0.23f, 0.14f, 1f),
                 0.15f,
                 0.14f);
+            Material weatheredWood = EnsureTexturedOpaqueMaterial(
+                lit,
+                "ImportedLab_WeatheredDesk",
+                k_KitchenDeskTexturePath,
+                new Color(0.76f, 0.72f, 0.62f, 1f),
+                0.02f,
+                0.12f);
             Material glass = EnsureGlassMaterial(lit);
-            return new MaterialSet(enamel, metal, oxide, glass);
+            return new MaterialSet(enamel, metal, oxide, weatheredWood, glass);
+        }
+
+        private static Material EnsureTexturedOpaqueMaterial(
+            Shader lit,
+            string name,
+            string texturePath,
+            Color tint,
+            float metallic,
+            float smoothness)
+        {
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+
+            if (baseMap == null)
+            {
+                throw new InvalidOperationException($"Briggs desk texture is missing at '{texturePath}'.");
+            }
+
+            Material material = EnsureOpaqueMaterial(lit, name, tint, metallic, smoothness);
+            material.SetTexture("_BaseColorMap", baseMap);
+            material.SetTextureScale("_BaseColorMap", Vector2.one);
+            material.SetTextureOffset("_BaseColorMap", Vector2.zero);
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Material EnsureOpaqueMaterial(
@@ -655,6 +719,7 @@ namespace RootsDance.Editor.Environment
             Enamel,
             Metal,
             Oxide,
+            WeatheredWood,
             Glass
         }
 
@@ -689,13 +754,20 @@ namespace RootsDance.Editor.Environment
             private readonly Material m_Enamel;
             private readonly Material m_Metal;
             private readonly Material m_Oxide;
+            private readonly Material m_WeatheredWood;
             private readonly Material m_Glass;
 
-            public MaterialSet(Material enamel, Material metal, Material oxide, Material glass)
+            public MaterialSet(
+                Material enamel,
+                Material metal,
+                Material oxide,
+                Material weatheredWood,
+                Material glass)
             {
                 m_Enamel = enamel;
                 m_Metal = metal;
                 m_Oxide = oxide;
+                m_WeatheredWood = weatheredWood;
                 m_Glass = glass;
             }
 
@@ -709,6 +781,8 @@ namespace RootsDance.Editor.Environment
                         return m_Metal;
                     case MaterialRole.Oxide:
                         return m_Oxide;
+                    case MaterialRole.WeatheredWood:
+                        return m_WeatheredWood;
                     case MaterialRole.Glass:
                         return m_Glass;
                     default:

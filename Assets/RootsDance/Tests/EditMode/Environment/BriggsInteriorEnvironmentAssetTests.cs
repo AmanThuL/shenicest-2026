@@ -34,6 +34,8 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
         private const string k_ArtistMetadataFolder =
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Attribution";
+        private const string k_KitchenDeskTexturePath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/Kitchen_Lab_Desk_BaseColor.png";
         private const string k_ArtistPrefabFolder =
             "Assets/RootsDance/Prefabs/Environment/LabHeroProps";
         private const string k_DressingVariantFolder =
@@ -485,6 +487,43 @@ namespace RootsDance.Tests.EditMode.Environment
             GameObject island = AssetDatabase.LoadAssetAtPath<GameObject>(islandPath);
             Assert.AreEqual(3, island.GetComponents<BoxCollider>().Length,
                 islandPath + " must retain the three seamless collision bands authored by the builder.");
+
+            GameObject islandInstance = PrefabUtility.InstantiatePrefab(island) as GameObject;
+
+            try
+            {
+                Assert.IsTrue(islandInstance != null, islandPath + " must instantiate for bounds validation.");
+                Transform deskHolder = islandInstance.transform.Find("Kitchen_Lab_AbandonedDesk_Model");
+                Assert.IsTrue(deskHolder != null,
+                    islandPath + " must use the artist-selected weathered desk instead of repeated intact counters.");
+                MeshRenderer deskRenderer = deskHolder.GetComponentInChildren<MeshRenderer>(true);
+                Assert.IsTrue(deskRenderer != null, islandPath + " must retain the imported desk mesh.");
+                Assert.That(Vector3.Distance(deskRenderer.bounds.size, new Vector3(5.2f, 0.92f, 2f)),
+                    Is.LessThan(0.02f),
+                    islandPath + " must preserve the authored gameplay envelope and worktop height. Actual: "
+                    + deskRenderer.bounds.size);
+                Assert.AreEqual(k_KitchenDeskTexturePath,
+                    AssetDatabase.GetAssetPath(deskRenderer.sharedMaterial.GetTexture("_BaseColorMap")));
+            }
+            finally
+            {
+                Object.DestroyImmediate(islandInstance);
+            }
+        }
+
+        [Test]
+        public void BriggsKitchenDesk_ImportsAsStaticAttributedSource()
+        {
+            string modelPath = k_ArtistModelFolder + "/Kitchen_Lab_AbandonedDesk.fbx";
+            string metadataPath = k_ArtistMetadataFolder + "/Kitchen_and_Lab.metadata.json";
+            ModelImporter importer = AssetImporter.GetAtPath(modelPath) as ModelImporter;
+
+            Assert.IsTrue(importer != null, modelPath);
+            Assert.IsFalse(importer.addCollider, modelPath + " must not generate FBX colliders.");
+            Assert.IsFalse(importer.importAnimation, modelPath + " is a static environment asset.");
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<TextAsset>(metadataPath) != null, metadataPath);
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<Texture2D>(k_KitchenDeskTexturePath) != null,
+                k_KitchenDeskTexturePath);
         }
 
         [Test]
