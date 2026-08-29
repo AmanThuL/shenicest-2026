@@ -1,3 +1,4 @@
+using RootsDance.Core;
 using RootsDance.Events;
 using RootsDance.Player;
 using Unity.Cinemachine;
@@ -198,18 +199,29 @@ namespace RootsDance.Cameras
         }
 
         /// <summary>
-        /// Finds the player once when the reference was left unwired. Searched at most once: a
-        /// miss must not turn into a per-frame scene scan.
+        /// Finds the player when the reference was left unwired. Only a <em>successful</em> search
+        /// is remembered: this camera can enable before the gameplay scene holding the player has
+        /// finished loading, and latching on that first miss is what used to leave the reference
+        /// permanently null — with it null the run cycle fell back to full strength and bobbed at
+        /// 2.9 footfalls a second while the player stood still, which is the bug this gate exists
+        /// to prevent. Both callers are rare events, not per-frame, so retrying is cheap.
         /// </summary>
         private void EnsureController()
         {
-            if (m_controller != null || m_controllerSearched)
+            if (m_controller != null)
             {
                 return;
             }
 
-            m_controllerSearched = true;
             m_controller = FindFirstObjectByType<FirstPersonController>();
+
+            if (m_controller == null && !m_controllerSearched)
+            {
+                m_controllerSearched = true;
+                Log.Warning(
+                    "PanicViewShake found no FirstPersonController; the run cycle stays off until "
+                    + "one appears. Wire Controller on this camera to make it deterministic.", this);
+            }
         }
 
         /// <summary>Fires one shoulder check. Ignored while one is already playing.</summary>
@@ -263,9 +275,14 @@ namespace RootsDance.Cameras
             // chase started the view kept bobbing at 2.9 footfalls a second everywhere the player
             // went, standing still included, for the rest of the session — the panic only stands
             // down on the escape. A stopped player gets a still camera.
-            float stride = m_controller != null
-                ? PanicRunGate.StrideFactor(m_controller.HorizontalSpeed, m_fullStrideSpeed, m_runOnsetSpeed)
-                : 1f;
+            // No player to measure means no way to know whether one is running, and the honest
+            // answer to that is silence: an unwired reference must never fall back to shaking the
+            // view at full strength, which is precisely how this bug survived its first fix.
+            float stride = PanicRunGate.StrideFactorOrSilent(
+                m_controller != null,
+                m_controller != null ? m_controller.HorizontalSpeed : 0f,
+                m_fullStrideSpeed,
+                m_runOnsetSpeed);
             float run = shake * stride;
 
             // The shoulder check still turns the view while standing: it is a head turn, not a step.

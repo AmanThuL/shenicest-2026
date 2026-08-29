@@ -36,5 +36,18 @@ namespace RootsDance.Cameras
             // usual smoothstep of t, not a threshold test.
             return Mathf.SmoothStep(0f, 1f, t);
         }
+
+        /// <summary>
+        /// The stride factor, or silence when there is no player to measure. Kept as its own named
+        /// rule because the alternative — treating "I cannot tell" as "running flat out" — is the
+        /// exact shape of the bug this gate was written to kill, and it came back once already.
+        /// </summary>
+        public static float StrideFactorOrSilent(
+            bool hasController, float horizontalSpeed, float fullStrideSpeed, float onsetSpeed)
+        {
+            return hasController
+                ? StrideFactor(horizontalSpeed, fullStrideSpeed, onsetSpeed)
+                : 0f;
+        }
     }
 }

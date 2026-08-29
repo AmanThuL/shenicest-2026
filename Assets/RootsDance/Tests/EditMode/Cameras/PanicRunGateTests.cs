@@ -70,5 +70,28 @@ namespace RootsDance.Tests.EditMode.Cameras
             Assert.That(PanicRunGate.StrideFactor(0f, 1f, 1f), Is.EqualTo(0f).Within(1e-5f));
             Assert.That(PanicRunGate.StrideFactor(5f, 1f, 1f), Is.EqualTo(1f).Within(1e-5f));
         }
+        // ---- StrideFactorOrSilent -----------------------------------------------------------
+        // Regression: the first fix fell back to full strength when the player reference was
+        // unwired, so the view still bobbed while standing still. Silence is the only safe answer.
+
+        [Test]
+        public void StrideFactorOrSilent_WithNoController_IsSilentEvenAtSprintSpeed()
+        {
+            Assert.That(
+                PanicRunGate.StrideFactorOrSilent(false, k_Sprint, k_Sprint, k_Walk),
+                Is.EqualTo(0f).Within(1e-5f));
+        }
+
+        [Test]
+        public void StrideFactorOrSilent_WithAController_MatchesTheGate()
+        {
+            Assert.That(
+                PanicRunGate.StrideFactorOrSilent(true, k_Sprint, k_Sprint, k_Walk),
+                Is.EqualTo(PanicRunGate.StrideFactor(k_Sprint, k_Sprint, k_Walk)).Within(1e-5f));
+            Assert.That(
+                PanicRunGate.StrideFactorOrSilent(true, 0f, k_Sprint, k_Walk),
+                Is.EqualTo(0f).Within(1e-5f));
+        }
+
     }
 }
