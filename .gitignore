@@ -118,6 +118,9 @@ InitTestScene*.unity*
 /SourceArt/**/*.glb
 /SourceArt/**/*.gltf
 
+# Downloaded source pack retained locally; the authored BlueFlask derivative is tracked separately.
+/SourceArt/realistic-potions/
+
 # Odin Inspector per-user editor preferences (which types you've shown/hidden in its pickers),
 # auto-created the first time the Editor opens with Odin installed. Not part of the vendor
 # package, not shared project config — same category as UserSettings/ above.
