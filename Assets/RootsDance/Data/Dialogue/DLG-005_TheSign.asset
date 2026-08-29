@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-005_TheSign
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-005
+  m_title: "\u57F9\u517B\u8FB9\u754C\u7684\u724C\u5B50"
+  m_choices: []
+  m_choicesRepeat: 1
+  m_requiredFlag: 
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 1
+    m_chinese: "\u8FD9\u4E2A\u724C\u5B50\u4EE5\u524D\u5F88\u6709\u7528\u3002"
+    m_english: That sign used to be really useful.
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 506c040d3832e49cfb80b264c8838251, type: 3}
+  - m_speaker: 0
+    m_chinese: "\u4EBA\u7C7B\u7684\u8FB9\u754C\uFF0C\u5BF9\u690D\u7269\u6709\u4EC0\u4E48\u610F\u4E49\u5462\u3002"
+    m_english: What meaning do human boundaries have for plants?
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 4c7aa1edef5f4427d8dfe54931c5f2dc, type: 3}
+  m_flagOnComplete: 

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-004_ItUsedToBeNeat
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-004
+  m_title: "\u6E29\u5BA4\uFF1A\u4EE5\u524D\u5F88\u6574\u9F50"
+  m_choices: []
+  m_choicesRepeat: 1
+  m_requiredFlag: flow.entered_greenhouse
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 1
+    m_chinese: "\u8FD9\u91CC\u4EE5\u524D\u5F88\u6574\u9F50\u3002\u771F\u7684\uFF0C\u771F\u7684\uFF0C\u975E\u5E38\uFF0C\u975E\u5E38\u6574\u9F50\u3002"
+    m_english: It used to be very neat here. Really, really neat. Very, very neat.
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: a4ab41afb8a134ffb85390d3cbe4ff42, type: 3}
+  - m_speaker: 1
+    m_chinese: "\u540E\u6765\uFF01\u5979\u624D\u4E0D\u4F1A\u7BA1\u6211\u4EEC\u5462\uFF01\u6CA1\u6709\u8C01\u559C\u6B22\u90A3\u4E48\u957F\u554A\uFF01"
+    m_english: But then! She stopped keeping us in line! Nobody likes being that!
+    m_holdSeconds: 0
+    m_voice: {fileID: 8300000, guid: 72efc01cc98034df1a318d4303369815, type: 3}
+  m_flagOnComplete: 
