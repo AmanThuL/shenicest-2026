@@ -24,34 +24,16 @@
     "_maxPreviewCountInEditMode": 200,
     "_unsavedChangesAction": 0,
     "_prefabCountDict": {
-        "_keys": [
-            "d62614f22dd5e485eabd3a7d6eea69b2",
-            "343e14bb36f7b459cb0d123f93178c4d",
-            "2097617df4c624a3b9f46738d38aeb28",
-            "fd1842603ec3a40ecb1c6fedbece794e",
-            "6f78029a289b34701bb183f25ba8c00e",
-            "8a634bdc23c2d4380948f7d7c327c2ba",
-            "e32d28b818b5f446895a5e37882b6404",
-            "7520b82ab72a14d439859a91fc226565"
-        ],
-        "_values": [
-            25,
-            68,
-            21,
-            91,
-            16,
-            268,
-            17,
-            57
-        ]
+        "_keys": [],
+        "_values": []
     },
     "_paletteManager": {
-        "_selectedBrushIdx": 14,
+        "_selectedBrushIdx": -1,
         "_showBrushName": false,
         "_viewList": false,
         "_showTabsInMultipleRows": false,
         "_iconSize": 64,
-        "_selectedPaletteId": 638920224000000000
+        "_selectedPaletteId": -1
     },
     "_floorManager": {
         "_profileKeys": [
@@ -1566,7 +1548,7 @@
                 "z": 0.0
             },
             "_spacingType": 0,
-            "_minSpacing": 1.7822641134262086,
+            "_minSpacing": 1.0,
             "_randomizePositions": true,
             "_randomness": 1.0,
             "_maxHeightFromCenter": 2.0,
@@ -3715,9 +3697,9 @@
             "_sameParentAsSource": true,
             "_mirrorPose": {
                 "position": {
-                    "x": 11.0,
+                    "x": 0.0,
                     "y": 0.0,
-                    "z": 7.0
+                    "z": 0.0
                 },
                 "rotation": {
                     "x": 0.0,
@@ -3854,15 +3836,15 @@
         "_settings": {
             "_snappingEnabled": false,
             "_snappingOn": {
-                "x": true,
-                "y": true,
+                "x": false,
+                "y": false,
                 "z": false
             },
             "_visibleGrid": false,
             "_gridOn": {
                 "x": false,
-                "y": false,
-                "z": true
+                "y": true,
+                "z": false
             },
             "_lockedGrid": false,
             "_boundsSnapping": false,
@@ -3873,8 +3855,8 @@
             },
             "_origin": {
                 "x": 0.0,
-                "y": 0.29166045784950259,
-                "z": 3.01019287109375
+                "y": 0.0,
+                "z": 0.0
             },
             "_rotation": {
                 "x": 0.0,
