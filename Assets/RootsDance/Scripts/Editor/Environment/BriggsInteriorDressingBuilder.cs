@@ -43,8 +43,6 @@ namespace RootsDance.Editor.Environment
         private const string k_EquipmentBankPrefabPath = k_FurnitureFolder + "/EquipmentBank.prefab";
         private const string k_BrokenIncubatorPrefabPath = k_FurnitureFolder + "/BrokenIncubator.prefab";
         private const string k_NoticeBoardPrefabPath = k_PrefabRoot + "/LabArchives/LabNoticeBoard.prefab";
-        private const string k_BrokenClockPrefabPath =
-            k_PrefabRoot + "/LabArchives/BrokenVintageWallClock.prefab";
         private const string k_MossPatchPrefabPath = k_EcologyFolder + "/MossPatch.prefab";
         private const string k_MossCarpetPrefabPath = k_EcologyFolder + "/MossCarpet.prefab";
 
@@ -137,6 +135,112 @@ namespace RootsDance.Editor.Environment
             }
         }
 
+        [MenuItem("RootsDance/Environment/Refresh Briggs Central Lab Props")]
+        public static void RefreshCentralLabProps()
+        {
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            BriggsImportedLabPrefabBuilder.BuildCentralIslandOnly();
+
+            Scene scene = SceneManager.GetActiveScene();
+
+            if (!scene.IsValid() || !scene.isLoaded || scene.path != k_ScenePath)
+            {
+                scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Single);
+            }
+
+            Dictionary<string, Transform> pins = EnsurePalettePins(scene);
+            RemoveDirectChildrenByPrefix(pins[k_CampEvidencePalette], "BI_S8A_");
+            RemoveDirectChildrenByPrefix(pins[k_CampEvidencePalette], "BI_S8B_");
+            RemoveDirectChildrenByPrefix(pins[k_CampEvidencePalette], "BI_CentralClutter_");
+            RemoveDirectChildrenByPrefix(pins[k_CampEvidencePalette], "BI_CentralSet_");
+            RemoveDirectChildByName(pins[k_LabArchivesPalette], "BI_S9_BrokenClock");
+
+            List<Placement> centralSetList = new List<Placement>();
+            AddAbandonedTableClutter(centralSetList);
+            Placement[] centralSet = centralSetList.ToArray();
+            Dictionary<string, string> variants = EnsureColliderlessVariants(centralSet);
+            Dictionary<string, GameObject> prefabs = LoadPrefabs(centralSet, variants);
+
+            for (int i = 0; i < centralSet.Length; i++)
+            {
+                string prefabPath = ResolvePrefabPath(centralSet[i], variants);
+                Place(centralSet[i], prefabs[prefabPath], pins[centralSet[i].Palette]);
+            }
+
+            Placement quintant = Furniture(
+                "BI_NE_OpticalCalibrator",
+                BriggsImportedLabPrefabBuilder.PrefabPath("Astronomical_Quintant"),
+                new Vector3(5.65f, 0f, 4.15f),
+                235f,
+                1.85f);
+            Transform quintantTransform = pins[k_LabFurniturePalette].Find(quintant.Name);
+
+            if (quintantTransform != null)
+            {
+                ApplyPlacementTransform(quintantTransform.gameObject, quintant);
+            }
+            else
+            {
+                GameObject quintantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(quintant.PrefabPath);
+                Place(quintant, quintantPrefab, pins[k_LabFurniturePalette]);
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("BriggsInteriorDressingBuilder: refreshed the central table, glassware set, wall clock and quintant.");
+        }
+
+        public static void RefreshCentralLabPropsFromCommandLine()
+        {
+            RefreshCentralLabProps();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
+        [MenuItem("RootsDance/Environment/Scatter Briggs Central Glassware")]
+        public static void ScatterCentralGlassware()
+        {
+            Scene previousActiveScene = SceneManager.GetActiveScene();
+            Scene scene = SceneManager.GetSceneByPath(k_ScenePath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Additive);
+            }
+
+            Dictionary<string, Transform> pins = EnsurePalettePins(scene);
+            ApplyCentralGlasswareScatter(pins[k_CampEvidencePalette]);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+
+            if (previousActiveScene.IsValid() && previousActiveScene.isLoaded)
+            {
+                SceneManager.SetActiveScene(previousActiveScene);
+            }
+
+            if (closeWhenDone)
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+
+            Debug.Log("BriggsInteriorDressingBuilder: scattered both central glassware sets and repositioned their panes.");
+        }
+
+        public static void ScatterCentralGlasswareFromCommandLine()
+        {
+            ScatterCentralGlassware();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
         /// <summary>
         /// Rebuilds the owned dressing in an already loaded Briggs Interior environment scene.
         /// </summary>
@@ -161,6 +265,8 @@ namespace RootsDance.Editor.Environment
                 string prefabPath = ResolvePrefabPath(placements[i], variants);
                 Place(placements[i], prefabs[prefabPath], pins[placements[i].Palette]);
             }
+
+            ApplyCentralGlasswareScatter(pins[k_CampEvidencePalette]);
 
             EditorSceneManager.MarkSceneDirty(scene);
             return placements.Length;
@@ -190,36 +296,6 @@ namespace RootsDance.Editor.Environment
                 BriggsImportedLabPrefabBuilder.PrefabPath("AbandonedCentralLabIsland"),
                 new Vector3(0.1f, 0f, 0.1f),
                 90f));
-
-            // S8A, east workface: soil analysis and sample recording.
-            placements.Add(ArtistEvidence("BI_S8A_ElectronicScale", "machine_electronic_scale",
-                new Vector3(0.62f, 0.94f, -1.85f), new Vector3(0f, 15f, 0f), 0.62f));
-            placements.Add(LooseEvidence("BI_S8A_Microscope", "machine_microscope",
-                new Vector3(0.55f, 0.94f, -0.85f), new Vector3(0f, 205f, 0f), 0.68f, true));
-            placements.Add(Evidence("BI_S8A_PetriDish", "dish_petridish",
-                new Vector3(0.58f, 0.94f, -0.05f), 24f, 0.82f));
-            placements.Add(Evidence("BI_S8A_WatchGlass", "dish_watch_glass",
-                new Vector3(0.72f, 0.94f, 0.45f), -31f, 0.78f));
-            placements.Add(ArtistEvidence("BI_S8A_ChemistryOldLabTubes", "Chemistry_Old_Lab_Tubes",
-                new Vector3(0.55f, 0.94f, 1.35f), new Vector3(0f, -12f, 0f), 0.45f));
-            placements.Add(Evidence("BI_S8A_Thermometer", "heating_equipment_thermometer",
-                new Vector3(0.52f, 0.94f, 2.02f), 74f, 0.72f));
-            placements.Add(Evidence("BI_S8A_Forceps", "heating_equipment_forceps",
-                new Vector3(0.78f, 0.94f, 2.15f), 21f, 0.68f));
-
-            // S8B, west workface: filtration and abandoned liquid analysis.
-            placements.Add(ArtistEvidence("BI_S8B_Centrifuge", "machine_centrifuge",
-                new Vector3(-0.58f, 0.94f, -1.75f), new Vector3(0f, 25f, 0f), 0.58f));
-            placements.Add(LooseEvidence("BI_S8B_FilterFlask", "bottle_glassware_filtering_flask_large",
-                new Vector3(-0.62f, 0.94f, -0.75f), new Vector3(0f, -19f, 0f), 0.62f, true));
-            placements.Add(LooseEvidence("BI_S8B_RingStand", "heating_equipment_ring_stand",
-                new Vector3(-0.55f, 0.94f, 0.15f), new Vector3(0f, 17f, 0f), 0.62f, true));
-            placements.Add(ArtistEvidence("BI_S8B_LabGlassware", "Lab_Glassware",
-                new Vector3(-0.58f, 0.94f, 1.18f), new Vector3(0f, 14f, 0f), 0.38f));
-            placements.Add(ArtistEvidence("BI_S8B_HotPlate", "machine_hot_plate",
-                new Vector3(-0.6f, 0.94f, 1.88f), new Vector3(0f, -22f, 0f), 0.55f));
-            placements.Add(Evidence("BI_S8B_Dropper", "bottle_dropper",
-                new Vector3(-0.76f, 0.94f, 2.22f), 61f, 0.72f));
         }
 
         private static void AddEastRootWorkstation(List<Placement> placements)
@@ -298,35 +374,28 @@ namespace RootsDance.Editor.Environment
         {
             const float worktop = 0.94f;
 
-            placements.Add(LooseEvidence("BI_CentralClutter_Beaker", "bottle_glassware_beaker_large",
-                new Vector3(-0.2f, worktop, -2.25f), new Vector3(0f, -18f, 0f), 0.62f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_SeparatoryFunnel", "funnel_seperatory_funnel",
-                new Vector3(0.78f, worktop, -1.28f), new Vector3(0f, -26f, 0f), 0.58f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_IronStand", "heating_equipment_iron_stand",
-                new Vector3(-0.78f, worktop, -0.25f), new Vector3(0f, 11f, 0f), 0.58f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_Burner", "heating_equipment_bunsen_burner",
-                new Vector3(-0.28f, worktop, 0.35f), new Vector3(0f, 17f, 0f), 0.68f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_Crucible", "heating_equipment_crucible",
-                new Vector3(0.28f, worktop, 0.62f), new Vector3(0f, 51f, 0f), 0.62f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_FoldedGown", "ppe_lab_gown_folded",
-                new Vector3(-0.72f, worktop, 0.72f), new Vector3(0f, -21f, 0f), 0.52f, true));
-            placements.Add(Evidence("BI_CentralClutter_Vial", "bottle_glassware_vial_medium",
-                new Vector3(0.25f, worktop, 1.02f), -28f, 0.72f));
-            placements.Add(LooseEvidence("BI_CentralClutter_TippedReagent",
-                "bottle_glassware_reagent_bottle_medium",
-                new Vector3(0.76f, worktop, 1.62f), new Vector3(0f, 16f, 82f), 0.62f));
-            placements.Add(LooseEvidence("BI_CentralClutter_WashBottle", "misc_wash_bottle",
-                new Vector3(-0.2f, worktop, 1.55f), new Vector3(0f, 34f, 0f), 0.66f));
-            placements.Add(Evidence("BI_CentralClutter_SafetyGlasses", "ppe_safety_glasses",
-                new Vector3(0.05f, worktop, 2.28f), -62f, 0.62f));
-            placements.Add(LooseEvidence("BI_CentralClutter_Scoopula", "misc_scoopula",
-                new Vector3(0.25f, worktop, -1.22f), new Vector3(2f, 74f, 6f), 0.68f, true));
-            placements.Add(LooseEvidence("BI_CentralClutter_Syringe", "syringe_syringe",
-                new Vector3(-0.78f, worktop, -1.08f), new Vector3(4f, 36f, 78f), 0.68f, true));
-            placements.Add(ArtistEvidence("BI_CentralClutter_Desiccator", "machine_desiccator",
-                new Vector3(0.15f, worktop, -0.22f), new Vector3(0f, -14f, 0f), 0.48f));
-            placements.Add(ArtistEvidence("BI_CentralClutter_CentrifugeTube", "machine_centrifuge_tube",
-                new Vector3(-0.22f, worktop, 2.02f), new Vector3(0f, 18f, 0f), 0.52f));
+            placements.Add(ArtistEvidence("BI_CentralSet_Glassware_Main", "Lab_Glassware",
+                new Vector3(-0.28f, worktop, -0.62f), new Vector3(0f, 18f, 0f), 0.48f));
+            placements.Add(ArtistEvidence("BI_CentralSet_Glassware_Back", "Lab_Glassware",
+                new Vector3(0.28f, worktop, 0.72f), new Vector3(0f, 168f, 0f), 0.4f));
+            placements.Add(ArtistEvidence("BI_CentralSet_OldTubes", "Chemistry_Old_Lab_Tubes",
+                new Vector3(-0.45f, worktop, 1.72f), new Vector3(0f, -8f, 0f), 0.5f));
+            placements.Add(LooseEvidence("BI_CentralSet_IronStand_A", "heating_equipment_iron_stand",
+                new Vector3(0.58f, worktop, -1.55f), new Vector3(0f, 9f, 0f), 0.72f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_IronStand_B", "heating_equipment_ring_stand",
+                new Vector3(0.52f, worktop, 0.28f), new Vector3(0f, -18f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_SeparatoryFunnel", "funnel_seperatory_funnel",
+                new Vector3(0.4f, worktop, -0.82f), new Vector3(0f, 21f, 0f), 0.72f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_FilterFlask", "bottle_glassware_filtering_flask_large",
+                new Vector3(-0.42f, worktop, -1.72f), new Vector3(0f, -24f, 0f), 0.68f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_TestTubeRack", "bottle_test_tube_rack",
+                new Vector3(-0.48f, worktop, 1.18f), new Vector3(0f, 14f, 0f), 0.75f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_Burner", "heating_equipment_bunsen_burner",
+                new Vector3(0.18f, worktop, 0.05f), new Vector3(0f, 22f, 0f), 0.7f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_Beaker_A", "bottle_glassware_beaker_large",
+                new Vector3(-0.42f, worktop, 0.18f), new Vector3(0f, -12f, 0f), 0.62f, true));
+            placements.Add(LooseEvidence("BI_CentralSet_Beaker_B", "bottle_glassware_beaker_large",
+                new Vector3(0.38f, worktop, 1.48f), new Vector3(0f, 32f, 0f), 0.52f, true));
         }
 
         private static void AddWestArchives(List<Placement> placements)
@@ -384,11 +453,6 @@ namespace RootsDance.Editor.Environment
                 k_NoticeBoardPrefabPath,
                 new Vector3(-8.88f, 1.85f, -1.85f),
                 new Vector3(0f, 90f, 0f)));
-            placements.Add(ArchivePrefab(
-                "BI_S9_BrokenClock",
-                k_BrokenClockPrefabPath,
-                new Vector3(3.75f, 2.55f, 6.86f),
-                new Vector3(0f, 180f, 0f)));
         }
 
         private static void AddNorthWestCultivation(List<Placement> placements)
@@ -421,7 +485,8 @@ namespace RootsDance.Editor.Environment
                 "BI_NE_OpticalCalibrator",
                 BriggsImportedLabPrefabBuilder.PrefabPath("Astronomical_Quintant"),
                 new Vector3(5.65f, 0f, 4.15f),
-                235f));
+                235f,
+                1.85f));
         }
 
         private static void AddEcologyIslands(List<Placement> placements)
@@ -696,9 +761,14 @@ namespace RootsDance.Editor.Environment
             placements.Add(EcologyPrefab("BI_Moss_Central_Patch_04", k_MossPatchPrefabPath, new Vector3(2.35f, 0f, 1.65f), 13f, 0.5f));
         }
 
-        private static Placement Furniture(string name, string path, Vector3 position, float yaw)
+        private static Placement Furniture(
+            string name,
+            string path,
+            Vector3 position,
+            float yaw,
+            float scale = 1f)
         {
-            return new Placement(name, k_LabFurniturePalette, path, position, yaw, 1f, false, false);
+            return new Placement(name, k_LabFurniturePalette, path, position, yaw, scale, false, false);
         }
 
         private static Placement Evidence(string name, string key, Vector3 position, float yaw, float scale = 1f)
@@ -837,6 +907,111 @@ namespace RootsDance.Editor.Environment
 
             instance.name = placement.Name;
             ApplyPlacementTransform(instance, placement);
+        }
+
+        private static void ApplyCentralGlasswareScatter(Transform campEvidencePin)
+        {
+            ApplyGlasswareScatter(
+                campEvidencePin.Find("BI_CentralSet_Glassware_Main"),
+                false);
+            ApplyGlasswareScatter(
+                campEvidencePin.Find("BI_CentralSet_Glassware_Back"),
+                true);
+        }
+
+        private static void ApplyGlasswareScatter(Transform instance, bool backSet)
+        {
+            if (instance == null)
+            {
+                throw new InvalidOperationException(
+                    "Briggs central glassware instance is missing from CampEvidence/PIN.");
+            }
+
+            if (backSet)
+            {
+                SetGlasswareChildPose(instance, "Beaker", new Vector3(-0.12f, 0f, 0.42f),
+                    new Vector3(0f, -29f, -5f), new Vector3(1.04f, 0.96f, 1.04f));
+                SetGlasswareChildPose(instance, "Erenmayer", new Vector3(0.25f, 0f, -0.34f),
+                    new Vector3(0f, 21f, 6f), new Vector3(0.94f, 1.02f, 0.94f));
+                SetGlasswareChildPose(instance, "Gelas Ukur", new Vector3(-0.2f, 0f, -0.18f),
+                    new Vector3(0f, -36f, -3f), new Vector3(1.02f, 0.97f, 1.02f));
+                SetGlasswareChildPose(instance, "Graduated Cylinder", new Vector3(0.28f, 0f, 0.48f),
+                    new Vector3(-4f, 32f, 7f), new Vector3(0.96f, 1.05f, 0.96f));
+                SetGlasswareChildPose(instance, "Pipette", new Vector3(-0.44f, 0f, -0.38f),
+                    new Vector3(-5f, -41f, -16f), Vector3.one);
+                SetGlasswareChildPose(instance, "Tube", new Vector3(-0.18f, 0f, 0.27f),
+                    new Vector3(3f, -19f, -8f), new Vector3(1.03f, 0.94f, 1.03f));
+                SetGlasswareChildPose(instance, "Volumetric Flask", new Vector3(-0.36f, 0f, -0.27f),
+                    new Vector3(0f, 38f, 5f), new Vector3(0.96f, 1.04f, 0.96f));
+                SetGlasswareChildPose(instance, "Plane", new Vector3(-0.12f, 0f, -0.2f),
+                    new Vector3(0f, -16f, 0f), Vector3.one * 0.29f);
+            }
+            else
+            {
+                SetGlasswareChildPose(instance, "Beaker", new Vector3(0.16f, 0f, -0.42f),
+                    new Vector3(0f, 24f, 5f), new Vector3(0.96f, 1.02f, 0.96f));
+                SetGlasswareChildPose(instance, "Erenmayer", new Vector3(-0.08f, 0f, 0.32f),
+                    new Vector3(0f, -18f, -4f), new Vector3(1.04f, 0.98f, 1.04f));
+                SetGlasswareChildPose(instance, "Gelas Ukur", new Vector3(0.24f, 0f, 0.16f),
+                    new Vector3(0f, 31f, 3f), new Vector3(0.92f, 1.03f, 0.92f));
+                SetGlasswareChildPose(instance, "Graduated Cylinder", new Vector3(-0.18f, 0f, -0.5f),
+                    new Vector3(3f, -27f, -6f), new Vector3(0.98f, 1.06f, 0.98f));
+                SetGlasswareChildPose(instance, "Pipette", new Vector3(-0.52f, 0f, 0.46f),
+                    new Vector3(5f, 44f, 17f), new Vector3(1.04f, 1f, 1.04f));
+                SetGlasswareChildPose(instance, "Tube", new Vector3(0.22f, 0f, -0.25f),
+                    new Vector3(-3f, 18f, 9f), new Vector3(0.97f, 1.04f, 0.97f));
+                SetGlasswareChildPose(instance, "Volumetric Flask", new Vector3(0.38f, 0f, 0.25f),
+                    new Vector3(0f, -34f, -5f), new Vector3(1.03f, 0.97f, 1.03f));
+                SetGlasswareChildPose(instance, "Plane", new Vector3(0.18f, 0f, 0.12f),
+                    new Vector3(0f, 13f, 0f), Vector3.one * 0.33f);
+            }
+
+            SnapRendererBottomToSurface(instance.gameObject, 0.94f);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(instance);
+        }
+
+        private static void SetGlasswareChildPose(
+            Transform instance,
+            string childName,
+            Vector3 sourceOffset,
+            Vector3 eulerOffset,
+            Vector3 sourceScaleMultiplier)
+        {
+            Transform child = FindDescendant(instance, childName);
+
+            if (child == null)
+            {
+                throw new InvalidOperationException(
+                    $"Briggs glassware child '{childName}' is missing from '{instance.name}'.");
+            }
+
+            Transform source = PrefabUtility.GetCorrespondingObjectFromSource(child);
+
+            if (source == null)
+            {
+                throw new InvalidOperationException(
+                    $"Briggs glassware child '{childName}' has no prefab source transform.");
+            }
+
+            child.localPosition = source.localPosition + sourceOffset;
+            child.localRotation = source.localRotation * Quaternion.Euler(eulerOffset);
+            child.localScale = Vector3.Scale(source.localScale, sourceScaleMultiplier);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(child);
+        }
+
+        private static Transform FindDescendant(Transform root, string name)
+        {
+            Transform[] descendants = root.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < descendants.Length; i++)
+            {
+                if (descendants[i].name == name)
+                {
+                    return descendants[i];
+                }
+            }
+
+            return null;
         }
 
         private static void ApplyPlacementTransform(GameObject instance, Placement placement)
@@ -1079,6 +1254,29 @@ namespace RootsDance.Editor.Environment
                         UnityEngine.Object.DestroyImmediate(child.gameObject);
                     }
                 }
+            }
+        }
+
+        private static void RemoveDirectChildrenByPrefix(Transform parent, string prefix)
+        {
+            for (int i = parent.childCount - 1; i >= 0; i--)
+            {
+                Transform child = parent.GetChild(i);
+
+                if (child.name.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    UnityEngine.Object.DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+
+        private static void RemoveDirectChildByName(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+
+            if (child != null)
+            {
+                UnityEngine.Object.DestroyImmediate(child.gameObject);
             }
         }
 

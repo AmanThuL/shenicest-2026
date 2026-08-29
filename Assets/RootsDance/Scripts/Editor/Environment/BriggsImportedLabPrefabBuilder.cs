@@ -28,10 +28,10 @@ namespace RootsDance.Editor.Environment
 
         private const string k_LabModelRoot = "Assets/ThirdParty/Environment/LabAssetsCC0/Models";
         private const string k_ArtistPickRoot = "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
-        private const string k_KitchenDeskModelPath =
-            "Assets/ThirdParty/Environment/BriggsArtistPicks/Models/Kitchen_Lab_AbandonedDesk.fbx";
-        private const string k_KitchenDeskTexturePath =
-            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/Kitchen_Lab_Desk_BaseColor.png";
+        private const string k_ChemicalTableModelPath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Models/ChemicalLab_AbandonedTable.fbx";
+        private const string k_ChemicalTableTextureRoot =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/ChemicalLabTable";
         private const string k_MaterialRoot =
             "Assets/RootsDance/Materials/Environment/BriggsInterior/ImportedLab";
 
@@ -166,7 +166,7 @@ namespace RootsDance.Editor.Environment
             EnsureAll();
         }
 
-        [MenuItem("RootsDance/Environment/Rebuild Briggs Abandoned Central Desk")]
+        [MenuItem("RootsDance/Environment/Rebuild Briggs Abandoned Central Table")]
         public static void BuildCentralIslandOnly()
         {
             MaterialSet materials = EnsureMaterials();
@@ -240,22 +240,22 @@ namespace RootsDance.Editor.Environment
         {
             const float targetLength = 5.2f;
             const float targetDepth = 2.0f;
-            const float targetHeight = 0.92f;
-            const float kitchenDeskFbxUnitCompensation = 100f;
+            const float targetWorktopHeight = 0.92f;
+            const float sourceWorktopHeight = 0.6f;
 
             GameObject root = new GameObject(k_CentralIslandKey);
             SceneManager.MoveGameObjectToScene(root, preview);
 
             try
             {
-                // The former island repeated eighteen intact counter modules. This single low-poly desk keeps
-                // the same playable envelope and worktop height while providing an irregular old-wood silhouette,
-                // exposed framing and baked wear from the artist-selected Kitchen and Lab source.
+                // The table shell, sink and faucet are isolated from the Chemical Lab source. Its bundled bottles,
+                // first-aid kit and Fallout-labelled props are intentionally excluded; the dressing pass supplies
+                // the separately licensed glassware set requested by art direction.
                 GameObject desk = AddRecenteredModel(
                     root.transform,
-                    k_KitchenDeskModelPath,
+                    k_ChemicalTableModelPath,
                     Vector3.one,
-                    MaterialRole.WeatheredWood,
+                    MaterialRole.Oxide,
                     materials,
                     preview);
 
@@ -284,7 +284,15 @@ namespace RootsDance.Editor.Environment
                 desk.transform.localScale = new Vector3(
                     targetLength / sourceBounds.size.x,
                     targetDepth / sourceBounds.size.z,
-                    targetHeight / sourceBounds.size.y) * kitchenDeskFbxUnitCompensation;
+                    targetWorktopHeight / sourceWorktopHeight);
+
+                // Non-uniform scaling also scales the imported model's initial recentering offset. Re-anchor the
+                // resulting geometry so its feet remain on Y=0 and its silhouette stays centered on the collider.
+                Bounds scaledBounds = LocalBounds(root.transform, root.GetComponentsInChildren<MeshRenderer>(true));
+                desk.transform.localPosition += new Vector3(
+                    -scaledBounds.center.x,
+                    -scaledBounds.min.y,
+                    -scaledBounds.center.z);
 
                 // Three broad collision bands follow the island silhouette without creating small
                 // seams that can catch the CharacterController.
@@ -293,8 +301,14 @@ namespace RootsDance.Editor.Environment
                 for (int band = 0; band < 3; band++)
                 {
                     BoxCollider collider = root.AddComponent<BoxCollider>();
-                    collider.center = new Vector3(-targetLength / 3f + band * bandLength, targetHeight * 0.5f, 0f);
-                    collider.size = new Vector3(bandLength - 0.04f, targetHeight, targetDepth - 0.06f);
+                    collider.center = new Vector3(
+                        -targetLength / 3f + band * bandLength,
+                        targetWorktopHeight * 0.5f,
+                        0f);
+                    collider.size = new Vector3(
+                        bandLength - 0.04f,
+                        targetWorktopHeight,
+                        targetDepth - 0.06f);
                 }
 
                 ApplyStaticFlags(root);
@@ -422,7 +436,7 @@ namespace RootsDance.Editor.Environment
                         ? sourceMaterials[materialIndex].name.ToLowerInvariant()
                         : string.Empty;
                     MaterialRole role = ResolveMaterialRole(sourceName, defaultRole);
-                    replacements[materialIndex] = materials.ForRole(role);
+                    replacements[materialIndex] = materials.ForSource(sourceName, role);
                 }
 
                 renderer.sharedMaterials = replacements;
@@ -488,12 +502,41 @@ namespace RootsDance.Editor.Environment
             Material weatheredWood = EnsureTexturedOpaqueMaterial(
                 lit,
                 "ImportedLab_WeatheredDesk",
-                k_KitchenDeskTexturePath,
+                "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/Kitchen_Lab_Desk_BaseColor.png",
                 new Color(0.76f, 0.72f, 0.62f, 1f),
                 0.02f,
                 0.12f);
+            Dictionary<string, Material> chemicalTableMaterials = EnsureChemicalTableMaterials(lit);
             Material glass = EnsureGlassMaterial(lit);
-            return new MaterialSet(enamel, metal, oxide, weatheredWood, glass);
+            return new MaterialSet(enamel, metal, oxide, weatheredWood, glass, chemicalTableMaterials);
+        }
+
+        private static Dictionary<string, Material> EnsureChemicalTableMaterials(Shader lit)
+        {
+            Dictionary<string, Material> materials =
+                new Dictionary<string, Material>(StringComparer.Ordinal);
+            materials.Add("noshki_stola", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Legs", k_ChemicalTableTextureRoot + "/Noshki_stola_albedo.jpg",
+                new Color(0.62f, 0.61f, 0.55f, 1f), 0.12f, 0.12f));
+            materials.Add("bok_stola", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Sides", k_ChemicalTableTextureRoot + "/bok_stola_albedo.jpg",
+                new Color(0.66f, 0.62f, 0.55f, 1f), 0.08f, 0.1f));
+            materials.Add("verh_stola", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Worktop", k_ChemicalTableTextureRoot + "/verh_stola_albedo.jpg",
+                new Color(0.7f, 0.66f, 0.58f, 1f), 0.16f, 0.12f));
+            materials.Add("kran", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Faucet", k_ChemicalTableTextureRoot + "/kran_albedo.jpg",
+                new Color(0.58f, 0.62f, 0.58f, 1f), 0.7f, 0.24f));
+            materials.Add("ugolki_stola", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Corners", k_ChemicalTableTextureRoot + "/ugolki_stola_albedo.jpg",
+                new Color(0.58f, 0.56f, 0.5f, 1f), 0.55f, 0.16f));
+            materials.Add("rakovina", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Sink", k_ChemicalTableTextureRoot + "/rakovina_albedo.jpg",
+                new Color(0.62f, 0.62f, 0.57f, 1f), 0.72f, 0.2f));
+            materials.Add("boltiki_ugolkov", EnsureTexturedOpaqueMaterial(
+                lit, "ChemicalTable_Bolts", k_ChemicalTableTextureRoot + "/boltiki_ugolkov_albedo.jpg",
+                new Color(0.52f, 0.5f, 0.44f, 1f), 0.78f, 0.18f));
+            return materials;
         }
 
         private static Material EnsureTexturedOpaqueMaterial(
@@ -508,7 +551,7 @@ namespace RootsDance.Editor.Environment
 
             if (baseMap == null)
             {
-                throw new InvalidOperationException($"Briggs desk texture is missing at '{texturePath}'.");
+                throw new InvalidOperationException($"Briggs imported texture is missing at '{texturePath}'.");
             }
 
             Material material = EnsureOpaqueMaterial(lit, name, tint, metallic, smoothness);
@@ -756,19 +799,30 @@ namespace RootsDance.Editor.Environment
             private readonly Material m_Oxide;
             private readonly Material m_WeatheredWood;
             private readonly Material m_Glass;
+            private readonly IReadOnlyDictionary<string, Material> m_SourceMaterials;
 
             public MaterialSet(
                 Material enamel,
                 Material metal,
                 Material oxide,
                 Material weatheredWood,
-                Material glass)
+                Material glass,
+                IReadOnlyDictionary<string, Material> sourceMaterials)
             {
                 m_Enamel = enamel;
                 m_Metal = metal;
                 m_Oxide = oxide;
                 m_WeatheredWood = weatheredWood;
                 m_Glass = glass;
+                m_SourceMaterials = sourceMaterials;
+            }
+
+            public Material ForSource(string sourceName, MaterialRole fallback)
+            {
+                Material material;
+                return m_SourceMaterials != null && m_SourceMaterials.TryGetValue(sourceName, out material)
+                    ? material
+                    : ForRole(fallback);
             }
 
             public Material ForRole(MaterialRole role)

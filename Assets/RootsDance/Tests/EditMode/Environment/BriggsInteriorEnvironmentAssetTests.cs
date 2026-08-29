@@ -36,8 +36,8 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Models";
         private const string k_ArtistMetadataFolder =
             "Assets/ThirdParty/Environment/BriggsArtistPicks/Attribution";
-        private const string k_KitchenDeskTexturePath =
-            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/Kitchen_Lab_Desk_BaseColor.png";
+        private const string k_ChemicalTableTexturePath =
+            "Assets/ThirdParty/Environment/BriggsArtistPicks/Textures/ChemicalLabTable/verh_stola_albedo.jpg";
         private const string k_ArtistPrefabFolder =
             "Assets/RootsDance/Prefabs/Environment/LabHeroProps";
         private const string k_DressingVariantFolder =
@@ -57,11 +57,11 @@ namespace RootsDance.Tests.EditMode.Environment
         {
             "BI_CentralIsland_Abandoned",
             "BI_NE_OpticalCalibrator",
-            "BI_S8A_ChemistryOldLabTubes",
-            "BI_S8B_LabGlassware",
+            "BI_CentralSet_Glassware_Main",
+            "BI_CentralSet_OldTubes",
+            "BI_CentralSet_IronStand_A",
             "BI_S7_SamplingSyringe",
             "BI_S9_NoticeBoard",
-            "BI_S9_BrokenClock",
         };
 
         private static readonly string[] k_ArtistPickNames =
@@ -522,17 +522,34 @@ namespace RootsDance.Tests.EditMode.Environment
             try
             {
                 Assert.IsTrue(islandInstance != null, islandPath + " must instantiate for bounds validation.");
-                Transform deskHolder = islandInstance.transform.Find("Kitchen_Lab_AbandonedDesk_Model");
+                Transform deskHolder = islandInstance.transform.Find("ChemicalLab_AbandonedTable_Model");
                 Assert.IsTrue(deskHolder != null,
-                    islandPath + " must use the artist-selected weathered desk instead of repeated intact counters.");
+                    islandPath + " must use the artist-selected ruined chemical table.");
                 MeshRenderer deskRenderer = deskHolder.GetComponentInChildren<MeshRenderer>(true);
                 Assert.IsTrue(deskRenderer != null, islandPath + " must retain the imported desk mesh.");
-                Assert.That(Vector3.Distance(deskRenderer.bounds.size, new Vector3(5.2f, 0.92f, 2f)),
-                    Is.LessThan(0.02f),
-                    islandPath + " must preserve the authored gameplay envelope and worktop height. Actual: "
+                Assert.That(deskRenderer.bounds.size.x, Is.EqualTo(5.2f).Within(0.02f));
+                Assert.That(deskRenderer.bounds.size.z, Is.EqualTo(2f).Within(0.02f));
+                Assert.That(deskRenderer.bounds.size.y, Is.InRange(1.25f, 1.5f),
+                    islandPath + " must retain the faucet above its 0.92 m worktop. Actual: "
                     + deskRenderer.bounds.size);
-                Assert.AreEqual(k_KitchenDeskTexturePath,
-                    AssetDatabase.GetAssetPath(deskRenderer.sharedMaterial.GetTexture("_BaseColorMap")));
+
+                bool foundWorktopTexture = false;
+
+                for (int materialIndex = 0; materialIndex < deskRenderer.sharedMaterials.Length; materialIndex++)
+                {
+                    Material material = deskRenderer.sharedMaterials[materialIndex];
+
+                    if (material != null
+                        && AssetDatabase.GetAssetPath(material.GetTexture("_BaseColorMap"))
+                        == k_ChemicalTableTexturePath)
+                    {
+                        foundWorktopTexture = true;
+                        break;
+                    }
+                }
+
+                Assert.IsTrue(foundWorktopTexture,
+                    islandPath + " must retain the ruined worktop base-color map.");
             }
             finally
             {
@@ -541,18 +558,18 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsKitchenDesk_ImportsAsStaticAttributedSource()
+        public void BriggsChemicalTable_ImportsAsStaticAttributedSource()
         {
-            string modelPath = k_ArtistModelFolder + "/Kitchen_Lab_AbandonedDesk.fbx";
-            string metadataPath = k_ArtistMetadataFolder + "/Kitchen_and_Lab.metadata.json";
+            string modelPath = k_ArtistModelFolder + "/ChemicalLab_AbandonedTable.fbx";
+            string metadataPath = k_ArtistMetadataFolder + "/Chemical_Lab_Fallout_4.metadata.json";
             ModelImporter importer = AssetImporter.GetAtPath(modelPath) as ModelImporter;
 
             Assert.IsTrue(importer != null, modelPath);
             Assert.IsFalse(importer.addCollider, modelPath + " must not generate FBX colliders.");
             Assert.IsFalse(importer.importAnimation, modelPath + " is a static environment asset.");
             Assert.IsTrue(AssetDatabase.LoadAssetAtPath<TextAsset>(metadataPath) != null, metadataPath);
-            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<Texture2D>(k_KitchenDeskTexturePath) != null,
-                k_KitchenDeskTexturePath);
+            Assert.IsTrue(AssetDatabase.LoadAssetAtPath<Texture2D>(k_ChemicalTableTexturePath) != null,
+                k_ChemicalTableTexturePath);
         }
 
         [Test]
@@ -763,5 +780,6 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsFalse(colliders[i].enabled, path + " has an enabled collider at " + colliders[i].name);
             }
         }
+
     }
 }

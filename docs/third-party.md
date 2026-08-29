@@ -171,9 +171,14 @@ the only derived data lives under `Assets/RootsDance/`.
   uploaded by @sanyabeast and crediting original creator amogusstrikesback2. The project retains both credits and the
   original-model URL from the supplied description. The included base map is a brighter, desaturated derivative of the
   downloaded baked texture.
-- **Excluded references:** *Chemical Lab Fallout 4* and *Black Mesa Lab Props* remain out of the repository because of
-  explicit third-party IP provenance. *Abandoned Lab Equipment*, *Mad Scientist Lab* and *Conspiracy Papers X-Lab*
-  had no downloadable source mesh in the local archive.
+- **Chemical lab table:** at the art team's explicit direction, the central island now uses the table shell, sink and
+  faucet isolated from [Chemical lab (Fallout 4) by Vitaliy Kovalchuk / Domender](https://sketchfab.com/3d-models/chemical-lab-fallout-4-c5b0d9196de34c2881c8c225cfb14a92).
+  Its Sketchfab license is CC BY 4.0, but its title and description explicitly identify Fallout 4 provenance. The
+  project excludes all bundled labelled props and preserves the source metadata; production still needs to clear that
+  underlying IP risk before public release.
+- **Excluded references:** *Black Mesa Lab Props* remains out of the repository because of explicit third-party IP
+  provenance. *Abandoned Lab Equipment*, *Mad Scientist Lab* and *Conspiracy Papers X-Lab* had no legally reusable
+  source mesh in the local archive. The tabletop arrangement therefore uses existing attributed or CC0 project assets.
 
 ## Greenhouse interior props (Sketchfab, 2026-08-29)
 

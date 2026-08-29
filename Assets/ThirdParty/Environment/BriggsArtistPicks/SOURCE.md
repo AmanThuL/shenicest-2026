@@ -9,6 +9,7 @@ These source meshes were copied from the team's local candidate library on 2026-
 | `Models/PSX_Adrenaline_Syringe.fbx` | PSX Adrenaline Syringe | ZwiebelGames | <https://sketchfab.com/3d-models/psx-adrenaline-syringe-97547a325dfc499cb3ffbb8abaa17c2a> |
 | `Models/Astronomical_Quintant.fbx` | Astronomical quintant | Virtual Museums of Małopolska | <https://sketchfab.com/3d-models/astronomical-quintant-4b8e17593bd5457aaa958a85c1e5440d> |
 | `Models/Kitchen_Lab_AbandonedDesk.fbx` | Kitchen And Lab by Amogusstrikesback2 | @sanyabeast / original model by amogusstrikesback2 | <https://sketchfab.com/3d-models/kitchen-and-lab-by-amogusstrikesback2-e9fdbbfb929e4bf796fa81d250fe6d64> |
+| `Models/ChemicalLab_AbandonedTable.fbx` | Chemical lab (Fallout 4) | Vitaliy Kovalchuk / Domender | <https://sketchfab.com/3d-models/chemical-lab-fallout-4-c5b0d9196de34c2881c8c225cfb14a92> |
 
 Licence: <https://creativecommons.org/licenses/by/4.0/>
 
@@ -23,5 +24,10 @@ Conversion notes:
   desaturated derivative of the supplied baked desk texture so the old wood and exposed metal remain readable under
   the Briggs PSX post-process. The preserved metadata records uploader @sanyabeast, the credited original creator
   amogusstrikesback2, and the original model link.
+- Chemical lab table: extracted from the officially downloaded source OBJ with Blender 5.2. Only the ruined table
+  shell, sink and faucet are exported. The bundled bottles, first-aid kit and labelled props are excluded. Seven
+  supplied base-color maps are retained under `Textures/ChemicalLabTable/`. The source title and description explicitly
+  identify a Fallout 4 derivative, so the preserved metadata must remain with this asset and the production team must
+  clear the underlying IP provenance before public release.
 
 Project materials, colliders, scale normalization and prefab wrappers live under `Assets/RootsDance/`. Reworking a mesh or material does not remove the attribution requirement.
