@@ -21,8 +21,8 @@ namespace RootsDance.Editor.Environment
 
         public static void CaptureFromCommandLine()
         {
-            // Reproduce the gameplay volume stack. Briggs deliberately inherits the sunny sky from the
-            // global MainProfile and only applies its abandoned-room look inside a local Box Volume.
+            // Reproduce the additive gameplay volume stack. The restored 006b2dc Briggs profile is itself
+            // global and owns the dark-green sky, fog, Bloom and PSX values used by the historical look.
             Scene mainEnvironment = EditorSceneManager.OpenScene(k_MainEnvironmentPath, OpenSceneMode.Single);
             KeepOnlyMainProfileAtmosphere(mainEnvironment);
             Scene scene = EditorSceneManager.OpenScene(k_ScenePath, OpenSceneMode.Additive);

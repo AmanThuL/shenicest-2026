@@ -24,8 +24,6 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx";
         private const string k_ProfilePath =
             "Assets/RootsDance/Settings/VolumeProfiles/BriggsInteriorProfile.asset";
-        private const string k_MainProfilePath =
-            "Assets/RootsDance/Settings/VolumeProfiles/MainProfile.asset";
         private const string k_CeilingMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat";
         private const string k_GarageShellPath =
@@ -98,7 +96,7 @@ namespace RootsDance.Tests.EditMode.Environment
         };
 
         [Test]
-        public void BriggsEnvironmentScene_ContainsPwbDressingAndLocalInteriorVolume()
+        public void BriggsEnvironmentScene_ContainsPwbDressingAnd006bGlobalInteriorVolume()
         {
             string yaml = File.ReadAllText(k_EnvironmentPath);
             StringAssert.Contains("m_Name: Prefab World Builder", yaml);
@@ -107,10 +105,10 @@ namespace RootsDance.Tests.EditMode.Environment
             StringAssert.Contains("m_Name: LabArchives", yaml);
             StringAssert.Contains("m_Name: LabEcology", yaml);
             StringAssert.Contains("m_Name: LabDebris", yaml);
-            StringAssert.Contains("m_Name: LabInteriorLook", yaml);
-            StringAssert.Contains("m_IsGlobal: 0", yaml);
+            StringAssert.Contains("m_Name: Global Volume", yaml);
+            StringAssert.Contains("m_IsGlobal: 1", yaml);
             StringAssert.Contains("value: IvyHanging", yaml,
-                "The full hanging-ivy prefab must retain the pre-dressing 64792d1 ceiling state.");
+                "The full hanging-ivy prefab must retain the 006b2dc ceiling state.");
             StringAssert.Contains("m_Name: CeilingHoleVines", yaml);
             Assert.AreEqual(1, CountOwnedObject(yaml, "MainHoleVine_Left"));
             Assert.AreEqual(1, CountOwnedObject(yaml, "MainHoleVine_Right"));
@@ -177,7 +175,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsEnvironmentScene_Retains647CeilingAndHangingVegetation()
+        public void BriggsEnvironmentScene_Retains006bCeilingAndHangingVegetation()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -219,7 +217,7 @@ namespace RootsDance.Tests.EditMode.Environment
                         new Quaternion(0f, 1f, 0f, -0.00000004371139f)),
                     Is.LessThan(k_Tolerance));
                 Assert.IsTrue(ceiling != null && intactBeam != null && brokenBeam != null,
-                    "The 64792d1 ceiling mesh and both beams must remain present.");
+                    "The 006b2dc ceiling mesh and both beams must remain present.");
                 AssertHistoricalTransform(
                     ceiling,
                     new Vector3(-0.000000000000001f, 2.28f, 0.201f),
@@ -317,7 +315,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsEnvironmentScene_Uses647GarageCeilingHoleMeshAndMaterial()
+        public void BriggsEnvironmentScene_Uses006bGarageCeilingHoleMeshAndMaterial()
         {
             Material ceilingMaterial = AssetDatabase.LoadAssetAtPath<Material>(k_CeilingMaterialPath);
             Assert.IsTrue(ceilingMaterial != null, k_CeilingMaterialPath);
@@ -350,7 +348,7 @@ namespace RootsDance.Tests.EditMode.Environment
                     for (int materialIndex = 0; materialIndex < renderer.sharedMaterials.Length; materialIndex++)
                     {
                         Assert.AreSame(ceilingMaterial, renderer.sharedMaterials[materialIndex],
-                            ceilingNames[i] + " must use the exact 64792d1 Garage ceiling material.");
+                            ceilingNames[i] + " must use the exact 006b2dc Garage ceiling material.");
                     }
                 }
 
@@ -368,31 +366,35 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsProfile_Matches647LookAndInheritsGlobalPsx()
+        public void BriggsProfile_Matches006bDarkGreenLookAndLocalPsx()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_ProfilePath);
-            VolumeProfile mainProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_MainProfilePath);
             Assert.IsTrue(profile != null, k_ProfilePath);
-            Assert.IsTrue(mainProfile != null, k_MainProfilePath);
             Assert.IsTrue(profile.TryGet(out Exposure exposure));
             Assert.AreEqual(ExposureMode.Fixed, exposure.mode.value);
-            Assert.That(exposure.fixedExposure.value, Is.EqualTo(7f).Within(k_Tolerance));
-            Assert.IsFalse(profile.TryGet(out VisualEnvironment _),
-                "The local laboratory profile must inherit MainProfile's sunny exterior sky.");
-            Assert.IsFalse(profile.TryGet(out GradientSky _),
-                "A local sky override would make the exterior inherit the abandoned-room palette.");
+            Assert.That(exposure.fixedExposure.value, Is.EqualTo(4.5f).Within(k_Tolerance));
+            Assert.IsTrue(profile.TryGet(out VisualEnvironment environment));
+            Assert.AreEqual((int)SkyType.Gradient, environment.skyType.value);
+            Assert.AreEqual(SkyAmbientMode.Dynamic, environment.skyAmbientMode.value);
+            Assert.IsTrue(profile.TryGet(out GradientSky sky));
+            Assert.That(sky.exposure.value, Is.EqualTo(-1.2f).Within(k_Tolerance));
+            Assert.That(sky.gradientDiffusion.value, Is.EqualTo(1.4f).Within(k_Tolerance));
             Assert.IsTrue(profile.TryGet(out Fog fog));
             Assert.IsTrue(fog.enableVolumetricFog.value);
-            Assert.AreEqual(FogColorMode.ConstantColor, fog.colorMode.value);
-            Assert.That(fog.meanFreePath.value, Is.EqualTo(30f).Within(k_Tolerance));
-            Assert.That(fog.anisotropy.value, Is.EqualTo(0.55f).Within(k_Tolerance));
-            Assert.IsFalse(fog.tint.overrideState);
-            Assert.IsFalse(profile.TryGet(out Bloom _));
-            Assert.IsFalse(profile.TryGet(out WhiteBalance _));
+            Assert.AreEqual(FogColorMode.SkyColor, fog.colorMode.value);
+            Assert.That(fog.meanFreePath.value, Is.EqualTo(38f).Within(k_Tolerance));
+            Assert.That(fog.anisotropy.value, Is.EqualTo(0.62f).Within(k_Tolerance));
+            Assert.IsTrue(fog.tint.overrideState);
+            Assert.IsTrue(profile.TryGet(out Bloom bloom));
+            Assert.That(bloom.intensity.value, Is.EqualTo(0.08f).Within(k_Tolerance));
+            Assert.That(bloom.threshold.value, Is.EqualTo(0f).Within(k_Tolerance));
+            Assert.IsTrue(profile.TryGet(out WhiteBalance whiteBalance));
+            Assert.That(whiteBalance.temperature.value, Is.EqualTo(-6f).Within(k_Tolerance));
+            Assert.That(whiteBalance.tint.value, Is.EqualTo(-12f).Within(k_Tolerance));
             Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
-            Assert.That(color.saturation.value, Is.EqualTo(-8f).Within(k_Tolerance));
-            Assert.IsFalse(profile.TryGet(out PsxPostProcess _));
-            Assert.IsTrue(mainProfile.TryGet(out PsxPostProcess psx));
+            Assert.That(color.saturation.value, Is.EqualTo(-20f).Within(k_Tolerance));
+            Assert.That(color.contrast.value, Is.EqualTo(20f).Within(k_Tolerance));
+            Assert.IsTrue(profile.TryGet(out PsxPostProcess psx));
             Assert.IsFalse(psx.grainMode.value);
             Assert.That(psx.intensity.value, Is.EqualTo(1f).Within(k_Tolerance));
             Assert.AreEqual(4, psx.pixelScale.value);
@@ -402,7 +404,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsEnvironmentScene_UsesSunnyVolumetricRoofLight()
+        public void BriggsEnvironmentScene_Uses006bVolumetricRoofLight()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -423,22 +425,23 @@ namespace RootsDance.Tests.EditMode.Environment
                 Light mainShaft = FindDescendant(atmosphere, "RoofShaft_Main").GetComponent<Light>();
                 Light westShaft = FindDescendant(atmosphere, "RoofShaft_West").GetComponent<Light>();
 
-                Assert.That(sun.intensity, Is.EqualTo(100000f).Within(1f));
-                Assert.That(sunData.volumetricDimmer, Is.EqualTo(0.22f).Within(k_Tolerance));
-                Assert.That(sunData.angularDiameter, Is.EqualTo(0.5f).Within(k_Tolerance));
-                Assert.That(roomFog.parameters.meanFreePath, Is.EqualTo(8.5f).Within(k_Tolerance));
+                Assert.That(sun.intensity, Is.EqualTo(18000f).Within(1f));
+                Assert.IsFalse(sun.useColorTemperature);
+                Assert.That(sunData.volumetricDimmer, Is.EqualTo(0.12f).Within(k_Tolerance));
+                Assert.That(sunData.angularDiameter, Is.EqualTo(8f).Within(k_Tolerance));
+                Assert.That(roomFog.parameters.meanFreePath, Is.EqualTo(13.5f).Within(k_Tolerance));
                 Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(8f).Within(k_Tolerance));
+                    Is.EqualTo(3.2f).Within(k_Tolerance));
                 Assert.That(westShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(4f).Within(k_Tolerance));
-                Assert.That(mainShaft.spotAngle, Is.EqualTo(20f).Within(k_Tolerance));
-                Assert.That(westShaft.spotAngle, Is.EqualTo(18f).Within(k_Tolerance));
+                    Is.EqualTo(2.2f).Within(k_Tolerance));
+                Assert.That(mainShaft.spotAngle, Is.EqualTo(28f).Within(k_Tolerance));
+                Assert.That(westShaft.spotAngle, Is.EqualTo(24f).Within(k_Tolerance));
                 Assert.That(mainShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
                 Assert.That(westShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
                 Assert.That(mainShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    mainShaft, 4200f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
+                    mainShaft, 1100f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
                 Assert.That(westShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    westShaft, 2800f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
+                    westShaft, 700f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
                 Assert.AreEqual(LightShadows.None, mainShaft.shadows);
                 Assert.AreEqual(LightShadows.None, westShaft.shadows);
                 Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricShadowDimmer,

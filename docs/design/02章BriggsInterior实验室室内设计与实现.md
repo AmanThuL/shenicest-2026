@@ -37,11 +37,11 @@
 - 首轮共放置 160 个 Prefab 实例，包括家具、密集实验与档案器材、边缘及地砖裂缝杂草、低矮青苔斑和苔藓岩块。
 - 第二轮重建后共 121 个 PWB prefab 实例。数量下降来自合并中央六柜台、移除阻塞北环路的服务台和清理重复器材，不是减少地面生态或桌面叙事密度。
 - 第二轮保留全部 `BI_Overgrowth_*`、`BI_Moss_*` 与既有地面生态坐标，只重做家具和台面层。
-- 顶部结构和悬挂植物最终以首次室内布景前的 `64792d1` 为基线：`Ceiling`、两根梁、Mesh 内的 ceiling holes、
-  `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留 `64792d1` 的 Prefab、父子层级与 Transform。
+- 顶部结构、墙体、悬挂植物和气氛最终以用户确认的 `006b2dc` 为视觉基线：`Ceiling`、两根梁、Mesh 内的 ceiling holes、
+  `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留 `006b2dc` 的 Prefab、父子层级与 Transform。
   破顶是 `GarageShell.fbx/Ceiling` 网格中真实建模的开口，不是植被或光柱造成的视觉错觉。PWB 下 121 个室内 props
   则严格保持 `55a362d` 的状态；两套基线互不覆盖。
-- `Ceiling`、`Ceiling_Beam` 和 `Ceiling_Beam_Broken` 恢复使用 `64792d1` 的原始
+- `Ceiling`、`Ceiling_Beam` 和 `Ceiling_Beam_Broken` 恢复使用 `006b2dc` 场景中的原始
   `Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat`，不再叠加后续专用 Triplanar 材质。
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
@@ -52,11 +52,11 @@
 - 桌面器材使用旋转后 Renderer bounds 自动贴合台面。直立、倾倒和横放物件都以最低点落在支撑面上，避免悬空。
 - 从本地 CC0 Lab Assets 增补显微镜、烧杯、过滤瓶、分液漏斗、酒精灯、铁架台、环架、坩埚、针筒、蒸发皿、药匙和折叠实验服。
 - 北墙中央 `abs(X) < 2.75` 且 `Z > 4.4` 的圆门预留区不放任何本轮 props。
-- 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门、破顶与悬挂藤蔓。
-  顶光不依赖删除植物，而由恢复后的 100000 lux Sun、窄角 RoofShaft 与局部体积雾维持可读性。
+- 已保留 `006b2dc` 状态下的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门、破顶与悬挂藤蔓。
+  顶光不依赖删除植物，而由恢复后的 18000 lux 青绿色 Sun、较宽 RoofShaft 与较浓局部体积雾维持洞口和多束 God Ray 的可读性。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
-- 局部室内 Volume 按 `64792d1` 不单独覆盖 `PsxPostProcess` 或 Bloom；实验室和室外共同继承 `MainProfile` 中已经实现的
-  PSX 后处理和晴天天空，避免出现两层 PSX 或局部后处理漂移。
+- `006b2dc` 的 `_LabAtmosphere/Global Volume` 直接使用 `BriggsInteriorProfile`，包含暗绿色 Gradient Sky、Bloom、白平衡与
+  本地 `PsxPostProcess`。该 Volume 是这一历史画面的一部分，不得改成继承 `MainProfile` 的局部 Box Volume。
 - 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
 - 截图中的 `Abandoned Lab Equipment`、`Mad Scientist Lab`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 本地没有可用源包；本轮只借构图，用项目原创低模 CRT、公告板和破表替代。`Chemical Lab Fallout 4` 与 Black Mesa 衍生素材不进入发布工程。
 
@@ -109,10 +109,12 @@
 
 | 对象 | 类型与位置 | 当前用途 | 后续处理 |
 |---|---|---|---|
-| `Sun` | Directional，100000 lux | 晴天外部日光和破顶来源 | 恢复 `64792d1` 的 6570 K 白色日光、体积参与度 0.22 和 0.5° 角直径 |
+| `Sun` | Directional，18000 lux | 青绿色外部日光和破顶来源 | 恢复 `006b2dc` 的 `(0.88, 0.97, 0.85)` 色彩、体积参与度 0.12 和 8° 角直径 |
 | `CorridorFill` | Point，`(3, 3.2, -15)`，Range 10 | 廊道暗部托底 | 保持很弱，不得让玩家在拿到手电前看清全廊道 |
-| `LabFill_North` | Point，`(-3, 3.8, 3.5)`，180 lm，Range 8 | 主室北半暗部托底 | 无阴影灰青绿填充，避免与可见灯具形成重复亮斑 |
-| `LabFill_South` | Point，`(4, 3.5, -3.5)`，160 lm，Range 8 | 主室南半暗部托底 | 无阴影灰青绿填充，主要托起中央岛和 S7 轮廓 |
+| `LabFill_North` | Point，`(-3, 3.8, 3.5)`，10000 lm，Range 12 | 主室北半暗部托底 | 恢复 `006b2dc` 的无阴影青绿色填充 |
+| `LabFill_South` | Point，`(4, 3.5, -3.5)`，8000 lm，Range 12 | 主室南半暗部托底 | 恢复 `006b2dc` 的无阴影灰绿色填充 |
+| `RoofShaft_Main` | Spot，`(0.1, 4.18, 2.5)`，1100 lm，28° | 主破洞光柱 | 体积参与度 3.2，绿色无阴影艺术光柱 |
+| `RoofShaft_West` | Spot，`(-5.35, 4.18, 3.75)`，700 lm，24° | 西侧破洞光柱 | 体积参与度 2.2，绿色无阴影艺术光柱 |
 
 现有气氛资源：
 
@@ -121,8 +123,8 @@
 - `Assets/RootsDance/Materials/Environment/BriggsInterior/LabLightBlocker.mat`
 - `Assets/RootsDance/Scripts/Editor/Environment/BriggsInteriorAtmosphereBuilder.cs`
 
-场景已经恢复固定曝光 EV 7、继承 `MainProfile` 晴天天空的局部室内 Volume、冷绿色雾、局部体积雾、漏光遮挡、APV 和 `StaticLightingSky`。
-局部雾恢复 `64792d1` 的 8.5 m Mean Free Path，由窄角高体积参与度的破顶 Spot 形成稳定的 God Ray / 丁达尔光柱。布景完成后再做一次 APV
+场景已经恢复 `006b2dc` 的固定曝光 EV 4.5、暗绿色 Gradient Sky 全局 Volume、冷绿色雾、局部体积雾、漏光遮挡、APV 和 `StaticLightingSky`。
+局部雾恢复 13.5 m Mean Free Path，由 28° 和 24° 的破顶 Spot 配合太阳光形成稳定的多束 God Ray / 丁达尔光柱。布景完成后再做一次 APV
 和 Reflection Probe 检查。不要在 props 尚未稳定时反复烘焙。
 
 ## 3. 艺术方向
@@ -142,7 +144,7 @@
 - 植物集中为 3 至 5 个生态入侵岛，不能平均撒满地面。
 
 参考图色彩被落实为黑绿色阴影、去饱和青灰绿中间调、暖白破顶光，以及少量锈褐和旧纸暖色。局部后处理采用
-`Contrast +14`、`Saturation -8`、轻微冷绿 Color Filter 和克制 Bloom，不再用白平衡压暗室外。PSX 参数为
+`Contrast +20`、`Saturation -20`、`Temperature -6`、`Tint -12`、冷绿 Color Filter 和强度 0.08 的克制 Bloom。PSX 参数为
 `Pixel Scale 4`、`Color Levels 32`、`Dither 0.6`、`Interlace 0.1`，保留低模半写实轮廓，不把画面处理成高饱和霓虹。
 
 视觉层级从高到低：
@@ -568,13 +570,13 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 灯光分四层：
 
 1. 现有冷绿无阴影 Point Light 只托暗部。
-2. 破顶暖中性色光构成中央主光轴。
+2. `006b2dc` 的去饱和青绿色破顶光构成中央主光轴。
 3. 生物发光和终端状态灯提供局部冷青、黄绿、橙红色点。
 4. 手电是廊道和暗角的玩家主导光源。
 
 曝光保持固定或受控，不使用会因看向荧光物而剧烈跳变的自动曝光。Bloom 只让高亮边缘有轻微扩散，不做赛博霓虹。
-当前实现严格恢复 `64792d1` 的 Fixed Exposure EV 7。主破顶 Spot 为 4200 lm，西侧次光为 2800 lm；两束灯使用该提交
-原有的窄角、无阴影艺术定向配置，加强 MainProfile PSX 后处理下的体积轮廓。
+当前实现严格恢复 `006b2dc` 的 Fixed Exposure EV 4.5。主破顶 Spot 为 1100 lm，西侧次光为 700 lm；两束灯使用该提交
+原有的较宽角、无阴影艺术定向配置，加强 Briggs 本地 PSX、Bloom 和绿色体积雾下的多束轮廓。
 
 ### 8.2 破顶与顶部光
 
@@ -583,9 +585,9 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 - 主破口的平面中心约为 `X -0.28, Z -0.38`，主光束从该中心上方入射，斜擦中央桌北半和台面玻璃。
 - 西侧破口的平面中心约为 `X -5.75, Z 2.05`，次光束从该中心上方照到破损培养区和残留低矮植物。
 
-主灯恢复为 `(0.1, 4.18, 2.5)`、旋转 `(70, 180, 0)`、20 度外角、8 度内角、体积参与度 8；西侧灯恢复为
-`(-5.35, 4.18, 3.75)`、旋转 `(74, 165, 0)`、18 度外角、7 度内角、体积参与度 4。两者 Range 均为 9 m，
-不投射实时阴影。这些数值属于 `64792d1` 的历史构图基线，不再根据后续 props 重新估算。
+主灯恢复为 `(0.1, 4.18, 2.5)`、旋转 `(70, 180, 0)`、28 度外角、12 度内角、体积参与度 3.2；西侧灯恢复为
+`(-5.35, 4.18, 3.75)`、旋转 `(74, 165, 0)`、24 度外角、10 度内角、体积参与度 2.2。两者 Range 均为 9 m，
+不投射实时阴影。这些数值属于 `006b2dc` 的历史构图基线，不再根据后续 props 重新估算。
 
 布置顺序：
 
