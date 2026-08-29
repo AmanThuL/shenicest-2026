@@ -176,6 +176,7 @@ namespace RootsDance.Editor.Environment
 
             GameObject portal = EnsureChild(chaseRoot, "ExitPortal").gameObject;
             portal.transform.position = k_GreenhousePortal;
+            SetTriggerLayer(portal);
             BoxCollider portalBox = EnsureComponent<BoxCollider>(portal);
             portalBox.isTrigger = true;
             portalBox.size = k_GreenhousePortalSize;
@@ -221,6 +222,7 @@ namespace RootsDance.Editor.Environment
 
             GameObject victory = EnsureChild(chaseRoot, "VictoryVolume").gameObject;
             victory.transform.position = k_MainVictory;
+            SetTriggerLayer(victory);
             BoxCollider victoryBox = EnsureComponent<BoxCollider>(victory);
             victoryBox.isTrigger = true;
             victoryBox.size = k_MainVictorySize;
@@ -385,6 +387,23 @@ namespace RootsDance.Editor.Environment
             }
 
             return asset;
+        }
+
+        /// <summary>
+        /// Puts a trigger on the one layer the player's trigger probe can meet. The probe sits on
+        /// PlayerProbe, and the physics matrix pairs PlayerProbe with TriggerVolume and nothing
+        /// else — a volume left on Default is walked straight through.
+        /// </summary>
+        private static void SetTriggerLayer(GameObject host)
+        {
+            int layer = LayerMask.NameToLayer("TriggerVolume");
+
+            if (layer < 0)
+            {
+                throw new InvalidOperationException("The TriggerVolume layer is not configured.");
+            }
+
+            host.layer = layer;
         }
 
         private static T EnsureComponent<T>(GameObject target) where T : Component

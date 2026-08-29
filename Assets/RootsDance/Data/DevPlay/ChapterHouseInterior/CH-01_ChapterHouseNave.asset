@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: CH-01 Chapter house nave
   m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
   m_anchorName: Checkpoint_ChapterHouseNave
-  m_position: {x: 0, y: 1, z: -11}
+  m_position: {x: 0.13872959, y: 6.1544313, z: -2.023664}
   m_yaw: 0
   m_snapToGround: 0
   m_groundLayers:

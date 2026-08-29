@@ -17,14 +17,35 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Editor.Environment
 {
     /// <summary>
-    /// Builds the chapter house interior level from the imported chapel mesh: an environment scene
-    /// carrying the building, its materials and its lighting, and a gameplay scene carrying the
-    /// player, camera and anchors — the same two-scene shape every other level here has.
+    /// Builds the chapter house interior level from the <em>dressed</em> chapel: an environment
+    /// scene carrying the building, its materials, its collision and its lighting, and a gameplay
+    /// scene carrying the player, camera and anchors — the same two-scene shape every other level
+    /// here has.
     /// <para>
-    /// The mesh keeps its authored scale. It measures 20.8 m across, 29.6 m deep and 20.8 m tall,
-    /// which is a real chapter house next to a 1.8 m player, so scaling it would only make the
-    /// building lie about its own size. It is centred on X/Z and grounded at Y 0 instead, because
-    /// the OBJ was authored around the modeller's origin, not ours.
+    /// The source is <c>SourceArt/Corridor/RootsDance_Corridor_Blockout.blend</c>, not the raw
+    /// download. There the chapel was taken apart into its 21 pieces and re-laid as an indoor
+    /// corridor: the two gable walls keep their round openings and now face each other down the
+    /// hall, the cloth-like landscape sits under the floor, and a metal catwalk crosses the hall
+    /// above it. That arrangement — the openings and the bridge — is the level; the untouched
+    /// chapel is only the material it was cut from.
+    /// </para>
+    /// <para>
+    /// The blockout simplified all 21 surfaces down to three flat Blender materials, so the
+    /// authored bakes are put back here by <see cref="k_Parts"/>: the pieces come out of the
+    /// exporter named <c>ClothLandscape_CorridorShell.NNN</c> in alphabetical order of their
+    /// original names, which is what the table restores.
+    /// </para>
+    /// <para>
+    /// The blockout re-laid the chapel at a uniform 0.662 of its authored size — measured piece by
+    /// piece, spread 0.005 — which put a 0.55 m balustrade next to a 1.8 m player and made the whole
+    /// building read as a model of itself. The <c>static_chapterhouse</c> import profile multiplies
+    /// that back out by 1.511, so the level is 13.2 m across, 18.8 m deep and 13.1 m tall, with a
+    /// 6.8 × 13.7 m hall. Correcting it at import rather than on the instance keeps the scale in the
+    /// one file that owns import settings, and leaves the scene's transforms at 1.
+    /// </para>
+    /// <para>
+    /// Past that the mesh is only centred on X/Z and grounded at Y 0, because the blend was authored
+    /// around the modeller's origin, not ours.
     /// </para>
     /// Repeatable: re-running rebuilds both scenes from scratch and re-points the level asset and
     /// checkpoints, so it is the one place the layout is authored.
@@ -38,17 +59,34 @@ namespace RootsDance.Editor.Environment
         private const string k_CheckpointFolder = "Assets/RootsDance/Data/DevPlay/" + k_LevelName;
         private const string k_PlayerPrefabPath = "Assets/RootsDance/Prefabs/Characters/Player.prefab";
         private const string k_ModelPath =
-            "Assets/RootsDance/Meshes/Environment/ChapterHouse/ChapterHouse.obj";
+            "Assets/RootsDance/Meshes/Environment/ChapterHouse/ChapterHouseCorridor.fbx";
         private const string k_MaterialFolder = "Assets/RootsDance/Materials/Environment/ChapterHouse";
         private const string k_TextureFolder = "Assets/RootsDance/Textures/Environment/ChapterHouse";
         private const string k_VolumeProfilePath =
             "Assets/RootsDance/Settings/VolumeProfiles/MainProfile.asset";
 
         private const string k_NaveAnchor = "Checkpoint_ChapterHouseNave";
-        private const string k_GalleryAnchor = "Checkpoint_ChapterHouseGallery";
+        private const string k_GalleryAnchor = "Checkpoint_ChapterHouseBridge";
+
+        /// <summary>The catwalk. The one piece that is not a part of the chapel.</summary>
+        private const string k_BridgePart = "Bridge_Metal_Center.001";
+        private const string k_BridgeSurface = "Bridge_Metal";
+
+        /// <summary>The chapel floor the hall is walked on, and the landscape under it.</summary>
+        private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
+        private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
+
+        /// <summary>Head clearance over a walkable surface for a spawn or an anchor.</summary>
+        private const float k_EyeClearance = 1.05f;
 
         /// <summary>
-        /// Every material the OBJ declares, and the texture set each one wears. Base and normal
+        /// What <c>static_chapterhouse</c> imports at, and the reciprocal of the 0.662 the blockout
+        /// shrank the chapel by. Held here so the build fails loudly if the profile drifts from it.
+        /// </summary>
+        private const float k_ImportScale = 1.511f;
+
+        /// <summary>
+        /// Every material the chapel declares, and the texture set each one wears. Base and normal
         /// names are the files in <see cref="k_TextureFolder"/>; empty means the material has no
         /// map of that kind and stays a flat surface.
         /// <para>
@@ -87,13 +125,55 @@ namespace RootsDance.Editor.Environment
             new SurfaceMapping("Material.001", "gradbake", null),
             new SurfaceMapping("emission", "gradbake", null),
             new SurfaceMapping("bacl", "plane", null),
+
+            // The catwalk is not part of the chapel and carries no bake, so it is the one surface
+            // that has to be a described material rather than a photographed one.
+            new SurfaceMapping(k_BridgeSurface, null, null, new Color(0.17f, 0.18f, 0.19f), 0.9f, 0.35f),
         };
 
-        private static readonly CheckpointPlacement[] k_CheckpointPlacements =
+        /// <summary>
+        /// Which chapel surface each blockout piece is. The blockout renamed every piece to
+        /// <c>ClothLandscape_CorridorShell.NNN</c> and flattened the materials to three, so the
+        /// authored identity survives only in this order — the pieces were duplicated in
+        /// alphabetical order of their original names, which is the order below. The UVs came
+        /// through untouched, so putting the original bake back on a piece is all it takes.
+        /// <para>
+        /// If the blend is re-exported with pieces added or removed, this table is what has to be
+        /// re-derived — <see cref="ApplyMaterials"/> fails loudly rather than guessing.
+        /// </para>
+        /// </summary>
+        private static readonly (string Part, string Surface)[] k_Parts =
         {
-            new CheckpointPlacement(k_NaveAnchor, new Vector3(0f, 1f, -11f), 0f),
-            new CheckpointPlacement(k_GalleryAnchor, new Vector3(0f, 1f, 4f), 180f),
+            ("ClothLandscape_CorridorShell", "bacl"),                    // DEathbox
+            ("ClothLandscape_CorridorShell.001", "Window_fourclo"),      // glass_fourclo — the round opening
+            ("ClothLandscape_CorridorShell.002", "Windwo_test"),         // glass_largearch
+            ("ClothLandscape_CorridorShell.003", "Window_small"),        // glass_threearches
+            ("ClothLandscape_CorridorShell.004", "emission"),            // ImSPOECIAL
+            ("ClothLandscape_CorridorShell.005", "lower_columns"),
+            ("ClothLandscape_CorridorShell.006", "lower_doors"),
+            (k_FloorPart, "lower_floor"),
+            ("ClothLandscape_CorridorShell.008", "lower_pianochamber"),
+            ("ClothLandscape_CorridorShell.009", "panles_plasterwood"),
+            ("ClothLandscape_CorridorShell.010", "panels_stonewood"),
+            (k_ClothPart, "Material.001"),                               // the_warbler — the cloth landscape
+            ("ClothLandscape_CorridorShell.012", "upper_balustrade"),
+            ("ClothLandscape_CorridorShell.013", "upper_gallerywood"),
+            ("ClothLandscape_CorridorShell.014", "upper_roof"),
+            ("ClothLandscape_CorridorShell.015", "upper_sidecolumns"),
+            ("ClothLandscape_CorridorShell.016", "wall_pianoside"),      // gable wall, round opening
+            ("ClothLandscape_CorridorShell.017", "wall_archwindows"),
+            ("ClothLandscape_CorridorShell.018", "wall_balconyside"),
+            ("ClothLandscape_CorridorShell.019", "wall_fourclo"),
+            ("ClothLandscape_CorridorShell.020", "wall_galleryside"),    // gable wall, round opening
+            (k_BridgePart, k_BridgeSurface),
         };
+
+        /// <summary>
+        /// Where the player starts and where Dev Play drops them. Both are derived from the built
+        /// geometry — the hall floor and the catwalk — rather than typed in, because the blockout
+        /// is explicitly a layout the level artist is still moving around.
+        /// </summary>
+        private static CheckpointPlacement[] s_checkpointPlacements;
 
         [MenuItem("RootsDance/Build Chapter House Interior")]
         public static void Build()
@@ -166,12 +246,47 @@ namespace RootsDance.Editor.Environment
         // ---- Materials -------------------------------------------------------------------------
 
         /// <summary>
-        /// The OBJ arrives with one child object per authored group, which is what the material
-        /// mapping keys off. Scale stays 1 — the mesh is already in metres — and normals are
-        /// imported rather than recalculated, because a chapel's flat panels and its curved vaults
-        /// need different smoothing and the author already decided which is which.
+        /// Makes sure the mesh on disk was imported under the settings the project asked for, and
+        /// never sets them itself. They belong to the <c>static_chapterhouse</c> entry in
+        /// <c>Tools/unity/model_import_profiles.json</c>, which <c>BlenderModelPostprocessor</c>
+        /// applies on every import; setting them a second time here would give the project two
+        /// answers to the same question.
+        /// <para>
+        /// That profile is a plain JSON file, and the AssetDatabase does not hash it — editing it
+        /// leaves every model that is already imported sitting on its old settings until something
+        /// asks for a reimport. So a mismatch is usually a stale artifact rather than a broken
+        /// registration: ask for the reimport once, and only give up if the settings still do not
+        /// take, which means the entry itself is wrong or missing.
+        /// </para>
         /// </summary>
         private static void ConfigureModelImporter()
+        {
+            if (ImportedUnderProfile(LoadModelImporter()))
+            {
+                return;
+            }
+
+            AssetDatabase.ImportAsset(k_ModelPath, ImportAssetOptions.ForceUpdate);
+            ModelImporter importer = LoadModelImporter();
+
+            if (ImportedUnderProfile(importer))
+            {
+                Log.Info(
+                    "Reimported the chapter house mesh to pick up the static_chapterhouse profile; "
+                    + "the model import profiles are not hashed by the AssetDatabase.",
+                    AssetDatabase.LoadAssetAtPath<GameObject>(k_ModelPath));
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "The chapter house FBX did not import under the static_chapterhouse profile even "
+                + "after a forced reimport (scale " + importer.globalScale + ", expected "
+                + k_ImportScale + "; readable " + importer.isReadable + ", expected True; materials "
+                + importer.materialImportMode + ", expected None). Check its entry in "
+                + "Tools/unity/model_import_profiles.json.");
+        }
+
+        private static ModelImporter LoadModelImporter()
         {
             ModelImporter importer = AssetImporter.GetAtPath(k_ModelPath) as ModelImporter;
 
@@ -180,31 +295,14 @@ namespace RootsDance.Editor.Environment
                 throw new System.IO.FileNotFoundException("Chapter house model missing: " + k_ModelPath);
             }
 
-            bool changed = false;
+            return importer;
+        }
 
-            if (!Mathf.Approximately(importer.globalScale, 1f))
-            {
-                importer.globalScale = 1f;
-                changed = true;
-            }
-
-            if (importer.importNormals != ModelImporterNormals.Import)
-            {
-                importer.importNormals = ModelImporterNormals.Import;
-                changed = true;
-            }
-
-            if (!importer.isReadable)
-            {
-                // Left readable so the bounds pass and any later collider bake can see the mesh.
-                importer.isReadable = true;
-                changed = true;
-            }
-
-            if (changed)
-            {
-                importer.SaveAndReimport();
-            }
+        private static bool ImportedUnderProfile(ModelImporter importer)
+        {
+            return Mathf.Approximately(importer.globalScale, k_ImportScale)
+                && importer.isReadable
+                && importer.materialImportMode == ModelImporterMaterialImportMode.None;
         }
 
         /// <summary>
@@ -314,12 +412,9 @@ namespace RootsDance.Editor.Environment
             }
 
             material.SetTexture("_BaseColorMap", LoadTexture(surface.BaseTexture));
-            material.SetColor("_BaseColor", Color.white);
-
-            // The bakes carry all the shading the author intended; a specular response on top of
-            // them would read as a second, wrong light.
-            material.SetFloat("_Smoothness", 0.08f);
-            material.SetFloat("_Metallic", 0f);
+            material.SetColor("_BaseColor", surface.BaseColor);
+            material.SetFloat("_Smoothness", surface.Smoothness);
+            material.SetFloat("_Metallic", surface.Metallic);
 
             if (!string.IsNullOrEmpty(surface.NormalTexture))
             {
@@ -381,11 +476,13 @@ namespace RootsDance.Editor.Environment
             GameObject building = InstantiateModel(k_ModelPath, "ChapterHouse", buildingRoot, scene);
             Bounds bounds = GroundModel(building);
             ApplyMaterials(building, materials);
+            CreateCollision(building);
             SetStatic(building);
 
-            CreateLighting(lighting, bounds);
-            CreateWalkableFloor(geometry, bounds);
-            CreateScaleReference(props);
+            Bounds floor = PartBounds(building, k_FloorPart);
+            s_checkpointPlacements = PlaceCheckpoints(building, floor);
+            CreateLighting(lighting, bounds, floor);
+            CreateScaleReference(props, floor);
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_ChapterHouseInteriorEnvironment);
             return bounds;
@@ -412,99 +509,74 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
-        /// Puts the built materials onto the imported mesh. A slot is identified by its own
-        /// material name first and by the object it sits on second, because whether an OBJ import
-        /// surfaces the authored material names at all depends on importer settings, while the
-        /// object names ("lower_floor_Plane") carry the same information either way.
+        /// Puts the authored bakes back onto the blockout's pieces. The blockout renamed every
+        /// piece and flattened its three materials, so <see cref="k_Parts"/> — and nothing else —
+        /// says which piece is which surface. A piece the table does not name means the export no
+        /// longer matches it, and that stops the build instead of being guessed through: a wrong
+        /// guess here puts the floor bake on a wall, which reads as a texturing mistake rather
+        /// than as a stale table.
         /// </summary>
         private static void ApplyMaterials(GameObject building, Dictionary<string, Material> materials)
         {
+            Dictionary<string, Material> byPart =
+                new Dictionary<string, Material>(k_Parts.Length, StringComparer.Ordinal);
+
+            for (int i = 0; i < k_Parts.Length; i++)
+            {
+                string key = Normalize(k_Parts[i].Surface);
+
+                if (!materials.TryGetValue(key, out Material material))
+                {
+                    throw new InvalidOperationException(
+                        "k_Parts names a surface that k_Surfaces does not build: " + k_Parts[i].Surface);
+                }
+
+                byPart[k_Parts[i].Part] = material;
+            }
+
             Renderer[] renderers = building.GetComponentsInChildren<Renderer>(true);
-            int assignedCount = 0;
             List<string> unmapped = new List<string>();
 
-            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            for (int i = 0; i < renderers.Length; i++)
             {
-                Renderer renderer = renderers[rendererIndex];
-                Material[] assigned = renderer.sharedMaterials;
-                Material byObject = Match(materials, renderer.gameObject.name);
+                Renderer renderer = renderers[i];
 
-                for (int materialIndex = 0; materialIndex < assigned.Length; materialIndex++)
+                if (!byPart.TryGetValue(renderer.gameObject.name, out Material material))
                 {
-                    Material source = assigned[materialIndex];
-                    Material replacement = source == null
-                        ? byObject
-                        : Match(materials, source.name) ?? byObject;
+                    unmapped.Add(renderer.gameObject.name);
+                    continue;
+                }
 
-                    if (replacement != null)
-                    {
-                        assigned[materialIndex] = replacement;
-                        assignedCount++;
-                        continue;
-                    }
+                Material[] assigned = renderer.sharedMaterials;
 
-                    string reported = source == null ? renderer.gameObject.name : source.name;
-
-                    if (!unmapped.Contains(reported))
-                    {
-                        unmapped.Add(reported);
-                    }
+                for (int slot = 0; slot < assigned.Length; slot++)
+                {
+                    assigned[slot] = material;
                 }
 
                 renderer.sharedMaterials = assigned;
             }
 
-            if (assignedCount == 0)
-            {
-                throw new InvalidOperationException(
-                    "No chapter house material slot matched the mapping; the mesh import changed.");
-            }
-
             if (unmapped.Count > 0)
             {
-                Debug.LogWarning("[ChapterHouse] These slots have no mapping and keep the import "
-                    + "default: " + string.Join(", ", unmapped));
+                throw new InvalidOperationException(
+                    "The chapter house export has pieces k_Parts does not name: "
+                    + string.Join(", ", unmapped));
             }
-        }
 
-        /// <summary>
-        /// The surface whose key the name starts with, longest key first so "windowsmall" is not
-        /// stolen by a shorter "window". Null when nothing matches.
-        /// </summary>
-        private static Material Match(Dictionary<string, Material> materials, string name)
-        {
-            string normalized = Normalize(name);
-
-            if (normalized.Length == 0)
+            if (renderers.Length != k_Parts.Length)
             {
-                return null;
+                throw new InvalidOperationException(
+                    "The chapter house export has " + renderers.Length + " pieces; k_Parts names "
+                    + k_Parts.Length + ".");
             }
-
-            if (materials.TryGetValue(normalized, out Material exact))
-            {
-                return exact;
-            }
-
-            Material best = null;
-            int bestLength = 0;
-
-            foreach (KeyValuePair<string, Material> entry in materials)
-            {
-                if (entry.Key.Length > bestLength && normalized.StartsWith(entry.Key, StringComparison.Ordinal))
-                {
-                    best = entry.Value;
-                    bestLength = entry.Key.Length;
-                }
-            }
-
-            return best;
         }
 
         /// <summary>
         /// Daylight through the glazing plus a low interior fill. A chapter house is read by its
         /// height, and height only reads when the upper walls catch light the floor does not.
         /// </summary>
-        private static void CreateLighting(Transform parent, Bounds bounds)
+        private static void CreateLighting(Transform parent, Bounds bounds, Bounds floor)
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_VolumeProfilePath);
 
@@ -532,14 +604,23 @@ namespace RootsDance.Editor.Environment
             sun.useColorTemperature = true;
             sun.shadows = LightShadows.Soft;
 
-            float halfDepth = bounds.size.z * 0.5f;
-            float upper = bounds.size.y * 0.62f;
-            float lower = bounds.size.y * 0.22f;
+            // The fills hang in the hall, measured from its floor rather than from the model's
+            // overall box: that box starts three metres lower, at the landscape under the building,
+            // and a light placed by a fraction of it would sit below the floor it is meant to lift.
+            float hallHeight = Mathf.Max(1f, bounds.max.y - floor.max.y);
+            float upper = floor.max.y + hallHeight * 0.62f;
+            float lower = floor.max.y + hallHeight * 0.22f;
+            float x = floor.center.x;
+            float depth = floor.size.z;
 
-            CreateFillLight(parent, "ChapterHouseFill_NaveHigh", new Vector3(0f, upper, -halfDepth * 0.45f));
-            CreateFillLight(parent, "ChapterHouseFill_CrossingHigh", new Vector3(0f, upper, halfDepth * 0.2f));
-            CreateFillLight(parent, "ChapterHouseFill_NaveLow", new Vector3(0f, lower, -halfDepth * 0.55f));
-            CreateFillLight(parent, "ChapterHouseFill_CrossingLow", new Vector3(0f, lower, halfDepth * 0.3f));
+            CreateFillLight(parent, "ChapterHouseFill_NaveHigh",
+                new Vector3(x, upper, floor.center.z - depth * 0.28f));
+            CreateFillLight(parent, "ChapterHouseFill_CrossingHigh",
+                new Vector3(x, upper, floor.center.z + depth * 0.28f));
+            CreateFillLight(parent, "ChapterHouseFill_NaveLow",
+                new Vector3(x, lower, floor.center.z - depth * 0.34f));
+            CreateFillLight(parent, "ChapterHouseFill_CrossingLow",
+                new Vector3(x, lower, floor.center.z + depth * 0.34f));
         }
 
         private static void CreateFillLight(Transform parent, string name, Vector3 position)
@@ -549,33 +630,126 @@ namespace RootsDance.Editor.Environment
             lightObject.transform.localPosition = position;
             Light light = lightObject.AddComponent<Light>();
             light.type = LightType.Point;
-            light.intensity = 180000f;
-            light.range = 26f;
+
+            // Lumens for a 4.5 x 9 m hall, not for the 44 m greenhouse this was copied from: the
+            // earlier value lit a building six times the size and blows this one out.
+            light.intensity = 22000f;
+            light.range = 14f;
             light.color = new Color(0.86f, 0.84f, 0.78f);
             light.shadows = LightShadows.None;
         }
 
         /// <summary>
-        /// A flat collider under the whole footprint. The mesh's own floor is a single-sided plane
-        /// with no collider, and grey-boxing a level on geometry that cannot be stood on is the
-        /// fastest way to make it untestable.
+        /// Collision straight off the mesh, one <see cref="MeshCollider"/> per piece. The earlier
+        /// pass put a single flat box under the whole footprint, which worked only while the level
+        /// was one flat chapel floor at Y 0; here the hall floor sits about three metres above the
+        /// landscape it is laid over, so a box on the ground plane would drop the player through
+        /// the building and stand them under it.
+        /// <para>
+        /// Non-convex mesh colliders collide from both faces, which matters because most of this
+        /// building is single-sided planes. Only the three surfaces the player is meant to stand
+        /// on go on the Ground layer — the walls still block, they just do not count as footing.
+        /// </para>
         /// </summary>
-        private static void CreateWalkableFloor(Transform parent, Bounds bounds)
+        private static void CreateCollision(GameObject building)
         {
-            GameObject floor = new GameObject("WalkableFloor");
-            floor.transform.SetParent(parent, false);
-            floor.transform.position = new Vector3(0f, -0.1f, 0f);
-            floor.layer = LayerMask.NameToLayer("Ground");
-            floor.isStatic = true;
-            BoxCollider collider = floor.AddComponent<BoxCollider>();
-            collider.size = new Vector3(bounds.size.x, 0.2f, bounds.size.z);
+            int groundLayer = LayerMask.NameToLayer("Ground");
+
+            if (groundLayer < 0)
+            {
+                throw new InvalidOperationException("The required Ground layer does not exist.");
+            }
+
+            MeshFilter[] filters = building.GetComponentsInChildren<MeshFilter>(true);
+
+            for (int i = 0; i < filters.Length; i++)
+            {
+                MeshFilter filter = filters[i];
+
+                if (filter.sharedMesh == null)
+                {
+                    continue;
+                }
+
+                MeshCollider collider = filter.gameObject.GetComponent<MeshCollider>();
+
+                if (collider == null)
+                {
+                    collider = filter.gameObject.AddComponent<MeshCollider>();
+                }
+
+                collider.sharedMesh = filter.sharedMesh;
+                collider.convex = false;
+
+                string name = filter.gameObject.name;
+
+                if (name == k_FloorPart || name == k_BridgePart || name == k_ClothPart)
+                {
+                    filter.gameObject.layer = groundLayer;
+                }
+            }
         }
 
-        private static void CreateScaleReference(Transform parent)
+        /// <summary>
+        /// Where the player starts, and where Dev Play drops them: the south end of the hall
+        /// looking down it, and the catwalk looking back. Both ride on the built geometry rather
+        /// than on typed coordinates, because the blockout is a layout still being moved around and
+        /// a hand-typed anchor would quietly end up inside a wall the next time it moves.
+        /// </summary>
+        private static CheckpointPlacement[] PlaceCheckpoints(GameObject building, Bounds floor)
+        {
+            Bounds bridge = PartBounds(building, k_BridgePart);
+
+            // On the catwalk, both of them. The bridge is the route: it is the only surface that
+            // crosses the hall above the cloth landscape, and the chapel floor beside it is a
+            // single-sided plane the player is not meant to be walking on at all. Standing them on
+            // the deck at the near end means walking forward simply crosses the bridge.
+            float deck = bridge.max.y;
+            float middle = bridge.center.z;
+
+            return new[]
+            {
+                new CheckpointPlacement(
+                    k_NaveAnchor,
+                    new Vector3(
+                        bridge.center.x,
+                        deck + k_EyeClearance,
+                        bridge.min.z + 0.5f),
+                    0f),
+                new CheckpointPlacement(
+                    k_GalleryAnchor,
+                    new Vector3(
+                        bridge.center.x,
+                        deck + k_EyeClearance,
+                        middle),
+                    180f),
+            };
+        }
+
+        /// <summary>The world bounds of one named piece. Throws rather than returning an empty box.</summary>
+        private static Bounds PartBounds(GameObject building, string partName)
+        {
+            Renderer[] renderers = building.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i].gameObject.name == partName)
+                {
+                    return renderers[i].bounds;
+                }
+            }
+
+            throw new InvalidOperationException("The chapter house export has no piece named " + partName);
+        }
+
+        private static void CreateScaleReference(Transform parent, Bounds floor)
         {
             GameObject marker = new GameObject("PlayerHeightReference_1p8m");
             marker.transform.SetParent(parent, false);
-            marker.transform.localPosition = new Vector3(2f, 0.9f, 0f);
+            marker.transform.position = new Vector3(
+                floor.center.x + 1.5f,
+                floor.max.y + 0.9f,
+                floor.center.z);
             BoxCollider collider = marker.AddComponent<BoxCollider>();
             collider.size = new Vector3(0.1f, 1.8f, 0.1f);
             collider.isTrigger = true;
@@ -586,6 +760,13 @@ namespace RootsDance.Editor.Environment
 
         private static void BuildGameplayScene()
         {
+            if (s_checkpointPlacements == null)
+            {
+                throw new InvalidOperationException(
+                    "The gameplay scene is placed off the built geometry, so the environment scene "
+                    + "has to be built first.");
+            }
+
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             Transform cameras = CreateRoot("_Cameras");
             Transform spawns = CreateRoot("_Spawns");
@@ -594,9 +775,9 @@ namespace RootsDance.Editor.Environment
             CreateRoot("_Narrative");
             Transform anchors = CreateRoot("_Anchors");
 
-            for (int i = 0; i < k_CheckpointPlacements.Length; i++)
+            for (int i = 0; i < s_checkpointPlacements.Length; i++)
             {
-                CheckpointPlacement placement = k_CheckpointPlacements[i];
+                CheckpointPlacement placement = s_checkpointPlacements[i];
                 GameObject anchor = new GameObject(placement.AnchorName);
                 anchor.transform.SetParent(anchors, false);
                 anchor.transform.SetPositionAndRotation(
@@ -604,7 +785,7 @@ namespace RootsDance.Editor.Environment
                     Quaternion.Euler(0f, placement.Yaw, 0f));
             }
 
-            CheckpointPlacement entrance = k_CheckpointPlacements[0];
+            CheckpointPlacement entrance = s_checkpointPlacements[0];
             GameObject spawnPoint = new GameObject("PlayerSpawn");
             spawnPoint.transform.SetParent(spawns, false);
             spawnPoint.transform.SetPositionAndRotation(
@@ -694,12 +875,12 @@ namespace RootsDance.Editor.Environment
                 k_CheckpointFolder + "/CH-01_ChapterHouseNave.asset",
                 "CH-01 Chapter house nave",
                 level,
-                k_CheckpointPlacements[0]);
+                s_checkpointPlacements[0]);
             CreateCheckpoint(
-                k_CheckpointFolder + "/CH-02_ChapterHouseGallery.asset",
-                "CH-02 Chapter house gallery",
+                k_CheckpointFolder + "/CH-02_ChapterHouseBridge.asset",
+                "CH-02 Chapter house bridge",
                 level,
-                k_CheckpointPlacements[1]);
+                s_checkpointPlacements[1]);
         }
 
         private static void CreateCheckpoint(
@@ -841,16 +1022,37 @@ namespace RootsDance.Editor.Environment
 
         private readonly struct SurfaceMapping
         {
+            /// <summary>
+            /// A baked surface: the texture carries all the shading, so the response on top of it
+            /// stays flat — a specular highlight over a bake reads as a second, wrong light.
+            /// </summary>
             public SurfaceMapping(string materialName, string baseTexture, string normalTexture)
+                : this(materialName, baseTexture, normalTexture, Color.white, 0f, 0.08f)
+            {
+            }
+
+            public SurfaceMapping(
+                string materialName,
+                string baseTexture,
+                string normalTexture,
+                Color baseColor,
+                float metallic,
+                float smoothness)
             {
                 MaterialName = materialName;
                 BaseTexture = baseTexture;
                 NormalTexture = normalTexture;
+                BaseColor = baseColor;
+                Metallic = metallic;
+                Smoothness = smoothness;
             }
 
             public string MaterialName { get; }
             public string BaseTexture { get; }
             public string NormalTexture { get; }
+            public Color BaseColor { get; }
+            public float Metallic { get; }
+            public float Smoothness { get; }
         }
 
         private struct CheckpointPlacement
