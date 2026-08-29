@@ -140,6 +140,57 @@ namespace RootsDance.EditorTools
                 1f,
                 ior: 1.45f,
                 refractionModel: 0f),
+
+            // GreenHouse1's ironwork. Each of these is a pipeline module with its own
+            // Smart UV Project unwrap and a texture set baked against it, so they sample
+            // their mesh UVs rather than world space -- the opposite of the glazing above.
+            // Metallic and smoothness both come from the packed mask.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Wall.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Wall",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Window.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Window",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Column.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Column",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1WinColumn.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1WinColumn",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Top.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Top",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Floor1.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Floor1",
+                false),
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1Floor2.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1Floor2",
+                false),
+
+            // The plinth and the stair treads, which the assembly puts on one shared tiling
+            // set rather than a per-module bake. World space for the same reason the glazing
+            // uses it: a tiling source has no unwrap of its own to sample. 2 m matches the
+            // other jig-authored sets; it is one number to retune if the grain reads wrong.
+            new Spec(
+                "Assets/RootsDance/Materials/Environment/GreenHouse1/GreenHouse1GroundTile.mat",
+                "Assets/RootsDance/Textures/Environment",
+                "GreenHouse1GroundTile",
+                false,
+                2.00f),
         };
 
         [MenuItem("RootsDance/Build Prop Materials")]
