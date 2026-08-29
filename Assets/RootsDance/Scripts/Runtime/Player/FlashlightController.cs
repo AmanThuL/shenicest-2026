@@ -40,10 +40,6 @@ namespace RootsDance.Player
                  "always held, which is the behaviour from before hands existed.")]
         [SerializeField] private HandSocket m_holdSocket;
 
-        [Tooltip("The torch itself, as a carried item. With a socket wired but no item, any " +
-                 "occupied hand counts — which would light the beam while holding the helmet.")]
-        [SerializeField] private CarriedItem m_torchItem;
-
         [Tooltip("Where the beam leaves from — the torch's emitter, or the hand socket itself. " +
                  "Leave empty and the beam sits on the eye instead.")]
         [SerializeField] private Transform m_beamAnchor;
@@ -94,11 +90,11 @@ namespace RootsDance.Player
                     return true;
                 }
 
-                // With an item named, only that item counts. Any occupied hand would otherwise
-                // light the torch while the hand is holding the helmet.
-                return m_torchItem == null
-                    ? m_holdSocket.IsCarrying
-                    : m_holdSocket.Carried == m_torchItem;
+                // By kind, not by identity: any of the torches lying around the level lights the
+                // beam, and nothing else does — a hand full of helmet is still a dark corridor.
+                CarriedItem carried = m_holdSocket.Carried;
+
+                return carried != null && carried.Kind == CarriedKind.Torch;
             }
         }
 

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using RootsDance.Core;
 using RootsDance.Events;
+using RootsDance.Interaction;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,6 +44,7 @@ namespace RootsDance.Scanner
         [Tooltip("Hint shown while a target is in reach. {0} is the target's display name.")]
         [SerializeField] private string m_promptFormat = "[J] 扫描 {0}";
 
+        private readonly List<Vector3> m_points = new List<Vector3>();
         private ScannableTarget m_inReach;
         private string m_lastPrompt = string.Empty;
 
@@ -101,34 +104,31 @@ namespace RootsDance.Scanner
             }
         }
 
-        /// <summary>Nearest scannable within range, by squared distance so there is no square root.</summary>
+        /// <summary>
+        /// Nearest scannable within range. Shares <see cref="NearestInRange"/> with picking things
+        /// up, so a crowd of candidates resolves identically whichever offer the player is taking.
+        /// </summary>
         private ScannableTarget FindNearestInRange()
         {
             Transform origin = m_player == null ? transform : m_player;
-            float bestSqr = m_range * m_range;
-            ScannableTarget best = null;
+            IReadOnlyList<ScannableTarget> active = ScannableTarget.Active;
 
-            for (int i = 0; i < ScannableTarget.Active.Count; i++)
+            m_points.Clear();
+
+            for (int i = 0; i < active.Count; i++)
             {
-                ScannableTarget target = ScannableTarget.Active[i];
+                ScannableTarget target = active[i];
 
-                if (target == null || !target.CanScan)
-                {
-                    continue;
-                }
-
-                float sqr = (target.AimPosition - origin.position).sqrMagnitude;
-
-                if (sqr > bestSqr)
-                {
-                    continue;
-                }
-
-                bestSqr = sqr;
-                best = target;
+                // Out of reach by construction rather than filtered out, so the index the shared
+                // rule returns still lines up with the live list.
+                m_points.Add(target == null || !target.CanScan
+                    ? new Vector3(float.MaxValue, float.MaxValue, float.MaxValue)
+                    : target.AimPosition);
             }
 
-            return best;
+            int index = NearestInRange.Index(m_points, origin.position, m_range);
+
+            return index < 0 ? null : active[index];
         }
 
         /// <summary>Only raises the channel when the text actually changes.</summary>
