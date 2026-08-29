@@ -1,6 +1,4 @@
 using System.Linq;
-using RootsDance.Editor.Rendering;
-using RootsDance.Rendering;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
@@ -24,14 +22,8 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Settings/VolumeProfiles/BriggsInteriorProfile.asset";
         private const string k_BlockerMaterialPath =
             "Assets/RootsDance/Materials/Environment/BriggsInterior/LabLightBlocker.mat";
-        private const string k_CeilingMaterialPath =
-            "Assets/RootsDance/Materials/Environment/BriggsInterior/BriggsCeiling_Triplanar.mat";
         private const string k_SourceCeilingMaterialPath =
             "Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat";
-        private const string k_CeilingBaseMapPath =
-            "Assets/ThirdParty/Environment/AmbientCG/Concrete032/Concrete032_1K-JPG_Color.jpg";
-        private const string k_CeilingNormalMapPath =
-            "Assets/ThirdParty/Environment/AmbientCG/Concrete032/Concrete032_1K-JPG_NormalGL.jpg";
         private const string k_FogNoisePath =
             "Assets/RootsDance/Textures/Environment/Garage/LabFogNoise.asset";
 
@@ -52,7 +44,6 @@ namespace RootsDance.Editor.Environment
         /// </summary>
         public static void ApplyToLoadedScene()
         {
-            ValidatePsxRegistration();
             Scene environment = FindLoadedEnvironmentScene();
             Transform atmosphere = ReplaceAtmosphereRoot(environment);
             Material blockerMaterial = EnsureBlockerMaterial();
@@ -66,12 +57,12 @@ namespace RootsDance.Editor.Environment
             CreateInteriorVolume(atmosphere, profile);
             CreateRoomFog(atmosphere, fogNoise);
             ConfigureSun(environment);
-            CreateRoofShaftLights(atmosphere, environment);
+            CreateRoofShaftLights(atmosphere);
             ConfigureLabFillLights(environment);
 
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorAtmosphere] Restored the pre-dressing sunny exterior, local interior fog, roof shafts and PSX.");
+            Debug.Log("[BriggsInteriorAtmosphere] Restored the exact 64792d1 pre-dressing atmosphere configuration.");
         }
 
         /// <summary>Batch entry point for the standalone atmosphere pass.</summary>
@@ -346,7 +337,7 @@ namespace RootsDance.Editor.Environment
 
             Exposure exposure = GetOrAdd<Exposure>(profile);
             Set(exposure.mode, ExposureMode.Fixed);
-            Set(exposure.fixedExposure, 9f);
+            Set(exposure.fixedExposure, 7f);
 
             // The laboratory look is local. It must inherit the sunny global sky from MainProfile so that
             // stepping outside never applies the abandoned-room exposure and palette to the exterior.
@@ -373,6 +364,7 @@ namespace RootsDance.Editor.Environment
             Set(fog.screenResolutionPercentage, 50f);
             Set(fog.volumeSliceCount, 128);
             Set(fog.sliceDistributionUniformity, 0.65f);
+            fog.tint.overrideState = false;
 
             IndirectLightingController indirect = GetOrAdd<IndirectLightingController>(profile);
             Set(indirect.indirectDiffuseLightingMultiplier, 0.12f);
@@ -398,29 +390,14 @@ namespace RootsDance.Editor.Environment
             Tonemapping tonemapping = GetOrAdd<Tonemapping>(profile);
             Set(tonemapping.mode, TonemappingMode.Neutral);
 
-            Bloom bloom = GetOrAdd<Bloom>(profile);
-            Set(bloom.threshold, 1.2f);
-            Set(bloom.intensity, 0.05f);
-            Set(bloom.scatter, 0.65f);
-            bloom.highQualityFiltering = true;
+            RemoveComponent<Bloom>(profile);
 
             Vignette vignette = GetOrAdd<Vignette>(profile);
             Set(vignette.mode, VignetteMode.Procedural);
             Set(vignette.intensity, 0.18f);
             Set(vignette.smoothness, 0.55f);
 
-            PsxPostProcess psx = GetOrAdd<PsxPostProcess>(profile);
-            Set(psx.intensity, 1f);
-            Set(psx.grainMode, false);
-            Set(psx.pixelScale, 4);
-            Set(psx.colorLevels, 32);
-            Set(psx.ditherStrength, 0.6f);
-            Set(psx.interlaceStrength, 0.1f);
-            Set(psx.interlaceSize, 1);
-            Set(psx.grainIntensity, 0.1f);
-            Set(psx.grainSize, 3);
-            Set(psx.grainRate, 10f);
-            Set(psx.grainShadowBias, 0.65f);
+            RemoveComponent<RootsDance.Rendering.PsxPostProcess>(profile);
             RemoveComponent<FilmGrain>(profile);
 
             EditorUtility.SetDirty(profile);
@@ -456,41 +433,14 @@ namespace RootsDance.Editor.Environment
         private static Material EnsureCeilingMaterial()
         {
             Material source = AssetDatabase.LoadAssetAtPath<Material>(k_SourceCeilingMaterialPath);
-            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(k_CeilingBaseMapPath);
-            Texture2D normalMap = AssetDatabase.LoadAssetAtPath<Texture2D>(k_CeilingNormalMapPath);
 
-            if (source == null || baseMap == null || normalMap == null)
+            if (source == null)
             {
                 throw new System.IO.FileNotFoundException(
-                    "A Briggs ceiling source asset is missing. Expected: "
-                    + k_SourceCeilingMaterialPath + ", " + k_CeilingBaseMapPath + ", " + k_CeilingNormalMapPath);
+                    "The 64792d1 Garage ceiling material is missing: " + k_SourceCeilingMaterialPath);
             }
 
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_CeilingMaterialPath);
-
-            if (material == null)
-            {
-                EnsureFolder(System.IO.Path.GetDirectoryName(k_CeilingMaterialPath).Replace('\\', '/'));
-                material = new Material(source.shader) { name = "BriggsCeiling_Triplanar" };
-                AssetDatabase.CreateAsset(material, k_CeilingMaterialPath);
-            }
-
-            material.CopyPropertiesFromMaterial(source);
-            material.name = "BriggsCeiling_Triplanar";
-            material.SetTexture("_BaseColorMap", baseMap);
-            material.SetTexture("_NormalMap", normalMap);
-            material.SetColor("_BaseColor", new Color(0.72f, 0.78f, 0.70f, 1f));
-            material.SetFloat("_NormalScale", 0.55f);
-            material.SetFloat("_Smoothness", 0.17f);
-            material.SetFloat("_UVBase", 5f);
-            material.SetFloat("_TexWorldScale", 2.25f);
-            material.SetFloat("_InvTilingScale", 1f / 2.25f);
-            material.SetVector("_UVMappingMask", new Vector4(1f, 0f, 0f, 0f));
-            material.SetTextureScale("_BaseColorMap", Vector2.one);
-            material.SetTextureOffset("_BaseColorMap", Vector2.zero);
-            HDMaterial.ValidateMaterial(material);
-            EditorUtility.SetDirty(material);
-            return material;
+            return source;
         }
 
         private static void AssignCeilingMaterial(Scene scene, Material material)
@@ -597,34 +547,27 @@ namespace RootsDance.Editor.Environment
             EditorUtility.SetDirty(data);
         }
 
-        private static void CreateRoofShaftLights(Transform parent, Scene scene)
+        private static void CreateRoofShaftLights(Transform parent)
         {
-            Light sun = FindLight(scene, "Sun");
-
-            if (sun == null)
-            {
-                throw new System.InvalidOperationException("BriggsInterior environment has no Sun light.");
-            }
-
             Transform shafts = CreateChild("RoofShaftLights", parent);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_Main",
-                new Vector3(0.77f, 7.5f, -2.20f),
-                sun.transform.rotation,
-                3400f,
-                60f,
+                new Vector3(0.1f, 4.18f, 2.5f),
+                Quaternion.Euler(70f, 180f, 0f),
+                4200f,
+                20f,
                 8f,
-                5.5f);
+                8f);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_West",
-                new Vector3(-4.70f, 7.5f, 0.23f),
-                sun.transform.rotation,
-                2100f,
-                50f,
+                new Vector3(-5.35f, 4.18f, 3.75f),
+                Quaternion.Euler(74f, 165f, 0f),
+                2800f,
+                18f,
                 7f,
-                3f);
+                4f);
         }
 
         private static void CreateRoofShaft(
@@ -645,14 +588,13 @@ namespace RootsDance.Editor.Environment
             light.type = LightType.Spot;
             light.spotAngle = outerAngle;
             light.innerSpotAngle = innerAngle;
-            light.range = 14f;
+            light.range = 9f;
             light.enableSpotReflector = true;
             light.lightUnit = LightUnit.Lumen;
             light.intensity = LightUnitUtils.ConvertIntensity(light, lumen, LightUnit.Lumen, LightUnit.Candela);
             light.color = new Color(1f, 0.88f, 0.72f);
-            // Start above the real Garage ceiling. Soft shadows make the authored hole boundary, beams and
-            // hanging vegetation cut the shaft instead of painting an unoccluded cone under solid roof mesh.
-            light.shadows = LightShadows.Soft;
+            // This is the art-directed 64792d1 shaft, intentionally authored below the ceiling shell.
+            light.shadows = LightShadows.None;
 
             HDAdditionalLightData data = lightObject.GetComponent<HDAdditionalLightData>();
 
@@ -661,17 +603,12 @@ namespace RootsDance.Editor.Environment
                 data = lightObject.AddComponent<HDAdditionalLightData>();
             }
 
-            data.EnableShadows(true);
-            data.SetShadowResolutionOverride(true);
-            data.SetShadowResolution(1024);
-            data.SetShadowNearPlane(0.1f);
+            data.EnableShadows(false);
+            data.SetShadowResolutionOverride(false);
             data.SetShadowResolutionLevel((int)ScalableSettingLevelParameter.Level.Medium);
-            data.shadowDimmer = 1f;
-            data.normalBias = 0.15f;
-            data.slopeBias = 0.2f;
             data.affectsVolumetric = true;
             data.volumetricDimmer = volumetricDimmer;
-            data.volumetricShadowDimmer = 1f;
+            data.volumetricShadowDimmer = 0f;
         }
 
         private static void ConfigureLabFillLights(Scene scene)
@@ -766,18 +703,6 @@ namespace RootsDance.Editor.Environment
             profile.Remove<T>();
             AssetDatabase.RemoveObjectFromAsset(component);
             Object.DestroyImmediate(component, true);
-        }
-
-        private static void ValidatePsxRegistration()
-        {
-            if (PsxPostProcessRegistrar.IsRegistered() && PsxPostProcessRegistrar.IsShaderAlwaysIncluded())
-            {
-                return;
-            }
-
-            throw new System.InvalidOperationException(
-                "BriggsInterior PSX requires the existing project registration. Run "
-                + "RootsDance > Rendering > Register PSX Post Process before rebuilding the atmosphere.");
         }
 
         private static void Set<T>(VolumeParameter<T> parameter, T value)

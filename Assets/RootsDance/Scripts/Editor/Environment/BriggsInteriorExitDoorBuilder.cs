@@ -39,6 +39,19 @@ namespace RootsDance.Editor.Environment
             ApplyToLoadedScenes();
         }
 
+        /// <summary>Restores the 64792d1 wall and both door scenes without touching PWB dressing.</summary>
+        public static void ApplyFromCommandLine()
+        {
+            EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(k_GameplayPath, OpenSceneMode.Additive);
+            ApplyToLoadedScenes();
+
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+
         /// <summary>One-shot entry point for restoring the 64792d1 ceiling and hanging vegetation.</summary>
         public static void RestorePreDressingCeilingVegetationFromCommandLine()
         {

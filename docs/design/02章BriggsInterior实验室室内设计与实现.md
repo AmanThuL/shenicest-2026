@@ -41,11 +41,8 @@
   `GarageSourceArt/IvyHanging` 与 `_Props/CeilingHoleVines` 全部保留 `64792d1` 的 Prefab、父子层级与 Transform。
   破顶是 `GarageShell.fbx/Ceiling` 网格中真实建模的开口，不是植被或光柱造成的视觉错觉。PWB 下 121 个室内 props
   则严格保持 `55a362d` 的状态；两套基线互不覆盖。
-- `Ceiling`、`Ceiling_Beam` 和 `Ceiling_Beam_Broken` 使用实验室专用
-  `Assets/RootsDance/Materials/Environment/BriggsInterior/BriggsCeiling_Triplanar.mat`。材质复用本地 AmbientCG
-  `Concrete032` 的 seamless BaseColor 与 Normal，使用 HDRP Triplanar 映射（`_UVBase = 5`）和 `2.25 m` world scale，
-  再以灰绿 tint 压低顶棚高亮。
-  这样非均匀缩放的 Garage Ceiling 不再沿原 UV 拉伸，也不需要替换破口网格。
+- `Ceiling`、`Ceiling_Beam` 和 `Ceiling_Beam_Broken` 恢复使用 `64792d1` 的原始
+  `Assets/RootsDance/Materials/Environment/Garage/GarageCeiling.mat`，不再叠加后续专用 Triplanar 材质。
 - 同轮 bounds 审计发现东侧根须组、东墙常春藤和 `PSX_Adrenaline_Syringe` 的 Renderer 外廓越过主室边界。
   根须与常春藤向室内收拢并缩小，针筒从约 5 m 的误尺度恢复到约 0.8 m 的大型实验器材尺度；它们仍留在原叙事分区，
   但不再穿墙或在室外形成难以辨认的轮廓。
@@ -58,7 +55,8 @@
 - 已保留 `64792d1` 增加的 `BriggsInteriorWalls`、圆形出口、`BriggsAutomaticExitDoor`、入口封闭门、破顶与悬挂藤蔓。
   顶光不依赖删除植物，而由恢复后的 100000 lux Sun、窄角 RoofShaft 与局部体积雾维持可读性。
 - 玩家、PlayerSpawn、四个 Dev Play checkpoint 和两块 Ground layer 已按本文坐标接线。
-- 局部室内 Volume 已接入现有 `PsxPostProcess`。本轮没有新增第二套 PSX Shader，也没有修改全局 HDRP 注册；室外继续继承 `MainProfile` 的晴天天空。
+- 局部室内 Volume 按 `64792d1` 不单独覆盖 `PsxPostProcess` 或 Bloom；实验室和室外共同继承 `MainProfile` 中已经实现的
+  PSX 后处理和晴天天空，避免出现两层 PSX 或局部后处理漂移。
 - 本轮实际导入 `Astronomical quintant`、`Chemistry Old Lab Tubes`、`Lab Glassware`、`PSX Adrenaline Syringe`，并保留其 CC BY 4.0 来源记录。`Jelly_Mushroom` 仍不进入本轮，因为地面生态已获美术认可且不应改变。
 - 截图中的 `Abandoned Lab Equipment`、`Mad Scientist Lab`、`Conspiracy Papers X-Lab` 和 `PSX Vintage Wall Clocks` 本地没有可用源包；本轮只借构图，用项目原创低模 CRT、公告板和破表替代。`Chemical Lab Fallout 4` 与 Black Mesa 衍生素材不进入发布工程。
 
@@ -575,9 +573,8 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 4. 手电是廊道和暗角的玩家主导光源。
 
 曝光保持固定或受控，不使用会因看向荧光物而剧烈跳变的自动曝光。Bloom 只让高亮边缘有轻微扩散，不做赛博霓虹。
-当前实现使用 Fixed Exposure EV 9，避免晴天顶光把破口边界和顶棚纹理整体洗白。主破顶 Spot 为 3400 lm，西侧次光为 2100 lm。
-两束灯都放在真实顶棚上方，开启 Soft Shadow 与体积阴影，并与 Sun 共用日光轴。它们负责加强真实破顶日光在 PSX
-后处理下的体积轮廓，不能替代室内填充，也不能在实心顶板下直接绘制无阴影光锥。
+当前实现严格恢复 `64792d1` 的 Fixed Exposure EV 7。主破顶 Spot 为 4200 lm，西侧次光为 2800 lm；两束灯使用该提交
+原有的窄角、无阴影艺术定向配置，加强 MainProfile PSX 后处理下的体积轮廓。
 
 ### 8.2 破顶与顶部光
 
@@ -586,9 +583,9 @@ HDRP Shader、Material 和 Prefab，不需要保留原始材质外观。
 - 主破口的平面中心约为 `X -0.28, Z -0.38`，主光束从该中心上方入射，斜擦中央桌北半和台面玻璃。
 - 西侧破口的平面中心约为 `X -5.75, Z 2.05`，次光束从该中心上方照到破损培养区和残留低矮植物。
 
-灯源位于 Y 7.5 m，主灯位置约 `(0.77, 7.5, -2.20)`，西侧灯位置约 `(-4.70, 7.5, 0.23)`；它们沿 Sun
-轴线穿过上述两个洞口中心。主灯 60 度、西侧灯 50 度的锥体会同时覆盖洞口和周边实体 Ceiling，因此真实网格、断梁和藤蔓
-会共同裁切光束。根系在光束中形成剪影，但不能完全堵住体积光。
+主灯恢复为 `(0.1, 4.18, 2.5)`、旋转 `(70, 180, 0)`、20 度外角、8 度内角、体积参与度 8；西侧灯恢复为
+`(-5.35, 4.18, 3.75)`、旋转 `(74, 165, 0)`、18 度外角、7 度内角、体积参与度 4。两者 Range 均为 9 m，
+不投射实时阴影。这些数值属于 `64792d1` 的历史构图基线，不再根据后续 props 重新估算。
 
 布置顺序：
 
