@@ -269,10 +269,10 @@ namespace RootsDance.Editor.Content
             Scene scene = EditorSceneManager.OpenScene(k_ChapterHouseGameplayPath, OpenSceneMode.Single);
             Transform root = EnsureRoot(scene, "_Narrative");
             Transform anchors = EnsureRoot(scene, "_Anchors");
-            Transform nave = anchors.Find("Checkpoint_ChapterHouseNave");
-            Transform bridge = anchors.Find("Checkpoint_ChapterHouseBridge");
+            Transform corridorEntrance = anchors.Find("Checkpoint_CorridorEntrance");
+            Transform flowerSpriteEncounter = anchors.Find("Checkpoint_FlowerSpriteEncounter");
 
-            if (nave == null || bridge == null)
+            if (corridorEntrance == null || flowerSpriteEncounter == null)
             {
                 throw new InvalidOperationException(
                     "The chapter house anchors are missing; run RootsDance > Build Chapter House "
@@ -285,14 +285,14 @@ namespace RootsDance.Editor.Content
             Transform sprite = EnsureFlowerSprite(scene, root);
             sprite.SetPositionAndRotation(
                 new Vector3(
-                    bridge.position.x,
-                    bridge.position.y - ChapterHouseInteriorLevelBuilder.k_EyeClearance,
-                    bridge.position.z),
+                    flowerSpriteEncounter.position.x,
+                    flowerSpriteEncounter.position.y - ChapterHouseInteriorLevelBuilder.k_EyeClearance,
+                    flowerSpriteEncounter.position.z),
                 Quaternion.Euler(0f, 180f, 0f));
 
             // Mid-bridge. The player crosses the catwalk to get anywhere, and the sprite meets
-            // them out over the drop rather than on solid ground — CH-02 marks the same spot, so
-            // the anchor is the placement and this only has to sit on it.
+            // them out over the drop rather than on solid ground. The encounter checkpoint marks
+            // the same spot, so the anchor is the placement and this only has to sit on it.
             //
             // A sequence rather than a plain dialogue trigger, because the meeting is three things
             // in one second and their order is the beat: she is standing behind the player, the
@@ -300,7 +300,7 @@ namespace RootsDance.Editor.Content
             // first two — she listens for it and so does the camera — and the quarter second before
             // the first line is the turn.
             Transform meeting = EnsureChild(root, "FirstMeeting");
-            meeting.position = bridge.position;
+            meeting.position = flowerSpriteEncounter.position;
             SetLayer(meeting.gameObject, "TriggerVolume");
             BoxCollider meetingBox = EnsureComponent<BoxCollider>(meeting.gameObject);
             meetingBox.isTrigger = true;

@@ -48,14 +48,14 @@ ChapterHouseInterior_Environment
 ChapterHouseInterior_Gameplay
 ├── _Cameras/FirstPersonCamera   # CinemachineCamera，硬锁玩家头部 + PanicViewShake（只用它的快速回头）
 ├── _Spawns/PlayerSpawn
-├── _Anchors/Checkpoint_ChapterHouseNave · Checkpoint_ChapterHouseBridge
+├── _Anchors/Checkpoint_CorridorEntrance · Checkpoint_FlowerSpriteEncounter
 ├── _Narrative                                # FirstMeeting（CueSequence）+ FlowerSprite（FollowCompanion）
 ├── _Triggers · _Interactables                # 空，等内容
 └── Player
 ```
 
-Dev Play：`RootsDance > Dev Play > Window` 里的 **CH-01 Chapter house nave**（南端进厅，面向 +Z）
-与 **CH-02 Chapter house bridge**（桥上，回望）。
+Dev Play：`RootsDance > Dev Play > Window` 里的 **02-04A Corridor entrance**（南端进入通道，面向 +Z）
+与 **02-04B Flower sprite encounter**（桥与小花初次相遇处，回望）。两者都属于剧情节点 02-04，A/B 只区分试玩落点。
 
 尺寸（按 1.511 导入后）：整体约 **13.2 m 宽 × 18.8 m 深 × 13.1 m 高**；玩家真正走的厅内地板约
 **6.8 × 13.7 m**；金属桥长约 6.9 m、宽 0.9 m。地板面与桥面的绝对高度由生成器归位时算出，不写死。

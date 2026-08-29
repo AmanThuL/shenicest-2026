@@ -15,8 +15,9 @@ using UnityEngine.SceneManagement;
 namespace RootsDance.Tests.EditMode.Environment
 {
     /// <summary>
-    /// The chapter house playtest, written down as assertions: start at CH-01, walk forward, meet
-    /// the flower sprite. Every step here is one that has already silently failed once.
+    /// The chapter house playtest, written down as assertions: start at the 02-04A corridor
+    /// entrance, walk forward, and meet the flower sprite. Every step here is one that has already
+    /// silently failed once.
     /// <para>
     /// The point is that each break was invisible in the Editor. A trigger on the wrong layer, a
     /// volume placed past the far wall, a channel nobody listens to — all of them look exactly like
@@ -29,8 +30,8 @@ namespace RootsDance.Tests.EditMode.Environment
     public sealed class ChapterHousePlaytestTests
     {
         private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/ChapterHouseInterior.asset";
-        private const string k_NaveCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/CH-01_ChapterHouseNave.asset";
+        private const string k_CorridorEntranceCheckpointPath =
+            "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
         private const string k_FirstMeetingPath = "Assets/RootsDance/Data/Dialogue/DLG-001_FirstMeeting.asset";
         private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
         private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
@@ -44,10 +45,13 @@ namespace RootsDance.Tests.EditMode.Environment
         public void Step1_TheCheckpointStartsThisLevel()
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
-            DevCheckpointSO nave = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(k_NaveCheckpointPath);
+            DevCheckpointSO corridorEntrance =
+                AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(k_CorridorEntranceCheckpointPath);
             Assert.IsTrue(level != null, k_LevelAssetPath);
-            Assert.IsTrue(nave != null, "CH-01 is missing from the Dev Play window: " + k_NaveCheckpointPath);
-            Assert.AreSame(level, nave.Level, "CH-01 does not point at the chapter house level.");
+            Assert.IsTrue(corridorEntrance != null,
+                "02-04A is missing from the Dev Play window: " + k_CorridorEntranceCheckpointPath);
+            Assert.AreSame(level, corridorEntrance.Level,
+                "02-04A does not point at the chapter house level.");
         }
 
         [Test]
@@ -102,7 +106,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(volume.center.z, Is.InRange(floor.min.z, floor.max.z),
                     "The first-meeting volume is past the end of the floor — it cannot be walked into.");
 
-                // Ahead of the player, in the direction the spawn faces (+Z out of CH-01).
+                // Ahead of the player, in the direction the spawn faces (+Z out of 02-04A).
                 Assert.Greater(volume.center.z, spawn.position.z,
                     "The first-meeting volume is behind the spawn; walking forward leads away from it.");
 
