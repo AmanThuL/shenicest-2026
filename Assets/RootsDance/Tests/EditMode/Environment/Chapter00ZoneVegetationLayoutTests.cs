@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using RootsDance.Editor.Environment;
+using RootsDance.Scanner;
 using UnityEditor;
 using UnityEngine;
 
@@ -52,7 +53,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Chapter00VegetationRole.WalkThroughGroundCover,
                 0);
 
-            Assert.That(c.FootprintOverlap, Is.InRange(.25f, .32f));
+            Assert.That(c.FootprintOverlap, Is.InRange(.10f, .15f));
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_viridian");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_violet");
             CollectionAssert.Contains(c.PrefabKeys, "grass_patch_rose");
@@ -178,6 +179,51 @@ namespace RootsDance.Tests.EditMode.Environment
                 Chapter00VegetationTint.FadedPink,
             }, colours);
             Assert.AreEqual(2, colours.Count);
+        }
+
+        [Test]
+        public void AllCVegetation_UsesOnlyBothMutationShades()
+        {
+            Chapter00ZoneVegetationParams p = SmallDefault();
+            UniformMetrics metrics = MetricsFor(p, 1f, new Vector2(8f, 8f));
+            List<Chapter00VegetationPlacement> placements = Chapter00ZoneVegetationLayout.Build(p, metrics);
+
+            foreach (Chapter00VegetationPlacement placement in placements)
+            {
+                if (placement.Zone != Chapter00VegetationZone.C) continue;
+                Assert.That(placement.Tint, Is.EqualTo(Chapter00VegetationTint.FadedPink)
+                    .Or.EqualTo(Chapter00VegetationTint.MutedViolet));
+            }
+        }
+
+        [Test]
+        public void InstalledCGroup_HasVisibleScannableTanmaoBesideRoute()
+        {
+            GameObject group = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/RootsDance/Prefabs/Environment/Chapter00ZoneVegetation/"
+                + "C00V_Group_ZoneC_AnomalousCarpet.prefab");
+            Assert.IsNotNull(group);
+            ScannableTarget target = group.GetComponentInChildren<ScannableTarget>(true);
+            Assert.IsNotNull(target);
+            Assert.AreEqual("变异毯茅", target.DisplayName);
+            Assert.IsNotNull(target.GetComponent<ScannerWorldStateResult>());
+            Assert.IsEmpty(target.GetComponentsInChildren<Collider>(true));
+
+            Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
+            Vector2 point = new Vector2(target.transform.position.x, target.transform.position.z);
+            float routeDistance = Chapter00ZoneVegetationLayout.DistanceToRoutes(p.Routes, point);
+            Assert.That(routeDistance, Is.InRange(1f, 3f));
+
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+            Assert.IsNotEmpty(renderers);
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            Assert.That(bounds.size.y, Is.InRange(1.20f, 1.30f));
+            Assert.AreEqual(.65f, renderers[0].sharedMaterial.GetFloat("_EmissiveIntensityValue"), .001f);
+
+            Transform[] transforms = target.GetComponentsInChildren<Transform>(true);
+            int scannableLayer = LayerMask.NameToLayer("Scannable");
+            foreach (Transform child in transforms) Assert.AreEqual(scannableLayer, child.gameObject.layer);
         }
 
         [Test]

@@ -61,8 +61,8 @@ namespace RootsDance.Editor.Environment
         public float TargetHeightMax;
 
         /// <summary>
-        /// Ground cover derives pitch from the smallest scaled Renderer XZ footprint. A value of .28 means
-        /// neighbouring footprints overlap by 28 percent. Mid/blocker layers use <see cref="Spacing"/>.
+        /// Ground cover derives pitch from the smallest scaled Renderer XZ footprint. A value of .12 means
+        /// neighbouring footprints overlap by 12 percent. Mid/blocker layers use <see cref="Spacing"/>.
         /// </summary>
         public float FootprintOverlap;
         /// <summary>
@@ -273,12 +273,12 @@ namespace RootsDance.Editor.Environment
                 Layer(Chapter00VegetationZone.B, Chapter00VegetationRole.PhysicalBlocker,
                     rootsAndRocks, .8f, 2.2f, 0f, 3.2f, 3.1f, 3f, .65f, 5204),
 
-                // C ground cover has no route clearance by design. The revised 28% overlap keeps the band
-                // continuous at player height without reading as a solid, over-packed wall of blades.
+                // C ground cover has no route clearance by design. The second art-direction pass reduces the
+                // previous layout by roughly one third while retaining slight footprint overlap.
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.WalkThroughGroundCover,
-                    anomalousPatchGrass, .25f, .55f, .28f, 0f, 0f, 0f, .7f, 5301),
+                    anomalousPatchGrass, .25f, .55f, .12f, 0f, 0f, 0f, .7f, 5301),
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.MidLayer,
-                    Combine(grassVariety, fern, liveBush), .55f, .85f, 0f, 1.70f, 1.4f, 2.2f, .5f, 5302),
+                    Combine(grassVariety, fern, liveBush), .55f, .85f, 0f, 2.10f, 1.4f, 2.2f, .5f, 5302),
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.PhysicalBlocker,
                     rootsAndRocks, .65f, 1.1f, 0f, 6f, 6.5f, 4.5f, .65f, 5303),
 

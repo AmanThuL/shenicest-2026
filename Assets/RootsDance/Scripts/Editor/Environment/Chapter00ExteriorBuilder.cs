@@ -319,6 +319,7 @@ namespace RootsDance.Editor.Environment
 
             SerializedObject serialized = new SerializedObject(current);
             serialized.FindProperty("m_id").stringValue = "BOT-FL-041";
+            serialized.FindProperty("m_flagOnRecorded").stringValue = WorldFlags.k_FirstInvestigationDone;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(current);
         }
@@ -816,6 +817,12 @@ namespace RootsDance.Editor.Environment
 
             SetGroundedPosition(grassClump.transform, terrain, new Vector2(-13.54f, 39.71f), 0.45f);
             grassClump.transform.rotation = Quaternion.Euler(0f, 32f, 0f);
+            // The visible C hero under Prefab World Builder now owns the scanner interaction. Keep this legacy
+            // gameplay anchor for checkpoint compatibility, but disable its invisible collider/interaction.
+            InvestigatableTarget legacyGrass = grassClump.GetComponent<InvestigatableTarget>();
+            Collider legacyGrassCollider = grassClump.GetComponent<Collider>();
+            if (legacyGrass != null) legacyGrass.enabled = false;
+            if (legacyGrassCollider != null) legacyGrassCollider.enabled = false;
             SetGroundedPosition(soilPatch.transform, terrain, new Vector2(-10.46f, 38.29f), 0.2f);
             soilPatch.transform.rotation = Quaternion.Euler(0f, -18f, 0f);
             EditorSceneManager.MarkSceneDirty(gameplay);
