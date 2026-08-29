@@ -21,6 +21,8 @@ namespace RootsDance.Interaction
         private const string k_HoldActionId = "hold";
         private const string k_KeypadPokeActionId = "keypadPoke";
         private const float k_ConfirmContactSeconds = 0.84f;
+        private const float k_ActionTimeoutPaddingSeconds = 0.75f;
+        private const float k_MinActionTimeoutSeconds = 1.5f;
 
         private static readonly RuneSymbol[] k_Password =
         {
@@ -209,21 +211,26 @@ namespace RootsDance.Interaction
                 SetCursorForInspect(false);
                 SetWorldCollider(false);
 
-                if (!await StowTorchAsync(cancellationToken))
-                {
-                    AbortInspect();
-                    return;
-                }
-
                 m_originParent = transform.parent;
                 m_originScene = gameObject.scene;
                 m_originWorldPosition = transform.position;
                 m_originWorldRotation = transform.rotation;
                 m_originLocalScale = transform.localScale;
+
+                // Start putting the torch away before the close-up, but do not leave the player
+                // staring at an unmoving wall while the arms action runs. The keypad's raise gives
+                // immediate feedback and overlaps the first part of the stow animation.
+                Awaitable<bool> stowOperation = StowTorchAsync(cancellationToken);
                 transform.SetParent(m_camera.transform, true);
 
                 m_state = InspectState.Raising;
                 await TweenToInspectPoseAsync(m_raiseSeconds, cancellationToken);
+
+                if (!await stowOperation)
+                {
+                    AbortInspect();
+                    return;
+                }
 
                 m_state = InspectState.Reading;
                 SetCursorForInspect(true);
@@ -517,12 +524,24 @@ namespace RootsDance.Interaction
                     return false;
                 }
 
+                ArmsActionSO action = m_armsDirector.FindAction(actionId);
+                float authoredDuration = action == null ? 0f : action.Duration;
+                float timeoutSeconds = Mathf.Max(
+                    k_MinActionTimeoutSeconds,
+                    authoredDuration + k_ActionTimeoutPaddingSeconds);
                 float elapsed = 0f;
                 bool didShowContact = false;
 
                 while (!m_didActionFinish)
                 {
                     elapsed += Time.unscaledDeltaTime;
+
+                    if (elapsed >= timeoutSeconds)
+                    {
+                        Log.Warning($"Rune keypad arms action '{actionId}' timed out after "
+                            + $"{timeoutSeconds:F2} seconds; restoring interaction control.", this);
+                        return false;
+                    }
 
                     if (showConfirmContact && !didShowContact
                         && elapsed >= k_ConfirmContactSeconds)
@@ -539,16 +558,16 @@ namespace RootsDance.Interaction
                     await Awaitable.NextFrameAsync(cancellationToken);
                 }
 
+                return true;
+            }
+            finally
+            {
                 if (m_confirmButton != null)
                 {
                     m_confirmButton.SetPressed(false);
                     m_confirmButton.SetFeedback(false);
                 }
 
-                return true;
-            }
-            finally
-            {
                 UnsubscribeFromArms();
             }
         }
