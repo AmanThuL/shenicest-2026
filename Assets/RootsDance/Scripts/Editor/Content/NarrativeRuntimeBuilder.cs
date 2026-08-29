@@ -447,13 +447,8 @@ namespace RootsDance.Editor.Content
             ConfigureFlagTrigger(neat.gameObject, "DLG-004_ItUsedToBeNeat",
                 WorldFlags.k_EnteredGreenhouse);
 
-            // Grey-box interactables: sign west of the entrance path, statue at the north centre,
-            // photograph east of the statue, console south of it — all placeholders for props.
-            Transform sign = EnsureChild(root, "BoundarySign");
-            sign.position = new Vector3(-3.5f, 1.2f, -4f);
-            ConfigureInteractTrigger(sign.gameObject, "DLG-005_TheSign",
-                new Vector3(1.5f, 1.6f, 0.4f), "查看牌子");
-
+            // Grey-box interactables: statue at the north centre, photograph east of the statue,
+            // console south of it — all placeholders for props.
             Transform statue = EnsureChild(root, "GaiaStatue");
             statue.position = new Vector3(0f, 1.4f, 6f);
             ConfigureInteractTrigger(statue.gameObject, "DLG-006_SheUsedToMove",

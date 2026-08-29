@@ -138,17 +138,6 @@ namespace RootsDance.Editor.Content
                 },
                 null, true, WorldFlags.k_EnteredGreenhouse, string.Empty) ? 1 : 0;
 
-            created += Conversation("DLG-005_TheSign", "DLG-005", "培养边界的牌子",
-                new[]
-                {
-                    F("这个牌子以前很有用。", "That sign used to be really useful.",
-                        "VO_C3_Verity_19_ThatSignStre"),
-                    P("人类的边界，对植物有什么意义呢。",
-                        "What meaning do human boundaries have for plants?",
-                        "VO_C3_MrsDavid_08_WhatMeaningDoSt")
-                },
-                null, true, string.Empty, string.Empty) ? 1 : 0;
-
             created += Conversation("DLG-006_SheUsedToMove", "DLG-006", "盖娅雕像",
                 new[]
                 {

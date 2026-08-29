@@ -8,9 +8,10 @@
 
 接入方式：`DialogueLine` / `DialogueChoice` 的 `Voice` 字段直接拖入 clip。带语音的行至少停留到
 录音放完（加 0.35 s 尾距），跳过台词会一并打断语音；选项的语音在选中后、回应之前播出。
-**逐句映射已写进 `Build Chapter 02 Dialogue` 生成器**——50 条挂进 DLG-001..009，
-未挂的 5 条：`MrsDavid_06_HowDidYouKnow`（无对应台词行）、`MrsDavid_07_IsThisOurPast`（内心独白，
-等独白播放节拍）、`Verity_14_OhWeEmph`（疑似 DLG-003 的多余 take）、`Verity_25__Alt`（备选条）、
+**逐句映射已写进 `Build Chapter 02 Dialogue` 生成器**——48 条挂进 DLG-001..009（不含 DLG-005），
+未挂的 7 条：`MrsDavid_06_HowDidYouKnow`（无对应台词行）、`MrsDavid_07_IsThisOurPast`（内心独白，
+等独白播放节拍）、`MrsDavid_08_WhatMeaningDoSt` 与 `Verity_19_ThatSignStre`（**弃用**，牌子交互点
+已从策划案删除）、`Verity_14_OhWeEmph`（疑似 DLG-003 的多余 take）、`Verity_25__Alt`（备选条）、
 三条 `Unsorted`（源文件名损坏）。见
 [对话与场景序列](../../architecture/systems/对话与场景序列.md)。
 
@@ -25,7 +26,7 @@
 | 05 | 18:12 | with a cautious, alert tone | Is anyone else her | `VO_C3_MrsDavid_05_IsAnyoneElseHer.mp3` |
 | 06 | 18:13 | with a curious, startled tone | How did you know | `VO_C3_MrsDavid_06_HowDidYouKnow.mp3` |
 | 07 | 18:18 | 内心独白；with a quiet, searching tone | 内心独白 Is this our past | `VO_C3_MrsDavid_07_IsThisOurPast.mp3` |
-| 08 | 18:20 | curious, contemplative tone | What meaning do st | `VO_C3_MrsDavid_08_WhatMeaningDoSt.mp3` |
+| 08 | 18:20 | **弃用**（牌子交互点已删）；curious, contemplative tone | What meaning do st | `VO_C3_MrsDavid_08_WhatMeaningDoSt.mp3` |
 | 09 | 18:20 | with a surprised, questioning tone | She | `VO_C3_MrsDavid_09_She.mp3` |
 | 10 | 18:24 | with a wary, uncertain tone | She wasn't there. | `VO_C3_MrsDavid_10_SheWasntThere.mp3` |
 | 11 | 18:26 | sarcastic, emphasis | Weren't you here the whol | `VO_C3_MrsDavid_11_WerentYouHereTheWhol.mp3` |
@@ -53,7 +54,7 @@
 | 16 | 16:59 | with a warm, enthusiastic tone | We all | `VO_C3_Verity_16_WeAll.mp3` |
 | 17 | 17:00 | with a wistful, reflective tone | It used to be | `VO_C3_Verity_17_ItUsedToBe.mp3` |
 | 18 | 17:02 | with a sharp, agitated tone | But then! She stop | `VO_C3_Verity_18_ButThenSheStop.mp3` |
-| 19 | 17:02 | with a wistful, reflective tone | That sign stre | `VO_C3_Verity_19_ThatSignStre.mp3` |
+| 19 | 17:02 | **弃用**（牌子交互点已删）；with a wistful, reflective tone | That sign stre | `VO_C3_Verity_19_ThatSignStre.mp3` |
 | 20 | 17:03 | with a wistful, subdued tone | She used to move | `VO_C3_Verity_20_SheUsedToMove.mp3` |
 | 21 | 17:04 | with a soft, wistful tone | She was beau | `VO_C3_Verity_21_SheWasBeau.mp3` |
 | 22 | 17:05 |  | Then one day, she stopped | `VO_C3_Verity_22_ThenOneDaySheStopped.mp3` |
