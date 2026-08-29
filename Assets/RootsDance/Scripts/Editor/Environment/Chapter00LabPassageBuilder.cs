@@ -36,8 +36,8 @@ namespace RootsDance.Editor.Environment
         private static readonly Vector3 k_VolumePosition = new Vector3(30.95f, 9f, 104.1f);
         private static readonly Quaternion k_VolumeRotation = Quaternion.Euler(0f, 2.9f, 0f);
         private static readonly Vector3 k_VolumeSize = new Vector3(4.2f, 4.6f, 12f);
-        private static readonly Vector3 k_FogLocalPosition = new Vector3(-0.77f, 0.85f, 1.1f);
-        private static readonly Vector3 k_FogSize = new Vector3(1.95f, 1.89f, 11.7f);
+        private static readonly Vector3 k_FogLocalPosition = new Vector3(-0.77f, -0.86f, 1f);
+        private static readonly Vector3 k_FogSize = new Vector3(1.95f, 1.89f, 11.22f);
         private const float k_FogBlendDistance = 0.1f;
 
         [MenuItem(k_MenuPath)]
@@ -238,7 +238,7 @@ namespace RootsDance.Editor.Environment
             }
 
             LocalVolumetricFogArtistParameters parameters =
-                new LocalVolumetricFogArtistParameters(new Color(0.05f, 0.08f, 0.06f), 0.8f, 0.55f);
+                new LocalVolumetricFogArtistParameters(new Color(0.05f, 0.08f, 0.06f), 0.52f, 0.55f);
             parameters.blendingMode = LocalVolumetricFogBlendingMode.Additive;
             parameters.priority = 20;
             parameters.size = k_FogSize;

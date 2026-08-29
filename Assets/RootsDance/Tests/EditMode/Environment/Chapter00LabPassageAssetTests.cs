@@ -75,9 +75,9 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsNotNull(fog);
                 BoxCollider bounds = fog.transform.parent.GetComponent<BoxCollider>();
                 Assert.IsNotNull(bounds);
-                Assert.AreEqual(new Vector3(-0.77f, 0.85f, 1.1f), fog.transform.localPosition);
-                Assert.AreEqual(new Vector3(1.95f, 1.89f, 11.7f), fog.parameters.size);
-                Assert.That(fog.parameters.meanFreePath, Is.EqualTo(0.8f).Within(0.01f));
+                Assert.AreEqual(new Vector3(-0.77f, -0.86f, 1f), fog.transform.localPosition);
+                Assert.AreEqual(new Vector3(1.95f, 1.89f, 11.22f), fog.parameters.size);
+                Assert.That(fog.parameters.meanFreePath, Is.EqualTo(0.52f).Within(0.01f));
             }
             finally
             {
