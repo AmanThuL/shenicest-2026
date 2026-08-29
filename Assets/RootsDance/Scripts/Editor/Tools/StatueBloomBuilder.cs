@@ -1,5 +1,7 @@
 using System.IO;
+using RootsDance.Core;
 using RootsDance.Environment;
+using RootsDance.Events;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -52,6 +54,9 @@ namespace RootsDance.EditorTools
 
         /// <summary>The flower field's own child under the prefab root.</summary>
         private const string k_FlowerInstanceName = "Flowers";
+
+        /// <summary>The bootstrap's FlagRaised channel — what tells the statue the ending began.</summary>
+        private const string k_FlagChannel = "Assets/RootsDance/Data/Events/FlagRaised.asset";
 
         /// <summary>The statue's root in the scene. The clumps go under it, so it carries them.</summary>
         private const string k_StatueRoot = "Statue";
@@ -257,10 +262,16 @@ namespace RootsDance.EditorTools
                 so.FindProperty("m_duration").floatValue = k_Duration;
                 so.FindProperty("m_startAt").floatValue = 0f;
 
-                // The sequence switches the object on when the ending begins, and OnEnable starts
-                // the curve. Nothing else has to call Play.
-                so.FindProperty("m_playOnEnable").boolValue = true;
+                // Parked at bare stone until the story says otherwise. GrowthCue owns the start,
+                // so playing on enable would bloom the statue the moment its scene loaded — which
+                // is what it did before the cue existed.
+                so.FindProperty("m_playOnEnable").boolValue = false;
                 so.ApplyModifiedPropertiesWithoutUndo();
+
+                if (!AttachCue(root))
+                {
+                    return null;
+                }
 
                 return PrefabUtility.SaveAsPrefabAsset(root, k_Prefab);
             }
@@ -270,6 +281,33 @@ namespace RootsDance.EditorTools
             }
         }
 
+
+        /// <summary>
+        /// Gives the statue the beat it blooms on: <see cref="WorldFlags.k_CirculationOuter"/>,
+        /// the player reading the ecology correctly at the circulation console. The other two
+        /// answers wake the boss; this one ends the game. <c>MusicWiring</c> already scores the
+        /// same flag with MUS_EndingBloom, so the two were always going to be one beat — this is
+        /// the picture half of it.
+        /// </summary>
+        private static bool AttachCue(GameObject root)
+        {
+            StringEventChannelSO channel =
+                AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(k_FlagChannel);
+
+            if (channel == null)
+            {
+                Debug.LogError($"{k_LogPrefix}: {k_FlagChannel} not found; the statue would never "
+                    + "hear the ending begin.");
+                return false;
+            }
+
+            GrowthCue cue = root.AddComponent<GrowthCue>();
+            SerializedObject so = new SerializedObject(cue);
+            so.FindProperty("m_flagRaised").objectReferenceValue = channel;
+            so.FindProperty("m_flagId").stringValue = WorldFlags.k_CirculationOuter;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return true;
+        }
 
         /// <summary>
         /// Hangs the flower field under the prefab root and gives it its material.

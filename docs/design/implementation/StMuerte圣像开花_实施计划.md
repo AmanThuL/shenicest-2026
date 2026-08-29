@@ -118,6 +118,7 @@
 | `Assets/RootsDance/Shaders/Environment/StatueBloom.shadergraph` | L2 花簇的 Lit + Alpha Clip + 顶点色生长揭示 |
 | `Assets/RootsDance/Scripts/Runtime/Environment/GrowthDriver.cs` | 推进 `_Growth`，写 `renderer.material`（与 `EmissivePulse` 同一批处策略） |
 | `Assets/RootsDance/Shaders/Environment/StatueFlowers.shader` + `.hlsl` | L3 花田: 顶点着色器按 `_Growth` 在三个姿态间走二次 Bezier，真几何绽放 |
+| `Assets/RootsDance/Scripts/Runtime/Environment/GrowthCue.cs` | 听 FlagRaised，在结局那一拍启动 `GrowthDriver`；场景晚加载时直接补到长满 |
 | `Assets/RootsDance/Scripts/Editor/Tools/StatueBloomBuilder.cs` | 材质 / prefab / 场景放置，范式取自 `CorridorAlgaeBuilder` |
 | `Assets/RootsDance/Tests/EditMode/Environment/GrowthDriverTests.cs` | 进度映射与边界值 |
 
@@ -138,6 +139,19 @@
 - [x] 9. `SunBroadcaster` 已挂在 `_Lighting/Sun`：`12000 lux` → 全局量 `(1.20, 1.15, 1.06)`，贴近 shader 兜底光，`[ExecuteAlways]` 让 Editor 里也生效
 - [ ] 7. L1 生长贴图与基底材质
 - [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
+
+## 5.0 什么情况下开花
+
+**`flow.circulation_outer`** —— 玩家在循环控制台（02-12，`DLG-008_CirculationConsole`）选了 Outer Boundary。三个选项里另外两个（Core Cultivation / Standard Ring）是错的，会唤醒温室里的 Boss 进入追逐；这一个是生态的实际状态，也是唯一不触发追逐的答案。
+
+这不是新造的条件：`MusicWiring.cs` 早就把同一个 flag 绑到了 `MUS_EndingBloom`，`GrowthDriver` 的 `45 s` 就是那条音轨的长度。圣像开完花的那一刻音乐也结束。
+
+`GrowthCue` 挂在 `StatueBloom` prefab 根上，照 `FlagMusicCues` 的写法听 bootstrap 的 FlagRaised 通道——控制台按自己的理由抬 flag，"这意味着圣像开花"是一行接线，玩法层不知道圣像的存在。
+
+两个边界情况：
+
+- **`GrowthDriver.m_playOnEnable` 现在是 `false`。** 圣像所在的是 additive 场景，早在第二章就加载了；之前是 `true`，意味着那 45 秒的演出在玩家背后自己演完了。
+- **flag 已经抬起时才加载场景**（检查点跳过控制台、结局途中切关），`GrowthCue` 在第一个能问到 `WorldAccess.State` 的帧直接 `SetGrowth(1)`，不重放一遍玩家已经看过的演出。
 
 ## 5.1 绽放动画怎么烘进顶点里
 
@@ -236,5 +250,5 @@ UV 就是一组数，导出链路上没有任何东西会变换它；而顶点�
 - 生长有明确方向: 从底座与双掌起，向上、向外推进，不是整体淡入。
 - 玩家站在圣像脚下平视与仰视，`5 m` 以内能看到立体的花，`5 m` 以上没有可辨认的贴片穿帮。
 - patch 不穿模、不悬空，边缘与石面咬合。
-- `MUS_EndingBloom` 的时长与生长曲线对齐，音乐结束时生长到 `1.0`。
+- `MUS_EndingBloom` 的时长与生长曲线对齐，音乐结束时生长到 `1.0`；两者由同一个 flag `flow.circulation_outer` 启动。
 - EditMode 套件全绿，`RootsDance.*` 无新增警告。

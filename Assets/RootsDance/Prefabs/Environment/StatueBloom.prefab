@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 8682644453454127283}
   - component: {fileID: 2471553979501752445}
   - component: {fileID: 5805068736338214488}
+  - component: {fileID: 7908281542557864140}
   m_Layer: 0
   m_Name: StatueBloom
   m_TagString: Untagged
@@ -224,4 +225,18 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   m_startAt: 0
-  m_playOnEnable: 1
+  m_playOnEnable: 0
+--- !u!114 &7908281542557864140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7286919507242509127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19238f9e78a374f75a172abb9385f0a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.GrowthCue
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_flagId: flow.circulation_outer
