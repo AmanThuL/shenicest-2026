@@ -15,3 +15,4 @@ MonoBehaviour:
   m_scenePaths:
   - Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity
   - Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity
+  - Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity
