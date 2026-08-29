@@ -44,7 +44,10 @@ namespace RootsDance.Editor.Environment
     [Serializable]
     public struct PrefabEntry
     {
-        /// <summary>Prefab name and lookup key — always the FBX file name without its extension.</summary>
+        /// <summary>
+        /// Prefab name and lookup key. Usually the model file name without its extension; a logical material
+        /// variant may deliberately reuse one source mesh under a distinct key (the dense grass-patch family).
+        /// </summary>
         public string Key;
 
         /// <summary>Asset path of the vendor FBX under <c>Assets/ThirdParty/Environment/</c>.</summary>
@@ -137,6 +140,24 @@ namespace RootsDance.Editor.Environment
             new MaterialRule("post", "Scan_ChainlinkFence_Posts")
         };
 
+        private static readonly MaterialRule[] k_NiwlAlderRules =
+        {
+            new MaterialRule("bark", "Niwl_Tree_WillowBark"),
+            new MaterialRule("leaves", "Niwl_TreeBranches")
+        };
+
+        private static readonly MaterialRule[] k_NiwlBirchRules =
+        {
+            new MaterialRule("bark", "Niwl_Tree_BirchBark"),
+            new MaterialRule("leaves", "Niwl_TreeBranches")
+        };
+
+        private static readonly MaterialRule[] k_NiwlPineRules =
+        {
+            new MaterialRule("bark", "Niwl_Tree_WillowBark"),
+            new MaterialRule("plant", "Niwl_Plants_Bunch")
+        };
+
         // Lab Assets: "Solid" is the palette strip, "Solid - 25%" the vendor's 25 % opacity glass.
         private static readonly MaterialRule[] k_LabRules =
         {
@@ -168,6 +189,48 @@ namespace RootsDance.Editor.Environment
             PsxBush("bush07", "Psx_Bush07_Fall"),
             PsxBush("bush08", "Psx_Bush08_Fall"),
 
+            // --- Dense grass-band coverage -------------------------------------------------------------
+            // Individual low-poly blades use the neutral winter sheet as an alpha-preserving tint base.
+            // The two large patch meshes are intentionally reused under several material-variant keys: this
+            // gives PWB/route builders seamless coverage without duplicating source geometry.
+            PsxGrass("grass01", "Psx_Grass_Viridian"),
+            PsxGrass("grass02", "Psx_Grass_Teal"),
+            PsxGrass("grass03", "Psx_Grass_Cyan"),
+            PsxGrass("grass04", "Psx_Grass_Violet"),
+            PsxGrass("grass05", "Psx_Grass_Magenta"),
+            PsxGrass("grass06", "Psx_Grass_Amber"),
+            PsxGrass("grass07", "Psx_Grass_Rose"),
+            PsxGrass("grass08", "Psx_Grass_Silver"),
+            PsxGrass("grass09", "Psx_Grass_Chartreuse"),
+            PsxGrass("grass_bush", "Psx_GrassBush_Healthy"),
+            PsxGrassVariant("grass_patch", "grass_patch", "Psx_GrassPatch_Healthy"),
+            PsxGrassVariant("grass_patch_viridian", "grass_patch", "Psx_GrassPatch_Viridian"),
+            PsxGrassVariant("grass_patch_cyan", "grass_patch", "Psx_GrassPatch_Cyan"),
+            PsxGrassVariant("grass_patch_violet", "grass_patch", "Psx_GrassPatch_Violet"),
+            PsxGrassVariant("grass_patch_amber", "grass_patch", "Psx_GrassPatch_Amber"),
+            PsxGrassVariant("grass_patch_rose", "grass_patch", "Psx_GrassPatch_Rose"),
+            PsxGrassVariant("grass_patch_silver", "grass_patch", "Psx_GrassPatch_Silver"),
+            PsxGrassVariant("grass_patch_corner", "grass_patch_corner", "Psx_GrassPatch_Healthy"),
+            PsxGrassVariant("grass_patch_corner_cyan", "grass_patch_corner", "Psx_GrassPatch_Cyan"),
+            PsxGrassVariant("grass_patch_corner_violet", "grass_patch_corner", "Psx_GrassPatch_Violet"),
+            PsxGrassVariant("grass_patch_corner_amber", "grass_patch_corner", "Psx_GrassPatch_Amber"),
+
+            // --- Healthy ordinary trees / bushes for the E-ring natural boundary -----------------------
+            PsxSummerTree("tree01_summer", "tree01", "Psx_Tree01_Summer"),
+            PsxSummerTree("tree02_summer", "tree02", "Psx_Tree02_Summer"),
+            PsxSummerTree("tree03_summer", "tree03", "Psx_Tree03_Summer"),
+            PsxSummerTree("tree04_summer", "tree04", "Psx_Tree04_Summer"),
+            PsxSummerTree("tree05_summer", "tree05", "Psx_Tree05_Summer"),
+            PsxSummerTree("tree06_summer", "tree06", "Psx_Tree06_Summer"),
+            PsxSummerTree("tree07_summer", "tree07", "Psx_Tree07_Summer"),
+            PsxSummerTree("tree08_summer", "tree08", "Psx_Tree08_Summer"),
+            PsxSummerBush("bush01_summer", "bush01", "Psx_Bush01_Summer"),
+            PsxSummerBush("bush02_summer", "bush02", "Psx_Bush02_Summer"),
+            PsxSummerBush("bush03_summer", "bush03", "Psx_Bush03_Summer"),
+            PsxSummerBush("bush04_summer", "bush04", "Psx_Bush04_Summer"),
+            PsxSummerBush("bush05_summer", "bush05", "Psx_Bush05_Summer"),
+            PsxSummerBush("bush06_summer", "bush06", "Psx_Bush06_Summer"),
+
             // --- Transition_Growth: Niwl grass patches, ferns, bushes, ivy ----------------------------
             Niwl("M3D_grass_patch_1", "Grass", "Niwl_Plants_General"),
             Niwl("M3D_grass_patch_2", "Grass", "Niwl_Plants_General"),
@@ -187,6 +250,20 @@ namespace RootsDance.Editor.Environment
             Niwl("M3D_ivy_2", "Ivy", "Niwl_Plants_Bunch"),
             Niwl("M3D_ivy_3", "Ivy", "Niwl_Plants_Bunch"),
             Niwl("M3D_ivy_4", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_6", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_7", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_ivy_8", "Ivy", "Niwl_Plants_Bunch"),
+            Niwl("M3D_meadown", "Meadow", "Niwl_Plants_General"),
+            Niwl("M3D_poppy-1", "Flowers", "Niwl_Plants_General"),
+            Niwl("M3D_poppy2", "Flowers", "Niwl_Plants_General"),
+            Niwl("M3D_sunflower", "Flowers", "Niwl_Plants_General"),
+            NiwlTree("M3D_alder_1", k_NiwlAlderRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_alder_2", k_NiwlAlderRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_alder_3", k_NiwlAlderRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_birch-tree-1", k_NiwlBirchRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_birch-tree-2", k_NiwlBirchRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_birch-tree-3", k_NiwlBirchRules, "Niwl_TreeBranches"),
+            NiwlTree("M3D_pine", k_NiwlPineRules, "Niwl_Plants_Bunch"),
 
             // --- Dead wood heroes (Poly Haven scans) -------------------------------------------------
             Scan("dead_tree_trunk", k_Heroes, ColliderKind.MeshConvex, k_NoRules, "Scan_DeadTreeTrunk"),
@@ -270,10 +347,41 @@ namespace RootsDance.Editor.Environment
                 k_NoRules, material, 1f);
         }
 
+        private static PrefabEntry PsxGrass(string key, string material)
+        {
+            return new PrefabEntry(key, $"{k_Retro}Grass/{key}.fbx", k_Vegetation, ColliderKind.None,
+                k_NoRules, material, 1f);
+        }
+
+        private static PrefabEntry PsxGrassVariant(string key, string model, string material)
+        {
+            return new PrefabEntry(key, $"{k_Retro}Grass/{model}.fbx", k_Vegetation, ColliderKind.None,
+                k_NoRules, material, 1f);
+        }
+
+        private static PrefabEntry PsxSummerTree(string key, string model, string crownMaterial)
+        {
+            MaterialRule[] rules = { new MaterialRule("_top", crownMaterial) };
+            return new PrefabEntry(key, $"{k_Retro}Trees/{model}.fbx", k_Vegetation,
+                ColliderKind.TrunkCapsule, rules, crownMaterial + "_Trunk", 1f);
+        }
+
+        private static PrefabEntry PsxSummerBush(string key, string model, string material)
+        {
+            return new PrefabEntry(key, $"{k_Retro}Bushes/{model}.fbx", k_Vegetation, ColliderKind.None,
+                k_NoRules, material, 1f);
+        }
+
         private static PrefabEntry Niwl(string key, string folder, string material)
         {
             return new PrefabEntry(key, $"{k_Niwl}{folder}/{key}.fbx", k_Vegetation, ColliderKind.None,
                 k_NoRules, material, 1f);
+        }
+
+        private static PrefabEntry NiwlTree(string key, MaterialRule[] rules, string defaultMaterial)
+        {
+            return new PrefabEntry(key, $"{k_Niwl}Trees/{key}.fbx", k_Vegetation,
+                ColliderKind.TrunkCapsule, rules, defaultMaterial, 1f);
         }
 
         private static PrefabEntry Scan(string key, string category, ColliderKind collider, MaterialRule[] rules,

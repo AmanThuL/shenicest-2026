@@ -270,7 +270,7 @@ MonoBehaviour:
   m_light: {fileID: 3238816247033891326}
   m_holdSocket: {fileID: 7863462782624755283}
   m_beamAnchor: {fileID: 8979133815423464653}
-  m_autoOnAtNight: 1
+  m_autoOnAtNight: 0
   m_fadeSeconds: 0.15
   m_aimDistance: 7
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
@@ -1909,11 +1909,11 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[0]'
+      propertyPath: m_suspendedWhileReading.Array.data[0]
       value: 
       objectReference: {fileID: 3067282954758705644}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[1]'
+      propertyPath: m_suspendedWhileReading.Array.data[1]
       value: 
       objectReference: {fileID: 1168216218860767587}
     - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}

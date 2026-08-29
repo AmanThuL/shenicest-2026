@@ -194,7 +194,7 @@ namespace RootsDance.Editor.Environment
                     {
                         FogAttenuationDistance = 8f, FogBaseHeight = 12f, FogMaximumHeight = 40f,
                         FogTint = Color.white, FogAlbedo = new Color(0.95f, 0.90f, 0.74f),
-                        FogAnisotropy = 0.20f, AmbientDimmer = 0f, FogVolumetricDistance = 400f,
+                        FogAnisotropy = 0.20f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
                         FogMultipleScattering = 1.2f,
                         SkyTop = new Color(0.50f, 0.48f, 0.38f), SkyMiddle = new Color(0.78f, 0.74f, 0.56f),
                         SkyBottom = new Color(0.86f, 0.82f, 0.62f), SkyDiffusion = 1.6f, SkyExposure = 12f,
@@ -213,7 +213,7 @@ namespace RootsDance.Editor.Environment
                     {
                         FogAttenuationDistance = 12f, FogBaseHeight = 12f, FogMaximumHeight = 40f,
                         FogTint = Color.white, FogAlbedo = new Color(0.94f, 0.92f, 0.80f),
-                        FogAnisotropy = 0.15f, AmbientDimmer = 0f, FogVolumetricDistance = 400f,
+                        FogAnisotropy = 0.15f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
                         FogMultipleScattering = 1.1f,
                         SkyTop = new Color(0.50f, 0.52f, 0.44f), SkyMiddle = new Color(0.76f, 0.76f, 0.62f),
                         SkyBottom = new Color(0.84f, 0.84f, 0.70f), SkyDiffusion = 1.5f, SkyExposure = 12f,
@@ -232,7 +232,7 @@ namespace RootsDance.Editor.Environment
                     {
                         FogAttenuationDistance = 16f, FogBaseHeight = 12f, FogMaximumHeight = 40f,
                         FogTint = Color.white, FogAlbedo = new Color(0.86f, 0.90f, 0.86f),
-                        FogAnisotropy = 0.10f, AmbientDimmer = 0.15f, FogVolumetricDistance = 400f,
+                        FogAnisotropy = 0.10f, AmbientDimmer = 0.15f, FogVolumetricDistance = 100f,
                         FogMultipleScattering = 0.8f,
                         SkyTop = new Color(0.38f, 0.42f, 0.40f), SkyMiddle = new Color(0.60f, 0.64f, 0.58f),
                         SkyBottom = new Color(0.68f, 0.72f, 0.64f), SkyDiffusion = 1.4f, SkyExposure = 12f,
@@ -251,7 +251,7 @@ namespace RootsDance.Editor.Environment
                     {
                         FogAttenuationDistance = 22f, FogBaseHeight = 12f, FogMaximumHeight = 45f,
                         FogTint = Color.white, FogAlbedo = new Color(0.90f, 0.96f, 0.92f),
-                        FogAnisotropy = 0.10f, AmbientDimmer = 0f, FogVolumetricDistance = 400f,
+                        FogAnisotropy = 0.10f, AmbientDimmer = 0f, FogVolumetricDistance = 100f,
                         FogMultipleScattering = 1.0f,
                         SkyTop = new Color(0.50f, 0.58f, 0.56f), SkyMiddle = new Color(0.72f, 0.80f, 0.76f),
                         SkyBottom = new Color(0.78f, 0.84f, 0.78f), SkyDiffusion = 1.3f, SkyExposure = 12f,
@@ -271,7 +271,7 @@ namespace RootsDance.Editor.Environment
             {
                 AttenuationDistance = 40f, BaseHeight = 12f, MaximumHeight = 50f,
                 Albedo = new Color(0.90f, 0.94f, 0.90f), Anisotropy = 0.10f, AmbientDimmer = 0f,
-                VolumetricDistance = 400f, MultipleScattering = 0.8f,
+                VolumetricDistance = 100f, MultipleScattering = 0.8f,
             };
 
             p.Sun = new OpeningSunSettings
@@ -287,22 +287,22 @@ namespace RootsDance.Editor.Environment
                 new OpeningVfxEmitter
                 {
                     Name = "Motes_S0", Kind = OpeningVfxKind.ContaminationMotes,
-                    Center = new Vector3(0f, 5f, -10f), Size = new Vector3(22f, 5f, 18f), RateOverTime = 15f,
+                    Center = new Vector3(4f, 5f, -11f), Size = new Vector3(18f, 4f, 14f), RateOverTime = 11f,
                 },
                 new OpeningVfxEmitter
                 {
                     Name = "Motes_S1", Kind = OpeningVfxKind.ContaminationMotes,
-                    Center = new Vector3(-7f, 8f, 4f), Size = new Vector3(16f, 5f, 12f), RateOverTime = 9f,
+                    Center = new Vector3(-15f, 8f, 4f), Size = new Vector3(10f, 4f, 10f), RateOverTime = 7f,
                 },
                 new OpeningVfxEmitter
                 {
                     Name = "Motes_S2", Kind = OpeningVfxKind.ContaminationMotes,
-                    Center = new Vector3(-12f, 6f, 12f), Size = new Vector3(14f, 5f, 10f), RateOverTime = 5f,
+                    Center = new Vector3(-19f, 6f, 12f), Size = new Vector3(8f, 4f, 8f), RateOverTime = 3.5f,
                 },
                 new OpeningVfxEmitter
                 {
                     Name = "Spores_S6", Kind = OpeningVfxKind.AnomalousSpores,
-                    Center = new Vector3(-12f, 7f, 40f), Size = new Vector3(16f, 5f, 10f), RateOverTime = 4f,
+                    Center = new Vector3(-25f, 7f, 40f), Size = new Vector3(8f, 4f, 8f), RateOverTime = 2.5f,
                 },
             };
 

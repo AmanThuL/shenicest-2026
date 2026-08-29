@@ -206,7 +206,7 @@ namespace RootsDance.Editor.Environment
     /// </summary>
     /// <remarks>
     /// The content mirrors the three concept images of
-    /// <c>docs/design/00章前段环境设计_起始点至异色草带.md</c> §5/§6: the contamination zone at the wake
+    /// <c>docs/design/00章室外环境设计_起始点至检修通道前.md</c>: the contamination zone at the wake
     /// lowland, the abandoned survey camp in the shallow valley, and the threshold in front of the anomalous
     /// grass band. Positions are world XZ on the greybox terrain, whose route runs
     /// (0,-10) → (-7,4) → (-15,18) → (-16,28) → (-12,39).
@@ -222,9 +222,6 @@ namespace RootsDance.Editor.Environment
         /// <c>ToolController.Tool</c> enum name; the Pin tool is the one this pass imitates.
         /// </summary>
         public const string k_PwbToolName = "PIN";
-
-        /// <summary>Terrain layer index of <c>TL_GrassBand</c>, the painted anomalous band.</summary>
-        public const int k_GrassBandLayer = 2;
 
         public string ScenePath = ScenePaths.k_MainEnvironment;
 
@@ -480,7 +477,7 @@ namespace RootsDance.Editor.Environment
             a.Add(Standing("dead_tree_trunk", new Vector2(-16.8f, 41.8f), 210f, 1f));
             a.Add(Barrier(new Vector2(-17.4f, 36.2f), 122f, 0.26f, 0.55f));
             a.Add(Barrier(new Vector2(-13.0f, 40.6f), 65f, 0.42f, 0.7f));
-            a.Add(Hero("root_cluster_01", new Vector2(-13.8f, 37.4f), 154f, 1f, 0.22f, 0.9f));
+            a.Add(Hero("root_cluster_01", new Vector2(-19.5f, 39.2f), 154f, 1f, 0.22f, 0.9f));
 
             return a.ToArray();
         }
@@ -632,10 +629,8 @@ namespace RootsDance.Editor.Environment
                     new Vector2(-5f, 20f), 0f, 10f, 16, 3.4f, 5f, 2007),
                 Patch("S5_Thinning", PropPool.DeadTreeSparse, k_DeadTrees,
                     new Vector2(-19f, 30f), 2.5f, 11f, 12, 3.6f, 5f, 2008),
-                Patch("S6_BeyondBand", PropPool.DeadTreeSparse, k_DeadTrees,
-                    new Vector2(-10f, 50f), 0f, 15f, 20, 3.6f, 4f, 2009),
-                Patch("S6_EastTrees", PropPool.DeadTreeSparse, k_DeadTrees,
-                    new Vector2(-2f, 42f), 0f, 11f, 12, 3.6f, 4f, 2010),
+                // S6 vegetation is owned by Chapter00ZoneVegetationBuilder. Keeping it here as well made
+                // the old pre-pass fight the reviewed C palette, height contract and collider clearance.
 
                 // --- dead low growth: silhouette only, never a readable living plant at the start ---------
                 Patch("S0_DeadBushes", PropPool.DeadTreeSparse, k_DeadBushes,
@@ -655,8 +650,6 @@ namespace RootsDance.Editor.Environment
                     new Vector2(-9f, 6f), 0f, 12f, 26, 1.2f, 0.6f, 2015, tilt: 6f, align: 0.95f),
                 Patch("S4_Branches", PropPool.DeadTreeSparse, k_Branches,
                     new Vector2(-15f, 19f), 0f, 12f, 26, 1.2f, 0.6f, 2016, tilt: 6f, align: 0.95f),
-                Patch("S6_Branches", PropPool.DeadTreeSparse, k_Branches,
-                    new Vector2(-13f, 39f), 0f, 13f, 30, 1.2f, 0.6f, 2017, tilt: 6f, align: 0.95f),
 
                 // --- rock and root clutter ---------------------------------------------------------------
                 Patch("S0_Gravel", PropPool.RootRockClutter, k_SmallRocks,
@@ -672,9 +665,6 @@ namespace RootsDance.Editor.Environment
                 Patch("S5_Boulders", PropPool.RootRockClutter, k_BigRocks,
                     new Vector2(-15f, 32f), 0f, 11f, 12, 3.5f, 3f, 2021,
                     tilt: 10f, align: 1f, scaleMin: 0.45f, scaleMax: 0.9f, sinkMin: 0.2f, sinkMax: 0.6f),
-                Patch("S6_Stones", PropPool.RootRockClutter, k_SmallRocks,
-                    new Vector2(-13f, 39f), 0f, 14f, 34, 1.6f, 0.9f, 2022,
-                    tilt: 12f, align: 1f, scaleMin: 0.22f, scaleMax: 0.5f, sinkMin: 0.05f, sinkMax: 0.3f),
                 Patch("S1_Roots", PropPool.RootRockClutter, k_LowRoots,
                     new Vector2(-8f, 2f), 0f, 12f, 26, 1.9f, 1.2f, 2023, tilt: 7f, align: 1f,
                     sinkMin: 0.02f, sinkMax: 0.12f),
@@ -682,11 +672,11 @@ namespace RootsDance.Editor.Environment
                     new Vector2(-15f, 19f), 0f, 12f, 24, 1.9f, 1.2f, 2024, tilt: 7f, align: 1f,
                     sinkMin: 0.02f, sinkMax: 0.12f),
                 Patch("S5_Roots", PropPool.RootRockClutter, k_Roots,
-                    new Vector2(-16f, 29f), 0f, 11f, 26, 1.9f, 1.2f, 2025, tilt: 7f, align: 1f,
+                    new Vector2(-16f, 29f), 0f, 11f, 26, 1.9f, 5.5f, 2025, tilt: 7f, align: 1f,
                     sinkMin: 0.02f, sinkMax: 0.12f),
-                Patch("S6_Roots", PropPool.RootRockClutter, k_Roots,
-                    new Vector2(-13f, 40f), 0f, 14f, 36, 1.8f, 1.1f, 2026, tilt: 7f, align: 1f,
-                    sinkMin: 0.02f, sinkMax: 0.12f),
+                // S6 long roots were removed: their renderer/collider footprint reached back across the
+                // grass-band route even when their pivots passed a large centre-line clearance. The new C
+                // vegetation pass supplies route-safe roots using real collider bounds.
 
                 // --- dry low growth: the valley's first ground cover, still colourless --------------------
                 Patch("S2_DryTufts", PropPool.DryLowGrowth, k_DryGrowth,
@@ -704,40 +694,13 @@ namespace RootsDance.Editor.Environment
                     new Vector2(-16f, 29f), 0f, 12f, 60, 1.1f, 0.8f, 2030, tilt: 6f, align: 0.75f,
                     scaleMin: 0.65f, scaleMax: 1.1f),
 
-                // --- recovery: ferns leave shelter, then live bushes, then the band ---------------------
+                // --- contaminated transition: sparse half-dead plants, then the anomalous band ----------
                 Patch("S5_Ferns", PropPool.TransitionGrowth, k_Ferns,
-                    new Vector2(-16f, 29f), 0f, 12f, 55, 1.4f, 0.8f, 2031, tilt: 8f, align: 0.55f,
+                    new Vector2(-16f, 29f), 0f, 12f, 32, 1.4f, 0.8f, 2031, tilt: 8f, align: 0.55f,
                     scaleMin: 0.5f, scaleMax: 0.85f, clump: 0.42f),
-                Patch("S6_Ferns", PropPool.TransitionGrowth, k_Ferns,
-                    new Vector2(-12f, 39f), 0f, 14f, 80, 1.3f, 0.7f, 2032, tilt: 8f, align: 0.55f,
-                    scaleMin: 0.55f, scaleMax: 0.95f, clump: 0.38f),
                 Patch("S5_LiveBushes", PropPool.TransitionGrowth, k_LiveBushes,
-                    new Vector2(-15f, 33f), 0f, 12f, 34, 2f, 1.2f, 2033, tilt: 7f, align: 0.5f,
+                    new Vector2(-15f, 33f), 0f, 12f, 16, 2f, 1.2f, 2033, tilt: 7f, align: 0.5f,
                     scaleMin: 0.5f, scaleMax: 0.9f, clump: 0.4f),
-                Patch("S6_Ivy", PropPool.TransitionGrowth, k_Ivy,
-                    new Vector2(-14f, 36f), 0f, 13f, 34, 1.6f, 0.8f, 2034, tilt: 6f, align: 1f,
-                    scaleMin: 0.5f, scaleMax: 0.9f, sinkMin: 0.01f, sinkMax: 0.05f),
-
-                // --- the anomalous band itself. The annulus is only a coarse limit: what actually decides
-                // where a clump lands is the painted TL_GrassBand weight, so the props follow the terrain's
-                // own irregular, noise-warped edge instead of drawing a clean ring (§8.6). ----------------
-                Patch("S6_AnomalousBand", PropPool.TransitionGrowth, k_BandGrass,
-                    new Vector2(0f, 112f), 56f, 86f, 420, 0.75f, 0.5f, 2035, tilt: 5f, align: 0.6f,
-                    scaleMin: 0.55f, scaleMax: 1.1f, arcMin: 166f, arcMax: 214f,
-                    xRange: new Vector2(-34f, 12f), zRange: new Vector2(34f, 64f),
-                    layer: k_GrassBandLayer, layerWeight: 0.4f, clump: 0.3f, clumpFrequency: 0.09f),
-                Patch("S6_BandBushes", PropPool.TransitionGrowth, k_LiveBushes,
-                    new Vector2(0f, 112f), 56f, 86f, 90, 1.8f, 0.8f, 2036, tilt: 6f, align: 0.5f,
-                    scaleMin: 0.45f, scaleMax: 0.85f, arcMin: 166f, arcMax: 214f,
-                    xRange: new Vector2(-34f, 12f), zRange: new Vector2(34f, 64f),
-                    layer: k_GrassBandLayer, layerWeight: 0.45f, clump: 0.36f, clumpFrequency: 0.08f),
-
-                // §S6: ordinary vegetation bleeding out of the band, so its edge interlocks instead of
-                // switching colour on a line.
-                Patch("S6_BandFringe", PropPool.DryLowGrowth, k_DryGrowth,
-                    new Vector2(0f, 112f), 76f, 94f, 70, 1.1f, 0.6f, 2037, tilt: 6f, align: 0.7f,
-                    scaleMin: 0.5f, scaleMax: 0.9f, arcMin: 166f, arcMax: 214f,
-                    xRange: new Vector2(-34f, 12f), zRange: new Vector2(32f, 52f), clump: 0.35f),
             };
         }
 

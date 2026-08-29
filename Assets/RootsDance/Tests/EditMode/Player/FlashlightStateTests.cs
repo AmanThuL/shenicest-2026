@@ -32,6 +32,17 @@ namespace RootsDance.Tests.EditMode.Player
         }
 
         [Test]
+        public void OnPhase_PollutedDay_TurnsTheBeamOff()
+        {
+            FlashlightState state = new FlashlightState(true);
+            state.OnPhase(TimeOfDay.Night);
+
+            state.OnPhase(TimeOfDay.PollutedDay);
+
+            Assert.IsFalse(state.IsOn);
+        }
+
+        [Test]
         public void OnPhase_AutoOnAtNightDisabled_LeavesTheBeamAlone()
         {
             FlashlightState state = new FlashlightState(false);

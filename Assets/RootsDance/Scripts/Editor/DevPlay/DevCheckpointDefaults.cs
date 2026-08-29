@@ -15,7 +15,7 @@ namespace RootsDance.Editor.DevPlay
     public static class DevCheckpointDefaults
     {
         private const string k_MenuPath = "RootsDance/Dev Play/Create Default Checkpoints";
-        private const string k_NightMenuPath = "RootsDance/Dev Play/Set All Checkpoints To Night";
+        private const string k_LevelDefaultMenuPath = "RootsDance/Dev Play/Set All Checkpoints To Level Default";
         private const string k_CheckpointFilter = "t:DevCheckpointSO";
         private const string k_ParentFolder = "Assets/RootsDance/Data";
         private const string k_FolderName = "DevPlay";
@@ -120,12 +120,12 @@ namespace RootsDance.Editor.DevPlay
         }
 
         /// <summary>
-        /// Forces every committed checkpoint to Night. <see cref="CreateMissing"/> never overwrites an
+        /// Restores every outdoor checkpoint to its level default. <see cref="CreateMissing"/> never overwrites an
         /// existing asset, so this is how the assets authored before time of day existed catch up with
         /// the defaults above. No dialogs — safe to call from a batch -executeMethod run.
         /// </summary>
-        [MenuItem(k_NightMenuPath)]
-        public static void SetAllTimeOfDayToNight()
+        [MenuItem(k_LevelDefaultMenuPath)]
+        public static void SetAllTimeOfDayToLevelDefault()
         {
             if (!AssetDatabase.IsValidFolder(k_Folder))
             {
@@ -138,21 +138,27 @@ namespace RootsDance.Editor.DevPlay
 
             for (int i = 0; i < guids.Length; i++)
             {
-                DevCheckpointSO checkpoint =
-                    AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(AssetDatabase.GUIDToAssetPath(guids[i]));
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+
+                if (path.IndexOf("/BriggsInterior/", System.StringComparison.Ordinal) >= 0)
+                {
+                    continue;
+                }
+
+                DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
 
                 if (checkpoint == null)
                 {
                     continue;
                 }
 
-                checkpoint.SetTimeOfDay(CheckpointTimeOfDay.Night);
+                checkpoint.SetTimeOfDay(CheckpointTimeOfDay.LevelDefault);
                 EditorUtility.SetDirty(checkpoint);
                 changed++;
             }
 
             AssetDatabase.SaveAssets();
-            Debug.Log("Dev Play: " + changed + " checkpoint(s) set to Night in " + k_Folder + ".");
+            Debug.Log("Dev Play: " + changed + " checkpoint(s) set to Level Default in " + k_Folder + ".");
         }
 
         private static Spec[] BuildSpecs()
@@ -184,8 +190,8 @@ namespace RootsDance.Editor.DevPlay
             string[] afterMaintenanceReveal = Append(
                 afterGrowthDirection, WorldFlags.k_MaintenanceEntranceRevealed);
 
-            // The whole pre-lab route plays at night, so every default checkpoint forces Night rather
-            // than trusting whatever the level happened to seed.
+            // Chapter 00 follows Main's authored polluted-day default. Keeping checkpoints on LevelDefault
+            // prevents them from silently overriding later lighting revisions.
             return new[]
             {
                 Make("00-01_Wake", "00-01 Wake", "",
@@ -201,22 +207,22 @@ namespace RootsDance.Editor.DevPlay
                 Make("00-08_ResearchFacilityView", "00-08 Facility reveal", "Anchor_00-08_ResearchFacilityView",
                     new Vector3(1.5f, 7.289f, 73.5f), 10f, afterInvestigation, investigationRecords),
                 Make("00-09_BlockedMainEntrance", "00-09 Blocked main entrance", "Anchor_00-09_BlockedMainEntrance",
-                    new Vector3(9.505f, 7.299f, 118.941f), 0f, afterInvestigation, investigationRecords),
+                    new Vector3(30f, 7.8f, 96.2f), 0f, afterInvestigation, investigationRecords),
                 Make("00-10_MainEntranceSign", "00-10 Main entrance sign", "Anchor_00-10_MainEntranceSign",
-                    new Vector3(7.030f, 7.299f, 115.759f), 0f, afterBlockedEntrance, investigationRecords),
+                    new Vector3(25.8f, 7.8f, 95.5f), 70f, afterBlockedEntrance, investigationRecords),
                 Make("00-11_ResearchFacilityPoster", "00-11 Research facility poster",
                     "Anchor_00-11_ResearchFacilityPoster",
-                    new Vector3(-4.637f, 7.299f, 114.699f), 0f, afterEntranceSign, investigationRecords),
+                    new Vector3(23f, 7.8f, 97.8f), 75f, afterEntranceSign, investigationRecords),
                 Make("00-12_AshleafVine", "00-12 Ashleaf vine", "Anchor_00-12_AshleafVine",
-                    new Vector3(12.334f, 7.299f, 123.184f), 16f, afterFacilityPoster, investigationRecords),
+                    new Vector3(33.8f, 7.8f, 97.5f), 330f, afterFacilityPoster, investigationRecords),
                 Make("00-13_FineVeinedVine", "00-13 Fine-veined vine", "Anchor_00-13_FineVeinedVine",
-                    new Vector3(15f, 7.8f, 127.8f), 24f, afterAshleafScan, investigationAndAshleafRecords),
+                    new Vector3(35.8f, 7.8f, 100.8f), 330f, afterAshleafScan, investigationAndAshleafRecords),
                 Make("00-14_VineGrowthDirection", "00-14 Vine growth direction", "Anchor_00-14_VineGrowthDirection",
-                    new Vector3(19.435f, 7.299f, 133.774f), 34f, afterFineVeinedScan, allPlantRecords),
+                    new Vector3(36.4f, 7.8f, 104f), 340f, afterFineVeinedScan, allPlantRecords),
                 Make("00-15_ClearAshleafVine", "00-15 Clear ashleaf vine", "Anchor_00-15_ClearAshleafVine",
-                    new Vector3(20.7f, 7.8f, 135.8f), 32f, afterGrowthDirection, allPlantRecords, false, false),
+                    new Vector3(37f, 7.8f, 106f), 340f, afterGrowthDirection, allPlantRecords, false, false),
                 Make("00-16_MaintenanceEntrance", "00-16 Maintenance entrance", "Anchor_00-16_MaintenanceEntrance",
-                    new Vector3(20.7f, 7.8f, 135.8f), 32f, afterMaintenanceReveal, allPlantRecords, false, false),
+                    new Vector3(37f, 7.8f, 106f), 340f, afterMaintenanceReveal, allPlantRecords, false, false),
             };
         }
 
@@ -233,7 +239,7 @@ namespace RootsDance.Editor.DevPlay
                 Yaw = yaw,
                 SnapToGround = snapToGround,
                 UseAnchorHeight = useAnchorHeight,
-                TimeOfDay = CheckpointTimeOfDay.Night,
+                TimeOfDay = CheckpointTimeOfDay.LevelDefault,
                 Flags = flags,
                 RecordPaths = recordPaths,
             };

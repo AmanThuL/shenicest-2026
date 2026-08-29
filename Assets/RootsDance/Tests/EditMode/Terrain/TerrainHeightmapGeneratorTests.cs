@@ -10,8 +10,8 @@ namespace RootsDance.Tests.EditMode.Terrain
 
         [TestCase(0f, -10f, 3f, TestName = "wake lowland")]
         [TestCase(-12f, 39f, 6f, TestName = "grass platform")]
-        [TestCase(9.505f, 118.941f, 7f, TestName = "main gate terrace")]
-        [TestCase(21.8f, 137.5f, 5f, TestName = "service entrance landing")]
+        [TestCase(30f, 96.2f, 7f, TestName = "Corridor 1 route head")]
+        [TestCase(30f, 102f, 7f, TestName = "Corridor 1 apron")]
         [TestCase(0f, 126f, 7f, TestName = "lab centre")]
         public void SampleWorldHeight_SpecAnchor_MatchesSpecHeight(float x, float z, float expected)
         {
@@ -28,11 +28,11 @@ namespace RootsDance.Tests.EditMode.Terrain
             Assert.AreEqual(new Vector2(44.5f, 31.5f), p.TerraceHalfExtents);
             Assert.AreEqual(0f, p.TerraceYawDegrees);
             Assert.AreEqual(3, p.Paths.Length, "main, narrative spur, and clue route must stay distinct");
-            Assert.AreEqual(new Vector2(9.505f, 118.941f), p.Paths[1].Nodes[0].Position);
+            Assert.AreEqual(new Vector2(30f, 96.2f), p.Paths[1].Nodes[0].Position);
             Assert.AreEqual(p.Paths[1].Nodes[0].Position, p.Paths[2].Nodes[0].Position,
-                "both optional branches start only after the blocked main entrance");
-            Assert.AreEqual(new Vector2(20.7f, 135.8f), p.Paths[2].Nodes[^2].Position);
-            Assert.AreEqual(new Vector2(21.8f, 137.5f), p.Paths[2].Nodes[^1].Position);
+                "both optional branches start only after the blocked Corridor 1 entrance");
+            Assert.AreEqual(new Vector2(36.4f, 104f), p.Paths[2].Nodes[^2].Position);
+            Assert.AreEqual(new Vector2(37f, 106f), p.Paths[2].Nodes[^1].Position);
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace RootsDance.Tests.EditMode.Terrain
 
         /// <summary>
         /// The facility's structural footprint stays on the terrace except for the explicitly authored
-        /// service approach beneath Greenhouse Door12. The exclusion follows the clue path and its local
+        /// Corridor 1 approach. The exclusion follows the clue path and its local
         /// landing rather than weakening the assertion across the rest of the buildings.
         /// </summary>
         [Test]
@@ -99,8 +99,8 @@ namespace RootsDance.Tests.EditMode.Terrain
         }
 
         /// <summary>
-        /// The service landing is an intentional cut into the terrace edge below Greenhouse Door12.
-        /// Its centre must be inside the facility apron while its small core remains local.
+        /// The Corridor 1 apron touches the south terrace edge while remaining local to the only reachable
+        /// building foot. It must not flatten a broad section beneath the rest of the facility.
         /// </summary>
         [Test]
         public void ServiceLanding_Core_IsLocalAndTouchesTerraceEdge()
@@ -108,8 +108,10 @@ namespace RootsDance.Tests.EditMode.Terrain
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             FlatSpot pit = p.FlatSpots[2];
             float distance = TerrainHeightmapGenerator.TerraceSignedDistance(p, pit.Center.x, pit.Center.y);
-            Assert.LessOrEqual(pit.Radius, 3f, "the landing must not become a broad under-building pit");
-            Assert.Less(distance, 0f, "the landing must cut the terrace edge below the greenhouse door");
+            Assert.LessOrEqual(pit.Radius, 8f, "the apron must remain local to Corridor 1");
+            Assert.Less(distance, 0f, "the apron centre must remain inside the facility terrace");
+            Assert.GreaterOrEqual(pit.Radius + distance, 0f,
+                "the flattened core must touch the south terrace edge and meet the exterior route");
         }
 
         [Test]
@@ -187,6 +189,8 @@ namespace RootsDance.Tests.EditMode.Terrain
             TerrainGreyboxParams p = TerrainGreyboxParams.CreateDefault();
             p.TerraceYawDegrees = 30f;
             p.TerraceHalfExtents = new Vector2(40f, 10f);
+            p.FlatSpots = new FlatSpot[0];
+            p.Paths = new HeightPath[0];
 
             // A terrace height far from the surrounding ground, so "inside" and "outside" cannot be confused.
             p.TerraceHeight = 30f;

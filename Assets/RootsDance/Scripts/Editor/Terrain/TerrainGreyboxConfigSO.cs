@@ -189,14 +189,14 @@ namespace RootsDance.Editor.Terrain
                 new AnchorDefinition("Anchor_00-06_GrassBelt", new Vector3(-16f, 0f, 28f)),
                 new AnchorDefinition("Anchor_00-07_FirstToolUse", new Vector3(-12f, 0f, 39f)),
                 new AnchorDefinition("Anchor_00-08_ResearchFacilityView", new Vector3(1.5f, 0f, 73.5f)),
-                new AnchorDefinition("Anchor_00-09_BlockedMainEntrance", new Vector3(9.505f, 0f, 118.941f)),
-                new AnchorDefinition("Anchor_00-10_MainEntranceSign", new Vector3(7.030f, 0f, 115.759f)),
-                new AnchorDefinition("Anchor_00-11_ResearchFacilityPoster", new Vector3(-4.637f, 0f, 114.699f)),
-                new AnchorDefinition("Anchor_00-12_AshleafVine", new Vector3(12.334f, 0f, 123.184f)),
-                new AnchorDefinition("Anchor_00-13_FineVeinedVine", new Vector3(15f, 0f, 127.8f)),
-                new AnchorDefinition("Anchor_00-14_VineGrowthDirection", new Vector3(19.435f, 0f, 133.774f)),
-                new AnchorDefinition("Anchor_00-15_ClearAshleafVine", new Vector3(20.7f, 7f, 135.8f), true),
-                new AnchorDefinition("Anchor_00-16_MaintenanceEntrance", new Vector3(20.7f, 7f, 135.8f), true),
+                new AnchorDefinition("Anchor_00-09_BlockedMainEntrance", new Vector3(30f, 0f, 96.2f)),
+                new AnchorDefinition("Anchor_00-10_MainEntranceSign", new Vector3(25.8f, 0f, 95.5f)),
+                new AnchorDefinition("Anchor_00-11_ResearchFacilityPoster", new Vector3(23f, 0f, 97.8f)),
+                new AnchorDefinition("Anchor_00-12_AshleafVine", new Vector3(33.8f, 0f, 97.5f)),
+                new AnchorDefinition("Anchor_00-13_FineVeinedVine", new Vector3(35.8f, 0f, 100.8f)),
+                new AnchorDefinition("Anchor_00-14_VineGrowthDirection", new Vector3(36.4f, 0f, 104f)),
+                new AnchorDefinition("Anchor_00-15_ClearAshleafVine", new Vector3(37f, 7.8f, 106f), true),
+                new AnchorDefinition("Anchor_00-16_MaintenanceEntrance", new Vector3(37f, 7.8f, 106f), true),
             };
         }
 

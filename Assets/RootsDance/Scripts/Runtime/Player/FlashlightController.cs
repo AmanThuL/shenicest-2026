@@ -45,8 +45,8 @@ namespace RootsDance.Player
         [SerializeField] private Transform m_beamAnchor;
 
         [Header("Tuning")]
-        [Tooltip("Night switches the beam on and day switches it off. Off = the button is the only control.")]
-        [SerializeField] private bool m_autoOnAtNight = true;
+        [Tooltip("Night switches the beam on and daylight switches it off. Off = the button is the only control.")]
+        [SerializeField] private bool m_autoOnAtNight;
 
         [Tooltip("Seconds for the beam to fade from off to full brightness, and back.")]
         [SerializeField] private float m_fadeSeconds = 0.15f;

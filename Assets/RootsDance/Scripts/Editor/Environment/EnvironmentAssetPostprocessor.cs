@@ -22,8 +22,8 @@ namespace RootsDance.Editor.Environment
             k_ThirdPartyRoot + "RetroPSXNature/"
         };
 
-        // Niwl exports its LOD3 meshes without normals, so importing them as-is logs a tangent warning; the
-        // pack has no normal maps, so tangents are skipped altogether.
+        // Niwl mixes card exports with incomplete/mismatched normal streams. Recalculate across grass, flowers
+        // and trees for deterministic import; the selected materials carry no normal maps, so tangents are skipped.
         private const string k_RecalculateNormalsFolder = k_ThirdPartyRoot + "NiwlPlants/";
 
         private bool IsInScope()

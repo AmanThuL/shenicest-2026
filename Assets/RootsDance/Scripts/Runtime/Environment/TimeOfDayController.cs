@@ -19,7 +19,7 @@ namespace RootsDance.Environment
         [Header("Level")]
         [Tooltip("Phase this level starts in. Applied instantly in Start, then pushed into the world "
             + "state on the first frame the bootstrap exists.")]
-        [SerializeField] private TimeOfDay m_levelDefault = TimeOfDay.Night;
+        [SerializeField] private TimeOfDay m_levelDefault = TimeOfDay.PollutedDay;
 
         [Tooltip("One preset per phase. The first entry matching a phase wins.")]
         [SerializeField] private TimeOfDayPresetSO[] m_presets;
@@ -198,8 +198,8 @@ namespace RootsDance.Environment
         /// <summary>
         /// Starts a fade to a phase from wherever the look currently is, so an interrupted blend does
         /// not pop. A phase with no profile (Day) simply fades the single Volume out to weight 0;
-        /// between two profiled phases the profile would swap at the start of the blend. Only Day and
-        /// Night exist today, so that swap never happens — a third profiled phase needs a second Volume.
+        /// between two profiled phases the profile swaps at the start of the blend. PollutedDay and Day
+        /// both use the scene-authored volumes; adding another profiled phase needs a second Volume.
         /// </summary>
         private void BeginBlend(TimeOfDay phase)
         {
