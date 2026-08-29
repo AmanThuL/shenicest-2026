@@ -164,6 +164,30 @@
       "m_doubleSidedMaterials": true
     },
     {
+      "m_name": "static_dressing_v7",
+      "m_bakeAxisConversion": true,
+      "m_globalScale": 0.6045,
+      "m_useFileScale": true,
+      "m_importBlendShapes": false,
+      "m_importVisibility": false,
+      "m_importCameras": false,
+      "m_importLights": false,
+      "m_addCollider": false,
+      "m_isReadable": false,
+      "m_weldVertices": true,
+      "m_animationType": "None",
+      "m_optimizeGameObjects": false,
+      "m_extraExposedTransformPaths": [],
+      "m_importAnimation": false,
+      "m_animationCompression": "Off",
+      "m_resampleCurves": true,
+      "m_materialImportMode": "ImportViaMaterialDescription",
+      "m_materialLocation": "InPrefab",
+      "m_materialName": "BasedOnMaterialName",
+      "m_materialSearch": "Everywhere",
+      "m_doubleSidedMaterials": true
+    },
+    {
       "m_name": "static_greenhouse_v7",
       "m_bakeAxisConversion": true,
       "m_globalScale": 0.6045,
@@ -484,6 +508,12 @@
       "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/StMuerte.fbx",
       "m_profile": "static_architecture_v7",
       "m_manifest": "SourceArt/Export/GAIA1/StMuerte.export.json",
+      "m_materials": []
+    },
+    {
+      "m_path": "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomPatches.fbx",
+      "m_profile": "static_dressing_v7",
+      "m_manifest": "SourceArt/Export/GAIA1/BloomPatches.export.json",
       "m_materials": []
     },
     {
