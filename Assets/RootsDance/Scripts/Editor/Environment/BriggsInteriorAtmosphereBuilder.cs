@@ -57,7 +57,7 @@ namespace RootsDance.Editor.Environment
 
             EditorSceneManager.SaveScene(environment);
             AssetDatabase.SaveAssets();
-            Debug.Log("[BriggsInteriorAtmosphere] Restored the exact 006b2dc dark-green lighting, fog and PSX configuration.");
+            Debug.Log("[BriggsInteriorAtmosphere] Restored the 006b2dc dark-green profile with room-scale roof shafts.");
         }
 
         /// <summary>Batch entry point for the standalone atmosphere pass.</summary>
@@ -533,21 +533,21 @@ namespace RootsDance.Editor.Environment
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_Main",
-                new Vector3(0.1f, 4.18f, 2.5f),
+                new Vector3(0.1f, 5.08f, 2.5f),
                 Quaternion.Euler(70f, 180f, 0f),
-                1100f,
+                4200f,
                 28f,
                 12f,
-                3.2f);
+                8f);
             CreateRoofShaft(
                 shafts,
                 "RoofShaft_West",
-                new Vector3(-5.35f, 4.18f, 3.75f),
+                new Vector3(-5.35f, 5.08f, 3.75f),
                 Quaternion.Euler(74f, 165f, 0f),
-                700f,
+                2800f,
                 24f,
                 10f,
-                2.2f);
+                5f);
         }
 
         private static void CreateRoofShaft(
@@ -573,7 +573,7 @@ namespace RootsDance.Editor.Environment
             light.lightUnit = LightUnit.Lumen;
             light.intensity = LightUnitUtils.ConvertIntensity(light, lumen, LightUnit.Lumen, LightUnit.Candela);
             light.color = new Color(0.78f, 0.98f, 0.82f);
-            // The light begins just below the ceiling shell so it can form a controllable art-directed shaft.
+            // The light begins at the fitted roof plane and points through the authored mesh openings.
             light.shadows = LightShadows.None;
 
             HDAdditionalLightData data = lightObject.GetComponent<HDAdditionalLightData>();

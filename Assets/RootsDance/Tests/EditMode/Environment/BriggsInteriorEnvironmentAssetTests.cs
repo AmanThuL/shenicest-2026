@@ -175,7 +175,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsEnvironmentScene_Retains006bCeilingAndHangingVegetation()
+        public void BriggsEnvironmentScene_FitsCeilingToRoomAndRetainsHangingVegetation()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -190,7 +190,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform geometry = FindRoot(scene, "_Geometry");
                 Transform props = FindRoot(scene, "_Props");
                 Transform ivy = FindDescendant(geometry, "IvyHanging");
-                Transform shell = FindDescendant(geometry, "GarageShell");
+                Transform assembly = geometry.Find("BriggsCeilingAssembly");
                 Transform ceiling = FindDescendant(geometry, "Ceiling");
                 Transform intactBeam = FindDescendant(geometry, "Ceiling_Beam");
                 Transform brokenBeam = FindDescendant(geometry, "Ceiling_Beam_Broken");
@@ -204,32 +204,30 @@ namespace RootsDance.Tests.EditMode.Environment
                     Is.LessThan(k_Tolerance));
                 Assert.That(Vector3.Distance(ivy.localScale, new Vector3(3.0177207f, 2.110111f, 3.7525582f)),
                     Is.LessThan(k_Tolerance));
-                Assert.That(Vector3.Distance(
-                        shell.localPosition,
-                        new Vector3(0f, 0.0000011920929f, 0f)),
-                    Is.LessThan(k_Tolerance));
-                Assert.That(Vector3.Distance(
-                        shell.localScale,
-                        new Vector3(2.8658316f, 2.003904f, 3.563683f)),
-                    Is.LessThan(k_Tolerance));
-                Assert.That(Quaternion.Angle(
-                        shell.localRotation,
-                        new Quaternion(0f, 1f, 0f, -0.00000004371139f)),
-                    Is.LessThan(k_Tolerance));
+                Assert.IsTrue(assembly != null, "The room-scale ceiling assembly is missing.");
                 Assert.IsTrue(ceiling != null && intactBeam != null && brokenBeam != null,
-                    "The 006b2dc ceiling mesh and both beams must remain present.");
-                AssertHistoricalTransform(
-                    ceiling,
-                    new Vector3(-0.000000000000001f, 2.28f, 0.201f),
-                    new Vector3(183.52277f, 322.36707f, 322.36707f));
-                AssertHistoricalTransform(
-                    intactBeam,
-                    new Vector3(2.2463758f, 2.2016478f, 0f),
-                    new Vector3(10.94717f, 181.54106f, 10.94717f));
-                AssertHistoricalTransform(
-                    brokenBeam,
-                    new Vector3(-0.443f, 2.412f, -0.073f),
-                    new Vector3(10.94717f, 181.54106f, 10.94717f));
+                    "The fitted ceiling mesh and both beams must remain present.");
+                Assert.AreSame(assembly, ceiling.parent);
+                Assert.AreSame(assembly, intactBeam.parent);
+                Assert.AreSame(assembly, brokenBeam.parent);
+                AssertWorldBounds(
+                    ceiling.GetComponent<Renderer>().bounds,
+                    new Vector3(0f, 5f, 0f),
+                    new Vector3(18.8f, 0.26f, 14.8f),
+                    0.01f,
+                    "Ceiling");
+                AssertWorldBounds(
+                    intactBeam.GetComponent<Renderer>().bounds,
+                    new Vector3(-6.45f, 4.82f, 0f),
+                    new Vector3(0.34f, 0.30f, 14.6f),
+                    0.01f,
+                    "Ceiling_Beam");
+                AssertWorldBounds(
+                    brokenBeam.GetComponent<Renderer>().bounds,
+                    new Vector3(1.27f, 4.82f, 0.26f),
+                    new Vector3(0.42f, 0.34f, 14.6f),
+                    0.01f,
+                    "Ceiling_Beam_Broken");
                 Assert.IsTrue(vines != null);
                 Assert.That(Vector3.Distance(vines.localPosition, Vector3.zero), Is.LessThan(k_Tolerance));
 
@@ -404,7 +402,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsEnvironmentScene_Uses006bVolumetricRoofLight()
+        public void BriggsEnvironmentScene_UsesRoomScaleVolumetricRoofLight()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -431,17 +429,17 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(sunData.angularDiameter, Is.EqualTo(8f).Within(k_Tolerance));
                 Assert.That(roomFog.parameters.meanFreePath, Is.EqualTo(13.5f).Within(k_Tolerance));
                 Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(3.2f).Within(k_Tolerance));
+                    Is.EqualTo(8f).Within(k_Tolerance));
                 Assert.That(westShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(2.2f).Within(k_Tolerance));
+                    Is.EqualTo(5f).Within(k_Tolerance));
                 Assert.That(mainShaft.spotAngle, Is.EqualTo(28f).Within(k_Tolerance));
                 Assert.That(westShaft.spotAngle, Is.EqualTo(24f).Within(k_Tolerance));
                 Assert.That(mainShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
                 Assert.That(westShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
                 Assert.That(mainShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    mainShaft, 1100f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
+                    mainShaft, 4200f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
                 Assert.That(westShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    westShaft, 700f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
+                    westShaft, 2800f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
                 Assert.AreEqual(LightShadows.None, mainShaft.shadows);
                 Assert.AreEqual(LightShadows.None, westShaft.shadows);
                 Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricShadowDimmer,
@@ -450,11 +448,11 @@ namespace RootsDance.Tests.EditMode.Environment
                     Is.EqualTo(0f).Within(k_Tolerance));
                 Assert.That(Vector3.Distance(
                         mainShaft.transform.localPosition,
-                        new Vector3(0.1f, 4.18f, 2.5f)),
+                        new Vector3(0.1f, 5.08f, 2.5f)),
                     Is.LessThan(k_Tolerance));
                 Assert.That(Vector3.Distance(
                         westShaft.transform.localPosition,
-                        new Vector3(-5.35f, 4.18f, 3.75f)),
+                        new Vector3(-5.35f, 5.08f, 3.75f)),
                     Is.LessThan(k_Tolerance));
                 Assert.That(Quaternion.Angle(mainShaft.transform.localRotation, Quaternion.Euler(70f, 180f, 0f)),
                     Is.LessThan(k_Tolerance));
@@ -673,19 +671,19 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(instance.localScale.z, Is.EqualTo(expectedScale).Within(k_Tolerance), name);
         }
 
-        private static void AssertHistoricalTransform(
-            Transform transform,
-            Vector3 expectedPosition,
-            Vector3 expectedScale)
+        private static void AssertWorldBounds(
+            Bounds actual,
+            Vector3 expectedCenter,
+            Vector3 expectedSize,
+            float tolerance,
+            string name)
         {
-            Assert.That(Vector3.Distance(transform.localPosition, expectedPosition),
-                Is.LessThan(k_Tolerance), transform.name + " position drifted from 64792d1.");
-            Assert.That(Vector3.Distance(transform.localScale, expectedScale),
-                Is.LessThan(k_Tolerance), transform.name + " scale drifted from 64792d1.");
-            Assert.That(Quaternion.Angle(
-                    transform.localRotation,
-                    new Quaternion(0.7071069f, 0f, 0f, 0.7071067f)),
-                Is.LessThan(k_Tolerance), transform.name + " rotation drifted from 64792d1.");
+            Assert.That(Vector3.Distance(actual.center, expectedCenter), Is.LessThan(tolerance),
+                name + " world center is not aligned to the laboratory roof.");
+            Assert.That(Vector3.Distance(actual.size, expectedSize), Is.LessThan(tolerance),
+                name + " world size is not fitted to the laboratory roof.");
+            Assert.That(actual.size.x, Is.LessThan(20f), name + " must not wrap the laboratory.");
+            Assert.That(actual.size.z, Is.LessThan(16f), name + " must not wrap the laboratory.");
         }
 
         private static void AssertHasNoEnabledCollider(GameObject prefab, string path)
