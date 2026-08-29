@@ -58,6 +58,12 @@ for mat in bpy.data.materials:
 iron_mat = bpy.data.materials.new("PreviewIron")
 paint(iron_mat, IRON, False)
 
+# the unbroken glazing carries no materials at all -- those are created by
+# the breakage pass -- so without a fallback that file opens grey and the
+# question "which faces are glass" still has no answer
+fallback = bpy.data.materials.new("PreviewGlass")
+paint(fallback, STATE_COLOUR["Intact"], True)
+
 col = bpy.data.collections["GlassRecovered"]
 glass_names = {o.name for o in col.objects}
 glass_faces = frame_faces = 0
@@ -69,6 +75,10 @@ for obj in bpy.data.objects:
     obj.hide_render = False
     if obj.name in glass_names:
         glass_faces += len(obj.data.polygons)
+        slots = [m for m in obj.data.materials if m is not None]
+        if not any(any(m.name.endswith(st) for st in STATE_COLOUR) for m in slots):
+            obj.data.materials.clear()
+            obj.data.materials.append(fallback)
     else:
         frame_faces += len(obj.data.polygons)
         obj.data.materials.clear()
