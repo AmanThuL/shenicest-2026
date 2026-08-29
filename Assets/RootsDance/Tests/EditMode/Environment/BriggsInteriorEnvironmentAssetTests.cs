@@ -432,8 +432,17 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsFalse(profile.TryGet(out FilmGrain _));
         }
 
+        /// <summary>
+        /// The room-scale volumetric look: a dim, wide sun and the fog that carries it.
+        /// <para>
+        /// The two roof shaft lights this used to guard were deleted from the scene in the
+        /// "refine Briggs abandoned lab dressing" pass and the room is authored without them now.
+        /// <c>BriggsInteriorAtmosphereBuilder</c> still knows how to make them, so re-running
+        /// "Apply Briggs Interior Atmosphere" brings them back — this test stays green either way.
+        /// </para>
+        /// </summary>
         [Test]
-        public void BriggsEnvironmentScene_UsesRoomScaleVolumetricRoofLight()
+        public void BriggsEnvironmentScene_UsesRoomScaleVolumetricFog()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -451,44 +460,12 @@ namespace RootsDance.Tests.EditMode.Environment
                 HDAdditionalLightData sunData = sun.GetComponent<HDAdditionalLightData>();
                 LocalVolumetricFog roomFog = FindDescendant(atmosphere, "RoomSmoke_LocalVolumetricFog")
                     .GetComponent<LocalVolumetricFog>();
-                Light mainShaft = FindDescendant(atmosphere, "RoofShaft_Main").GetComponent<Light>();
-                Light westShaft = FindDescendant(atmosphere, "RoofShaft_West").GetComponent<Light>();
 
                 Assert.That(sun.intensity, Is.EqualTo(18000f).Within(1f));
                 Assert.IsFalse(sun.useColorTemperature);
                 Assert.That(sunData.volumetricDimmer, Is.EqualTo(0.12f).Within(k_Tolerance));
                 Assert.That(sunData.angularDiameter, Is.EqualTo(8f).Within(k_Tolerance));
                 Assert.That(roomFog.parameters.meanFreePath, Is.EqualTo(13.5f).Within(k_Tolerance));
-                Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(8f).Within(k_Tolerance));
-                Assert.That(westShaft.GetComponent<HDAdditionalLightData>().volumetricDimmer,
-                    Is.EqualTo(5f).Within(k_Tolerance));
-                Assert.That(mainShaft.spotAngle, Is.EqualTo(28f).Within(k_Tolerance));
-                Assert.That(westShaft.spotAngle, Is.EqualTo(24f).Within(k_Tolerance));
-                Assert.That(mainShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
-                Assert.That(westShaft.range, Is.EqualTo(9f).Within(k_Tolerance));
-                Assert.That(mainShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    mainShaft, 4200f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
-                Assert.That(westShaft.intensity, Is.EqualTo(LightUnitUtils.ConvertIntensity(
-                    westShaft, 2800f, LightUnit.Lumen, LightUnit.Candela)).Within(0.1f));
-                Assert.AreEqual(LightShadows.None, mainShaft.shadows);
-                Assert.AreEqual(LightShadows.None, westShaft.shadows);
-                Assert.That(mainShaft.GetComponent<HDAdditionalLightData>().volumetricShadowDimmer,
-                    Is.EqualTo(0f).Within(k_Tolerance));
-                Assert.That(westShaft.GetComponent<HDAdditionalLightData>().volumetricShadowDimmer,
-                    Is.EqualTo(0f).Within(k_Tolerance));
-                Assert.That(Vector3.Distance(
-                        mainShaft.transform.localPosition,
-                        new Vector3(0.1f, 5.08f, 2.5f)),
-                    Is.LessThan(k_Tolerance));
-                Assert.That(Vector3.Distance(
-                        westShaft.transform.localPosition,
-                        new Vector3(-5.35f, 5.08f, 3.75f)),
-                    Is.LessThan(k_Tolerance));
-                Assert.That(Quaternion.Angle(mainShaft.transform.localRotation, Quaternion.Euler(70f, 180f, 0f)),
-                    Is.LessThan(k_Tolerance));
-                Assert.That(Quaternion.Angle(westShaft.transform.localRotation, Quaternion.Euler(74f, 165f, 0f)),
-                    Is.LessThan(k_Tolerance));
             }
             finally
             {
