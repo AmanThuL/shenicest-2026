@@ -148,7 +148,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 623518143}
+  - {fileID: 1552020535}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &457976439
@@ -214,68 +214,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 457976440}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &623518142
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 202964878}
-    m_Modifications:
-    - target: {fileID: 924475521536925819, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_Name
-      value: BriggsAutomaticExitDoor
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 7.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
---- !u!4 &623518143 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
-  m_PrefabInstance: {fileID: 623518142}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &683825271
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,6 +535,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1838472098}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1552020534
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 202964878}
+    m_Modifications:
+    - target: {fileID: 924475521536925819, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_Name
+      value: BriggsAutomaticExitDoor
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 7.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+--- !u!4 &1552020535 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4559132392793934481, guid: 263ab6350202c4fc4877f3953a81d775, type: 3}
+  m_PrefabInstance: {fileID: 1552020534}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1792589757
 GameObject:
   m_ObjectHideFlags: 0
@@ -710,7 +710,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: 9c431b70a2a6747fbb8b2cbdaaec0af0, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 1
   m_flagId: 
   m_flagRaised: {fileID: 0}

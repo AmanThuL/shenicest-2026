@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using RootsDance.Investigation;
+using RootsDance.Scanner;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -21,6 +23,16 @@ namespace RootsDance.Editor.Environment
         private const string k_GroupPrefabFolder =
             "Assets/RootsDance/Prefabs/Environment/Chapter00ZoneVegetation";
         private const string k_GroupPrefix = "C00V_Group_";
+        private const string k_HeroSourcePath =
+            "Assets/RootsDance/Prefabs/Environment/Vegetation/M3D_meadown.prefab";
+        private const string k_HeroMaterialPath =
+            "Assets/RootsDance/Materials/Environment/Chapter00ZoneVegetation/Chapter00_C_ScannableTanmao.mat";
+        private const string k_HeroMaterialSourcePath =
+            "Assets/RootsDance/Materials/Environment/Chapter00ZoneVegetation/"
+            + "Niwl_Plants_General_dd47fbc3_MutedViolet.mat";
+        private const string k_TanmaoTargetPath =
+            "Assets/RootsDance/Data/Investigation/BOT-FL-041_Tanmao.asset";
+        private static readonly Vector2 s_HeroPosition = new Vector2(-12.64f, 39.29f);
 
         [MenuItem(k_Menu)]
         public static void Build()
@@ -148,7 +160,11 @@ namespace RootsDance.Editor.Environment
                 {
                     if (material.HasProperty("_EmissiveColor")) material.SetColor("_EmissiveColor", color);
                     if (material.HasProperty("_EmissiveIntensityValue"))
-                        material.SetFloat("_EmissiveIntensityValue", .3f);
+                        material.SetFloat("_EmissiveIntensityValue", .12f);
+                    if (material.name.StartsWith("Scan_", StringComparison.Ordinal))
+                        DisableAnomalousMotion(material);
+                    else
+                        ConfigureAnomalousMotion(material);
                 }
                 EditorUtility.SetDirty(material);
                 changed++;
@@ -201,6 +217,10 @@ namespace RootsDance.Editor.Environment
                     placed++;
                 }
             }
+
+            string cPalette = Chapter00ZoneVegetationParams.PaletteName(
+                Chapter00VegetationZone.C, Chapter00VegetationRole.MidLayer);
+            if (PlaceScannableHero(groups[cPalette], terrain)) placed++;
 
             SaveAndConnectGroups(groups);
 
@@ -276,6 +296,100 @@ namespace RootsDance.Editor.Environment
             ApplyTint(instance, placement.Tint, tintCache);
             Undo.RegisterCreatedObjectUndo(instance, "Build Chapter 00 A-E Vegetation");
             return true;
+        }
+
+        private static bool PlaceScannableHero(Transform parent, UnityEngine.Terrain terrain)
+        {
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_HeroSourcePath);
+            InvestigationTargetSO target = AssetDatabase.LoadAssetAtPath<InvestigationTargetSO>(k_TanmaoTargetPath);
+            Material material = EnsureHeroMaterial();
+            if (source == null || target == null || material == null)
+            {
+                Debug.LogError("Chapter00ZoneVegetationBuilder: scannable C hero dependencies are missing.");
+                return false;
+            }
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(source, parent);
+            if (instance == null) return false;
+            instance.name = "C00V_C_MidLayer_Hero_Tanmao";
+            instance.transform.SetPositionAndRotation(
+                new Vector3(s_HeroPosition.x, 0f, s_HeroPosition.y), Quaternion.Euler(0f, 32f, 0f));
+
+            Bounds before = RendererBounds(instance);
+            if (before.size.y <= .0001f)
+            {
+                UnityEngine.Object.DestroyImmediate(instance);
+                return false;
+            }
+
+            const float targetHeight = 1.25f;
+            instance.transform.localScale = Vector3.Scale(
+                instance.transform.localScale, Vector3.one * (targetHeight / before.size.y));
+            Bounds scaled = RendererBounds(instance);
+            float ground = terrain.SampleHeight(instance.transform.position) + terrain.transform.position.y;
+            instance.transform.position += Vector3.up * (ground - scaled.min.y);
+
+            Collider[] colliders = instance.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++) UnityEngine.Object.DestroyImmediate(colliders[i]);
+
+            Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material[] assigned = renderers[i].sharedMaterials;
+                for (int slot = 0; slot < assigned.Length; slot++) assigned[slot] = material;
+                renderers[i].sharedMaterials = assigned;
+            }
+
+            GameObject aim = new GameObject("ScanAim");
+            aim.transform.SetParent(instance.transform, false);
+            aim.transform.position = RendererBounds(instance).center;
+            ScannableTarget scannable = instance.AddComponent<ScannableTarget>();
+            SetSerialized(scannable, "m_displayName", "变异毯茅");
+            SetSerialized(scannable, "m_aimPoint", aim.transform);
+            SetSerialized(scannable, "m_repeatable", false);
+            ScannerWorldStateResult result = instance.AddComponent<ScannerWorldStateResult>();
+            SetSerialized(result, "m_reportTarget", target);
+            SetLayerRecursively(instance, LayerMask.NameToLayer("Scannable"));
+            Undo.RegisterCreatedObjectUndo(instance, "Build Chapter 00 C Scannable Grass");
+            return true;
+        }
+
+        private static Material EnsureHeroMaterial()
+        {
+            Material source = AssetDatabase.LoadAssetAtPath<Material>(k_HeroMaterialSourcePath);
+            if (source == null) return null;
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(k_HeroMaterialPath);
+            if (material == null)
+            {
+                material = new Material(source) { name = Path.GetFileNameWithoutExtension(k_HeroMaterialPath) };
+                AssetDatabase.CreateAsset(material, k_HeroMaterialPath);
+            }
+            else
+            {
+                material.CopyPropertiesFromMaterial(source);
+                material.shader = source.shader;
+            }
+
+            Color color = new Color(1.52f, .76f, 1.48f, 1f);
+            if (material.HasProperty("_MainColor")) material.SetColor("_MainColor", color);
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
+            if (material.HasProperty("_TintingColor")) material.SetColor("_TintingColor", color);
+            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
+            if (material.HasProperty("_EmissiveColor")) material.SetColor("_EmissiveColor", color);
+            SetFloatIfPresent(material, "_EmissiveIntensityValue", .65f);
+            SetFloatIfPresent(material, "_MotionIntensityValue", .28f);
+            SetFloatIfPresent(material, "_MotionBaseIntensityValue", .18f);
+            SetFloatIfPresent(material, "_MotionBaseSpeedValue", .48f);
+            SetFloatIfPresent(material, "_MotionBasePhaseValue", .37f);
+            SetFloatIfPresent(material, "_MotionSmallIntensityValue", .12f);
+            SetFloatIfPresent(material, "_MotionSmallSpeedValue", .82f);
+            SetFloatIfPresent(material, "_MotionSmallPhaseValue", .71f);
+            SetFloatIfPresent(material, "_MotionTinyIntensityValue", .05f);
+            SetFloatIfPresent(material, "_MotionTinySpeedValue", 1.25f);
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            return material;
         }
 
         private static bool PhysicalColliderIntrudesRoute(
@@ -382,12 +496,23 @@ namespace RootsDance.Editor.Environment
                         }
 
                         Bounds bounds = RendererBounds(child);
-                        Vector2 range = HeightRange(p, zone, role);
+                        Vector2 range = child.name.Contains("_Hero_", StringComparison.Ordinal)
+                            ? new Vector2(1.20f, 1.30f)
+                            : HeightRange(p, zone, role);
                         if (bounds.size.y < range.x - .03f || bounds.size.y > range.y + .03f)
                         {
                             Debug.LogError($"Chapter00ZoneVegetationBuilder: {child.name} height "
                                 + $"{bounds.size.y:F3}m is outside zone {zone} range "
                                 + $"{range.x:F2}-{range.y:F2}m.");
+                            return -1;
+                        }
+
+                        if (zone == Chapter00VegetationZone.C
+                            && role != Chapter00VegetationRole.PhysicalBlocker
+                            && !UsesOnlyMutationMaterials(child))
+                        {
+                            Debug.LogError("Chapter00ZoneVegetationBuilder: C plant escaped the two-shade "
+                                + "mutation palette: " + child.name);
                             return -1;
                         }
 
@@ -504,6 +629,8 @@ namespace RootsDance.Editor.Environment
             string safeName = Sanitize(source.name);
             string path = $"{k_TintFolder}/{safeName}_{shortGuid}_{tint}.mat";
             Material variant = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool sourceUsesMotion = source.HasProperty("_MotionIntensityValue")
+                && source.GetFloat("_MotionIntensityValue") > .001f;
 
             if (variant == null)
             {
@@ -523,11 +650,13 @@ namespace RootsDance.Editor.Environment
             if (variant.HasProperty("_Color")) variant.SetColor("_Color", color);
             if (IsAnomalousTint(tint))
             {
-                // A small self-lit contribution keeps the five C families readable through the authored fog
+                // A small self-lit contribution keeps both mutation shades readable through the authored fog
                 // and dark source albedo without turning the band into a neon/bloom effect.
                 if (variant.HasProperty("_EmissiveColor")) variant.SetColor("_EmissiveColor", color);
                 if (variant.HasProperty("_EmissiveIntensityValue"))
-                    variant.SetFloat("_EmissiveIntensityValue", .3f);
+                    variant.SetFloat("_EmissiveIntensityValue", .12f);
+                if (sourceUsesMotion) ConfigureAnomalousMotion(variant);
+                else DisableAnomalousMotion(variant);
             }
             variant.enableInstancing = true;
             EditorUtility.SetDirty(variant);
@@ -544,7 +673,8 @@ namespace RootsDance.Editor.Environment
                 case Chapter00VegetationTint.SilverGreyGreen: return new Color(1.15f, 1.45f, 1.32f, 1f);
                 case Chapter00VegetationTint.CoolCyanGreen: return new Color(.50f, 1.55f, 1.35f, 1f);
                 case Chapter00VegetationTint.MutedViolet: return new Color(1.35f, .80f, 1.55f, 1f);
-                case Chapter00VegetationTint.FadedPink: return new Color(1.55f, .90f, 1.10f, 1f);
+                // FadedPink is the warm stone-pink sampled from the art-direction reference rock.
+                case Chapter00VegetationTint.FadedPink: return new Color(1.42f, .78f, .92f, 1f);
                 case Chapter00VegetationTint.CoolYellowGreen: return new Color(1.50f, 1.40f, .50f, 1f);
                 case Chapter00VegetationTint.StableGreen: return new Color(.38f, .48f, .34f, 1f);
                 case Chapter00VegetationTint.FacilityGreen: return new Color(.32f, .43f, .34f, 1f);
@@ -559,6 +689,92 @@ namespace RootsDance.Editor.Environment
                 || tint == Chapter00VegetationTint.MutedViolet
                 || tint == Chapter00VegetationTint.FadedPink
                 || tint == Chapter00VegetationTint.CoolYellowGreen;
+        }
+
+        private static void ConfigureAnomalousMotion(Material material)
+        {
+            // TVE source materials default to 5/5/10 speed with phase 0, making a dense field pulse in lockstep.
+            // Per-material deterministic variation breaks that synchrony without creating unstable scene data.
+            float primary = StableUnit(material.name, 2166136261u);
+            float secondary = StableUnit(material.name, 2246822519u);
+            SetFloatIfPresent(material, "_MotionIntensityValue", Mathf.Lerp(.30f, .42f, primary));
+            SetFloatIfPresent(material, "_MotionBaseIntensityValue", Mathf.Lerp(.20f, .32f, secondary));
+            SetFloatIfPresent(material, "_MotionBaseSpeedValue", Mathf.Lerp(.42f, .68f, primary));
+            SetFloatIfPresent(material, "_MotionBasePhaseValue", primary);
+            SetFloatIfPresent(material, "_MotionBaseNoiseValue", .82f);
+            SetFloatIfPresent(material, "_MotionSmallIntensityValue", Mathf.Lerp(.12f, .24f, primary));
+            SetFloatIfPresent(material, "_MotionSmallSpeedValue", Mathf.Lerp(.75f, 1.15f, secondary));
+            SetFloatIfPresent(material, "_MotionSmallPhaseValue", secondary);
+            SetFloatIfPresent(material, "_MotionSmallNoiseValue", .88f);
+            SetFloatIfPresent(material, "_MotionSmallPushValue", .35f);
+            SetFloatIfPresent(material, "_MotionTinyIntensityValue", Mathf.Lerp(.04f, .10f, secondary));
+            SetFloatIfPresent(material, "_MotionTinySpeedValue", Mathf.Lerp(1.20f, 1.80f, primary));
+        }
+
+        private static void DisableAnomalousMotion(Material material)
+        {
+            // Tinting roots and rocks must not accidentally turn their originally static TVE material into foliage.
+            SetFloatIfPresent(material, "_MotionIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionBaseIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionSmallIntensityValue", 0f);
+            SetFloatIfPresent(material, "_MotionTinyIntensityValue", 0f);
+        }
+
+        private static void SetFloatIfPresent(Material material, string property, float value)
+        {
+            if (material.HasProperty(property)) material.SetFloat(property, value);
+        }
+
+        private static bool UsesOnlyMutationMaterials(GameObject root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material[] materials = renderers[i].sharedMaterials;
+                for (int slot = 0; slot < materials.Length; slot++)
+                {
+                    Material material = materials[slot];
+                    if (material == null) continue;
+                    if (material.name == Path.GetFileNameWithoutExtension(k_HeroMaterialPath)
+                        || material.name.EndsWith("_FadedPink", StringComparison.Ordinal)
+                        || material.name.EndsWith("_MutedViolet", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static void SetSerialized(UnityEngine.Object target, string propertyName, object value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property == null)
+                throw new InvalidOperationException($"Missing serialized property '{propertyName}'.");
+            if (value is bool boolean) property.boolValue = boolean;
+            else if (value is string text) property.stringValue = text;
+            else if (value is UnityEngine.Object reference) property.objectReferenceValue = reference;
+            else throw new ArgumentException("Unsupported serialized value type.", nameof(value));
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetLayerRecursively(GameObject root, int layer)
+        {
+            if (layer < 0) throw new InvalidOperationException("Required Scannable layer is missing.");
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < transforms.Length; i++) transforms[i].gameObject.layer = layer;
+        }
+
+        private static float StableUnit(string value, uint seed)
+        {
+            unchecked
+            {
+                uint hash = seed;
+                for (int i = 0; i < value.Length; i++) hash = (hash ^ value[i]) * 16777619u;
+                return (hash & 0x00FFFFFFu) / 16777215f;
+            }
         }
 
         private static bool TryParseTintSuffix(string name, out Chapter00VegetationTint tint)

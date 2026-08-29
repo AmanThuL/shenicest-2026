@@ -26,6 +26,16 @@ namespace RootsDance.Editor.Audio
         private const string k_CueFolder = "Assets/RootsDance/Data/Audio";
         private const string k_EventFolder = "Assets/RootsDance/Data/Events";
 
+        /// <summary>
+        /// A little pitch wander is what stops a repeated one-shot reading as one sample. It is
+        /// also the AudioCueSO default, so the rows below say nothing about it — except the two
+        /// that must not have it.
+        /// </summary>
+        private const float k_DefaultPitchJitter = 0.05f;
+
+        /// <summary>Nothing detunes a spoken line. See the VOX_ rows.</summary>
+        private const float k_NoPitchJitter = 0f;
+
         /// <summary>One row of the starter set: what to make, and how it should behave.</summary>
         private readonly struct CueSpec
         {
@@ -35,9 +45,17 @@ namespace RootsDance.Editor.Audio
             public readonly float m_spatialBlend;
             public readonly float m_maxDistance;
             public readonly float m_cooldownSeconds;
+            public readonly float m_pitchJitter;
 
             public CueSpec(string fileName, string group, bool loop, float spatialBlend,
                 float maxDistance, float cooldownSeconds)
+                : this(fileName, group, loop, spatialBlend, maxDistance, cooldownSeconds,
+                    k_DefaultPitchJitter)
+            {
+            }
+
+            public CueSpec(string fileName, string group, bool loop, float spatialBlend,
+                float maxDistance, float cooldownSeconds, float pitchJitter)
             {
                 m_fileName = fileName;
                 m_group = group;
@@ -45,11 +63,16 @@ namespace RootsDance.Editor.Audio
                 m_spatialBlend = spatialBlend;
                 m_maxDistance = maxDistance;
                 m_cooldownSeconds = cooldownSeconds;
+                m_pitchJitter = pitchJitter;
             }
         }
 
-        // The starter set covers what chapter 02 asks for and nothing else. A cue nobody has wired
+        // The set covers what chapters 00 and 02 ask for and nothing else. A cue nobody has wired
         // is clutter in the picker, so the list grows when a scene needs a sound, not in advance.
+        //
+        // AMB_ loops and is owned by an AmbienceZone (a place) or a FlagAudioBed (a story beat);
+        // SFX_ is a one-shot from the pool; UI_ is the interface; VOX_ is a mix for spoken lines
+        // that carries no clips of its own; MUS_ belongs to the MusicDirector.
         private static readonly CueSpec[] k_Cues =
         {
             // Interface — flat, no position, and cooled down so a held prompt cannot machine-gun.
@@ -79,7 +102,58 @@ namespace RootsDance.Editor.Audio
 
             // Music — flat by definition, and driven by the MusicDirector.
             new CueSpec("MUS_GreenhouseReveal", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f),
-            new CueSpec("MUS_EndingBloom", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f)
+            new CueSpec("MUS_EndingBloom", AudioRouting.k_MusicGroup, true, 0f, 20f, 0f),
+
+            // ---- Chapter 00 -------------------------------------------------------------------
+
+            // The two mixes every spoken line goes through. These deliberately hold no clips: the
+            // recordings live on the lines of a RadioSequenceSO or a DialogueSO, and the request
+            // carries the clip past the cue — see AudioCueRequest.Voice. Flat, because a radio in
+            // the helmet and a thought in the player's head are not anywhere in the world, and with
+            // no cooldown, which would otherwise swallow a line that follows a short one.
+            // No pitch jitter: detuning a recorded voice is audible as a wobble, and it would also
+            // put the clip's real duration out of step with the hold the subtitle was given.
+            new CueSpec("VOX_Radio", AudioRouting.k_VoiceGroup, false, 0f, 20f, 0f, k_NoPitchJitter),
+            new CueSpec("VOX_Dialogue", AudioRouting.k_VoiceGroup, false, 0f, 20f, 0f, k_NoPitchJitter),
+
+            // The radio as hardware, as opposed to what is said through it.
+            new CueSpec("SFX_RadioOpen", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+            new CueSpec("SFX_RadioClose", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+            new CueSpec("AMB_RadioStatic", AudioRouting.k_SfxGroup, true, 0f, 20f, 0f),
+
+            // The suit. Breathing runs from the first frame to the moment the helmet comes off,
+            // which is the single loudest signal that the air outside changed.
+            new CueSpec("AMB_HelmetBreath", AudioRouting.k_SfxGroup, true, 0f, 20f, 0f),
+            new CueSpec("SFX_HelmetOff", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+            new CueSpec("SFX_HelmetOn", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+
+            // Beds for the four acoustic states of chapter 00. Wide and mostly flat: these are the
+            // air, not an object in it.
+            new CueSpec("AMB_ContaminationWind", AudioRouting.k_SfxGroup, true, 0.2f, 60f, 0f),
+            new CueSpec("AMB_LowContamination", AudioRouting.k_SfxGroup, true, 0.2f, 60f, 0f),
+            new CueSpec("AMB_FacilityExterior", AudioRouting.k_SfxGroup, true, 0.3f, 40f, 0f),
+            new CueSpec("AMB_MaintenanceTunnel", AudioRouting.k_SfxGroup, true, 0.3f, 30f, 0f),
+
+            // Footsteps. Flat: they are emitted at the player, which is where the listener already
+            // is, so panning them buys nothing and risks a step sounding off to one side. The
+            // cooldown is a floor on cadence, not the cadence itself — see FootstepCadence.
+            new CueSpec("SFX_FootstepDirt", AudioRouting.k_SfxGroup, false, 0f, 20f, 0.15f),
+            new CueSpec("SFX_FootstepGrass", AudioRouting.k_SfxGroup, false, 0f, 20f, 0.15f),
+            new CueSpec("SFX_FootstepMetal", AudioRouting.k_SfxGroup, false, 0f, 20f, 0.15f),
+
+            // The survey tool: raising it, the scan running, and the two results it can reach are
+            // already SFX_ScanConfirm and SFX_SampleTaken above.
+            new CueSpec("SFX_ToolRaise", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+            new CueSpec("SFX_ToolLower", AudioRouting.k_SfxGroup, false, 0f, 20f, 0f),
+            new CueSpec("AMB_ScanLoop", AudioRouting.k_SfxGroup, true, 0f, 20f, 0f),
+
+            // The facility from outside (nodes 00-08 to 00-15) and the duct behind it (00-16).
+            new CueSpec("AMB_PlantOnStructure", AudioRouting.k_SfxGroup, true, 1f, 18f, 0f),
+            new CueSpec("AMB_VentFan", AudioRouting.k_SfxGroup, true, 1f, 22f, 0f),
+            new CueSpec("SFX_MetalCreak", AudioRouting.k_SfxGroup, false, 1f, 25f, 0.4f),
+            new CueSpec("SFX_VineDrag", AudioRouting.k_SfxGroup, false, 1f, 14f, 0f),
+            new CueSpec("SFX_WaterDrip", AudioRouting.k_SfxGroup, false, 1f, 10f, 0.3f),
+            new CueSpec("AMB_PipeHum", AudioRouting.k_SfxGroup, true, 0.5f, 20f, 0f)
         };
 
         [MenuItem("RootsDance/Audio/Build Audio Cue Library")]
@@ -141,7 +215,8 @@ namespace RootsDance.Editor.Audio
             serialized.FindProperty("m_spatialBlend").floatValue = spec.m_spatialBlend;
             serialized.FindProperty("m_maxDistance").floatValue = spec.m_maxDistance;
             serialized.FindProperty("m_cooldownSeconds").floatValue = spec.m_cooldownSeconds;
-            serialized.FindProperty("m_outputGroup").objectReferenceValue = FindGroup(mixer, spec.m_group);
+            serialized.FindProperty("m_pitchJitter").floatValue = spec.m_pitchJitter;
+            serialized.FindProperty("m_outputGroup").objectReferenceValue = RouteTo(mixer, spec.m_group);
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
             EditorUtility.SetDirty(cue);
@@ -169,7 +244,7 @@ namespace RootsDance.Editor.Audio
                 return false;
             }
 
-            AudioMixerGroup group = FindGroup(mixer, spec.m_group);
+            AudioMixerGroup group = RouteTo(mixer, spec.m_group);
 
             if (group == null)
             {
@@ -196,6 +271,25 @@ namespace RootsDance.Editor.Audio
             AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<AudioCueEventChannelSO>(), path);
 
             return true;
+        }
+
+        /// <summary>
+        /// The group a cue comes out of. An optional group that has not been added to the mixer yet
+        /// falls back to SFX rather than leaving the cue unrouted: an unrouted cue is silent, and a
+        /// cue in the wrong group is a mix note. Adding the group later and re-running this item
+        /// moves the cues into it, because <see cref="RouteExistingCue"/> only fills empty groups —
+        /// so the fallback has to be undone by hand if it ever matters before then.
+        /// </summary>
+        private static AudioMixerGroup RouteTo(AudioMixer mixer, string groupPath)
+        {
+            AudioMixerGroup group = FindGroup(mixer, groupPath);
+
+            if (group != null || !AudioRouting.IsOptionalGroup(groupPath))
+            {
+                return group;
+            }
+
+            return FindGroup(mixer, AudioRouting.k_FallbackGroup);
         }
 
         private static AudioMixerGroup FindGroup(AudioMixer mixer, string groupPath)

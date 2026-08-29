@@ -39,6 +39,12 @@ EditorBuildSettings:
     path: Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Gameplay.unity
     guid: 463cc596c9bea4bff875854fa65e6679
   - enabled: 1
+    path: Assets/RootsDance/Scenes/Levels/Main/Main_Environment_Statue.unity
+    guid: 2c9bc44c95d004350a6d0224166ca87e
+  - enabled: 0
+    path: Assets/RootsDance/Scenes/Levels/Main/Main_DevGround.unity
+    guid: bf8d0492b59664fff9f4754c046dd261
+  - enabled: 1
     path: Assets/RootsDance/Scenes/Levels/ChapterHouseInterior/ChapterHouseInterior_Environment.unity
     guid: 341f1659d405b4e199dfd9bc0880bbd5
   - enabled: 1

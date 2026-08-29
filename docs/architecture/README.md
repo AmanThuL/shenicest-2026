@@ -46,6 +46,7 @@ docs/architecture/
 | [手臂动画统一驱动 · 实施计划](systems/手臂动画统一驱动_实施计划.md) | gameplay 程序、技术美术 | 把散装的 clip 驱动收敛成「一个 ArmsDirector + 一张 ArmsActionSO 表」：三层遮罩状态机、neutral/hold 姿势、手持物挂接与抓放时点、地面↔站立高度基准，以及 scanner 百倍缩放与 `stand_up` root 抬升两个已定位缺陷的修法。 |
 | [音频管线](systems/音频管线.md) | gameplay 程序、前端工程师、技术美术 | 一份 `AudioCueSO` + 一个监听组件 + 一个对象池导演：频道驱动的发声路径、按文件夹决定的导入设置、唯一 Mixer 的手工创建步骤与校验入口、环境床与音乐的交叉淡入。 |
 | [对话与场景序列](systems/对话与场景序列.md) | gameplay 程序、前端工程师、策划、场景美术 | 02 章要的四件新东西：带选项的对话（`DialogueSO` + `DialogueRunner` + `IDialogueView`）、会带路的花精灵、数据驱动的演出序列 `CueSequence`，以及把中央循环三选一化归成三个选项的做法；另含报告分类扩展与两个内容生成器。 |
+| [无线电与对话语音接入](systems/无线电与对话语音接入.md) | 文案、音频、gameplay 程序、技术美术 | 给一句台词配录音的完整路径：录音挂在台词行上而不是 cue 上、三条优先级决定的停留时长、无线电与对话两条链路的资产与频道、`FlagAudioBed` / `FootstepAudio` 等不写代码的接法、00 章旗标到床的对照表，以及音频文件的落盘位置与 `Voice` 混音组。 |
 
 两份切片 00 文档已移入 [`archive/`](archive/README.md)，不再作为实现依据。
 

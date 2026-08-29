@@ -61,8 +61,8 @@ namespace RootsDance.Editor.Environment
         public float TargetHeightMax;
 
         /// <summary>
-        /// Ground cover derives pitch from the smallest scaled Renderer XZ footprint. A value of .38 means
-        /// neighbouring footprints overlap by 38 percent. Mid/blocker layers use <see cref="Spacing"/>.
+        /// Ground cover derives pitch from the smallest scaled Renderer XZ footprint. Negative values create
+        /// a proportional gap between footprints. Mid/blocker layers use <see cref="Spacing"/>.
         /// </summary>
         public float FootprintOverlap;
         /// <summary>
@@ -273,12 +273,13 @@ namespace RootsDance.Editor.Environment
                 Layer(Chapter00VegetationZone.B, Chapter00VegetationRole.PhysicalBlocker,
                     rootsAndRocks, .8f, 2.2f, 0f, 3.2f, 3.1f, 3f, .65f, 5204),
 
-                // C ground cover has no route clearance by design. At least 30-45% of the smallest scaled
-                // footprint overlaps, so a different source mesh cannot silently open holes in the carpet.
+                // C ground cover has no route clearance by design. The fourth art-direction pass halves the
+                // previous population and caps all non-physical C plants at 750. Matching terrain carries the
+                // colour field through the deliberately wider gaps.
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.WalkThroughGroundCover,
-                    anomalousPatchGrass, .25f, .55f, .38f, 0f, 0f, 0f, .7f, 5301),
+                    anomalousPatchGrass, .25f, .55f, -.61f, 0f, 0f, 0f, .7f, 5301),
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.MidLayer,
-                    Combine(grassVariety, fern, liveBush), .55f, .85f, 0f, 1.45f, 1.4f, 2.2f, .5f, 5302),
+                    Combine(grassVariety, fern, liveBush), .55f, .85f, 0f, 3.82f, 1.4f, 2.2f, .5f, 5302),
                 Layer(Chapter00VegetationZone.C, Chapter00VegetationRole.PhysicalBlocker,
                     rootsAndRocks, .65f, 1.1f, 0f, 6f, 6.5f, 4.5f, .65f, 5303),
 

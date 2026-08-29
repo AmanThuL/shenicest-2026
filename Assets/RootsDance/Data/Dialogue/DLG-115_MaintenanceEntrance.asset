@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-115_MaintenanceEntrance
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-115
+  m_title: "\u9732\u51FA\u7684\u68C0\u4FEE\u5165\u53E3\uFF0800-15\uFF09"
+  m_choices: []
+  m_choicesRepeat: 1
+  m_requiredFlag: flow.maintenance_entrance_revealed
+  m_playsOnce: 1
+  m_lines: []
+  m_flagOnComplete: 

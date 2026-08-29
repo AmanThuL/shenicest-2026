@@ -78,32 +78,49 @@ namespace RootsDance.Tests.EditMode.Dialogue
 
             Assert.AreEqual(DialogueTiming.k_DefaultMinimumSeconds, hold, 0.001f);
         }
-
         [Test]
-        public void VoicedHoldSeconds_LongRecording_ExtendsTheHoldPastTheTextEstimate()
+        public void HoldSecondsForLine_RecordedLine_LastsAtLeastTheRecording()
         {
-            // A 6-second recording under a 2-second subtitle: the voice must finish, plus a tail.
-            Assert.AreEqual(6.35f, DialogueTiming.VoicedHoldSeconds(2f, 6f, 0.35f), 0.001f);
+            // The rule that matters once voice work lands: whatever the writer typed, a line is
+            // never cut off mid-word.
+            float hold = DialogueTiming.HoldSecondsForLine(2f, 5f, "很短", "Short");
+
+            Assert.AreEqual(5f + DialogueTiming.k_VoiceTailSeconds, hold, 0.0001f);
         }
 
         [Test]
-        public void VoicedHoldSeconds_ShortRecording_KeepsTheReadingTime()
+        public void HoldSecondsForLine_AuthoredPauseLongerThanTheRecording_IsHonoured()
         {
-            // A one-word recording under a long subtitle: the reader still gets their time.
-            Assert.AreEqual(5f, DialogueTiming.VoicedHoldSeconds(5f, 1f, 0.35f), 0.001f);
+            // A deliberate silence after a line is written as a hold longer than the clip.
+            Assert.AreEqual(8f, DialogueTiming.HoldSecondsForLine(8f, 2f, "很短", "Short"), 0.0001f);
         }
 
         [Test]
-        public void VoicedHoldSeconds_NoRecording_ChangesNothing()
+        public void HoldSecondsForLine_RecordedLine_IgnoresTheReadingEstimate()
         {
-            Assert.AreEqual(3f, DialogueTiming.VoicedHoldSeconds(3f, 0f), 0.001f);
-            Assert.AreEqual(3f, DialogueTiming.VoicedHoldSeconds(3f, -1f), 0.001f);
+            // A long subtitle over a short recording still advances with the recording: the pacing
+            // of a line read aloud belongs to whoever read it.
+            float hold = DialogueTiming.HoldSecondsForLine(0f, 1f,
+                "这是一句很长很长的台词，长到按阅读速度估算会远远超过录音本身的长度", string.Empty);
+
+            Assert.AreEqual(1f + DialogueTiming.k_VoiceTailSeconds, hold, 0.0001f);
         }
 
         [Test]
-        public void VoicedHoldSeconds_NegativeTail_IsTreatedAsZero()
+        public void HoldSecondsForLine_NoRecording_FallsBackToTheAuthoredHold()
         {
-            Assert.AreEqual(6f, DialogueTiming.VoicedHoldSeconds(2f, 6f, -5f), 0.001f);
+            Assert.AreEqual(3.5f, DialogueTiming.HoldSecondsForLine(3.5f, 0f, "继续向前。", "Keep going."),
+                0.0001f);
         }
+
+        [Test]
+        public void HoldSecondsForLine_NeitherRecordingNorHold_ReadsTheText()
+        {
+            string chinese = "监测数据显示前方污染浓度正在下降。";
+
+            Assert.AreEqual(DialogueTiming.HoldSecondsFor(chinese, string.Empty),
+                DialogueTiming.HoldSecondsForLine(0f, 0f, chinese, string.Empty), 0.0001f);
+        }
+
     }
 }

@@ -1,0 +1,28 @@
+{
+  "extends": "_base",
+  "description": "A repeating architectural module (a wall bay, a column, a stair run). Bigger than a prop and seen from further away, so the prop preset's 512 px/m is unreachable: a 15 m wall bay would need an 8K sheet. 2048 with an 80 px/m target keeps the warning meaningful. AO is baked despite the leaking that SketchUp non-manifold edges cause, because the edge and cavity smart masks read it -- without it every masked layer covers the whole surface. Thickness stays off; nothing reads it.",
+  "texture": {
+    "resolution": 2048,
+    "maps": [
+      "BaseMap",
+      "Normal",
+      "Mask"
+    ]
+  },
+  "bake": {
+    "normal": true,
+    "ambient_occlusion": true,
+    "curvature": true,
+    "world_space_normal": true,
+    "position": true,
+    "thickness": false
+  },
+  "uv": {
+    "padding_px": 8,
+    "padding_reference_resolution": 1024,
+    "target_texel_density_px_per_m": 80
+  },
+  "unity": {
+    "max_size": 2048
+  }
+}

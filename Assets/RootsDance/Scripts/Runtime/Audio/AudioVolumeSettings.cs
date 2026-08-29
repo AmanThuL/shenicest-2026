@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 namespace RootsDance.Audio
 {
     /// <summary>
-    /// The player's three volume sliders, saved between sessions and pushed onto the mixer.
+    /// The player's volume sliders, saved between sessions and pushed onto the mixer.
     /// <para>
     /// Applied in <c>Start</c>, never in <c>Awake</c> or <c>OnEnable</c>: a mixer restores its own
     /// snapshot values during scene load, so anything written before that is silently overwritten
@@ -20,6 +20,7 @@ namespace RootsDance.Audio
         private const string k_MusicKey = "audio.music";
         private const string k_SfxKey = "audio.sfx";
         private const string k_UiKey = "audio.ui";
+        private const string k_VoiceKey = "audio.voice";
 
         [Tooltip("The project's single mixer, Assets/RootsDance/Audio/Mixers/Main.mixer.")]
         [SerializeField] private AudioMixer m_mixer;
@@ -29,6 +30,10 @@ namespace RootsDance.Audio
         [Range(0f, 1f)][SerializeField] private float m_defaultSfx = 1f;
         [Range(0f, 1f)][SerializeField] private float m_defaultUi = 1f;
 
+        [Tooltip("Radio and dialogue. Full by default: a line the player cannot hear is a "
+            + "line that has to be repeated.")]
+        [Range(0f, 1f)][SerializeField] private float m_defaultVoice = 1f;
+
         /// <summary>Current linear music volume, 0..1, for a slider to show.</summary>
         public float Music { get; private set; }
 
@@ -36,15 +41,19 @@ namespace RootsDance.Audio
 
         public float Ui { get; private set; }
 
+        public float Voice { get; private set; }
+
         private void Start()
         {
             Music = PlayerPrefs.GetFloat(k_MusicKey, m_defaultMusic);
             Sfx = PlayerPrefs.GetFloat(k_SfxKey, m_defaultSfx);
             Ui = PlayerPrefs.GetFloat(k_UiKey, m_defaultUi);
+            Voice = PlayerPrefs.GetFloat(k_VoiceKey, m_defaultVoice);
 
             Apply(AudioRouting.k_MusicVolume, Music);
             Apply(AudioRouting.k_SfxVolume, Sfx);
             Apply(AudioRouting.k_UiVolume, Ui);
+            Apply(AudioRouting.k_VoiceVolume, Voice);
         }
 
         public void SetMusic(float linear01)
@@ -68,6 +77,13 @@ namespace RootsDance.Audio
             Apply(AudioRouting.k_UiVolume, Ui);
         }
 
+        public void SetVoice(float linear01)
+        {
+            Voice = Mathf.Clamp01(linear01);
+            PlayerPrefs.SetFloat(k_VoiceKey, Voice);
+            Apply(AudioRouting.k_VoiceVolume, Voice);
+        }
+
         private void Apply(string exposedParameter, float linear01)
         {
             if (m_mixer == null)
@@ -75,11 +91,21 @@ namespace RootsDance.Audio
                 return;
             }
 
-            if (!m_mixer.SetFloat(exposedParameter, AudioMath.LinearToDecibels(linear01)))
+            if (m_mixer.SetFloat(exposedParameter, AudioMath.LinearToDecibels(linear01)))
             {
-                Log.Warning($"Audio mixer has no exposed parameter '{exposedParameter}'. "
-                    + "Run RootsDance/Audio/Validate Mixer.", this);
+                return;
             }
+
+            // An optional parameter that has not been exposed yet is a known state of the mixer,
+            // reported once by RootsDance/Audio/Validate Mixer with the steps to fix it. Warning
+            // again every time the game starts would train the team to ignore this line.
+            if (AudioRouting.IsOptionalParameter(exposedParameter))
+            {
+                return;
+            }
+
+            Log.Warning($"Audio mixer has no exposed parameter '{exposedParameter}'. "
+                + "Run RootsDance/Audio/Validate Mixer.", this);
         }
     }
 }

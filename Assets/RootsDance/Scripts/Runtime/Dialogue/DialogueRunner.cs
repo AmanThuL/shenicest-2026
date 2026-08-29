@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using RootsDance.App;
+using RootsDance.Audio;
 using RootsDance.Core;
 using RootsDance.Core.Commands;
 using RootsDance.Events;
 using RootsDance.Player;
 using UnityEngine;
-using UnityEngine.Audio;
 
 namespace RootsDance.Dialogue
 {
@@ -34,6 +34,15 @@ namespace RootsDance.Dialogue
         [Tooltip("Raised once it ends, whichever way it went — including when it is cut short.")]
         [SerializeField] private VoidEventChannelSO m_conversationEnded;
 
+        [Header("Voice")]
+        [Tooltip("Where a line's recording is played. Data/Events/AudioCueRequested. Empty runs "
+            + "the conversation as subtitles only.")]
+        [SerializeField] private AudioCueEventChannelSO m_audioChannel;
+
+        [Tooltip("The cue that mixes spoken lines — group, volume, spatial blend. One cue serves "
+            + "every line; the recordings live on the lines themselves.")]
+        [SerializeField] private AudioCueSO m_voiceCue;
+
         [Header("View")]
         [Tooltip("The component implementing IDialogueView. Empty runs the conversation silently, "
             + "which is what an automated test wants and what a half-built scene tolerates.")]
@@ -45,16 +54,6 @@ namespace RootsDance.Dialogue
             + "in the bootstrap scene next to the screen it drives, and the player is in a level "
             + "scene where no serialized reference can reach.")]
         [SerializeField] private PlayerInputReader m_input;
-
-        [Header("Voice")]
-        [Tooltip("Mixer group the recorded lines play through. Optional: empty goes straight to "
-            + "the master, and the lines still play — routing is a mix decision, not a "
-            + "prerequisite.")]
-        [SerializeField] private AudioMixerGroup m_voiceGroup;
-
-        [Tooltip("Seconds a voiced line lingers after the recording ends, so the subtitle is not "
-            + "snatched away on the last syllable.")]
-        [SerializeField] private float m_voiceTailSeconds = DialogueTiming.k_DefaultVoiceTailSeconds;
 
         [Header("Reading speed")]
         [Tooltip("Chinese characters per second for a line with no authored hold.")]
@@ -70,7 +69,6 @@ namespace RootsDance.Dialogue
         private readonly HashSet<string> m_played = new HashSet<string>();
         private readonly List<int> m_remaining = new List<int>();
         private IDialogueView m_view;
-        private AudioSource m_voiceSource;
         private int m_pendingChoice = -1;
 
         /// <summary>True while a conversation is on screen. A second request is refused, not queued.</summary>
@@ -84,15 +82,6 @@ namespace RootsDance.Dialogue
             {
                 Log.Error($"'{m_viewBehaviour.GetType().Name}' does not implement IDialogueView.", this);
             }
-
-            // Built rather than serialized: the runner is the only thing that ever touches this
-            // source, so there is nothing for an Inspector to say about it. Flat, like narration —
-            // the voice belongs to whoever is on screen, not to a point in the world.
-            m_voiceSource = gameObject.AddComponent<AudioSource>();
-            m_voiceSource.playOnAwake = false;
-            m_voiceSource.loop = false;
-            m_voiceSource.spatialBlend = 0f;
-            m_voiceSource.outputAudioMixerGroup = m_voiceGroup;
         }
 
         private void Start()
@@ -189,7 +178,6 @@ namespace RootsDance.Dialogue
             finally
             {
                 IsPlaying = false;
-                StopVoice();
 
                 if (m_view != null)
                 {
@@ -229,30 +217,33 @@ namespace RootsDance.Dialogue
                     m_view.ShowLine(line.Speaker, line.Chinese, line.English);
                 }
 
-                float hold = line.HoldSeconds > 0f
-                    ? line.HoldSeconds
-                    : DialogueTiming.HoldSecondsFor(line.Chinese, line.English, m_cjkCharsPerSecond,
-                        m_latinCharsPerSecond, m_minimumHoldSeconds, m_maximumHoldSeconds);
+                AudioClip voice = line.Voice;
 
-                StopVoice();
-
-                if (line.Voice != null && m_voiceSource != null)
+                if (voice != null && m_voiceCue != null && m_audioChannel != null)
                 {
-                    m_voiceSource.clip = line.Voice;
-                    m_voiceSource.Play();
-                    hold = DialogueTiming.VoicedHoldSeconds(hold, line.Voice.length, m_voiceTailSeconds);
+                    m_audioChannel.RaiseEvent(AudioCueRequest.Voice(m_voiceCue, voice));
                 }
 
-                await HoldAsync(hold, cancellationToken);
+                float hold = DialogueTiming.HoldSecondsForLine(line.HoldSeconds,
+                    voice == null ? 0f : voice.length, line.Chinese, line.English,
+                    m_cjkCharsPerSecond, m_latinCharsPerSecond, m_minimumHoldSeconds,
+                    m_maximumHoldSeconds);
+
+                // A recorded line is not skippable: the pool has no per-voice stop, so cutting the
+                // subtitle would leave the recording talking over the next line. An unvoiced line
+                // still skips, which is what makes a subtitle-only conversation bearable to replay.
+                await HoldAsync(hold, voice == null, cancellationToken);
             }
         }
 
         /// <summary>
-        /// Waits out a line, but lets the interact button cut it short. Counted frame by frame
+        /// Waits out a line, and — when the line is not voiced — lets the interact button cut it
+        /// short. Counted frame by frame
         /// rather than with WaitForSecondsAsync because a hold that cannot be skipped is the
         /// difference between a conversation and a cutscene.
         /// </summary>
-        private async Awaitable HoldAsync(float seconds, CancellationToken cancellationToken)
+        private async Awaitable HoldAsync(float seconds, bool allowSkip,
+            CancellationToken cancellationToken)
         {
             float elapsed = 0f;
 
@@ -261,22 +252,29 @@ namespace RootsDance.Dialogue
                 await Awaitable.NextFrameAsync(cancellationToken);
                 elapsed += Time.deltaTime;
 
-                if (m_input != null && m_input.InteractPressedThisFrame)
+                if (allowSkip && m_input != null && m_input.InteractPressedThisFrame)
                 {
-                    // The skip takes the voice with it: a line that keeps talking after its
-                    // subtitle has moved on would make every skip sound like a bug.
-                    StopVoice();
                     return;
                 }
             }
         }
 
-        private void StopVoice()
+        /// <summary>
+        /// The player saying the option they picked, heard before the answer comes back. The choice
+        /// list is already gone from the view, so nothing is on screen during it — the beat where
+        /// the question hangs in the air is the point. Silent options cost nothing.
+        /// </summary>
+        private async Awaitable PickedLineAsync(DialogueChoice chosen, CancellationToken cancellationToken)
         {
-            if (m_voiceSource != null && m_voiceSource.isPlaying)
+            AudioClip voice = chosen.Voice;
+
+            if (voice == null || m_voiceCue == null || m_audioChannel == null)
             {
-                m_voiceSource.Stop();
+                return;
             }
+
+            m_audioChannel.RaiseEvent(AudioCueRequest.Voice(m_voiceCue, voice));
+            await HoldAsync(voice.length + DialogueTiming.k_VoiceTailSeconds, false, cancellationToken);
         }
 
         private async Awaitable ChoicesAsync(DialogueSO conversation, CancellationToken cancellationToken)
@@ -327,17 +325,7 @@ namespace RootsDance.Dialogue
                     WorldAccess.Enqueue(new RaiseFlagCommand(chosen.FlagOnChosen), this);
                 }
 
-                // The player's own voice for the pick, heard before the answer. The choice list
-                // is already gone from the view, so nothing shows during it — the beat where the
-                // question hangs in the air is the point.
-                if (chosen.Voice != null && m_voiceSource != null)
-                {
-                    StopVoice();
-                    m_voiceSource.clip = chosen.Voice;
-                    m_voiceSource.Play();
-                    await HoldAsync(chosen.Voice.length + m_voiceTailSeconds, cancellationToken);
-                }
-
+                await PickedLineAsync(chosen, cancellationToken);
                 await LinesAsync(chosen.Response, cancellationToken);
 
                 if (chosen.Follow != null)

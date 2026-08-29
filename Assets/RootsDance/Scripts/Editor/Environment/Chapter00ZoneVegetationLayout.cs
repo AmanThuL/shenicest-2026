@@ -322,19 +322,14 @@ namespace RootsDance.Editor.Environment
                 case Chapter00VegetationZone.E: return Chapter00VegetationTint.FacilityGreen;
             }
 
-            // C colours are selected once per 4 m cell, not per blade. Four metres still reads as a coherent
-            // island at player height, while the visible C arc contains enough cells for the authored
-            // 30/25/18/15/12 weights to remain legible instead of being dominated by a handful of cells.
-            int clusterX = Mathf.FloorToInt(point.x / 4f);
-            int clusterZ = Mathf.FloorToInt(point.y / 4f);
+            // C is one mutation expressed through two related shades, not a multi-colour meadow. A tighter
+            // 2.5 m cell keeps warm stone-pink and cool pink-violet patches visibly interwoven at player height.
+            int clusterX = Mathf.FloorToInt(point.x / 2.5f);
+            int clusterZ = Mathf.FloorToInt(point.y / 2.5f);
             float roll = Unit01(Hash(seed + 991, clusterX, clusterZ));
-            if (roll < .30f) return Chapter00VegetationTint.SilverGreyGreen;
-            // The finite, crescent-shaped visible envelope does not sample the hash CDF uniformly. These
-            // calibrated cut points produce the reviewed installed weights 30/25/18/15/12 in that envelope.
-            if (roll < .525f) return Chapter00VegetationTint.CoolCyanGreen;
-            if (roll < .7025f) return Chapter00VegetationTint.MutedViolet;
-            if (roll < .83f) return Chapter00VegetationTint.FadedPink;
-            return Chapter00VegetationTint.CoolYellowGreen;
+            return roll < .5f
+                ? Chapter00VegetationTint.FadedPink
+                : Chapter00VegetationTint.MutedViolet;
         }
 
         private static Rect EnvelopeBounds(Chapter00ViewEnvelope[] envelopes)

@@ -378,15 +378,20 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void AnomalousBand_OnlyPlacesWhereTheGrassBandLayerIsPainted()
+        public void Patches_PlaceNoS6Vegetation()
         {
-            OpeningPropsParams p = Params();
-            ScatterPatch band = System.Array.Find(p.Patches, patch => patch.Name == "S6_AnomalousBand");
+            // S6 vegetation (the anomalous band and everything green around it) is owned by
+            // Chapter00ZoneVegetationBuilder; a patch reappearing here would fight the zone C pass.
+            foreach (ScatterPatch patch in Params().Patches)
+            {
+                if (patch.Pool != PropPool.TransitionGrowth && patch.Pool != PropPool.DryLowGrowth)
+                {
+                    continue;
+                }
 
-            Assert.IsNotNull(band, "the anomalous band patch is missing");
-            Assert.AreEqual(OpeningPropsParams.k_GrassBandLayer, band.TerrainLayer,
-                "the band must follow the painted TL_GrassBand, not a circle");
-            Assert.Greater(band.MinLayerWeight, 0f);
+                Assert.IsFalse(patch.Name.StartsWith("S6_"),
+                    $"{patch.Name} plants S6 vegetation, which Chapter00ZoneVegetationBuilder owns");
+            }
         }
 
         [Test]

@@ -223,9 +223,6 @@ namespace RootsDance.Editor.Environment
         /// </summary>
         public const string k_PwbToolName = "PIN";
 
-        /// <summary>Terrain layer index of <c>TL_GrassBand</c>, the painted anomalous band.</summary>
-        public const int k_GrassBandLayer = 2;
-
         public string ScenePath = ScenePaths.k_MainEnvironment;
 
         /// <summary>The route polyline in world XZ, used for clearance tests.</summary>

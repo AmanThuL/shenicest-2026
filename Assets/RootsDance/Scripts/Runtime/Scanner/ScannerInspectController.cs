@@ -57,9 +57,10 @@ namespace RootsDance.Scanner
         [SerializeField] private Behaviour[] m_suspendedWhileReading = Array.Empty<Behaviour>();
 
         [Header("Timing")]
-        [Tooltip("Seconds the camera takes to fly in, and to fly back out.")]
+        [Tooltip("Seconds the camera takes to fly in, and to fly back out. Short on purpose: this "
+            + "is the player raising something to look at it, not a cutscene.")]
         [Range(0.1f, 4f)]
-        [SerializeField] private float m_zoomSeconds = 0.9f;
+        [SerializeField] private float m_zoomSeconds = 0.4f;
 
         [Tooltip("Extra seconds to hold on the finished sweep before the camera flies in, so the "
             + "beam is seen landing rather than being cut off by the zoom.")]

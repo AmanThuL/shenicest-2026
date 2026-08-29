@@ -84,6 +84,62 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 (or open the scenes first with `open_scene`, then call `PlayFrom`, which is instant). While playing, calling
 `PlayFrom` again teleports. Read `WorldAccess.State.HasFlag(...)` to verify.
 
+## 让一次 playtest 便宜下来
+
+三个独立的开关，按收益排序。测流程（触发、无线电、对话、报告）时三个可以叠着用。
+
+### 1. Flow 关卡：不加载那 1072 件装饰
+
+`Main_Environment` 有 **1072 个 prefab 实例**（chainlink_post 93、dry_branches 92、tree0X_winter 约 250…），
+而验证一个触发、一段通讯或一条报告条目一件都用不上——这些正是每次进 Play 等待的大头。
+
+`RootsDance > Dev > Build Flow Level` 生成 `Main_DevGround.unity` 与 `Data/Levels/Main_Flow.asset`，
+后者只加载 **裸地形 + `Main_Gameplay`**。在 Dev Play 窗口里把 checkpoint 的 Level 改成 `Main_Flow` 即可。
+
+地面用的是**同一份 `Main_TerrainData`、同一个 transform**，不是一块平板：路线从出生点 y≈3 爬到草带 y≈6.7，
+`Main_Gameplay` 里每个触发体积都是贴着这个曲面摆的，换成平地后半程的触发就会悬在空中——
+那种"省事的捷径"会让测试结果不可信。太阳与 Global Volume 也照抄 Main：曝光决定画面能不能读，
+一个长得跟游戏完全不一样的测试关就不再是在测这个游戏。
+
+场景是**生成物**，重跑覆盖，不要在里面摆任何东西。
+
+### 2. 关掉 Domain Reload
+
+`Edit > Project Settings > Editor > Enter Play Mode Settings` 现在是 **Reload Domain 关、Reload Scene 开**
+（`m_EnterPlayModeOptions: 1`，2026-08-29 起）。这通常是每次进 Play 省下的最大一块。
+
+代价是静态状态不再自动清空，规则变成"静态必须自己复位"，集中在
+`Scripts/Runtime/App/PlaySessionReset.cs`（`RuntimeInitializeLoadType.SubsystemRegistration`）：
+
+- `ScannableTarget` / `GroundPickup` 的自注册表；
+- `FlashlightBeamBroadcaster.Beam`（上一次会话的光束）；
+- `DOTween.Clear(true)`——它的补间池和驱动物件分处两侧，物件随 Play 结束销毁，池不会。
+
+`WorldAccess` 与 `PersistentSingleton<T>` **不需要复位**：前者每次都从 bootstrap 现取，后者靠 Unity
+"已销毁对象等于 null"的语义自己重新找。**新增任何可变 static，都要在这里加一行**，否则它会跨会话残留。
+
+### 3. `RootsDance > Dev > Cheap Rendering`
+
+一个带勾选的菜单开关。打开后，进入 Play 时压一个 priority 10000 的全局 Volume（高于工程里最高的 20），
+关掉体积雾、SSAO、PSX 后处理，并把阴影距离压到 40 m、级联降到 1。退出 Play 自动消失，磁盘上没有任何改动。
+
+**不做成第二份 HDRP 资产**，是个决定：切换管线资产会重建管线并重编着色器变体，把省下的时间又花回去，
+而且两份资产会在所有没人记得同步的字段上慢慢分叉。
+
+它**不会禁用任何场景物件**：哪些 prop 是装饰、哪些是谜题的一部分是内容问题，判断错了流程就没法测——
+要去掉装饰用上面的 Flow 关卡。
+
+### 已经关掉的、以及不必调的
+
+`HDRP_Desktop` 里 SSR、SSGI、SSS、Decals、RayTracing、MSAA、Water **都已经是关的**，不用再找。
+
+地形的 `treeDistance: 5000` 和 `detailObjectDistance: 80` 看着吓人但**没有成本**：
+地形里 0 棵树、0 个 detail prototype，植被全是那 1072 个 prefab 实例。别在这两个值上浪费时间。
+
+真正没吃到的红利在别处：那 1072 件装饰**没有一件标了 Batching Static**，
+`gpuResidentDrawerSettings.mode: 0`（GPU Resident Drawer 关闭），`m_OcclusionCullingData` 为空（没烘遮挡剔除）。
+也就是每件都是独立 draw call 加独立阴影投射。这三项都是"打开"而不是"关掉"，需要各自验证一轮，尚未做。
+
 ## Files
 
 - `Scripts/Editor/DevPlay/DevCheckpointSO.cs` — the asset (Odin `TitleGroup`s `Where` / `World State`).
@@ -96,4 +152,7 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 - `Scripts/Editor/DevPlay/DevCheckpointDefaults.cs` — the default set, plus `RootsDance > Dev Play > Set All
   Checkpoints To Level Default` (`SetAllTimeOfDayToLevelDefault`, no dialogs — batch-callable via `-executeMethod`;
   Briggs Interior is intentionally excluded).
+- `Scripts/Editor/DevPlay/DevFlowLevelBuilder.cs` — 生成 `Main_DevGround.unity` 与 `Main_Flow.asset`。
+- `Scripts/Editor/DevPlay/DevCheapRendering.cs` — `Cheap Rendering` 开关与它压的那个 Volume。
+- `Scripts/Runtime/App/PlaySessionReset.cs` — 关闭 domain reload 后每次会话的静态复位。
 - `Tests/EditMode/DevPlay/` — seed and catalog tests.

@@ -16,11 +16,12 @@ using UnityEngine.UI;
 namespace RootsDance.Editor.Content
 {
     /// <summary>
-    /// Wires the narrative runtime that the code and content have been waiting for: the dialogue
-    /// screen, its runner and the audio directors into <c>Bootstrap.unity</c>, a subtitle line for
-    /// the radio and monologue channels, and the chapter's dialogue triggers into the two interior
-    /// scenes — the corridor meeting, the sprite's greenhouse remarks, the staff photograph, the
-    /// circulation console, and the wrong-choice outburst that hands over to the chase.
+    /// Wires what chapter 02/03's content needs on top of chapter 00's narrative wiring: the
+    /// runner's voice references filled in where they are empty, a subtitle line for the radio,
+    /// monologue and notice channels (which nothing displays yet), and the chapter's dialogue
+    /// triggers in the two interior scenes — the corridor meeting, the sprite's greenhouse
+    /// remarks, the staff photograph, the circulation console, and the wrong-choice outburst that
+    /// hands over to the chase.
     /// <para>
     /// Repeatable: existing objects are found and re-pointed, never duplicated. Trigger positions
     /// are grey-box values against today's blockout geometry, expected to move with it.
@@ -41,6 +42,7 @@ namespace RootsDance.Editor.Content
         private const string k_EventsFolder = "Assets/RootsDance/Data/Events";
         private const string k_DialogueChannelPath = k_EventsFolder + "/DialogueRequested.asset";
         private const string k_DialogueFolder = "Assets/RootsDance/Data/Dialogue";
+        private const string k_VoiceCuePath = "Assets/RootsDance/Data/Audio/VOX_Dialogue.asset";
 
         [MenuItem("RootsDance/Content/Wire Narrative Runtime")]
         public static void ApplyFromMenu()
@@ -74,8 +76,8 @@ namespace RootsDance.Editor.Content
                 }
             }
 
-            Debug.Log("NarrativeRuntimeBuilder: wired the dialogue screen, runner, audio directors, "
-                + "subtitles and the chapter triggers. Run Build Chapter 02 Dialogue first so the "
+            Debug.Log("NarrativeRuntimeBuilder: claimed the dialogue runner, added the subtitle "
+                + "line and wired the chapter triggers. Run Build Chapter 02 Dialogue first so the "
                 + "triggers have conversations to point at.");
         }
 
@@ -101,80 +103,60 @@ namespace RootsDance.Editor.Content
         {
             Scene scene = EditorSceneManager.OpenScene(k_BootstrapScenePath, OpenSceneMode.Single);
 
-            GameObject screen = EnsureDialogueScreen(scene);
-            EnsureDialogueRunner(scene, screen);
-            EnsureAudioDirectors(scene);
+            EnsureDialogueRunner(scene);
             EnsureSubtitleLine(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }
 
-        private static GameObject EnsureDialogueScreen(Scene scene)
+        /// <summary>
+        /// The runner and the screen it drives. Both normally exist already — chapter 00's wiring
+        /// put them there — so this claims whatever is in the scene and only fills the references
+        /// that are still empty. Adding a second runner would play every conversation twice.
+        /// </summary>
+        private static void EnsureDialogueRunner(Scene scene)
         {
-            Transform existing = FindTransform(scene, "DialogueScreen");
+            DialoguePresenter presenter = FindInScene<DialoguePresenter>(scene);
 
-            if (existing != null)
+            if (presenter == null)
             {
-                return existing.gameObject;
+                GameObject prefab = LoadRequired<GameObject>(k_DialogueScreenPrefabPath);
+                GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+                instance.name = "DialogueScreen";
+                presenter = instance.GetComponentInChildren<DialoguePresenter>(true);
             }
 
-            GameObject prefab = LoadRequired<GameObject>(k_DialogueScreenPrefabPath);
-            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
-            instance.name = "DialogueScreen";
-            return instance;
-        }
+            DialogueRunner runner = FindInScene<DialogueRunner>(scene);
 
-        private static void EnsureDialogueRunner(Scene scene, GameObject screen)
-        {
-            // Next to the screen it drives, as the runner's own comments call for: the player is
-            // in a level scene, so a serialized view reference could never reach across from there.
-            Transform host = EnsureRoot(scene, "Narrative");
-            DialogueRunner runner = EnsureComponent<DialogueRunner>(host.gameObject);
+            if (runner == null)
+            {
+                // Next to the screen it drives: the player is in a level scene, so a serialized
+                // view reference could never reach across from there.
+                runner = EnsureComponent<DialogueRunner>(EnsureRoot(scene, "Narrative").gameObject);
+            }
 
             using (SerializedObject serialized = new SerializedObject(runner))
             {
-                serialized.FindProperty("m_playRequested").objectReferenceValue =
-                    EnsureDialogueChannel();
-                serialized.FindProperty("m_viewBehaviour").objectReferenceValue =
-                    screen.GetComponentInChildren<DialoguePresenter>(true);
+                FillIfEmpty(serialized, "m_playRequested", EnsureDialogueChannel());
+                FillIfEmpty(serialized, "m_viewBehaviour", presenter);
+                FillIfEmpty(serialized, "m_audioChannel",
+                    LoadRequired<AudioCueEventChannelSO>(k_EventsFolder + "/AudioCueRequested.asset"));
+                FillIfEmpty(serialized, "m_voiceCue",
+                    AssetDatabase.LoadAssetAtPath<AudioCueSO>(k_VoiceCuePath));
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
         }
 
-        private static void EnsureAudioDirectors(Scene scene)
+        /// <summary>Leaves an authored reference alone; only an empty slot is filled.</summary>
+        private static void FillIfEmpty(SerializedObject serialized, string path,
+            UnityEngine.Object value)
         {
-            Transform host = EnsureRoot(scene, "Audio");
+            SerializedProperty property = serialized.FindProperty(path);
 
-            AudioDirector director = EnsureComponent<AudioDirector>(host.gameObject);
-
-            using (SerializedObject serialized = new SerializedObject(director))
+            if (property != null && property.objectReferenceValue == null)
             {
-                SerializedProperty channels = serialized.FindProperty("m_channels");
-                channels.arraySize = 1;
-                channels.GetArrayElementAtIndex(0).objectReferenceValue =
-                    LoadRequired<AudioCueEventChannelSO>(k_EventsFolder + "/AudioCueRequested.asset");
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            MusicDirector music = EnsureComponent<MusicDirector>(host.gameObject);
-
-            using (SerializedObject serialized = new SerializedObject(music))
-            {
-                serialized.FindProperty("m_musicRequested").objectReferenceValue =
-                    LoadRequired<AudioCueEventChannelSO>(k_EventsFolder + "/MusicRequested.asset");
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            FlagAudioCues cues = EnsureComponent<FlagAudioCues>(host.gameObject);
-
-            using (SerializedObject serialized = new SerializedObject(cues))
-            {
-                serialized.FindProperty("m_flagRaised").objectReferenceValue =
-                    LoadRequired<StringEventChannelSO>(k_EventsFolder + "/FlagRaised.asset");
-                serialized.FindProperty("m_channel").objectReferenceValue =
-                    LoadRequired<AudioCueEventChannelSO>(k_EventsFolder + "/AudioCueRequested.asset");
-                serialized.ApplyModifiedPropertiesWithoutUndo();
+                property.objectReferenceValue = value;
             }
         }
 
@@ -478,6 +460,22 @@ namespace RootsDance.Editor.Content
             GameObject child = new GameObject(name);
             child.transform.SetParent(parent, false);
             return child.transform;
+        }
+
+        /// <summary>The first component of this type anywhere in the scene, inactive ones included.</summary>
+        private static T FindInScene<T>(Scene scene) where T : Component
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                T found = root.GetComponentInChildren<T>(true);
+
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
 
         private static Transform FindTransform(Scene scene, string name)

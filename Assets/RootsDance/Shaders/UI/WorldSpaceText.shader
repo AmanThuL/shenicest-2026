@@ -24,6 +24,13 @@ Shader "RootsDance/UI/WorldSpaceText"
         _StencilWriteMask ("Stencil Write Mask", Float) = 255
         _StencilReadMask ("Stencil Read Mask", Float) = 255
         _ColorMask ("Color Mask", Float) = 15
+
+        // TextMeshPro reads this off the material unconditionally in TMP_SubMeshUI.UpdateMaterial,
+        // so a shader used by any TMP text has to declare it even if it never varies. Without it
+        // every fallback sub-mesh — the ones TMP spawns when a glyph is missing from the primary
+        // font's atlas — logs "doesn't have a float or range property '_CullMode'" once per
+        // rebuild. UI is drawn from both sides, so the default stays Off.
+        [Enum(UnityEngine.Rendering.CullMode)] _CullMode ("Cull Mode", Float) = 0
     }
 
     SubShader
@@ -46,7 +53,7 @@ Shader "RootsDance/UI/WorldSpaceText"
             WriteMask [_StencilWriteMask]
         }
 
-        Cull Off
+        Cull [_CullMode]
         Lighting Off
         ZWrite Off
         ZTest [unity_GUIZTestMode]

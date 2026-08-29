@@ -30,8 +30,6 @@ namespace RootsDance.Editor.Tools
             "Assets/RootsDance/Meshes/Environment/Garage/GarageShell.fbx";
         private const string k_BriggsInteriorWallsPath =
             "Assets/RootsDance/Meshes/Environment/Garage/BriggsInteriorWalls.fbx";
-        private const string k_IvyHangingPath =
-            "Assets/RootsDance/Meshes/Environment/Garage/IvyHanging.fbx";
         private const string k_LabCorridorPath =
             "Assets/RootsDance/Meshes/Environment/LabCorridor.fbx";
         private const string k_ConcreteLabMaterialPath =
@@ -146,12 +144,6 @@ namespace RootsDance.Editor.Tools
             AssignBriggsWallMaterials(walls, materials);
             SetStatic(walls);
 
-            GameObject ivy = InstantiateModel(k_IvyHangingPath, "IvyHanging", sourceArt, scene);
-            ivy.transform.SetPositionAndRotation(shell.transform.position, shell.transform.rotation);
-            ivy.transform.localScale = shell.transform.localScale;
-            AssignOneMaterial(ivy, materials.Ivy);
-            SetStatic(ivy);
-            BriggsInteriorExitDoorBuilder.CreateCeilingHoleVines(ivy, props, materials.Ivy);
             BriggsInteriorExitDoorBuilder.CreateClosedEntranceDoor(props, materials.Trim);
 
             CreatePlanCollisionShell(structure);

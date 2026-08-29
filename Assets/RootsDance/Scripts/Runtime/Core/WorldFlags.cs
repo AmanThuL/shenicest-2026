@@ -22,6 +22,19 @@ namespace RootsDance.Core
         /// <summary>The helmet is off; HUD is gone and the ambience changed (node 00-05).</summary>
         public const string k_HelmetRemoved = "flow.helmet_removed";
 
+        /// <summary>
+        /// The signal is going: the last transmission starts here (node 00-04). Separate from
+        /// <see cref="k_RadioSignalLost"/> because the carrier has to still be there while the last
+        /// words are spoken — a transmission playing over silence reads as a bug, not as a fade.
+        /// </summary>
+        public const string k_RadioSignalFading = "flow.radio_signal_fading";
+
+        /// <summary>
+        /// The transmission failed for good (node 00-04), raised when the last one finishes. Read by
+        /// the carrier-hiss bed, which stops on it, and by anything that must not expect help again.
+        /// </summary>
+        public const string k_RadioSignalLost = "flow.radio_signal_lost";
+
         /// <summary>Player stepped into the discoloured grass belt (node 00-06).</summary>
         public const string k_EnteredGrassBelt = "flow.entered_grass_belt";
 
@@ -82,5 +95,11 @@ namespace RootsDance.Core
 
         /// <summary>The maintenance-entrance vine cover has been moved aside (node 00-15).</summary>
         public const string k_MaintenanceEntranceRevealed = "flow.maintenance_entrance_revealed";
+
+        /// <summary>
+        /// The player is inside the service duct (node 00-16). The outdoor beds stop on it and the
+        /// enclosed ones start, which is the whole acoustic difference between outside and inside.
+        /// </summary>
+        public const string k_EnteredMaintenanceTunnel = "flow.entered_maintenance_tunnel";
     }
 }

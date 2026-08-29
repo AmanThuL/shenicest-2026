@@ -22,10 +22,45 @@ namespace RootsDance.Dialogue
         public const float k_DefaultMaximumSeconds = 7f;
 
         /// <summary>
-        /// Seconds a line lingers after its voice finishes. A subtitle that vanishes on the last
-        /// syllable feels snatched away; a beat of silence lets the line land.
+        /// Breathing room after a recorded line ends, so the next one does not start on its tail.
         /// </summary>
-        public const float k_DefaultVoiceTailSeconds = 0.35f;
+        public const float k_VoiceTailSeconds = 0.35f;
+
+        /// <summary>
+        /// How long one line — spoken or not — stays up. The three inputs are in priority order and
+        /// each answers a different question, which is why this is one function rather than a
+        /// choice the callers each make for themselves:
+        /// <list type="bullet">
+        /// <item>a recorded line is never cut off, whatever the writer typed: the hold is at least
+        /// the clip plus a tail, because a truncated word is a bug the player hears;</item>
+        /// <item>an authored hold is honoured when it is longer, which is how a deliberate pause is
+        /// written;</item>
+        /// <item>with neither, the length of the text decides — see
+        /// <see cref="HoldSecondsFor(string, string, float, float, float, float)"/>.</item>
+        /// </list>
+        /// This is also why the reading estimate is not applied on top of a voice clip: a line read
+        /// aloud has already been paced by whoever recorded it.
+        /// </summary>
+        public static float HoldSecondsForLine(float authoredSeconds, float voiceSeconds,
+            string chinese, string english,
+            float cjkCharsPerSecond = k_DefaultCjkCharsPerSecond,
+            float latinCharsPerSecond = k_DefaultLatinCharsPerSecond,
+            float minimumSeconds = k_DefaultMinimumSeconds,
+            float maximumSeconds = k_DefaultMaximumSeconds)
+        {
+            if (voiceSeconds > 0f)
+            {
+                return Mathf.Max(authoredSeconds, voiceSeconds + k_VoiceTailSeconds);
+            }
+
+            if (authoredSeconds > 0f)
+            {
+                return authoredSeconds;
+            }
+
+            return HoldSecondsFor(chinese, english, cjkCharsPerSecond, latinCharsPerSecond,
+                minimumSeconds, maximumSeconds);
+        }
 
         /// <summary>
         /// Reading time for a bilingual line. The two languages are read in parallel — the English
@@ -47,23 +82,6 @@ namespace RootsDance.Dialogue
             float ceiling = Mathf.Max(minimumSeconds, maximumSeconds);
 
             return Mathf.Clamp(slower, Mathf.Min(minimumSeconds, ceiling), ceiling);
-        }
-
-        /// <summary>
-        /// Hold for a voiced line: the text hold, extended to cover the recording plus a settling
-        /// tail. The voice never gets cut off by a short subtitle, and a long subtitle still gets
-        /// its full reading time over a short recording. The text hold arrives already clamped, so
-        /// no ceiling applies here — a recording is as long as it is.
-        /// </summary>
-        public static float VoicedHoldSeconds(float textHoldSeconds, float voiceSeconds,
-            float tailSeconds = k_DefaultVoiceTailSeconds)
-        {
-            if (voiceSeconds <= 0f)
-            {
-                return textHoldSeconds;
-            }
-
-            return Mathf.Max(textHoldSeconds, voiceSeconds + Mathf.Max(0f, tailSeconds));
         }
 
         private static float Seconds(string text, float charsPerSecond)

@@ -74,6 +74,16 @@ namespace RootsDance.Player
         /// </summary>
         public static FlashlightBeam Beam { get; private set; }
 
+        /// <summary>
+        /// Forgets the last published beam. Called once per play session by
+        /// <see cref="RootsDance.App.PlaySessionReset"/>, so a session that starts without a
+        /// flashlight does not inherit the previous one's beam.
+        /// </summary>
+        public static void ResetBeam()
+        {
+            Beam = default;
+        }
+
         private void Awake()
         {
             m_hasLight = m_light != null;

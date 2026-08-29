@@ -1,0 +1,50 @@
+{
+  "asset": "GreenHouse1Wall",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/GreenHouse1/GreenHouse1.blend",
+    "object": "L-W1",
+    "licence": "In-repo source art (GAIA1 greenhouse, GREENHOUSE1 export).",
+    "note": "One of the greenhouse's repeating modules: the lower-tier window wall, which appears 7 times (L-W1/2/3, M-W1/2, R-W1/2/3 minus the ones sharing geometry). Textured once and reused. The glazing panes were deleted by hand, so this is frame only. Its UVs are SketchUp box mapping covering far more than the 0-1 square, hence uv.mode = unwrap."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "GreenHouse1=GreenHouse1Wall"
+    ],
+    "material_slots": [
+      "GreenHouse1Wall"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "texture_sets": [
+    "GreenHouse1Wall"
+  ],
+  "painter": {
+    "fills": [
+      "SteelBase(0.6,1.0):basecolor=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/Metal021/Metal021_2K-JPG_Roughness.jpg",
+      "PaintRemnant(0.3,0.45):basecolor=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/PaintedMetal006/PaintedMetal006_2K-JPG_Roughness.jpg|~grunge_paint_peeled",
+      "Oxidation(0.18,0.75):basecolor=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_diff_2k.jpg;normal=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/metal_plate_02/metal_plate_02_rough_2k.jpg|Surface Rust",
+      "EdgeRust(0.45,0.45):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;normal=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Edge Rust",
+      "RustRunoff(0.35,0.3):basecolor=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/rusty_painted_metal/rusty_painted_metal_rough_2k.jpg|Rust Drips",
+      "GrimeStreak(0,0.45):basecolor=#241F1A;roughness=0.8|Water Drips",
+      "LimeDeposit(0,0.3):basecolor=#C3BDAE;roughness=0.9|Dirt Leak Dry",
+      "DampRecess(0,0.35):basecolor=#1E1C19;roughness=0.55|Moisture",
+      "MossTop(0.22,0.28):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|Moss From Top",
+      "Lichen(0.3,0.1):basecolor=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_diff_2k.jpg;normal=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_rough_2k.jpg|Moss",
+      "EdgeWear(0,0.18):basecolor=#9AA0A3;roughness=0.35;metallic=1.0|Edges Scratched"
+    ],
+    "layers": [],
+    "note": "Layered per docs/architecture/废弃温室材质研究.md, dialled per docs/architecture/废墟风化分层策略.md tier 1: the pattern belongs to the module, the position-driven amount is tier 2 in the shader."
+  }
+}

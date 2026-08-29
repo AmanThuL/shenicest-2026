@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: a08ae22f6fdf24ee896a19af33e6d7cb, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 2
   m_flagId: flow.entered_greenhouse
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
@@ -614,7 +614,7 @@ MonoBehaviour:
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_playsOnce: 1
   m_audioChannel: {fileID: 0}
-  m_dialogueChannel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_dialogueChannel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_steps:
   - m_kind: 4
     m_delay: 1.5
@@ -678,7 +678,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: 419d3966b42c0465dba14b9736ce9e6d, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 3
   m_flagId: 
   m_flagRaised: {fileID: 0}
@@ -699,7 +699,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -814,7 +814,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: 4a8ea4c3851ac46818b235bb7636f12a, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 3
   m_flagId: 
   m_flagRaised: {fileID: 0}
@@ -835,7 +835,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -887,7 +887,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: 3fe02b6aa3a2745bb8dc9f44f98f21e4, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 3
   m_flagId: 
   m_flagRaised: {fileID: 0}
@@ -908,7 +908,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1069,7 +1069,7 @@ MonoBehaviour:
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_playsOnce: 1
   m_audioChannel: {fileID: 0}
-  m_dialogueChannel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_dialogueChannel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_steps:
   - m_kind: 4
     m_delay: 1.5
@@ -1133,7 +1133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
   m_conversation: {fileID: 11400000, guid: 655cc3b3ee3fd4106a88c0be813f091b, type: 2}
-  m_channel: {fileID: 11400000, guid: 635110e6a5e26414bb923f09bf067cbb, type: 2}
+  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
   m_playOn: 3
   m_flagId: 
   m_flagRaised: {fileID: 0}
@@ -1154,7 +1154,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
