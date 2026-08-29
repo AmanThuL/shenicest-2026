@@ -36,11 +36,16 @@ namespace RootsDance.EditorTools
         private const string k_BuildingName = "GreenHouse1_Textured";
         private const string k_ObjectName = "GreenhouseSpiralStair";
 
-        private const string k_EnvironmentScene =
-            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity";
-
-        private const string k_PartScene =
-            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment_2.unity";
+        /// <summary>
+        /// Every scene that carries a copy of the greenhouse. The building is placed once per
+        /// level (the interior level and the overworld each hold their own instance, at their own
+        /// scale), so the stair has to be placed once per level too.
+        /// </summary>
+        private static readonly string[] k_BatchScenes =
+        {
+            "Assets/RootsDance/Scenes/Levels/GreenhouseInterior/GreenhouseInterior_Environment.unity",
+            "Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity",
+        };
 
         /// <summary>
         /// Landmark objects inside the building, with the bounding-box centre each one has in the
@@ -74,29 +79,63 @@ namespace RootsDance.EditorTools
         private const float k_ScaleTolerance = 0.02f;
 
         /// <summary>
-        /// Batch entry point: opens the two interior scenes, places the stair and saves. The menu
-        /// version deliberately leaves saving alone, but a headless run has nobody to press save.
+        /// How far the fitted stair box may differ in shape from the mapped source box before the
+        /// placement is refused. Past this the mesh is not the object the source box was measured
+        /// on, and no single scale will make it fit.
+        /// </summary>
+        private const float k_ShapeRefuseTolerance = 0.25f;
+
+        /// <summary>
+        /// Batch entry point: opens each scene holding the greenhouse in turn, places the stair
+        /// and saves. The menu version deliberately leaves saving alone, but a headless run has
+        /// nobody to press save. Exits non-zero if any scene fails, so a batch run cannot report
+        /// success after quietly placing nothing.
         /// </summary>
         public static void PlaceBatch()
         {
-            Scene environment = EditorSceneManager.OpenScene(k_EnvironmentScene, OpenSceneMode.Single);
-            EditorSceneManager.OpenScene(k_PartScene, OpenSceneMode.Additive);
-            Place();
-            EditorSceneManager.SaveScene(environment);
-            Debug.Log("GreenhouseSpiralStairBuilder: batch placement saved.");
+            int failed = 0;
+
+            for (int i = 0; i < k_BatchScenes.Length; i++)
+            {
+                Scene scene = EditorSceneManager.OpenScene(k_BatchScenes[i], OpenSceneMode.Single);
+
+                if (TryPlace())
+                {
+                    EditorSceneManager.SaveScene(scene);
+                    Debug.Log($"GreenhouseSpiralStairBuilder: saved '{k_BatchScenes[i]}'.");
+                }
+                else
+                {
+                    failed++;
+                }
+            }
+
+            Debug.Log($"GreenhouseSpiralStairBuilder: batch placement finished, {failed} failed of "
+                + $"{k_BatchScenes.Length}.");
+
+            // Exit here rather than leaving it to -quit: batch mode otherwise spends five
+            // minutes waiting on the overworld scene's async imports before it gives up.
+            EditorApplication.Exit(failed > 0 ? 1 : 0);
         }
 
         [MenuItem("RootsDance/Place Greenhouse Spiral Stair")]
         public static void Place()
+        {
+            TryPlace();
+        }
+
+        /// <summary>Places the stair in whichever loaded scene holds the greenhouse.</summary>
+        /// <returns>True when the stair was placed; false after any logged error.</returns>
+        public static bool TryPlace()
         {
             GameObject building = FindBuilding();
 
             if (building == null)
             {
                 Debug.LogError($"GreenhouseSpiralStairBuilder: no '{k_BuildingName}' in any loaded "
-                    + "scene. Open GreenhouseInterior_Environment (plus the part scene you want "
-                    + "the stair in) and run this again.");
-                return;
+                    + "scene. Open a scene that holds the greenhouse — GreenhouseInterior_Environment "
+                    + "or Main_Environment — and run this again.");
+                return false;
             }
 
             Vector3[] landmarks = new Vector3[k_LandmarkNames.Length];
@@ -110,7 +149,7 @@ namespace RootsDance.EditorTools
                     Debug.LogError($"GreenhouseSpiralStairBuilder: landmark '{k_LandmarkNames[i]}' "
                         + $"not found under '{building.name}', or it has no renderer. The building "
                         + "export changed shape; re-measure the landmarks before trusting this tool.");
-                    return;
+                    return false;
                 }
 
                 landmarks[i] = bounds.center;
@@ -135,7 +174,7 @@ namespace RootsDance.EditorTools
                 Debug.LogError("GreenhouseSpiralStairBuilder: the building is scaled non-uniformly "
                     + $"({axisX.magnitude:F4} / {axisY.magnitude:F4} / {axisZ.magnitude:F4} per "
                     + "source metre). Refusing to place the stair rather than squashing it.");
-                return;
+                return false;
             }
 
             Vector3 sourceCentre = (k_StairSourceMin + k_StairSourceMax) * 0.5f;
@@ -148,25 +187,58 @@ namespace RootsDance.EditorTools
 
             if (stair == null)
             {
-                return;
+                return false;
             }
 
             // The stair FBX went through the same exporter as the building, so identity rotation
-            // against the building's own rotation already aligns their axes; only the scale and
-            // the offset are unknown, and both were just measured.
-            stair.transform.rotation = building.transform.rotation;
-            SetWorldScale(stair.transform, scale);
+            // against the building's own rotation already aligns their axes. The scale does not
+            // carry over though: the pipeline exports each module on its own, and this one arrives
+            // roughly a hundredth of the building's metre. So measure the stair's own box while it
+            // is unrotated and unscaled, and fit that box onto the mapped one. Comparing the box
+            // diagonals rather than the axes keeps the fit independent of how the exporter
+            // permuted X, Y and Z.
+            stair.transform.rotation = Quaternion.identity;
+            SetWorldScale(stair.transform, 1f);
 
-            if (!TryWorldBounds(stair, out Bounds placed))
+            if (!TryWorldBounds(stair, out Bounds raw) || raw.size.magnitude <= Mathf.Epsilon)
             {
                 Debug.LogError("GreenhouseSpiralStairBuilder: the instantiated stair has no "
-                    + "renderer; the mesh import is broken.");
-                return;
+                    + "renderer, or no size at all; the mesh import is broken.");
+                return false;
             }
+
+            Vector3 mapped = (k_StairSourceMax - k_StairSourceMin) * scale;
+            float fit = mapped.magnitude / raw.size.magnitude;
+
+            float shapeError = BoxMismatch(raw.size * fit, mapped);
+
+            if (shapeError > k_ShapeRefuseTolerance)
+            {
+                Debug.LogError($"GreenhouseSpiralStairBuilder: the stair mesh is {raw.size * fit} "
+                    + $"once fitted, against the mapped {mapped} — {shapeError:P0} off. That is a "
+                    + "different shape, not a different scale; the export or the measured source "
+                    + "box is stale. Refusing to place it.");
+                return false;
+            }
+
+            if (shapeError > k_ScaleTolerance)
+            {
+                Debug.LogWarning($"GreenhouseSpiralStairBuilder: the fitted stair box "
+                    + $"{raw.size * fit} is {shapeError:P0} off the mapped {mapped}. Placing it "
+                    + "anyway, but the export and the measured source box have drifted apart.");
+            }
+
+            // Where the box centre sits relative to the pivot, in the stair's own space: the
+            // pipeline re-origins every module, so the pivot is not the centre, and once the stair
+            // is rotated its world bounding box no longer centres on the mesh's own centre either.
+            Vector3 centreOffset = raw.center - stair.transform.position;
+            SetWorldScale(stair.transform, fit);
+            centreOffset *= fit;
+            stair.transform.rotation = building.transform.rotation;
 
             // Land the box rather than the pivot: asset_prepare re-origins every module, so where
             // the pivot sits inside the mesh is the pipeline's business, not this tool's.
-            stair.transform.position += targetCentre - placed.center;
+            stair.transform.position = targetCentre - stair.transform.rotation * centreOffset;
 
             MeshCollider meshCollider = stair.GetComponentInChildren<MeshCollider>();
 
@@ -189,12 +261,12 @@ namespace RootsDance.EditorTools
             EditorSceneManager.MarkSceneDirty(stair.scene);
             Selection.activeGameObject = stair;
 
-            TryWorldBounds(stair, out placed);
-            Vector3 expected = (k_StairSourceMax - k_StairSourceMin) * scale;
             Debug.Log($"GreenhouseSpiralStairBuilder: placed '{k_ObjectName}' in "
                 + $"'{stair.scene.name}' at {stair.transform.position}, {scale:F4} world units per "
-                + $"source metre. Bounds {placed.size} against the mapped {expected} — save the "
-                + "scene to keep it.", stair);
+                + $"source metre, stair mesh fitted at {fit:F4}. Box {raw.size * fit} against the "
+                + $"mapped {mapped}.", stair);
+
+            return true;
         }
 
         private static GameObject FindBuilding()
@@ -247,6 +319,30 @@ namespace RootsDance.EditorTools
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// How far two axis-aligned box sizes disagree, as a fraction of the second one's largest
+        /// disagreeing side. The FBX exporter is free to reorder the axes, so the sides are
+        /// compared as a sorted set rather than one by one.
+        /// </summary>
+        private static float BoxMismatch(Vector3 a, Vector3 b)
+        {
+            float[] left = { a.x, a.y, a.z };
+            float[] right = { b.x, b.y, b.z };
+            System.Array.Sort(left);
+            System.Array.Sort(right);
+            float worst = 0f;
+
+            for (int i = 0; i < left.Length; i++)
+            {
+                if (right[i] > Mathf.Epsilon)
+                {
+                    worst = Mathf.Max(worst, Mathf.Abs(left[i] - right[i]) / right[i]);
+                }
+            }
+
+            return worst;
         }
 
         private static bool TryWorldBounds(GameObject go, out Bounds bounds)
