@@ -462,19 +462,19 @@ namespace RootsDance.Editor.Content
                 WorldFlags.k_EnteredGreenhouse);
 
             // Grey-box interactables: statue at the north centre, photograph east of the statue,
-            // console south of it — all placeholders for props.
-            Transform statue = EnsureChild(root, "GaiaStatue");
-            statue.position = new Vector3(0f, 1.4f, 6f);
+            // console south of it — all placeholders for props. The default position is only ever
+            // applied to a freshly created object: once art or a level designer has moved one onto
+            // the built geometry (the statue plinth, the console's landing atop the spiral stair),
+            // re-running this generator must not silently snap it back down to the grey-box guess.
+            Transform statue = EnsureChildAt(root, "GaiaStatue", new Vector3(0f, 1.4f, 6f));
             ConfigureInteractTrigger(statue.gameObject, "DLG-006_SheUsedToMove",
                 new Vector3(1.4f, 2.4f, 1.4f), "端详雕像");
 
-            Transform photo = EnsureChild(root, "StaffPhotograph");
-            photo.position = new Vector3(4f, 1.5f, 6.5f);
+            Transform photo = EnsureChildAt(root, "StaffPhotograph", new Vector3(4f, 1.5f, 6.5f));
             ConfigureInteractTrigger(photo.gameObject, "DLG-007_StaffPhotograph",
                 new Vector3(1.6f, 1.1f, 0.4f), "查看合照");
 
-            Transform console = EnsureChild(root, "CirculationConsole");
-            console.position = new Vector3(0f, 1.2f, 2.5f);
+            Transform console = EnsureChildAt(root, "CirculationConsole", new Vector3(0f, 1.2f, 2.5f));
             ConfigureInteractTrigger(console.gameObject, "DLG-008_CirculationConsole",
                 new Vector3(1.4f, 1.4f, 0.9f), "查看终端");
 
@@ -707,6 +707,23 @@ namespace RootsDance.Editor.Content
             GameObject child = new GameObject(name);
             child.transform.SetParent(parent, false);
             return child.transform;
+        }
+
+        /// <summary>
+        /// <see cref="EnsureChild"/>, but the position is a default for a new object only — an
+        /// existing one keeps wherever it has since been moved to.
+        /// </summary>
+        private static Transform EnsureChildAt(Transform parent, string name, Vector3 defaultPosition)
+        {
+            bool isNew = parent.Find(name) == null;
+            Transform child = EnsureChild(parent, name);
+
+            if (isNew)
+            {
+                child.position = defaultPosition;
+            }
+
+            return child;
         }
 
         /// <summary>The first component of this type anywhere in the scene, inactive ones included.</summary>
