@@ -52,6 +52,28 @@ namespace RootsDance.Editor.Content
         private const string k_AudioFolder = "Assets/RootsDance/Data/Audio";
         private const string k_VoiceCuePath = "Assets/RootsDance/Data/Audio/VOX_Dialogue.asset";
 
+        private const string k_GreenhouseCheckpointFolder = "Assets/RootsDance/Data/DevPlay/GreenhouseInterior";
+        private const string k_GreenhouseLevelPath = "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
+        private const string k_ConsoleCheckpointAnchorName = "Checkpoint_CirculationConsole";
+
+        // The same ground the player has covered by 03-04_MonsterChase (see
+        // MonsterChaseSetupBuilder), minus the console flags — this checkpoint's whole point is to
+        // stand in front of the console with none of the three cycles picked yet.
+        private static readonly string[] k_ConsoleCheckpointFlags =
+        {
+            WorldFlags.k_LeftStartArea,
+            WorldFlags.k_RadioBriefingStarted,
+            WorldFlags.k_RadioBriefingFinished,
+            WorldFlags.k_HelmetRemovable,
+            WorldFlags.k_HelmetRemoved,
+            WorldFlags.k_EnteredGrassBelt,
+            WorldFlags.k_FirstInvestigationDone,
+            WorldFlags.k_SawUndergroundNetwork,
+            WorldFlags.k_MetFlowerSprite,
+            WorldFlags.k_HeardAboutHer,
+            WorldFlags.k_EnteredGreenhouse,
+        };
+
         [MenuItem("RootsDance/Content/Wire Narrative Runtime")]
         public static void ApplyFromMenu()
         {
@@ -480,6 +502,11 @@ namespace RootsDance.Editor.Content
             ConfigureInteractTrigger(console.gameObject, "DLG-008_CirculationConsole",
                 new Vector3(1.4f, 1.4f, 0.9f), "查看终端");
 
+            // Standing room a step short of the console's own position, facing it — 03-04's chase
+            // skip already exists for testing the wrong-cycle outburst directly; this one is for
+            // testing the choice itself, so nothing about the three cycles can already be decided.
+            EnsureConsoleCheckpoint(scene, console.position);
+
             // Either wrong cycle: the breath bed and the outburst start together, over the start of
             // the chase rather than before it — the dialogue step does not wait, and the chase flag
             // follows one breath later.
@@ -563,6 +590,50 @@ namespace RootsDance.Editor.Content
 
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
+        }
+
+        /// <summary>
+        /// Dev Play checkpoint 03-03: arrived at the console, nothing picked yet. Placed a step back
+        /// from it on the approach side (the entrance is south, at negative Z) so the player still
+        /// has to walk up and press interact rather than spawning on top of the trigger.
+        /// </summary>
+        private static void EnsureConsoleCheckpoint(Scene scene, Vector3 consolePosition)
+        {
+            Transform anchors = EnsureRoot(scene, "_Anchors");
+            Transform anchor = EnsureChild(anchors, k_ConsoleCheckpointAnchorName);
+            anchor.SetPositionAndRotation(
+                consolePosition + new Vector3(0f, -0.15f, -1.5f), Quaternion.identity);
+
+            string assetPath = k_GreenhouseCheckpointFolder + "/03-03_CirculationConsole.asset";
+            DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(assetPath);
+            bool isNew = checkpoint == null;
+
+            if (isNew)
+            {
+                checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+            }
+
+            checkpoint.Configure(
+                "03-03 Circulation console",
+                LoadRequired<LevelSO>(k_GreenhouseLevelPath),
+                k_ConsoleCheckpointAnchorName,
+                anchor.position,
+                yaw: 0f,
+                CheckpointTimeOfDay.LevelDefault,
+                k_ConsoleCheckpointFlags,
+                new RootsDance.Investigation.InvestigationTargetSO[0],
+                snapToGround: false);
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(checkpoint, assetPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(checkpoint);
+            }
+
+            AssetDatabase.SaveAssetIfDirty(checkpoint);
         }
 
         // ---- Trigger configuration -------------------------------------------------------------

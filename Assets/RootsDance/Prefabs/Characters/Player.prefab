@@ -1800,7 +1800,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsDebugConsole
   m_director: {fileID: 6881924305928856330}
   m_actions: {fileID: 11400000, guid: fb7b76d35c7074739b827d38ed65815b, type: 2}
-  m_showOverlay: 1
+  m_showOverlay: 0
   m_toggleKey: 94
   m_extraRows:
   - m_key: J

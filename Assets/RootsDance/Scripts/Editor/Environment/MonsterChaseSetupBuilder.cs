@@ -137,7 +137,7 @@ namespace RootsDance.Editor.Environment
             }
 
             Debug.Log("MonsterChaseSetupBuilder: wired the greenhouse leg, the forest leg and the "
-                + "03-03 checkpoint. Play it from RootsDance > Dev Play > Window.");
+                + "03-04 checkpoint. Play it from RootsDance > Dev Play > Window.");
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace RootsDance.Editor.Environment
 
             using (SerializedObject serialized = new SerializedObject(checkpoint))
             {
-                serialized.FindProperty("m_label").stringValue = "03-03 Monster Chase";
+                serialized.FindProperty("m_label").stringValue = "03-04 Monster Chase";
                 serialized.FindProperty("m_level").objectReferenceValue =
                     LoadRequired<UnityEngine.Object>(k_GreenhouseLevelPath);
                 serialized.FindProperty("m_anchorName").stringValue = k_ChaseStartAnchorName;
