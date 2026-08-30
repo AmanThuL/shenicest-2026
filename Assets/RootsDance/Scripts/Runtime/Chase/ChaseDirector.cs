@@ -43,6 +43,9 @@ namespace RootsDance.Chase
         [Tooltip("The Player root: pursuit target, and what gets moved on a resume.")]
         [SerializeField] private Transform m_player;
 
+        [Tooltip("The original flower sprite. Hidden when its mutated chase form takes over.")]
+        [SerializeField] private GameObject m_hideWhenChasing;
+
         [Tooltip("Chase-only objects — the exit portal, the victory volume — switched on when the "
             + "chase starts. Keep them inactive in the scene so normal play never touches them.")]
         [SerializeField] private GameObject[] m_armWhenChasing = new GameObject[0];
@@ -128,7 +131,16 @@ namespace RootsDance.Chase
         {
             if (flagId == WorldFlags.k_ChaseStarted)
             {
-                StartChase();
+                if (m_resumeSpawn != null)
+                {
+                    MovePlayerTo(m_resumeSpawn);
+                    m_resumeChecked = true;
+                    StartChase(skipBirth: true);
+                }
+                else
+                {
+                    StartChase();
+                }
             }
 
             if (flagId == WorldFlags.k_ChaseEscaped)
@@ -155,6 +167,11 @@ namespace RootsDance.Chase
             }
 
             m_isChasing = true;
+
+            if (m_hideWhenChasing != null)
+            {
+                m_hideWhenChasing.SetActive(false);
+            }
 
             for (int i = 0; i < m_armWhenChasing.Length; i++)
             {

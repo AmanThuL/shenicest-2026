@@ -73,7 +73,9 @@ Verified in Unity 6000.3.22f1 on 2026-08-30:
 - Live Editor Play checks passed: the actual Ctrl+Shift+D action, modal pause/audio and cancellation restoration,
   chase checkpoint catch-up, backward reset clearing later flags, same-checkpoint reload, cross-level reload,
   reopening after travel, and two-click confirmation restoring a locked hidden cursor and unpaused gameplay.
-- The installed catalog contains 17 checkpoints and passes validation against the enabled build scene list.
+- After integrating the outdoor pursuit update from `origin/develop`, the catalog contains 18 checkpoints and passes
+  validation against the enabled build scene list. Helmet catch-up retains both the removal hint and immediate
+  already-removed presentation. Post-merge compilation, 36 rescue tests and 6 chase-setup tests passed.
   No standalone player was exported in this task; the ordinary non-Development player path still needs a build smoke test.
 
 The Editor Dev Play window remains an additive teleport/seed tool. Its **Go here** does not clear flags; this rescue

@@ -137,11 +137,14 @@ namespace RootsDance.Player
             }
 
             m_checkedInitialState = true;
-            m_isRemoved = state.HasFlag(WorldFlags.k_HelmetRemoved);
-            m_isUnlocked = m_isRemoved || state.HasFlag(m_unlockFlag);
+            m_isUnlocked = state.HasFlag(m_unlockFlag);
 
             // A snapshot is already-completed history, not another removal performance or notice.
-            if (m_isUnlocked && !m_isRemoved)
+            if (state.HasFlag(WorldFlags.k_HelmetRemoved))
+            {
+                SetRemovedImmediately();
+            }
+            else if (m_isUnlocked)
             {
                 Raise(m_hintRequested, m_hintText);
             }
@@ -184,6 +187,12 @@ namespace RootsDance.Player
 
         private void OnFlagRaised(string flagId)
         {
+            if (flagId == WorldFlags.k_HelmetRemoved)
+            {
+                SetRemovedImmediately();
+                return;
+            }
+
             if (m_isUnlocked || flagId != m_unlockFlag)
             {
                 return;
@@ -197,6 +206,22 @@ namespace RootsDance.Player
             // the player must be able to read what the game is waiting for at any moment, not only
             // in the seconds the subtitle was up.
             Raise(m_hintRequested, m_hintText);
+        }
+
+        private void SetRemovedImmediately()
+        {
+            if (m_isRemoved)
+            {
+                return;
+            }
+
+            m_isUnlocked = true;
+            m_isRemoving = false;
+            m_isRemoved = true;
+            m_view?.SetRemovedImmediately();
+            Raise(m_noticeRequested, string.Empty);
+            Raise(m_hintRequested, string.Empty);
+            Raise(m_warningRequested, string.Empty);
         }
 
         private void BeginRemove()

@@ -365,7 +365,36 @@ MonoBehaviour:
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_ChaseStart
     m_position: {x: 0, y: 1.05, z: 2}
-    m_yaw: 0
+    m_yaw: 180
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 1
+    m_timeOfDay: 1
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.saw_underground_network
+    - flow.met_flower_sprite
+    - flow.heard_about_her
+    - flow.entered_greenhouse
+    - flow.circulation_core
+    - flow.chase_started
+    m_recordedTargets: []
+  - m_id: 617a1a3a22a634616a4728279f630cef
+    m_label: 03-04 Outdoor Monster Chase
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: 
+    m_position: {x: 30, y: 8.9, z: 105}
+    m_yaw: 195
     m_snapToGround: 0
     m_groundLayers:
       serializedVersion: 2

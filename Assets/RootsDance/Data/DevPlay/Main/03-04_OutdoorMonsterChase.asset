@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a450933d1687d42d1b738ba6f1cbdeca, type: 3}
-  m_Name: 03-03_MonsterChase
+  m_Name: 03-04_OutdoorMonsterChase
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
-  m_label: 03-03 Monster Chase
-  m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
-  m_anchorName: Checkpoint_ChaseStart
-  m_position: {x: 0, y: 1.05, z: 2}
-  m_yaw: 180
+  m_label: 03-04 Outdoor Monster Chase
+  m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+  m_anchorName: 
+  m_position: {x: 30, y: 8.9, z: 105}
+  m_yaw: 195
   m_snapToGround: 0
   m_groundLayers:
     serializedVersion: 2

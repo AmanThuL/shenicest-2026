@@ -110,6 +110,25 @@ namespace RootsDance.Player.Arms
             RemoveStarted?.Invoke(action == null ? 0f : action.Duration);
         }
 
+        public void SetRemovedImmediately()
+        {
+            if (m_hasRemoved)
+            {
+                return;
+            }
+
+            m_isRemoving = false;
+            m_hasRemoved = true;
+
+            if (m_riggedHelmet != null)
+            {
+                m_riggedHelmet.enabled = false;
+            }
+
+            RemoveStarted?.Invoke(0f);
+            RemoveFinished?.Invoke();
+        }
+
         private void OnHandEvent(HandSide hand, HandEventKind kind)
         {
             if (!m_isRemoving || hand != HandSide.Right || kind != HandEventKind.Attach)

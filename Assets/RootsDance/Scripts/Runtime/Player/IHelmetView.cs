@@ -12,6 +12,9 @@ namespace RootsDance.Player
     {
         void PlayRemove();
 
+        /// <summary>Restores an already-removed checkpoint state without replaying the performance.</summary>
+        void SetRemovedImmediately();
+
         /// <summary>Raised when the removal performance begins, with its duration in seconds, so
         /// synchronised presentation (the visor HUD lifting away) can ride the same clock.</summary>
         event Action<float> RemoveStarted;
