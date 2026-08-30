@@ -52,25 +52,27 @@ namespace RootsDance.Tests.EditMode.DevPlay
         }
 
         [Test]
-        public void ResetForRescue_HeldKeypad_ReturnsToOriginSceneAndCancelsWork()
+        public void ResetForRescue_ZoomedKeypad_LeavesWallMountTransformUnchanged()
         {
             var keypad = m_prop.AddComponent<RuneKeypadInteractable>();
-            SetField(keypad, "m_originScene", m_originScene);
-            SetField(keypad, "m_originWorldPosition", new Vector3(2f, 3f, 4f));
-            SetField(keypad, "m_originWorldRotation", Quaternion.identity);
-            SetField(keypad, "m_originLocalScale", Vector3.one);
+            Vector3 position = new Vector3(2f, 3f, 4f);
+            Quaternion rotation = Quaternion.Euler(10f, 20f, 30f);
+            Vector3 scale = new Vector3(0.8f, 0.9f, 1.1f);
+            m_prop.transform.SetPositionAndRotation(position, rotation);
+            m_prop.transform.localScale = scale;
             SetState(keypad, "m_state", "Reading");
             var cancellation = new CancellationTokenSource();
             CancellationToken token = cancellation.Token;
             SetField(keypad, "m_inspectionCancellation", cancellation);
-            m_prop.transform.SetParent(m_cameraRoot.transform, true);
 
             keypad.ResetForRescue();
 
             Assert.IsTrue(token.IsCancellationRequested);
             Assert.AreEqual(m_originScene, m_prop.scene);
             Assert.IsNull(m_prop.transform.parent);
-            Assert.AreEqual(new Vector3(2f, 3f, 4f), m_prop.transform.position);
+            Assert.AreEqual(position, m_prop.transform.position);
+            Assert.That(Quaternion.Angle(rotation, m_prop.transform.rotation), Is.LessThan(0.001f));
+            Assert.AreEqual(scale, m_prop.transform.localScale);
             Assert.IsTrue(keypad.CanInteract);
             Assert.DoesNotThrow(keypad.ResetForRescue);
         }
