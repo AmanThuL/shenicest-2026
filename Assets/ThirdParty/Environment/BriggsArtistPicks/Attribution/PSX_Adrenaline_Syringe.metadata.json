@@ -1,0 +1,296 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "17d20ca7b35243d4a45171838b50704c",
+      "name": "Science & Technology",
+      "slug": "science-technology",
+      "uri": "https://api.sketchfab.com/v3/categories/17d20ca7b35243d4a45171838b50704c",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/86b1bae49e0ed3f43b2d59b26700234e-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/800x450.png"
+        }
+      ]
+    },
+    {
+      "uid": "3badf36bd9f549bdba295334d75e04d3",
+      "name": "Weapons & Military",
+      "slug": "weapons-military",
+      "uri": "https://api.sketchfab.com/v3/categories/3badf36bd9f549bdba295334d75e04d3",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/6f71af8dadcca706c7404c9a0f82c1a3-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/3badf36bd9f549bdba295334d75e04d3/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/3badf36bd9f549bdba295334d75e04d3/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 0,
+  "createdAt": "2026-05-26T14:09:51.426147",
+  "embedUrl": "https://sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/embed",
+  "faceCount": 172,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 75,
+  "name": "PSX Adrenaline Syringe",
+  "publishedAt": "2026-05-26T14:13:33.470291",
+  "soundCount": 0,
+  "staffpickedAt": null,
+  "tags": [
+    {
+      "name": "uv",
+      "slug": "uv",
+      "uri": "https://api.sketchfab.com/v3/tags/uv"
+    },
+    {
+      "name": "gaming",
+      "slug": "gaming",
+      "uri": "https://api.sketchfab.com/v3/tags/gaming"
+    },
+    {
+      "name": "indie",
+      "slug": "indie",
+      "uri": "https://api.sketchfab.com/v3/tags/indie"
+    },
+    {
+      "name": "prop",
+      "slug": "prop",
+      "uri": "https://api.sketchfab.com/v3/tags/prop"
+    },
+    {
+      "name": "vintage",
+      "slug": "vintage",
+      "uri": "https://api.sketchfab.com/v3/tags/vintage"
+    },
+    {
+      "name": "retro",
+      "slug": "retro",
+      "uri": "https://api.sketchfab.com/v3/tags/retro"
+    },
+    {
+      "name": "survival",
+      "slug": "survival",
+      "uri": "https://api.sketchfab.com/v3/tags/survival"
+    },
+    {
+      "name": "injector",
+      "slug": "injector",
+      "uri": "https://api.sketchfab.com/v3/tags/injector"
+    },
+    {
+      "name": "oldschool",
+      "slug": "oldschool",
+      "uri": "https://api.sketchfab.com/v3/tags/oldschool"
+    },
+    {
+      "name": "psx",
+      "slug": "psx",
+      "uri": "https://api.sketchfab.com/v3/tags/psx"
+    },
+    {
+      "name": "ps1",
+      "slug": "ps1",
+      "uri": "https://api.sketchfab.com/v3/tags/ps1"
+    },
+    {
+      "name": "syringe",
+      "slug": "syringe",
+      "uri": "https://api.sketchfab.com/v3/tags/syringe"
+    },
+    {
+      "name": "mapped",
+      "slug": "mapped",
+      "uri": "https://api.sketchfab.com/v3/tags/mapped"
+    },
+    {
+      "name": "aesthetic",
+      "slug": "aesthetic",
+      "uri": "https://api.sketchfab.com/v3/tags/aesthetic"
+    },
+    {
+      "name": "adrenaline",
+      "slug": "adrenaline",
+      "uri": "https://api.sketchfab.com/v3/tags/adrenaline"
+    },
+    {
+      "name": "asset",
+      "slug": "asset",
+      "uri": "https://api.sketchfab.com/v3/tags/asset"
+    },
+    {
+      "name": "game",
+      "slug": "game",
+      "uri": "https://api.sketchfab.com/v3/tags/game"
+    },
+    {
+      "name": "3d",
+      "slug": "3d",
+      "uri": "https://api.sketchfab.com/v3/tags/3d"
+    },
+    {
+      "name": "texture",
+      "slug": "texture",
+      "uri": "https://api.sketchfab.com/v3/tags/texture"
+    },
+    {
+      "name": "lowpoly",
+      "slug": "lowpoly",
+      "uri": "https://api.sketchfab.com/v3/tags/lowpoly"
+    },
+    {
+      "name": "low",
+      "slug": "low",
+      "uri": "https://api.sketchfab.com/v3/tags/low"
+    },
+    {
+      "name": "poly",
+      "slug": "poly",
+      "uri": "https://api.sketchfab.com/v3/tags/poly"
+    },
+    {
+      "name": "model",
+      "slug": "model",
+      "uri": "https://api.sketchfab.com/v3/tags/model"
+    },
+    {
+      "name": "free",
+      "slug": "free",
+      "uri": "https://api.sketchfab.com/v3/tags/free"
+    },
+    {
+      "name": "stylized",
+      "slug": "stylized",
+      "uri": "https://api.sketchfab.com/v3/tags/stylized"
+    },
+    {
+      "name": "medical",
+      "slug": "medical",
+      "uri": "https://api.sketchfab.com/v3/tags/medical"
+    },
+    {
+      "name": "horror",
+      "slug": "horror",
+      "uri": "https://api.sketchfab.com/v3/tags/horror"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "afdabd2002174bc19cb7a64acc2a967d",
+        "width": 1920,
+        "height": 1080,
+        "size": 674023,
+        "url": "https://media.sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/thumbnails/f43c2b4543324470b3b2ce8173cdeda7/a9f92a22543944c4a67509876f6ee203.jpeg"
+      },
+      {
+        "uid": "f45bdb7c97c44dbdb435cb10982d43a1",
+        "width": 1024,
+        "height": 576,
+        "size": 84008,
+        "url": "https://media.sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/thumbnails/f43c2b4543324470b3b2ce8173cdeda7/c00d2bad6dba4b10ba06b09121eeb757.jpeg"
+      },
+      {
+        "uid": "790793dcf02c483e9d2858195e407866",
+        "width": 720,
+        "height": 405,
+        "size": 33865,
+        "url": "https://media.sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/thumbnails/f43c2b4543324470b3b2ce8173cdeda7/c5cd5b2ab5d64595ba9065a22943ecbc.jpeg"
+      },
+      {
+        "uid": "4992045838c34e48bc466f91aa10f93e",
+        "width": 256,
+        "height": 144,
+        "size": 3340,
+        "url": "https://media.sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/thumbnails/f43c2b4543324470b3b2ce8173cdeda7/5f652cc83fb842a8bd98498ba3027fce.jpeg"
+      },
+      {
+        "uid": "712de9b6c4d340678fd5d36f67586cab",
+        "width": 64,
+        "height": 36,
+        "size": 980,
+        "url": "https://media.sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/thumbnails/f43c2b4543324470b3b2ce8173cdeda7/692cd3ac40234ee09318280d537f407d.jpeg"
+      }
+    ]
+  },
+  "uid": "97547a325dfc499cb3ffbb8abaa17c2a",
+  "uri": "https://api.sketchfab.com/v3/models/97547a325dfc499cb3ffbb8abaa17c2a",
+  "user": {
+    "uid": "7a7036afeab142ca9908c461fa76abd4",
+    "username": "ZwiebelGames",
+    "displayName": "ZwiebelGames",
+    "account": "basic",
+    "profileUrl": "https://sketchfab.com/ZwiebelGames",
+    "avatar": {
+      "uid": "5c454cdda8454ebf8d423fa0e91dace3",
+      "uri": "https://api.sketchfab.com/v3/avatars/5c454cdda8454ebf8d423fa0e91dace3",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 719,
+          "url": "https://media.sketchfab.com/avatars/5c454cdda8454ebf8d423fa0e91dace3/0432a8f1691a48f79888c9945bb322d7.png"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 1211,
+          "url": "https://media.sketchfab.com/avatars/5c454cdda8454ebf8d423fa0e91dace3/7444738b1c354aac98157909fc7feef8.png"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 3106,
+          "url": "https://media.sketchfab.com/avatars/5c454cdda8454ebf8d423fa0e91dace3/f59ad223129c4ff7812a77e5806af74e.png"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 3581,
+          "url": "https://media.sketchfab.com/avatars/5c454cdda8454ebf8d423fa0e91dace3/9cf1596ed15d4cbabf7f73e53af1d24b.png"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/7a7036afeab142ca9908c461fa76abd4"
+  },
+  "vertexCount": 102,
+  "viewCount": 2248,
+  "viewerUrl": "https://sketchfab.com/3d-models/psx-adrenaline-syringe-97547a325dfc499cb3ffbb8abaa17c2a",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "PSX-style lowpoly adrenaline syringe asset inspired by retro horror and old-school survival games.\nIncludes UV-mapped textures and optimized geometry for easy use in indie projects, horror games, and stylized environments.\n\nFeatures:\n• PSX aesthetic\n• Lowpoly model\n• Game-ready asset\n• Custom UV texture\n• Free to use\n\nPerfect for retro horror, liminal spaces, survival games, and atmospheric projects.",
+  "price": null,
+  "downloadCount": 456,
+  "editorUrl": "https://sketchfab.com/models/97547a325dfc499cb3ffbb8abaa17c2a/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2026-08-17T15:47:12.005023",
+  "pbrType": null,
+  "textureCount": 1,
+  "materialCount": 2
+}

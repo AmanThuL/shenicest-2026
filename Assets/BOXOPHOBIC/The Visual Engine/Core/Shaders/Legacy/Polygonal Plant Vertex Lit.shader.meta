@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 8b2d63fce68941540bb52625d2ab0f31
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Polygonal Plant
+    Vertex Lit.shader
+  uploadId: 974988

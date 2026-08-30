@@ -1,0 +1,29 @@
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+#ROOTNAMESPACEBEGIN#
+[CreateAssetMenu(fileName = "#SCRIPTNAME#", menuName = "SheNicest/Content/#SCRIPTNAME#")]
+[TypeInfoBox("What this content asset is for. IDs follow PREFIX-000.")]
+public class #SCRIPTNAME# : ScriptableObject
+{
+    // Add [ValidateInput("IsValidId", "Use the form FL-001.")] backed by SheNicest.Data.ContentId (guideline 12).
+    [SerializeField, TitleGroup("Basic Info"), Required]
+    private string m_id;
+
+    [SerializeField, TitleGroup("Basic Info"), Required]
+    private string m_displayName;
+
+    [SerializeField, TitleGroup("Interaction")]
+    private bool m_canObserve = true;
+
+    [SerializeField, TitleGroup("Conditions"), AssetsOnly]
+    private ScriptableObject m_requiredAsset;
+
+    [SerializeField, TitleGroup("Result"), Required, AssetsOnly]
+    private ScriptableObject m_resultAsset;
+
+    public string Id => m_id;
+    public string DisplayName => m_displayName;
+    public bool CanObserve => m_canObserve;
+}
+#ROOTNAMESPACEEND#

@@ -1,8 +1,8 @@
 # 03. Architecture and design patterns
 
 > **Scope:** How gameplay code is structured — which Unity type to use for what, SOLID applied to components, the ScriptableObject-based architecture (config, event channels, runtime sets, enum assets, pluggable behaviour), the approved patterns (observer, state, command, factory, object pool, MVP) and the one tolerated singleton, dependency wiring without a DI framework, and dependency direction between assemblies and namespaces.
-> **Applies to:** all runtime C# under `Assets/SheNicest/Scripts/Runtime` (assembly `SheNicest.Runtime`) and the tests/editor code that references it.
-> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
+> **Applies to:** all runtime C# under `Assets/RootsDance/Scripts/Runtime` (assembly `RootsDance.Runtime`) and the tests/editor code that references it.
+> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
 Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder layout by [02 Project structure](./02-project-structure.md); lifecycle semantics (`Awake`/`Start`/`OnEnable` ordering, null checks on Unity objects) by [04 Unity scripting rules](./04-unity-scripting-rules.md); measurements and profiling by [05 Performance](./05-performance.md). This document only decides *where code lives and how pieces talk to each other*.
 
@@ -11,7 +11,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder l
 1. **MUST** pick the type by role: **MonoBehaviour** for behaviour that lives in a scene and needs Unity callbacks; **ScriptableObject** for shared read-only config, enum-like assets, event channels, runtime sets and pluggable behaviour; **plain C# class** for logic with no Unity lifecycle (state machines, commands, models) so it can be EditMode-tested.
 2. **MUST** give each component one responsibility. A `PlayerController` facade may coordinate `PlayerInputReader`, `PlayerMovement`, `PlayerAudio`; it does not implement them. Split any class that passes ~300 lines.
 3. **MUST** wire dependencies with `[SerializeField]` references, `[RequireComponent]` + `GetComponent` in `Awake`, or constructor parameters for plain C# classes. **NEVER** call `FindFirstObjectByType`/`GameObject.Find` from gameplay code (unavoidable lookups in bootstrap, tests and editor tooling follow [04](./04-unity-scripting-rules.md#finding-objects-and-accessing-components)). No DI framework.
-4. **MUST** communicate *across* features only through abstractions: an interface in `SheNicest.Core`, a ScriptableObject event channel (`SheNicest.Events`) or a data asset (`SheNicest.Data`). A feature namespace never references another feature's concrete types.
+4. **MUST** communicate *across* features only through abstractions: an interface in `RootsDance.Core`, a ScriptableObject event channel (`RootsDance.Events`) or a data asset (`RootsDance.Data`). A feature namespace never references another feature's concrete types.
 5. **MUST** use ScriptableObject **event channels** for cross-system messages, plain C# `event`s for intra-feature notifications, and `UnityEvent` only for designer-wired responses on a prefab.
 6. **MUST** subscribe in `OnEnable` and unsubscribe in `OnDisable` (same pairs, same method group). Every `+=` has a matching `-=`.
 7. **NEVER** add a singleton. The single tolerated static access point is `GameBootstrap` in the bootstrap scene, listed in this document; everything else uses references, channels or runtime sets.
@@ -19,9 +19,9 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); folder l
 9. **MUST** use `UnityEngine.Pool.ObjectPool<T>` for anything spawned and destroyed repeatedly (projectiles, hit VFX, pickups). No hand-rolled pools.
 10. **SHOULD** use the state pattern (`IState` + `StateMachine`) for actors and game flow once there are three or more states; an enum + `switch` is acceptable below that.
 11. **SHOULD** use command objects only when actions need undo, replay or queuing; use a factory only when there is a real variety of products — otherwise `Instantiate` the prefab directly.
-12. **MUST** keep UI logic in presenter MonoBehaviours (MVP): UXML/USS is the view, the model is a plain C# object or ScriptableObject, and gameplay code never queries UI elements. Runtime data binding **MAY** replace presenter boilerplate for read-only displays.
+12. **MUST** keep UI logic in presenter MonoBehaviours (MVP): the uGUI screen prefab is the view, the model is a plain C# object or ScriptableObject, and gameplay code never touches UI components. Presenters reach widgets through serialized references only.
 13. **SHOULD** prefer composition and interfaces over inheritance. A MonoBehaviour hierarchy is at most one abstract base deep; interfaces add capabilities.
-14. **MUST** keep assembly dependencies one-directional: Tests.EditMode → Editor → Runtime, Tests.PlayMode → Runtime; `SheNicest.Runtime` references no project assembly (canonical asmdef JSON in [02](./02-project-structure.md)). Unity rejects cycles.
+14. **MUST** keep assembly dependencies one-directional: Tests.EditMode → Editor → Runtime, Tests.PlayMode → Runtime; `RootsDance.Runtime` references no project assembly (canonical asmdef JSON in [02](./02-project-structure.md)). Unity rejects cycles.
 15. **SHOULD** apply KISS: a pattern earns its place only when the problem it solves is already present. Do not pre-build factories, command buffers or hierarchical state machines for a hackathon feature that does not need them.
 
 ## Choosing the type: MonoBehaviour, ScriptableObject or plain C#
@@ -50,7 +50,7 @@ Rules that follow from the table:
 
 ```csharp
 // ✅ Shared config as an asset, unique runtime state on the component.
-[CreateAssetMenu(fileName = "EnemyConfig", menuName = "SheNicest/Config/Enemy")]
+[CreateAssetMenu(fileName = "EnemyConfig", menuName = "RootsDance/Config/Enemy")]
 public class EnemyConfigSO : ScriptableObject
 {
     [SerializeField] private int m_maxHealth = 100;
@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
 // ❌ One component that reads input, moves the transform and plays SFX in OnTriggerEnter.
 ```
 
-Never name a class after its feature folder (`Player` in `SheNicest.Player`): from any other namespace the simple name resolves to the namespace and does not compile (see [02](./02-project-structure.md)). Likewise never reuse a Unity type name such as `PlayerInput` (the Input System component that [09](./09-packages-systems.md) bans) — hence `PlayerInputReader`.
+Never name a class after its feature folder (`Player` in `RootsDance.Player`): from any other namespace the simple name resolves to the namespace and does not compile (see [02](./02-project-structure.md)). Likewise never reuse a Unity type name such as `PlayerInput` (the Input System component that [09](./09-packages-systems.md) bans) — hence `PlayerInputReader`.
 
 ### Open–closed
 
@@ -184,13 +184,14 @@ public class Switch : MonoBehaviour
 
 ## ScriptableObject architecture
 
-Five patterns, all from Unity's ScriptableObject e-book. Where the code lives: event-channel classes in `Scripts/Runtime/Events/` (`SheNicest.Events`); ScriptableObject class definitions (config, enum assets, runtime sets, delegate-object bases) in `Scripts/Runtime/Data/` (`SheNicest.Data`), or in the feature folder that alone uses them; contracts (`IState`, `ICommand`, capability interfaces) in `SheNicest.Core`. SO *instances* go to `Assets/SheNicest/Data/<Type>/` (`Data/Events/`, `Data/Config/`, `Data/Levels/`…), one logical thing per asset — see [02 Project structure](./02-project-structure.md). **[project decision]**
+Five patterns, all from Unity's ScriptableObject e-book. Where the code lives: event-channel classes in `Scripts/Runtime/Events/` (`RootsDance.Events`); ScriptableObject class definitions (config, enum assets, runtime sets, delegate-object bases) in `Scripts/Runtime/Data/` (`RootsDance.Data`), or in the feature folder that alone uses them; contracts (`IState`, `ICommand`, capability interfaces) in `RootsDance.Core`. SO *instances* go to `Assets/RootsDance/Data/<Type>/` (`Data/Events/`, `Data/Config/`, `Data/Levels/`…), one logical thing per asset — see [02 Project structure](./02-project-structure.md). **[project decision]**
 
 ### Data containers (read-only config)
 
 Covered above. Additional rules:
 
 - **MUST** expose config through read-only properties over `[SerializeField] private` fields; use `[Range]`/`OnValidate` to keep designer input sane. *Source:* [SO e-book, "Code conventions in this guide", "Architectural benefits"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md).
+- **MUST** lay out designer-facing *content* assets (investigation objects, plants, puzzles, journal/report entries) with the Odin attributes and the five standard sections defined in [12 Odin Inspector](./12-odin-inspector.md) — the class shape here does not change; Odin only decorates the Inspector, never the serialization. **[project decision]**
 - **MUST NOT** mutate a shared config asset at runtime. In the Editor such changes survive exiting Play mode (the asset is not reset) and reach disk on the next save, so they surface as stale state in the next Play session and as modified `.asset` files in Git; in a build they are lost anyway. If an object needs its own mutable copy of SO data, create it with `Instantiate(asset)` or `ScriptableObject.CreateInstance<T>()` and treat the asset as a template. *Source:* [SO e-book, "Modifying ScriptableObject data", "ScriptableObject data versus persistent data"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md).
 - **SHOULD NOT** use the "ScriptableObject variable" pattern (`IntVariableSO` holding one mutable `value`) for runtime state. Same reason: Editor persistence makes it a merge-conflict and stale-state generator. Runtime state is a C# field, a MonoBehaviour, or a runtime set. **[project decision]**
 
@@ -201,7 +202,7 @@ Covered above. Additional rules:
 - *Source:* [SO-based enums](../reference/design-patterns/how-to-scriptableobject-based-enums.md); [SO e-book, "The Extendable enums pattern"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md).
 
 ```csharp
-[CreateAssetMenu(fileName = "Team", menuName = "SheNicest/Enums/Team")]
+[CreateAssetMenu(fileName = "Team", menuName = "RootsDance/Enums/Team")]
 public class TeamSO : ScriptableObject
 {
 }
@@ -225,7 +226,7 @@ public abstract class EnemyBrainSO : ScriptableObject
     public abstract void Tick(EnemyController enemy, float deltaTime);
 }
 
-[CreateAssetMenu(fileName = "PatrolBrain", menuName = "SheNicest/AI/Patrol Brain")]
+[CreateAssetMenu(fileName = "PatrolBrain", menuName = "RootsDance/AI/Patrol Brain")]
 public class PatrolBrainSO : EnemyBrainSO
 {
     [SerializeField] private float m_speed = 2f;
@@ -244,16 +245,16 @@ public class PatrolBrainSO : EnemyBrainSO
 - **MUST** mark channel fields with `[Header("Listens to")]` / `[Header("Broadcasts on")]` so the flow can be traced in the Inspector.
 - **MUST** subscribe in `OnEnable` and unsubscribe in `OnDisable`. A listener destroyed while subscribed leaves a dangling delegate in a project-level asset; with domain reload disabled that delegate survives into the next Play session.
 - **SHOULD** create one concrete channel type per payload (`VoidEventChannelSO`, `IntEventChannelSO`, `Vector3EventChannelSO`, `GameObjectEventChannelSO`) from one generic base; add a small struct payload type when more than one value is needed. **[project decision — the how-to uses `GenericEventChannelSO<T,U>`; one struct per message keeps a single generic base and matches 01's "custom args struct" rule]**
-- **MAY** add an Editor-only `[CustomEditor]` with a "Raise Event" button in `SheNicest.Editor` for debugging.
+- **MAY** add an Editor-only `[CustomEditor]` with a "Raise Event" button in `RootsDance.Editor` for debugging.
 - *Source:* [Event channels how-to](../reference/design-patterns/how-to-scriptableobjects-event-channels-game-code.md); [SO e-book, "The Observer pattern", "Static versus non-static events", "Debugging event channels"](../reference/design-patterns/ebook-modular-game-architecture-with-scriptableobjects-unity-6-final.md); [Domain reload — static events keep subscribers](../reference/scripting/manual-domain-reloading.md).
 
 ```csharp
 using System;
 using UnityEngine;
 
-namespace SheNicest.Events
+namespace RootsDance.Events
 {
-    [CreateAssetMenu(fileName = "VoidEventChannel", menuName = "SheNicest/Events/Void Event Channel")]
+    [CreateAssetMenu(fileName = "VoidEventChannel", menuName = "RootsDance/Events/Void Event Channel")]
     public class VoidEventChannelSO : ScriptableObject
     {
         public event Action EventRaised;
@@ -274,7 +275,7 @@ namespace SheNicest.Events
         }
     }
 
-    [CreateAssetMenu(fileName = "IntEventChannel", menuName = "SheNicest/Events/Int Event Channel")]
+    [CreateAssetMenu(fileName = "IntEventChannel", menuName = "RootsDance/Events/Int Event Channel")]
     public class IntEventChannelSO : GenericEventChannelSO<int>
     {
     }
@@ -386,7 +387,7 @@ public abstract class RuntimeSetSO<T> : ScriptableObject
     }
 }
 
-[CreateAssetMenu(fileName = "EnemyRuntimeSet", menuName = "SheNicest/Runtime Sets/Enemy")]
+[CreateAssetMenu(fileName = "EnemyRuntimeSet", menuName = "RootsDance/Runtime Sets/Enemy")]
 public class EnemyRuntimeSetSO : RuntimeSetSO<EnemyController>
 {
 }
@@ -684,22 +685,24 @@ public class Projectile : MonoBehaviour
 }
 ```
 
-## UI: MVP by default, MVVM data binding where it removes code
+## UI: MVP presenters over uGUI
 
-Runtime UI is UI Toolkit **[project decision]**: the 6.3 manual's comparison page lists uGUI as the general runtime recommendation and UI Toolkit as the alternative "often used for multi-resolution menus and HUD"; we choose UI Toolkit because UXML/USS are text files that diff and merge cleanly and are easy for AI agents to author, avoid scene/prefab conflicts, and are Unity's active development direction. Escape hatches (keyframed/Timeline UI, serialized `UnityEvent` needs, TMP 3D text) and all UI Toolkit conventions are in [09](./09-packages-systems.md#ui-toolkit-runtime-ui). The View is UXML + USS; the code side follows Model–View–Presenter:
+Runtime UI is uGUI **[project decision]**. The View is a screen prefab (`Canvas` hierarchy, `TextMeshProUGUI` text); prefab layout, canvas setup, the `EventSystem` and the escape hatches (world-space canvases, TMP 3D text, UI Toolkit for Editor-only UI) are all in [09](./09-packages-systems.md#ugui-runtime-ui). The code side follows Model–View–Presenter:
 
-- **MUST** put UI code in a presenter MonoBehaviour per screen/panel (the component [09](./09-packages-systems.md#controllers) calls the document's *controller*; class names end in `Presenter`, e.g. `HealthPresenter`, `PauseMenuPresenter`) that (1) holds a serialized `UIDocument`, (2) queries its elements with `Q<T>("name")` in `OnEnable` — the UI Document loads its UXML in `OnEnable` and clears it in `OnDisable`, so element references taken anywhere else go stale — (3) subscribes to model/channel events and element events, (4) unsubscribes in `OnDisable`. The presenter converts model values to text/colour; it contains no gameplay rules. *Source:* [Manual: Create a UI Document component — lifecycle](../reference/packages/manual-uie-create-ui-document-component.md).
+- **MUST** put UI code in a presenter MonoBehaviour per screen/panel (class names end in `Presenter`, e.g. `HealthPresenter`, `PauseMenuPresenter`) on the screen prefab root that (1) holds a `[SerializeField] private` reference to every widget it drives, (2) subscribes to model/channel events and widget events in `OnEnable`, (3) unsubscribes in `OnDisable`. The presenter converts model values to text/colour; it contains no gameplay rules.
 - **MUST** keep gameplay code ignorant of UI: it raises events (channel or C#), the presenter listens. User input from the view (button clicks) goes presenter → event channel → gameplay, never presenter → gameplay component. **[project decision — the e-book's presenter calls the model directly; we route through a channel so UI never references a gameplay type]**
-- **MAY** use UI Toolkit runtime data binding (`DataBinding`, `BindingMode.ToTarget`, set in UI Builder or with `SetBinding`) instead of presenter code for read-only displays whose data source is a ScriptableObject or plain C# object. The e-book suggests it pays off for larger UIs; for a hackathon use it where it deletes more code than it adds. **[project decision]**
-- *Source:* [e-book, "Model View Presenter (MVP)", "Model-View-ViewModel"](../reference/design-patterns/ebook-level-up-your-code-with-design-patterns-and-solid-e-book.md); [MVC/MVP course](../reference/design-patterns/course-build-a-modular-codebase-with-mvc-and-mvp-programming-patterns.md); [MVVM course](../reference/design-patterns/course-model-view-viewmodel-pattern.md); [Manual: Runtime data binding](../reference/packages/manual-uie-runtime-binding.md); [Manual: Get started with runtime binding](../reference/packages/manual-uie-get-started-runtime-binding.md).
+- **NEVER** reach a widget with `GameObject.Find` / `transform.Find`, and **NEVER** wire a gameplay method into a `Button.onClick` list in the Inspector — both hide the wiring from the compiler and from *Find References*; the serialized field plus `AddListener` in `OnEnable` is the only path ([09](./09-packages-systems.md#presenters)).
+- *Source:* [e-book, "Model View Presenter (MVP)"](../reference/design-patterns/ebook-level-up-your-code-with-design-patterns-and-solid-e-book.md); [MVC/MVP course](../reference/design-patterns/course-build-a-modular-codebase-with-mvc-and-mvp-programming-patterns.md); [Supported events](../reference/packages/ugui-2-0-supportedevents.md).
 
 ```csharp
+using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class HealthPresenter : MonoBehaviour
 {
-    [SerializeField] private UIDocument m_document;
+    [SerializeField] private TextMeshProUGUI m_valueLabel;
+    [SerializeField] private Button m_restartButton;
 
     [Header("Listens to")]
     [SerializeField] private IntEventChannelSO m_healthChanged;
@@ -707,22 +710,15 @@ public class HealthPresenter : MonoBehaviour
     [Header("Broadcasts on")]
     [SerializeField] private VoidEventChannelSO m_restartRequested;
 
-    private Label m_valueLabel;
-    private Button m_restartButton;
-
     private void OnEnable()
     {
-        VisualElement root = m_document.rootVisualElement;
-        m_valueLabel = root.Q<Label>("health-value");
-        m_restartButton = root.Q<Button>("restart-button");
-
-        m_restartButton.clicked += RestartButton_Clicked;
+        m_restartButton.onClick.AddListener(RestartButton_Clicked);
         m_healthChanged.EventRaised += HealthChanged_EventRaised;
     }
 
     private void OnDisable()
     {
-        m_restartButton.clicked -= RestartButton_Clicked;
+        m_restartButton.onClick.RemoveListener(RestartButton_Clicked);
         m_healthChanged.EventRaised -= HealthChanged_EventRaised;
     }
 
@@ -738,31 +734,31 @@ public class HealthPresenter : MonoBehaviour
 }
 ```
 
-UXML/USS conventions and the UI Toolkit API details belong to [09 Packages and systems](./09-packages-systems.md).
+Prefab layout, canvas and text conventions belong to [09 Packages and systems](./09-packages-systems.md#ugui-runtime-ui).
 
 ## Dependency direction: assemblies and namespaces
 
 Assemblies (project decision 3) and the only allowed reference directions:
 
 ```
-SheNicest.Tests.EditMode ──▶ SheNicest.Editor ──▶ SheNicest.Runtime ──▶ Unity engine + package assemblies only
-SheNicest.Tests.PlayMode ───────────────────────┘
+RootsDance.Tests.EditMode ──▶ RootsDance.Editor ──▶ RootsDance.Runtime ──▶ Unity engine + package assemblies only
+RootsDance.Tests.PlayMode ───────────────────────┘
 ```
 
-- **MUST NOT** reference `SheNicest.Editor` from `SheNicest.Runtime` (it is Editor-only and would break builds), nor any test assembly from either. `SheNicest.Tests.EditMode` may reference `SheNicest.Editor` (so editor tooling can be EditMode-tested); `SheNicest.Tests.PlayMode` references `SheNicest.Runtime` only. Unity forbids cyclic references outright; if two assemblies need each other the split is wrong. The canonical asmdef JSON lives in [02](./02-project-structure.md).
-- **MUST** put `UnityEditor` usages in `SheNicest.Editor` or behind `#if UNITY_EDITOR`.
+- **MUST NOT** reference `RootsDance.Editor` from `RootsDance.Runtime` (it is Editor-only and would break builds), nor any test assembly from either. `RootsDance.Tests.EditMode` may reference `RootsDance.Editor` (so editor tooling can be EditMode-tested); `RootsDance.Tests.PlayMode` references `RootsDance.Runtime` only. Unity forbids cyclic references outright; if two assemblies need each other the split is wrong. The canonical asmdef JSON lives in [02](./02-project-structure.md).
+- **MUST** put `UnityEditor` usages in `RootsDance.Editor` or behind `#if UNITY_EDITOR`.
 - *Why:* because the arrow only points one way, a change in Editor or test code can never affect runtime code, and runtime code stays reusable and build-safe.
 - *Source:* [Manual: Introduction to assemblies](../reference/project-structure/manual-assembly-definitions-intro.md); [Manual: Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md); [Programming best practices — compilation considerations](../reference/scripting/manual-programming-best-practices.md).
 
-Inside `SheNicest.Runtime`, namespaces mirror folders and carry the same one-way rule **[project decision]**:
+Inside `RootsDance.Runtime`, namespaces mirror folders and carry the same one-way rule **[project decision]**:
 
 ```
-SheNicest.Core          ← IState/StateMachine, ICommand, Log, capability interfaces
+RootsDance.Core          ← IState/StateMachine, ICommand, Log, capability interfaces
                           (IDamageable, IInteractable, ISwitchable)
-SheNicest.Events        ← VoidEventChannelSO, GenericEventChannelSO<T> and concrete channels
-SheNicest.Data          ← SO class definitions: *ConfigSO, enum assets, RuntimeSetSO<T>, delegate-object bases
-SheNicest.<Feature>     ← Player, Cameras, UI, Enemies, Combat … references Core/Events/Data only
-SheNicest.App           ← GameBootstrap, SceneLoader, game-flow states; may reference Core/Events/Data
+RootsDance.Events        ← VoidEventChannelSO, GenericEventChannelSO<T> and concrete channels
+RootsDance.Data          ← SO class definitions: *ConfigSO, enum assets, RuntimeSetSO<T>, delegate-object bases
+RootsDance.<Feature>     ← Player, Cameras, UI, Enemies, Combat … references Core/Events/Data only
+RootsDance.App           ← GameBootstrap, SceneLoader, game-flow states; may reference Core/Events/Data
                           and feature public APIs
 ```
 
@@ -798,7 +794,7 @@ SheNicest.App           ← GameBootstrap, SceneLoader, game-flow states; may re
 - [ ] State logic with ≥ 3 states uses `IState`/`StateMachine` as plain classes; commands and factories exist only where undo/variety is real.
 - [ ] UI code is a presenter: queries in `OnEnable`, unsubscribes in `OnDisable`, no gameplay rules, no direct calls into gameplay components.
 - [ ] No class over ~300 lines; no MonoBehaviour hierarchy deeper than one abstract base; no empty or throwing overrides.
-- [ ] Assembly references point only Tests.EditMode → Editor → Runtime and Tests.PlayMode → Runtime; `UnityEditor` usage is in `SheNicest.Editor` or `#if UNITY_EDITOR`.
+- [ ] Assembly references point only Tests.EditMode → Editor → Runtime and Tests.PlayMode → Runtime; `UnityEditor` usage is in `RootsDance.Editor` or `#if UNITY_EDITOR`.
 
 ## Sources
 
@@ -810,26 +806,25 @@ SheNicest.App           ← GameBootstrap, SceneLoader, game-flow states; may re
 6. [course-use-the-command-pattern-for-flexible-and-extensible-game-systems.md](../reference/design-patterns/course-use-the-command-pattern-for-flexible-and-extensible-game-systems.md) — Use the command pattern for flexible and extensible game systems (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/use-the-command-pattern-for-flexible-and-extensible-game-systems
 7. [course-how-to-use-the-factory-pattern-for-object-creation-at-runtime.md](../reference/design-patterns/course-how-to-use-the-factory-pattern-for-object-creation-at-runtime.md) — How to use the factory pattern for object creation at runtime (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/how-to-use-the-factory-pattern-for-object-creation-at-runtime
 8. [course-build-a-modular-codebase-with-mvc-and-mvp-programming-patterns.md](../reference/design-patterns/course-build-a-modular-codebase-with-mvc-and-mvp-programming-patterns.md) — Build a modular codebase with MVC and MVP programming patterns (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/build-a-modular-codebase-with-mvc-and-mvp-programming-patterns
-9. [course-model-view-viewmodel-pattern.md](../reference/design-patterns/course-model-view-viewmodel-pattern.md) — Model-View-ViewModel pattern (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/model-view-viewmodel-pattern
-10. [course-strategy-pattern.md](../reference/design-patterns/course-strategy-pattern.md) — Strategy pattern (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/strategy-pattern
-11. [how-to-separate-game-data-logic-scriptable-objects.md](../reference/design-patterns/how-to-separate-game-data-logic-scriptable-objects.md) — Separate game data and logic with ScriptableObjects — https://unity.com/how-to/separate-game-data-logic-scriptable-objects
-12. [how-to-scriptableobjects-event-channels-game-code.md](../reference/design-patterns/how-to-scriptableobjects-event-channels-game-code.md) — Use ScriptableObjects as event channels in game code — https://unity.com/how-to/scriptableobjects-event-channels-game-code
-13. [how-to-scriptableobject-based-runtime-set.md](../reference/design-patterns/how-to-scriptableobject-based-runtime-set.md) — How to use a ScriptableObject-based runtime set — https://unity.com/how-to/scriptableobject-based-runtime-set
-14. [how-to-scriptableobject-based-enums.md](../reference/design-patterns/how-to-scriptableobject-based-enums.md) — Use ScriptableObject-based enums in your Unity project — https://unity.com/how-to/scriptableobject-based-enums
-15. [how-to-scriptableobjects-delegate-objects.md](../reference/design-patterns/how-to-scriptableobjects-delegate-objects.md) — Use ScriptableObjects as delegate objects — https://unity.com/how-to/scriptableobjects-delegate-objects
-16. [how-to-get-started-with-scriptableobjects-demo.md](../reference/design-patterns/how-to-get-started-with-scriptableobjects-demo.md) — Get started with the Unity ScriptableObjects demo — https://unity.com/how-to/get-started-with-scriptableobjects-demo
-17. [github-game-programming-patterns-demo-persistentsingleton-cs.md](../reference/design-patterns/github-game-programming-patterns-demo-persistentsingleton-cs.md) — patterns demo: PersistentSingleton.cs — https://raw.githubusercontent.com/Unity-Technologies/game-programming-patterns-demo/main/Assets/UnityTechnologies/_DesignPatterns/3_Singleton/Scripts/Pattern/PersistentSingleton.cs
-18. [manual-class-scriptableobject.md](../reference/scripting/manual-class-scriptableobject.md) — ScriptableObject (Unity 6.3 Manual) — https://docs.unity3d.com/6000.3/Documentation/Manual/class-ScriptableObject.html
-19. [scriptref-pool-objectpool-1.md](../reference/scripting/scriptref-pool-objectpool-1.md) — ObjectPool\<T0\> (Unity 6.3 Scripting API) — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Pool.ObjectPool_1.html
-20. [manual-unity-events.md](../reference/scripting/manual-unity-events.md) — Inspector-configurable custom events (UnityEvent) — https://docs.unity3d.com/6000.3/Documentation/Manual/unity-events.html
-21. [manual-programming-best-practices.md](../reference/scripting/manual-programming-best-practices.md) — Unity programming best practices — https://docs.unity3d.com/6000.3/Documentation/Manual/programming-best-practices.html
-22. [manual-domain-reloading.md](../reference/scripting/manual-domain-reloading.md) — Enter Play mode with domain reload disabled — https://docs.unity3d.com/6000.3/Documentation/Manual/domain-reloading.html
-23. [scriptref-requirecomponent.md](../reference/scripting/scriptref-requirecomponent.md) — Scripting API: RequireComponent — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/RequireComponent.html
-24. [scriptref-object-findfirstobjectbytype.md](../reference/scripting/scriptref-object-findfirstobjectbytype.md) — Scripting API: Object.FindFirstObjectByType — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.FindFirstObjectByType.html
-25. [scriptref-serializereference.md](../reference/scripting/scriptref-serializereference.md) — Scripting API: SerializeReference — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/SerializeReference.html
-26. [manual-assembly-definitions-intro.md](../reference/project-structure/manual-assembly-definitions-intro.md) — Introduction to assemblies in Unity — https://docs.unity3d.com/6000.3/Documentation/Manual/assembly-definitions-intro.html
-27. [manual-assembly-definitions-referencing.md](../reference/project-structure/manual-assembly-definitions-referencing.md) — Referencing assemblies — https://docs.unity3d.com/6000.3/Documentation/Manual/assembly-definitions-referencing.html
-28. [manual-uie-runtime-binding.md](../reference/packages/manual-uie-runtime-binding.md) — Runtime data binding (UI Toolkit) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-runtime-binding.html
-29. [manual-uie-get-started-runtime-binding.md](../reference/packages/manual-uie-get-started-runtime-binding.md) — Get started with runtime binding — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-runtime-binding.html
-30. [manual-uie-create-ui-document-component.md](../reference/packages/manual-uie-create-ui-document-component.md) — Create a UI Document component (lifecycle) — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-create-ui-document-component.html
-31. [scriptref-debug-assert.md](../reference/scripting/scriptref-debug-assert.md) — Scripting API: Debug.Assert — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Debug.Assert.html
+9. [course-strategy-pattern.md](../reference/design-patterns/course-strategy-pattern.md) — Strategy pattern (Unity 6) — https://learn.unity.com/course/design-patterns-unity-6/tutorial/strategy-pattern
+10. [how-to-separate-game-data-logic-scriptable-objects.md](../reference/design-patterns/how-to-separate-game-data-logic-scriptable-objects.md) — Separate game data and logic with ScriptableObjects — https://unity.com/how-to/separate-game-data-logic-scriptable-objects
+11. [how-to-scriptableobjects-event-channels-game-code.md](../reference/design-patterns/how-to-scriptableobjects-event-channels-game-code.md) — Use ScriptableObjects as event channels in game code — https://unity.com/how-to/scriptableobjects-event-channels-game-code
+12. [how-to-scriptableobject-based-runtime-set.md](../reference/design-patterns/how-to-scriptableobject-based-runtime-set.md) — How to use a ScriptableObject-based runtime set — https://unity.com/how-to/scriptableobject-based-runtime-set
+13. [how-to-scriptableobject-based-enums.md](../reference/design-patterns/how-to-scriptableobject-based-enums.md) — Use ScriptableObject-based enums in your Unity project — https://unity.com/how-to/scriptableobject-based-enums
+14. [how-to-scriptableobjects-delegate-objects.md](../reference/design-patterns/how-to-scriptableobjects-delegate-objects.md) — Use ScriptableObjects as delegate objects — https://unity.com/how-to/scriptableobjects-delegate-objects
+15. [how-to-get-started-with-scriptableobjects-demo.md](../reference/design-patterns/how-to-get-started-with-scriptableobjects-demo.md) — Get started with the Unity ScriptableObjects demo — https://unity.com/how-to/get-started-with-scriptableobjects-demo
+16. [github-game-programming-patterns-demo-persistentsingleton-cs.md](../reference/design-patterns/github-game-programming-patterns-demo-persistentsingleton-cs.md) — patterns demo: PersistentSingleton.cs — https://raw.githubusercontent.com/Unity-Technologies/game-programming-patterns-demo/main/Assets/UnityTechnologies/_DesignPatterns/3_Singleton/Scripts/Pattern/PersistentSingleton.cs
+17. [manual-class-scriptableobject.md](../reference/scripting/manual-class-scriptableobject.md) — ScriptableObject (Unity 6.3 Manual) — https://docs.unity3d.com/6000.3/Documentation/Manual/class-ScriptableObject.html
+18. [scriptref-pool-objectpool-1.md](../reference/scripting/scriptref-pool-objectpool-1.md) — ObjectPool\<T0\> (Unity 6.3 Scripting API) — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Pool.ObjectPool_1.html
+19. [manual-unity-events.md](../reference/scripting/manual-unity-events.md) — Inspector-configurable custom events (UnityEvent) — https://docs.unity3d.com/6000.3/Documentation/Manual/unity-events.html
+20. [manual-programming-best-practices.md](../reference/scripting/manual-programming-best-practices.md) — Unity programming best practices — https://docs.unity3d.com/6000.3/Documentation/Manual/programming-best-practices.html
+21. [manual-domain-reloading.md](../reference/scripting/manual-domain-reloading.md) — Enter Play mode with domain reload disabled — https://docs.unity3d.com/6000.3/Documentation/Manual/domain-reloading.html
+22. [scriptref-requirecomponent.md](../reference/scripting/scriptref-requirecomponent.md) — Scripting API: RequireComponent — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/RequireComponent.html
+23. [scriptref-object-findfirstobjectbytype.md](../reference/scripting/scriptref-object-findfirstobjectbytype.md) — Scripting API: Object.FindFirstObjectByType — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Object.FindFirstObjectByType.html
+24. [scriptref-serializereference.md](../reference/scripting/scriptref-serializereference.md) — Scripting API: SerializeReference — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/SerializeReference.html
+25. [manual-assembly-definitions-intro.md](../reference/project-structure/manual-assembly-definitions-intro.md) — Introduction to assemblies in Unity — https://docs.unity3d.com/6000.3/Documentation/Manual/assembly-definitions-intro.html
+26. [manual-assembly-definitions-referencing.md](../reference/project-structure/manual-assembly-definitions-referencing.md) — Referencing assemblies — https://docs.unity3d.com/6000.3/Documentation/Manual/assembly-definitions-referencing.html
+27. [ugui-2-0-supportedevents.md](../reference/packages/ugui-2-0-supportedevents.md) — Supported Events (uGUI) — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/SupportedEvents.html
+28. [ugui-2-0-unityengine-ui-button.md](../reference/packages/ugui-2-0-unityengine-ui-button.md) — Class Button — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/api/UnityEngine.UI.Button.html
+29. [ugui-2-0-tmpro-textmeshprougui.md](../reference/packages/ugui-2-0-tmpro-textmeshprougui.md) — Class TextMeshProUGUI — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/api/TMPro.TextMeshProUGUI.html
+30. [scriptref-debug-assert.md](../reference/scripting/scriptref-debug-assert.md) — Scripting API: Debug.Assert — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Debug.Assert.html

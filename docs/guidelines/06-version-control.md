@@ -11,14 +11,14 @@ Folder layout inside `Assets/` is owned by [02 — Project structure](./02-proje
 1. **MUST** keep *Edit > Project Settings > Editor > Asset Serialization > Mode = Force Text*, *Reduce version control noise = on*, and *Edit > Project Settings > Version Control > Mode = Visible Meta Files*. These are the template defaults; never change them.
 2. **MUST** commit every `.meta` file together with its asset, in the same commit. A new asset without a `.meta` (or a `.meta` without its asset) never reaches `develop`.
 3. **MUST** move, rename and delete assets inside the Unity Editor (Project window) so the `.meta` follows. Outside the Editor, move the asset and its `.meta` together.
-4. **MUST** commit only `Assets/`, `Packages/` (`manifest.json`, `packages-lock.json`), `ProjectSettings/` and repo-root files (`docs/`, `.gitignore`, `.gitattributes`, `.editorconfig`, `README.md`, agent instruction files `AGENTS.md`, `CLAUDE.md`). **NEVER** commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `obj/`, builds, or IDE files.
-5. **MUST** run `git lfs install` once per machine; binary assets (textures, models, audio, fonts, video, DLLs) go through Git LFS via the committed `.gitattributes`. Unity YAML (`.unity`, `.prefab`, `.asset`, `.mat`, `.meta`, …) stays plain text in Git; the only `.asset` exceptions are the binary `LightingData.asset` and TMP `* SDF.asset` (appendix).
+4. **MUST** commit only `Assets/`, `Packages/` (`manifest.json`, `packages-lock.json`), `ProjectSettings/` and repo-root files (`docs/`, `.gitignore`, `.gitattributes`, `.editorconfig`, `README.md`, agent instruction files `AGENTS.md`, `CLAUDE.md`). **NEVER** commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `obj/`, builds, IDE files, or the personal Claude Code files `CLAUDE.local.md` and `.claude/settings.local.json`.
+5. **MUST** run `git lfs install` once per machine; binary assets (textures, models, audio, fonts, video, DLLs) go through Git LFS via the committed `.gitattributes`. Unity YAML (`.unity`, `.prefab`, `.asset`, `.mat`, `.meta`, …) stays plain text in Git; the only `.asset` exceptions are the binary `LightingData.asset`, generated Terrain data (`*_TerrainData.asset`) and TMP `* SDF.asset` (appendix).
 6. **MUST** configure UnityYAMLMerge in `~/.gitconfig` (mergetool + merge driver, see below) before touching any scene or prefab.
 7. **MUST** work on a short-lived task branch `<type>/<kebab-name>` created from `develop` and merged back into `develop` through a GitHub pull request (docs-only commits may go straight to `develop`). Only the integration owner merges `develop` into `main`; `main` always opens in the Editor and plays from Bootstrap. **NEVER** force-push `main` or `develop`.
 8. **MUST** stage files explicitly and review `git status` before every commit. **NEVER** use `git commit -a` or blanket `git add -A` / `git add .`; revert scene, prefab and settings files you did not mean to change.
 9. **MUST** `git pull --ff-only` on `develop` at the start of every session and merge `develop` into your branch (`git merge develop`, not rebase) before opening a pull request and at least daily.
 10. **SHOULD** commit small and often with Conventional-Commit-style messages (`feat:`, `fix:`, `chore:`, …) and push at least at the end of every work session.
-11. **MUST** put `Packages/` and `ProjectSettings/` changes in their own `chore:` commit and announce them to the team (see [07](./07-rendering-urp.md), [09](./09-packages-systems.md)).
+11. **MUST** put `Packages/` and `ProjectSettings/` changes in their own `chore:` commit and announce them to the team (see [07](./07-rendering-hdrp.md), [09](./09-packages-systems.md)).
 12. **NEVER** hand-edit conflict markers inside `.unity`, `.prefab` or `.asset` files. Resolve with `git mergetool` (UnityYAMLMerge) or take one side whole, then repair in the Editor.
 13. **NEVER** delete or regenerate a `.meta` file to "fix" a conflict — the GUID inside it is what every reference points to.
 14. **NEVER** keep the repository inside a cloud-synced folder (iCloud Drive, Dropbox, OneDrive, Google Drive).
@@ -56,14 +56,14 @@ Keep the first three settings below at their Universal 3D template defaults and 
 - *Source:* [AssetDatabase.ForceReserializeAssets](../reference/version-control/scriptref-assetdatabase-forcereserializeassets.md).
 
 ```csharp
-// Assets/SheNicest/Scripts/Editor/Tools/ReserializeAssetsMenu.cs — run once, commit the result alone.
+// Assets/RootsDance/Scripts/Editor/Tools/ReserializeAssetsMenu.cs — run once, commit the result alone.
 using UnityEditor;
 
-namespace SheNicest.Editor.Tools
+namespace RootsDance.Editor.Tools
 {
     public static class ReserializeAssetsMenu
     {
-        [MenuItem("SheNicest/Version Control/Force Reserialize All Assets")]
+        [MenuItem("RootsDance/Version Control/Force Reserialize All Assets")]
         private static void ForceReserializeAllAssets()
         {
             AssetDatabase.ForceReserializeAssets();
@@ -82,7 +82,7 @@ namespace SheNicest.Editor.Tools
 - *Why:* Unity moves the `.meta` automatically only when the operation happens inside the Editor; otherwise you must do it yourself or the asset is treated as brand new.
 - *Source:* [Asset metadata, "Moving and renaming assets"](../reference/project-structure/manual-assetmetadata.md), [Project organization e-book](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md).
 
-**MUST** (agents in particular) let the Editor import a new file before committing it. Files written by a coding agent (`Write`/`Edit` tools, scripts, UXML, `.asmdef`) have no `.meta` until the Editor regains focus and imports them. Workflow: write the file → focus the Editor (or *Assets > Refresh*) → confirm `<file>.meta` exists → stage both. **[project decision]**
+**MUST** (agents in particular) let the Editor import a new file before committing it. Files written by a coding agent (`Write`/`Edit` tools, scripts, `.asmdef`) have no `.meta` until the Editor regains focus and imports them. Workflow: write the file → focus the Editor (or *Assets > Refresh*) → confirm `<file>.meta` exists → stage both. **[project decision]**
 - *Why:* If two machines each generate a `.meta` for the same path, the GUIDs differ and the `.meta` conflicts on every merge; any reference made on one machine breaks on the other.
 - *Source:* consequence of [Asset metadata](../reference/project-structure/manual-assetmetadata.md).
 
@@ -125,6 +125,7 @@ A `.meta` is ignored only when its asset is ignored too (the template does this 
 | Path | Commit? | Reason |
 |---|---|---|
 | `Assets/**` (+ every `.meta`) | **yes** | The project content. |
+| `Assets/Plugins/Sirenix/**` (Odin Inspector) | **yes, unmodified** | The vendor tree incl. `Config/Editor/*.asset`, `link.xml`, `.pdb`/`.xml` docs and every `.meta`; DLLs and `.bytes` go through LFS by extension. Changes only in a `chore(odin):` import/upgrade commit ([12](./12-odin-inspector.md)). The `ODIN_INSPECTOR*` defines Odin writes into `ProjectSettings.asset` are committed with the import or platform switch that caused them. |
 | `Packages/manifest.json` | **yes** | Declares the package set. |
 | `Packages/packages-lock.json` | **yes** | Reproduces the exact resolved package versions on every machine. Never hand-edit; delete it only to force re-resolution, and commit the regenerated file. |
 | `ProjectSettings/**` (incl. `ProjectVersion.txt`) | **yes** | Project-wide settings; `ProjectVersion.txt` pins the Editor version (6000.3.22f1) the Hub opens the project with. |
@@ -135,12 +136,13 @@ A `.meta` is ignored only when its asset is ignored too (the template does this 
 | `Build/`, `Builds/`, `*.app`, `*.apk` | **never** | Build output; build into `Builds/<ProfileName>/` at the repo root (see [08](./08-testing-tooling.md)) so the template ignore rule catches everything, including `.exe` files, which have no ignore rule of their own. |
 | `*.csproj`, `*.sln`, `.vs/`, `.idea/`, `.vscode/` | **never** | IDE files regenerated by Unity / per-user (IDE setup: [08](./08-testing-tooling.md)). |
 | `*.unitypackage` | **never** | Import third-party packages into `Assets/ThirdParty/` instead (see 02). |
+| `CLAUDE.local.md`, `.claude/settings.local.json` | **never** | Personal Claude Code instructions and permission grants for one person and machine (absolute paths, local tools, session checklists); gitignored in the additions block. Shared agent instructions go in `AGENTS.md` (`CLAUDE.md` includes it). |
 | Source art (`.psd`, `.blend`, `.aseprite` masters) | **not under `Assets/`** | Unity would import them; keep masters outside `Assets/` in the repo-root `SourceArt/<mirrored path>/` (LFS by extension, owned by [02](./02-project-structure.md)). Unity's blog suggests a separate repo for source content on Git; one folder in this repo is enough for a hackathon. **[project decision]** |
 
 - *Why:* "Only files that cannot be generated should be placed under version control" — Unity recreates everything else. `Library` is explicitly per-machine; `UserSettings` holds personal preferences; `packages-lock.json` is what makes the package set deterministic across machines; cloud-synced folders are an unsupported workflow that can corrupt the project.
 - *Source:* [Default project directories](../reference/project-structure/manual-default-directories.md), [Contents of the Asset Database](../reference/version-control/manual-asset-database-contents.md), [Lock files](../reference/version-control/manual-upm-conflicts-auto.md), [Project organization e-book, "What to ignore"](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md), [Authoring scenes and prefabs with version control, "Source content"](../reference/project-structure/blog-author-scenes-and-prefabs-with-verson-control.md).
 
-The repository's `.gitignore` is the GitHub `Unity.gitignore` (the file Unity itself links as the recommended ignore list) plus a short "Project additions" block: the reference-PDF folder, `*.orig` (backup files `git mergetool` / UnityYAMLMerge leave behind), `.DS_Store`, `Thumbs.db`, `.idea/`, `.vscode/`. **NEVER** edit the template part; append new rules to the additions block. **[project decision]**
+The repository's `.gitignore` is the GitHub `Unity.gitignore` (the file Unity itself links as the recommended ignore list) plus a short "Project additions" block: the reference-PDF folder, `*.orig` (backup files `git mergetool` / UnityYAMLMerge leave behind), Odin's per-user `TypeRegistryUserConfig.asset`, the personal Claude Code files `CLAUDE.local.md` and `.claude/settings.local.json`, `.DS_Store`, `Thumbs.db`, `.idea/`, `.vscode/`. **NEVER** edit the template part; append new rules to the additions block. **[project decision]**
 - *Source:* [Unity.gitignore](../reference/version-control/github-gitignore-unity-gitignore.md), [Speed up your programmer workflows](../reference/version-control/blog-speed-up-your-programmer-workflows.md), [Boss Room .gitignore](../reference/version-control/github-com-unity-multiplayer-samples-coop-gitignore.md).
 
 Because `Library/` is never shared, every clone re-imports every asset. Unity's documented remedy is the Unity Accelerator cache server; we do not run one for a hackathon — keep imports cheap (small textures, compressed audio). **[project decision]**
@@ -160,7 +162,7 @@ git lfs ls-files           # lists what is stored in LFS
 - *Why:* Git keeps the complete history on every machine, so binary assets bloat clones; LFS replaces them with small text pointers and stores the content on GitHub's LFS server. Unity recommends Git LFS for any Git project with large content files.
 - *Source:* [Project organization e-book, "Working with large files"](../reference/project-structure/ebook-best-practices-for-project-organization-and-version-control-unity-6-ed.md), [Working with Unity and GitHub](../reference/version-control/tutorial-working-with-unity-and-github.md), [Authoring scenes and prefabs with version control, "File locking"](../reference/project-structure/blog-author-scenes-and-prefabs-with-verson-control.md).
 
-**MUST** let the committed `.gitattributes` (appendix below) decide what goes to LFS; do not run `git lfs track` ad hoc. LFS-tracked extensions: 3D models (`.fbx`, `.obj`, `.blend`, …), textures (`.png`, `.jpg`, `.tga`, `.psd`, `.exr`, `.hdr`, …), audio (`.wav`, `.mp3`, `.ogg`, `.aif`, …), video, fonts (`.ttf`, `.otf`), native/managed binaries (`.dll`, `.so`, `.dylib`, `.a`), archives, `*.bytes`, `LightingData.asset`, and TextMesh Pro `* SDF.asset` font atlases.
+**MUST** let the committed `.gitattributes` (appendix below) decide what goes to LFS; do not run `git lfs track` ad hoc. LFS-tracked extensions: 3D models (`.fbx`, `.obj`, `.blend`, …), textures (`.png`, `.jpg`, `.tga`, `.psd`, `.exr`, `.hdr`, …), audio (`.wav`, `.mp3`, `.ogg`, `.aif`, …), video, fonts (`.ttf`, `.otf`), native/managed binaries (`.dll`, `.so`, `.dylib`, `.a`), archives, `*.bytes`, `LightingData.asset`, Unity Terrain data (`*_TerrainData.asset` — `TerrainData` is always serialised binary, and the greybox builder rewrites the whole file on every run), and TextMesh Pro `* SDF.asset` font atlases.
 - *Why:* Patterns in `.gitattributes` are versioned with the repo, so every clone applies them identically; `git lfs track` just edits that file. The extension list follows Unity's own repositories.
 - *Source:* [Boss Room .gitattributes](../reference/version-control/github-com-unity-multiplayer-samples-coop-gitattributes.md), [Unity Graphics .gitattributes](../reference/version-control/github-graphics-gitattributes.md).
 
@@ -269,8 +271,8 @@ git switch develop && git pull --ff-only       # start of session: latest develo
 git switch -c feat/player-dash                  # or: git switch feat/player-dash && git merge develop
 # ... work in small increments; after each increment that compiles and whose scene opens:
 git status                                      # inspect; revert unintended scene/settings files
-git add Assets/SheNicest/Scripts/Runtime/Player/PlayerDash.cs \
-        Assets/SheNicest/Scripts/Runtime/Player/PlayerDash.cs.meta
+git add Assets/RootsDance/Scripts/Runtime/Player/PlayerDash.cs \
+        Assets/RootsDance/Scripts/Runtime/Player/PlayerDash.cs.meta
 git commit -m "feat(player): add dash with 0.4 s cooldown"
 git push -u origin feat/player-dash             # at least at the end of every session
 # before the pull request (and at least once a day):
@@ -296,7 +298,7 @@ git push origin main
 
 ## Resolving a conflict safely
 
-### Code and other text (`.cs`, `.uxml`, `.uss`, `.json`, `.md`)
+### Code and other text (`.cs`, `.json`, `.md`)
 
 Resolve in the IDE as usual, then compile in the Editor before committing the merge.
 
@@ -307,14 +309,14 @@ Resolve in the IDE as usual, then compile in the Editor before committing the me
 3. **Run Smart Merge** on each conflicted YAML file:
    ```bash
    git status                                   # lists "both modified" files
-   git mergetool -- Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity
+   git mergetool -- Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity
    # UnityYAMLMerge merges object-by-object; Git then asks "Was the merge successful?" — answer y only after step 5.
    ```
    *Source:* [Smart merge](../reference/version-control/manual-smartmerge.md), [Working with YAMLMerge](../reference/version-control/tutorial-working-with-yamlmerge.md).
 4. **If it cannot merge cleanly, take one side whole** and re-apply the smaller change by hand in the Editor afterwards:
    ```bash
-   git checkout --theirs -- Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity   # during `git merge develop` on your branch: --theirs = develop, --ours = your branch
-   git add Assets/SheNicest/Scenes/Levels/Level02/Level02_Gameplay.unity
+   git checkout --theirs -- Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity   # during `git merge develop` on your branch: --theirs = develop, --ours = your branch
+   git add Assets/RootsDance/Scenes/Levels/Level02/Level02_Gameplay.unity
    ```
    Picking a side is what Unity's tutorial does; the owner's version normally wins.
 5. **Verify in the Editor before committing:** open the scene, check the Console for missing scripts/references and YAML parse errors, enter Play Mode once.
@@ -345,7 +347,7 @@ This project uses **Git + GitHub + Git LFS** instead. **[project decision]**
 
 - ❌ `git add -A && git commit -m "wip"` — ✅ stage named files, one task per commit, descriptive message.
 - ❌ Committing `PlayerDash.cs` without `PlayerDash.cs.meta` (agent wrote the file, Editor never imported it) — ✅ focus the Editor, confirm the `.meta`, commit both.
-- ❌ Renaming `Assets/SheNicest/Prefabs/Characters/Enemy.prefab` in Finder/Explorer — ✅ rename in the Project window (or move file + `.meta` together).
+- ❌ Renaming `Assets/RootsDance/Prefabs/Characters/Enemy.prefab` in Finder/Explorer — ✅ rename in the Project window (or move file + `.meta` together).
 - ❌ Committing `Library/`, `UserSettings/`, a `Builds/` folder or `*.csproj` — ✅ they are ignored; if `git status` shows them the `.gitignore` is broken, fix that first.
 - ❌ Switching Asset Serialization to *Mixed* or *Force Binary* "to make files smaller" — ✅ Force Text; binaries belong in LFS.
 - ❌ Putting `.unity`/`.prefab` into LFS or marking `*.prefab binary` — ✅ plain text with `merge=unityyamlmerge`.
@@ -490,6 +492,8 @@ ProjectSettings/*.asset text
 # Unity binary data that happens to use a text-looking extension
 *.bytes               filter=lfs diff=lfs merge=lfs -text
 LightingData.asset    filter=lfs diff=lfs merge=lfs -text
+# Unity TerrainData is always binary; generated by RootsDance/Terrain/Build Greybox Terrain
+*_TerrainData.asset   filter=lfs diff=lfs merge=lfs -text
 *[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text
 *[[:space:]]SDF[[:space:]]*.asset filter=lfs diff=lfs merge=lfs -text
 ```

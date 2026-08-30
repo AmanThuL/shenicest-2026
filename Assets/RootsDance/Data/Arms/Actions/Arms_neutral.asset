@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dc1c5644c25240498edb2ff50341347, type: 3}
+  m_Name: Arms_neutral
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsActionSO
+  m_id: neutral
+  m_stateName: Neutral
+  m_clip: {fileID: -623603649343465320, guid: c14e4149dde9842e5ae0b3d8a7b32b9d, type: 3}
+  m_scope: 0
+  m_loop: 1
+  m_resultPose: 0
+  m_chainToId: 
+  m_holdAfterFinish: 0
+  m_heightBase: 0
+  m_handEvents: []
+  m_speed: 1
+  m_fadeIn: 0.15
+  m_fadeOut: 0.12
+  m_debugKey: 0

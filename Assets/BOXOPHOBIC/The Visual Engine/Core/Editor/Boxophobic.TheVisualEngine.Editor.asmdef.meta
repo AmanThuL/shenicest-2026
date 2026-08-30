@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 215b7a6cae05922469636f5c24ecf418
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Editor/Boxophobic.TheVisualEngine.Editor.asmdef
+  uploadId: 974988

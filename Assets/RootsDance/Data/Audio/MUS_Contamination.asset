@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fd036c41ac184d77a682fa49de4c77a, type: 3}
+  m_Name: MUS_Contamination
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
+  m_clips:
+  - {fileID: 8300000, guid: 4692242a47a394e9897560807f5649ba, type: 3}
+  m_outputGroup: {fileID: 7254828753142777459, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
+  m_volume: 0.275
+  m_volumeJitter: 0
+  m_pitch: 1
+  m_pitchJitter: 0
+  m_loop: 1
+  m_cooldownSeconds: 0
+  m_spatialBlend: 0
+  m_minDistance: 1
+  m_maxDistance: 20
+  m_rolloff: 1

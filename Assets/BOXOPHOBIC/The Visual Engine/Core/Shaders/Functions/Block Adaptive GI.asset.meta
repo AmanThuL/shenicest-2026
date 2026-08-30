@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: afbff64f67f075641abfe0348ff436db
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Block Adaptive
+    GI.asset
+  uploadId: 974988

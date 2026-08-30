@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c28435d5efe37ff42bfb970139512f6e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Element Type
+    VRT0.asset
+  uploadId: 974988

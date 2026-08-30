@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bedbc64d8f3194ffe840270848be2d68, type: 3}
+  m_Name: DLG-103_HelmetRemovable
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueSO
+  m_id: DLG-103
+  m_title: "\u6C61\u67D3\u8BFB\u6570\u4F4E\u4E8E\u9608\u503C\uFF0800-05\uFF09"
+  m_choices: []
+  m_choicesRepeat: 1
+  m_requiredFlag: flow.helmet_removable
+  m_playsOnce: 1
+  m_lines:
+  - m_speaker: 2
+    m_chinese: "\u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u4F4E\u4E8E\u9632\u62A4\u9608\u503C\u3002\u53EF\u89E3\u9664\u73AF\u5883\u9694\u79BB\u3002"
+    m_english: EXTERNAL CONTAMINATION LEVELS WITHIN SAFE LIMITS. ENVIRONMENTAL SEAL
+      MAY BE RELEASED.
+    m_voice: {fileID: 8300000, guid: 54c44e1dafc834a138a198217a5d0856, type: 3}
+    m_holdSeconds: 0
+  m_flagOnComplete: 

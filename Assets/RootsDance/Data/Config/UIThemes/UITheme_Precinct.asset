@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f91e91f69b64c4ba218737aa09deba, type: 3}
+  m_Name: UITheme_Precinct
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.Kit.ElectronicUITheme
+  m_ramp:
+  - {r: 0.007843138, g: 0.03137255, b: 0.03529412, a: 1}
+  - {r: 0.050980393, g: 0.08235294, b: 0.09803922, a: 1}
+  - {r: 0.13333334, g: 0.20392157, b: 0.22745098, a: 1}
+  - {r: 0.30588236, g: 0.38431373, b: 0.41960785, a: 1}
+  - {r: 0.5176471, g: 0.5803922, b: 0.6117647, a: 1}
+  - {r: 0.7764706, g: 0.8235294, b: 0.84705883, a: 1}
+  m_accent: {r: 0.65882355, g: 0.20392157, b: 0.15686275, a: 1}
+  m_accentAlt: {r: 0.30588236, g: 0.47843137, b: 0.5019608, a: 1}
+  m_family: 0
+  m_unit: 4
+  m_rule: 1
+  m_ruleStrong: 2
+  m_padUnits: 3
+  m_gutterUnits: 4
+  m_rowUnits: 10
+  m_insetUnits: 16
+  m_cornerUnits: 4
+  m_interactiveRadiusUnits: 1.5
+  m_font: {fileID: 11400000, guid: 388e257190ff6482baf5d077f9c5a970, type: 2}
+  m_boldText: 0
+  m_microSize: 24
+  m_bodySize: 40
+  m_displaySize: 56

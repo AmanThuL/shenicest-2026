@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b2425a2284af743826c689403a4924, type: 3}
+  m_Name: Normal PlanarXZ
+  m_EditorClassIdentifier: 
+  m_functionInfo: "// Made with Amplify Shader Editor v1.9.9.12\n// Available at
+    the Unity Asset Store - http://u3d.as/y3X \n/*ASEBEGIN\nVersion=19912\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":70,\"pos\":[-1024,-1152],\"params\":[\"Inherit\",\"False\",\"45\",\"NormalPlanar\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleAddOpNode,
+    AmplifyShaderEditor\",\"id\":78,\"pos\":[-512,-1152],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.DynamicAppendNode,
+    AmplifyShaderEditor\",\"id\":77,\"pos\":[-256,-1152],\"params\":[\"Inherit\",\"False\",\"FLOAT3\",\"4\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"2\",\"FLOAT\",\"1\",\"False\",\"3\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":79,\"pos\":[-1024,-960],\"params\":[\"Inherit\",\"False\",\"74\",\"NormalWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":80,\"pos\":[-768,-960],\"params\":[\"Inherit\",\"False\",\"FLOAT2\",\"0\",\"2\",\"2\",\"3\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":85,\"pos\":[128,-1152],\"params\":[\"Inherit\",\"False\",\"FLOAT2\",\"0\",\"2\",\"1\",\"3\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.GetLocalVarNode,
+    AmplifyShaderEditor\",\"id\":83,\"pos\":[-1024,-832],\"params\":[\"Inherit\",\"False\",\"74\",\"NormalWS\",\"1\",\"0\",\"OBJECT\",\"\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SwizzleNode,
+    AmplifyShaderEditor\",\"id\":84,\"pos\":[-768,-832],\"params\":[\"Inherit\",\"False\",\"FLOAT\",\"1\",\"2\",\"2\",\"3\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":73,\"pos\":[-1024,-1472],\"params\":[\"Inherit\",\"False\",\"NormalWS\",\"3\",\"1\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":74,\"pos\":[-768,-1472],\"params\":[\"Half\",\"False\",\"NormalWS\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RegisterLocalVarNode,
+    AmplifyShaderEditor\",\"id\":45,\"pos\":[-768,-1536],\"params\":[\"Half\",\"False\",\"NormalPlanar\",\"-1\",\"True\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":35,\"pos\":[-1024,-1536],\"params\":[\"Inherit\",\"False\",\"\",\"2\",\"0\",\"False\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":0,\"pos\":[416,-1152],\"params\":[\"Inherit\",\"False\",\"True\",\"-1\",\"\",\"0\",\"False\",\"1\",\"0\",\"FLOAT2\",\"0,0\",\"False\",\"1\",\"FLOAT2\",\"0\"]}\n{\"wire\":[78,0,70,0]}\n{\"wire\":[78,1,80,0]}\n{\"wire\":[77,0,78,0]}\n{\"wire\":[77,2,84,0]}\n{\"wire\":[80,0,79,0]}\n{\"wire\":[85,0,77,0]}\n{\"wire\":[84,0,83,0]}\n{\"wire\":[74,0,73,0]}\n{\"wire\":[45,0,35,0]}\n{\"wire\":[0,0,85,0]}\nASEEND*/\n//CHKSM=7B1701553113B7267EF101D8D6A4603597433058"
+  m_functionName: 
+  m_description: 
+  m_additionalIncludes:
+    m_additionalIncludes: []
+    m_outsideIncludes: []
+  m_additionalPragmas:
+    m_additionalPragmas: []
+    m_outsidePragmas: []
+  m_additionalDirectives:
+    m_validData: 0
+    m_isDirty: 0
+    m_moduleName: ' Additional Directives'
+    m_independentModule: 1
+    m_customEdited: 0
+    m_additionalDirectives: []
+    m_shaderFunctionDirectives: []
+    m_nativeDirectives: []
+    m_nativeDirectivesIndex: -1
+    m_nativeDirectivesFoldout: 0
+    m_directivesSaveItems: []
+    m_versionMaxExclusive: 1
+  m_nodeCategory: 0
+  m_headerStyle: 2
+  m_headerColor: {r: 1, g: 0.62734854, b: 0, a: 1}
+  m_customNodeCategory: The Visual Engine
+  m_previewPosition: 0
+  m_hidden: 0
+  m_url: 

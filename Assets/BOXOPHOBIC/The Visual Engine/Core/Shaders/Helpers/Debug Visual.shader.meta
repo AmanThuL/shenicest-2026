@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 67e715d1da107574d9b7e4569a835379
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Helpers/Debug Visual.shader
+  uploadId: 974988

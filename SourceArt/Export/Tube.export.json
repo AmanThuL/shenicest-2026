@@ -1,0 +1,18 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Props/Tube.fbx",
+  "m_blend": "SourceArt/Blender/Tube/Tube.blend",
+  "m_blendModifiedUtc": "2026-08-29T20:54:57+00:00",
+  "m_action": "",
+  "m_armature": "",
+  "m_frameStart": 1,
+  "m_frameEnd": 250,
+  "m_fps": 30,
+  "m_exportedCollection": "",
+  "m_exportedObjects": [
+    "Tube"
+  ],
+  "m_excludedObjects": [],
+  "m_blenderVersion": "4.5.3 LTS",
+  "m_profile": "Tools/blender/profiles/static_prop.json",
+  "m_exportedUtc": "2026-08-29T20:55:58+00:00"
+}

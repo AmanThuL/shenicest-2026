@@ -1,7 +1,7 @@
 # 04. Unity scripting rules
 
 > **Scope:** How to write MonoBehaviour, ScriptableObject and plain C# code that behaves correctly on Unity 6000.3 — lifecycle, serialization, null checks, object lookup, Instantiate/Destroy, Awaitable vs coroutines, events, time, physics API, Input System usage, logging, assembly definitions and language limits.
-> **Applies to:** all C# under `Assets/SheNicest/Scripts` and `Assets/SheNicest/Tests` (assemblies `SheNicest.Runtime`, `SheNicest.Editor`, `SheNicest.Tests.EditMode`, `SheNicest.Tests.PlayMode`).
+> **Applies to:** all C# under `Assets/RootsDance/Scripts` and `Assets/RootsDance/Tests` (assemblies `RootsDance.Runtime`, `RootsDance.Editor`, `RootsDance.Tests.EditMode`, `RootsDance.Tests.PlayMode`).
 > **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
 
 Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architecture (SOLID, event channels, pooling, service locator) by [03 Architecture patterns](./03-architecture-patterns.md); profiling and optimisation by [05 Performance](./05-performance.md); API renames and deprecations in full by [10 Unity 6.3 facts](./10-unity6-facts.md). This document is the code-level rulebook that sits between them.
@@ -9,19 +9,19 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 ## TL;DR — rules at a glance
 
 1. **MUST** initialise own components in `Awake`, talk to other objects in `Start`, subscribe in `OnEnable` and unsubscribe in `OnDisable`; **NEVER** write a MonoBehaviour/ScriptableObject constructor or a field initialiser that touches objects, components or assets.
-2. **MUST** expose Inspector data as `[SerializeField] private` fields (6.3 compiles `[SerializeField]` only on fields; auto-properties need `[field: SerializeField]`); rename serialized fields with `[FormerlySerializedAs]`.
+2. **MUST** expose Inspector data as `[SerializeField] private` fields (6.3 compiles `[SerializeField]` only on fields; auto-properties need `[field: SerializeField]`); rename serialized fields with `[FormerlySerializedAs]`. Odin attributes ([12](./12-odin-inspector.md)) only decorate those fields — they never change what serializes, and the Odin serializer is never used.
 3. **MUST** null-check `UnityEngine.Object` references with `== null` or the implicit `bool`; **NEVER** use `?.`, `??`, `is null` or `ReferenceEquals` to test whether a Unity object is alive.
 4. **MUST** wire references through serialized fields or `GetComponent` cached in `Awake`; use `TryGetComponent` when the component may be absent; **NEVER** call `GetComponent`, `Find*` or `Camera.main` every frame.
 5. **MUST** wire gameplay references (see [03](./03-architecture-patterns.md)); when a lookup is unavoidable (bootstrap, tests, editor tooling) use `FindFirstObjectByType` / `FindAnyObjectByType` / `FindObjectsByType(FindObjectsSortMode.None)` once, in initialisation code; **NEVER** the obsolete `FindObjectOfType` family, `GameObject.Find` or `FindWithTag` in gameplay code; compare tags with `CompareTag`.
 6. **MUST** destroy with `Destroy` (deferred to end of frame) at runtime; **NEVER** `DestroyImmediate` outside Editor code.
-7. **MUST** write async work as `async Awaitable` methods that take a `CancellationToken` (`destroyCancellationToken` on MonoBehaviours, `Application.exitCancellationToken` elsewhere); **NEVER** await the same `Awaitable` twice or touch Unity APIs off the main thread.
+7. **MUST** write async work as `async Awaitable` methods that take a `CancellationToken` (`destroyCancellationToken` on MonoBehaviours, `Application.exitCancellationToken` elsewhere); **NEVER** await the same `Awaitable` twice or touch Unity APIs off the main thread. **MUST** use UniTask instead only to `WhenAll`/`WhenAny` a DOTween tween together with an engine-native async op (scene load, `InstantiateAsync`) — DOTween `Sequence` alone for tween-only composition.
 8. **MAY** use coroutines for simple frame/time sequences; cache `WaitForSeconds`, start/stop them by `IEnumerator`/`Coroutine` reference, never by string name; **NEVER** use `Invoke("...")`.
 9. **MUST** scale per-frame movement by `Time.deltaTime`; put Rigidbody work in `FixedUpdate` and move bodies with `AddForce` / `MovePosition`, not `transform`.
 10. **MUST** use the Unity 6 physics names `linearVelocity`, `linearDamping`, `angularDamping`, `PhysicsMaterial`.
 11. **MUST** read input from `InputSystem.actions` (project-wide actions) via `ReadValue<T>()` / `IsPressed()` / `WasPressedThisFrame()`; **NEVER** use `UnityEngine.Input`.
 12. **MUST** use C# `event` for code-to-code notifications and `UnityEvent` only for designer-wired Inspector callbacks; every subscription has a matching unsubscription.
-13. **MUST** log through `SheNicest.Core.Log` (`Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` are unconditional, every call passes a `UnityEngine.Object` context); **NEVER** call `Debug.Log*` directly outside `Log.cs` and `_Sandbox/`, never `print()`, never a log in a per-frame method; `Debug.Assert` for invariants.
-14. **MUST** keep project code inside the four project asmdefs — the only code outside them is vendor code in `Assets/ThirdParty/` and scratch code in `Assets/_Sandbox/<user>/` (both land in `Assembly-CSharp`, may use `SheNicest.Runtime`, can never be referenced by it); Editor-only code lives in `SheNicest.Editor` or behind `#if UNITY_EDITOR`; test code never ships.
+13. **MUST** log through `RootsDance.Core.Log` (`Log.Info`/`Log.Warning` compile out of release builds, `Log.Error`/`Log.Exception` are unconditional, every call passes a `UnityEngine.Object` context); **NEVER** call `Debug.Log*` directly outside `Log.cs` and `_Sandbox/`, never `print()`, never a log in a per-frame method; `Debug.Assert` for invariants.
+14. **MUST** keep project code inside the four project asmdefs — the only code outside them is vendor code in `Assets/ThirdParty/` and scratch code in `Assets/_Sandbox/<user>/` (both land in `Assembly-CSharp`, may use `RootsDance.Runtime`, can never be referenced by it); Editor-only code lives in `RootsDance.Editor` or behind `#if UNITY_EDITOR`; test code never ships.
 15. **NEVER** use C# records, `init` setters, `dynamic`, finalizers, `[ThreadStatic]` or `System.Reflection.Emit`; static mutable state needs an explicit reset path.
 
 ## Lifecycle and event functions
@@ -47,7 +47,7 @@ Naming and formatting are owned by [01 C# style](./01-csharp-style.md); architec
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerSpawnTracker : MonoBehaviour
@@ -137,6 +137,7 @@ public class Health : MonoBehaviour
 - Not serialized: properties, dictionaries, multidimensional/jagged arrays, nested containers (`List<List<T>>`), interface- or abstract-typed fields (unless `[SerializeReference]`), `readonly`/`static` fields. Wrap nested containers in a `[Serializable]` class or implement `ISerializationCallbackReceiver`.
 - `[Serializable]` is not inherited — apply it to every class in the hierarchy.
 - `[SerializeReference]` is only for polymorphism, null or shared references inside one object; default inline serialization is cheaper.
+- Odin Inspector attributes (`[Required]`, `[TitleGroup]`, `[ShowIf]` …) are Editor drawing hints on top of these rules and change nothing in the list above; `[ShowInInspector]` displays a member without serializing it. The Odin *serializer* (`SerializedMonoBehaviour`, `SerializedScriptableObject`, `[OdinSerialize]`) is **not** used in this project — dictionaries and other unserializable shapes are remodelled as described here, not rescued with Odin. Rules and rationale in [12 Odin Inspector](./12-odin-inspector.md). **[project decision]**
 - *Source:* [Serialization rules](../reference/scripting/manual-script-serialization-rules.md).
 
 **Rename a serialized field with `[FormerlySerializedAs("oldName")]` and keep the attribute at least until every scene/prefab has been re-saved on `develop` (the integration branch, see [06 Version control](./06-version-control.md)).** Editor-only; harmless in builds.
@@ -243,11 +244,22 @@ private void Fire()
 **`DontDestroyOnLoad` only on root GameObjects, and only for the bootstrap scene's persistent services** (scene flow is defined in [11 Scenes, prefabs and workflow](./11-scenes-prefabs-workflow.md)).
 - *Source:* [Object.DontDestroyOnLoad](../reference/scripting/scriptref-object-dontdestroyonload.md).
 
-## Async: Awaitable and coroutines
+## Async: Awaitable, DOTween Sequence, and UniTask
 
-**Default to `Awaitable` for anything asynchronous** (delays, waiting for frames, scene loads, background computation, awaiting `AsyncOperation`). Coroutines are acceptable for short frame/time sequences that never need cancellation or a result. No third-party async libraries. **[project decision]**
-- *Why:* `Awaitable` is pooled (near-zero allocations), resumes synchronously in the same frame, knows about the main thread and `Update`/`FixedUpdate`, and supports cancellation tokens; `.NET Task` continuations wait for the next `Update` and capture a synchronization context.
+Three tools, three different jobs — pick by what you are composing, not by habit:
+
+| Composing… | Use | Not |
+|---|---|---|
+| A single wait (delay, next frame, one `AsyncOperation`, background work) | `Awaitable` | — |
+| Multiple DOTween tweens together (parallel `.Join()`, sequential `.Append()`) | DOTween `Sequence` | `Awaitable`/`UniTask` — Sequence already does this |
+| A DOTween tween/Sequence **and** an engine-native async op together (scene load, `Object.InstantiateAsync`, another `Awaitable`) — i.e. `WhenAll`/`WhenAny` across things that are not all tweens | UniTask (`.ToUniTask()` + `UniTask.WhenAll`/`WhenAny`) | `Awaitable` has no native `WhenAll`/`WhenAny`; wrapping in `Task` for it costs an allocation per call |
+
+**Default to `Awaitable`** for everything in the first row — it is pooled (near-zero allocations), resumes synchronously in the same frame, knows about the main thread and `Update`/`FixedUpdate`, and supports cancellation tokens; `.NET Task` continuations wait for the next `Update` and capture a synchronization context. **[project decision]**
 - *Source:* [Introduction to Awaitable](../reference/scripting/manual-async-awaitable-introduction.md), [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md), [Programming best practices — thread safety](../reference/scripting/manual-programming-best-practices.md).
+
+**Reach for UniTask only for the third row.** `Sequence.AppendCallback`/`OnComplete` cannot include a `SceneManager.LoadSceneAsync`/`AsyncOperation` or an `AsyncInstantiateOperation<T>` as a step — those are not tweens, DOTween has no vocabulary for them. UniTask converts both DOTween tweens and Unity's native async types to a common `UniTask` via `.ToUniTask()`, so they can be awaited together with `UniTask.WhenAll`/`WhenAny`. **MUST** add the `UNITASK_DOTWEEN_SUPPORT` scripting define (per-platform, in `ProjectSettings/ProjectSettings.asset`, alongside DOTween's own `DOTWEEN`/`DOTWEEN_UITOOLKIT`) to unlock DOTween's `.ToUniTask()` extension — it is off by default even with both packages installed. **[project decision, 2026-08-25]**
+- *Why:* Confirmed against Cysharp's own docs: UniTask supports "DOTween (Tween as awaitable)" once `UNITASK_DOTWEEN_SUPPORT` is defined, and `AsyncOperation`/`AsyncOperationHandle` convert the same way; `UniTask.WhenAll` composes them.
+- *Source:* [Cysharp/UniTask](https://github.com/Cysharp/UniTask), [Mastering async programming in Unity with UniTask and DOTween](https://codehamster.com/codes/mastering-asynchronous-programming-in-unity-with-unitask-and-dotween/).
 
 Rules for `Awaitable` code:
 
@@ -256,7 +268,7 @@ Rules for `Awaitable` code:
    - *Source:* [destroyCancellationToken](../reference/scripting/scriptref-monobehaviour-destroycancellationtoken.md), [Application.exitCancellationToken](../reference/scripting/scriptref-application-exitcancellationtoken.md), [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md).
 2. **Handle `OperationCanceledException`.** `WaitForSecondsAsync`, `NextFrameAsync` and friends throw it when the token fires; code after the `await` is skipped.
    - *Source:* [Awaitable.WaitForSecondsAsync](../reference/scripting/scriptref-awaitable-waitforsecondsasync.md), [Awaitable.NextFrameAsync](../reference/scripting/scriptref-awaitable-nextframeasync.md), [Awaitable API](../reference/scripting/scriptref-awaitable.md).
-3. **Never await an `Awaitable` more than once or store it for later.** Pooled instances are recycled after the first await; a second await is undefined behaviour. If you need `WhenAll`-style composition, wrap in a `Task` via an `AsTask` extension as the manual shows — and accept the allocation.
+3. **Never await an `Awaitable` more than once or store it for later.** Pooled instances are recycled after the first await; a second await is undefined behaviour. If you need `WhenAll`/`WhenAny`-style composition, that is UniTask's job (see above), not a reason to reach for `Task`.
    - *Source:* [Introduction to Awaitable](../reference/scripting/manual-async-awaitable-introduction.md), [Awaitable examples](../reference/scripting/manual-async-awaitable-examples.md).
 4. **Only touch Unity APIs on the main thread.** After `await Awaitable.BackgroundThreadAsync()` you must `await Awaitable.MainThreadAsync()` before using any `UnityEngine` object; the switch is local to the current method. Background work is also unavailable on the Web platform (no managed threads), so keep it out of gameplay code unless the feature is desktop-only. **[project decision]**
    - *Source:* [Awaitable continuations](../reference/scripting/manual-async-awaitable-continuations.md), [IL2CPP limitations — threads](../reference/scripting/manual-scripting-restrictions.md).
@@ -270,10 +282,10 @@ Rules for `Awaitable` code:
 ```csharp
 using System;
 using System.Threading;
-using SheNicest.Core;
+using RootsDance.Core;
 using UnityEngine;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     public class PlayerHatch : MonoBehaviour
     {
@@ -389,7 +401,7 @@ public class Health : MonoBehaviour
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerMover : MonoBehaviour
@@ -438,7 +450,7 @@ namespace SheNicest.Player
 
 ## Input System in code
 
-**All input comes from the project-wide action asset (`Assets/SheNicest/Input/SheNicest.inputactions`) via `InputSystem.actions.FindAction("Map/Action")`, looked up once in `Awake` and stored in an `m_` field.** `UnityEngine.Input` (legacy Input Manager), `OnMouse*` callbacks and per-device reads (`Keyboard.current`) are not used in gameplay code.
+**All input comes from the project-wide action asset (`Assets/RootsDance/Input/RootsDance.inputactions`) via `InputSystem.actions.FindAction("Map/Action")`, looked up once in `Awake` and stored in an `m_` field.** `UnityEngine.Input` (legacy Input Manager), `OnMouse*` callbacks and per-device reads (`Keyboard.current`) are not used in gameplay code.
 - *Why:* Project-wide actions are preloaded and enabled automatically, so no asset references or `Enable()` calls are needed; the legacy Input Manager is deprecated and "will be removed in future versions of Unity". Qualify with the map name (`"Player/Move"`) to avoid ambiguity when two maps share an action name.
 - *Source:* [About project-wide actions](../reference/packages/inputsystem-1-20-about-project-wide-actions.md), [Enabling actions](../reference/packages/inputsystem-1-20-enable-actions.md), [Quick start guide](../reference/packages/inputsystem-1-20-quick-start-guide.md), [Introduction to Input](../reference/scripting/manual-input-introduction.md), [Legacy Input](../reference/scripting/manual-inputlegacy.md); project-wide asset path and "no legacy Input" are **[project decision]**.
 
@@ -454,7 +466,7 @@ Actions that are *not* project-wide (a second asset, or actions created in code)
 
 ## Logging
 
-**All logging goes through the static class `SheNicest.Core.Log` in `Scripts/Runtime/Core/Log.cs`.** `Info` and `Warning` carry `[Conditional("UNITY_EDITOR")]` and `[Conditional("DEVELOPMENT_BUILD")]` so the call and its argument evaluation disappear from release builds; `Error` and `Exception` are unconditional. Every overload takes a `UnityEngine.Object context` — pass `this`, so clicking the message highlights the object in the Hierarchy. Direct `Debug.Log*` only inside `Log` and in `_Sandbox/`; `print()` never; no custom scripting symbols (no `SHENICEST_LOG`). **[project decision]**
+**All logging goes through the static class `RootsDance.Core.Log` in `Scripts/Runtime/Core/Log.cs`.** `Info` and `Warning` carry `[Conditional("UNITY_EDITOR")]` and `[Conditional("DEVELOPMENT_BUILD")]` so the call and its argument evaluation disappear from release builds; `Error` and `Exception` are unconditional. Every overload takes a `UnityEngine.Object context` — pass `this`, so clicking the message highlights the object in the Hierarchy. Direct `Debug.Log*` only inside `Log` and in `_Sandbox/`; `print()` never; no custom scripting symbols (no `SHENICEST_LOG`). **[project decision]**
 - *Why:* `Debug` logging is not stripped from release builds; Unity's own recommendation is a `[Conditional]` wrapper keyed to symbols defined only in development. `UNITY_EDITOR || DEVELOPMENT_BUILD` is exactly what Unity's predefined `DEBUG` means, so no custom symbol is needed, and a `[Conditional]` method call is removed together with its arguments, so the string interpolation never runs in release.
 - *Source:* [The Debug class — Excluding Debug code from non-development builds](../reference/testing-tooling/manual-class-debug.md), [Conditional compilation — Conditional attribute](../reference/scripting/manual-platform-dependent-compilation.md), [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md), [Debug.Log](../reference/scripting/scriptref-debug-log.md), [Debug.LogException](../reference/testing-tooling/scriptref-debug-logexception.md).
 
@@ -463,7 +475,7 @@ using System;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
-namespace SheNicest.Core
+namespace RootsDance.Core
 {
     public static class Log
     {
@@ -500,24 +512,24 @@ namespace SheNicest.Core
 
 ## Assembly definitions and conditional compilation
 
-**Every project script lives in exactly one of the four project assemblies** (folder layout in [02 Project structure](./02-project-structure.md)); the only exceptions are `Assets/ThirdParty/` and `Assets/_Sandbox/<user>/`, which compile into the predefined `Assembly-CSharp` and can never be referenced from `SheNicest.*`: **[project decision]**
+**Every project script lives in exactly one of the four project assemblies** (folder layout in [02 Project structure](./02-project-structure.md)); the only exceptions are `Assets/ThirdParty/` and `Assets/_Sandbox/<user>/`, which compile into the predefined `Assembly-CSharp` and can never be referenced from `RootsDance.*`: **[project decision]**
 
 | Assembly (`.asmdef`) | Folder | Platforms | References |
 |---|---|---|---|
-| `SheNicest.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`; add `Unity.TextMeshPro` / `UnityEngine.UI` only if uGUI is actually used. Root Namespace `SheNicest`. |
-| `SheNicest.Editor` | `Scripts/Editor` | **Editor only** | `SheNicest.Runtime` |
+| `RootsDance.Runtime` | `Scripts/Runtime` | Any | `Unity.InputSystem`, `Unity.Cinemachine`, `UnityEngine.UI`, `Unity.TextMeshPro` (uGUI is the runtime UI system, [09](./09-packages-systems.md#ugui-runtime-ui)); add `Unity.AI.Navigation` when first used. Root Namespace `RootsDance`. |
+| `RootsDance.Editor` | `Scripts/Editor` | **Editor only** | `RootsDance.Runtime` |
 
-Test assemblies (`SheNicest.Tests.EditMode`, Editor only; `SheNicest.Tests.PlayMode`, Any Platform): exact JSON in [02 — assembly definitions](./02-project-structure.md). EditMode references `SheNicest.Runtime` and `SheNicest.Editor`; PlayMode references `SheNicest.Runtime`.
+Test assemblies (`RootsDance.Tests.EditMode`, Editor only; `RootsDance.Tests.PlayMode`, Any Platform): exact JSON in [02 — assembly definitions](./02-project-structure.md). EditMode references `RootsDance.Runtime` and `RootsDance.Editor`; PlayMode references `RootsDance.Runtime`.
 
-- *Why:* Code outside an asmdef lands in the predefined `Assembly-CSharp`, which custom assemblies (including the test assemblies) cannot reference and which recompiles on every change — that is also why `_Sandbox/` code can use `SheNicest.Runtime` but never leak back into it. Package assembly names come from the package API pages (`Unity.InputSystem.dll`, `Unity.Cinemachine.dll`, `Unity.TextMeshPro.dll`, `UnityEngine.UI.dll`).
+- *Why:* Code outside an asmdef lands in the predefined `Assembly-CSharp`, which custom assemblies (including the test assemblies) cannot reference and which recompiles on every change — that is also why `_Sandbox/` code can use `RootsDance.Runtime` but never leak back into it. Package assembly names come from the package API pages (`Unity.InputSystem.dll`, `Unity.Cinemachine.dll`, `Unity.TextMeshPro.dll`, `UnityEngine.UI.dll`).
 - *Source:* [Introduction to assemblies](../reference/project-structure/manual-assembly-definitions-intro.md), [Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md), [Edit mode and Play mode tests](../reference/testing-tooling/manual-edit-mode-vs-play-mode-tests.md), [InputAction API](../reference/packages/inputsystem-1-20-unityengine-inputsystem-inputaction.md), [CinemachineCamera API](../reference/packages/cinemachine-3-1-unity-cinemachine-cinemachinecamera.md), [TMP_Text API](../reference/packages/ugui-2-0-tmpro-tmp-text.md).
 
 Rules:
 1. **Add a reference before using a type from another assembly** — in the Inspector's *Assembly Definition References* with **Use GUIDs unticked**, or by adding the assembly *name* to the `references` array of the JSON in [02](./02-project-structure.md); a missing reference is a compile error, not a warning. References from a custom assembly to `Assembly-CSharp` and cyclic references are impossible — if two assemblies need each other, merge them or invert the dependency.
    - *Source:* [Referencing assemblies](../reference/project-structure/manual-assembly-definitions-referencing.md), [Assembly Definition Inspector](../reference/project-structure/manual-class-assemblydefinitionimporter.md).
-2. **Editor-only code goes in `SheNicest.Editor` (Platforms = Editor only).** Any `using UnityEditor;` that must live in a runtime file (custom `OnValidate` helpers, gizmo colours, menu items next to the runtime class) is wrapped in `#if UNITY_EDITOR … #endif` — the `using`, the fields and the methods — otherwise the Player build fails. A folder named `Editor` under a folder that has its own asmdef is **not** automatically Editor-only.
+2. **Editor-only code goes in `RootsDance.Editor` (Platforms = Editor only).** Any `using UnityEditor;` that must live in a runtime file (custom `OnValidate` helpers, gizmo colours, menu items next to the runtime class) is wrapped in `#if UNITY_EDITOR … #endif` — the `using`, the fields and the methods — otherwise the Player build fails. A folder named `Editor` under a folder that has its own asmdef is **not** automatically Editor-only.
    - *Source:* [Creating assembly assets — Editor assembly](../reference/project-structure/manual-assembly-definitions-creating.md), [Introduction to assemblies — Editor folder](../reference/project-structure/manual-assembly-definitions-intro.md), [Conditional compilation](../reference/scripting/manual-platform-dependent-compilation.md), [How Unity uses serialization — Editor-only fields](../reference/scripting/manual-script-serialization-how-unity-uses.md).
-3. **Test assemblies are created with Test Runner → *Create a new Test Assembly Folder*** (or *Assets > Create > Testing > Test Assembly Folder*), which writes the `nunit.framework.dll`, `UnityEngine.TestRunner` and `UnityEditor.TestRunner` references that mark an assembly as a test assembly; then add `SheNicest.Runtime` to its references. Keep the generated references and `defineConstraints` when editing the JSON by hand. EditMode test asmdefs keep `includePlatforms: ["Editor"]`; PlayMode ones leave platforms open. Test assemblies are excluded from Player builds — production code accidentally placed there will not ship. The canonical JSON for both files is in [02](./02-project-structure.md); how to write and run tests is in [08](./08-testing-tooling.md).
+3. **Test assemblies are created with Test Runner → *Create a new Test Assembly Folder*** (or *Assets > Create > Testing > Test Assembly Folder*), which writes the `nunit.framework.dll`, `UnityEngine.TestRunner` and `UnityEditor.TestRunner` references that mark an assembly as a test assembly; then add `RootsDance.Runtime` to its references. Keep the generated references and `defineConstraints` when editing the JSON by hand. EditMode test asmdefs keep `includePlatforms: ["Editor"]`; PlayMode ones leave platforms open. Test assemblies are excluded from Player builds — production code accidentally placed there will not ship. The canonical JSON for both files is in [02](./02-project-structure.md); how to write and run tests is in [08](./08-testing-tooling.md).
    - *Source:* [Create a test assembly](../reference/testing-tooling/manual-workflow-create-test-assembly.md), [Creating assembly assets — test assembly](../reference/project-structure/manual-assembly-definitions-creating.md), [Assembly Definition file format](../reference/project-structure/manual-assembly-definition-file-format.md).
 4. **Prefer `#if` on Unity's built-in symbols only** (`UNITY_EDITOR`, `DEVELOPMENT_BUILD`, `UNITY_WEBGL`, `UNITY_STANDALONE`); `#if DEBUG` equals `UNITY_EDITOR || DEVELOPMENT_BUILD`. Do not add custom scripting symbols for a hackathon; use `Define Constraints` on an asmdef if a whole assembly is platform-specific. Never use `UNITY_64`.
    - *Source:* [Scripting symbol reference](../reference/scripting/manual-scripting-symbol-reference.md), [Conditional compilation](../reference/scripting/manual-platform-dependent-compilation.md).
@@ -538,8 +550,8 @@ Rules:
 
 ## Common pitfalls
 
-- **`Renderer.material` silently clones the material** (and breaks SRP batching); read with `sharedMaterial`, never write per-instance values through `material` or `MaterialPropertyBlock` in URP — use a Material Variant asset or vertex colour as [05 Performance](./05-performance.md) and [07 Rendering](./07-rendering-urp.md) specify; cache any property ID you do need with `Shader.PropertyToID` in a `private static readonly int k_…`.
-  - *Source:* [Renderer.material](../reference/scripting/scriptref-renderer-material.md), [Shader.PropertyToID](../reference/scripting/scriptref-shader-propertytoid.md); the URP batching rule is **[project decision]** owned by 05/07.
+- **`Renderer.material` silently clones the material** (and breaks SRP batching); read with `sharedMaterial`, never write per-instance values through `material` or `MaterialPropertyBlock` in HDRP — use a Material Variant asset or vertex colour as [05 Performance](./05-performance.md) and [07 Rendering](./07-rendering-hdrp.md) specify; cache any property ID you do need with `Shader.PropertyToID` in a `private static readonly int k_…`.
+  - *Source:* [Renderer.material](../reference/scripting/scriptref-renderer-material.md), [Shader.PropertyToID](../reference/scripting/scriptref-shader-propertytoid.md); the HDRP batching rule is **[project decision]** owned by 05/07.
 - **Animator parameters:** hash once with `Animator.StringToHash` (stable across sessions) instead of passing strings every call.
   - *Source:* [Animator.StringToHash](../reference/scripting/scriptref-animator-stringtohash.md).
 - **`enabled = false` does not stop coroutines or async methods; `SetActive(false)` stops coroutines but not `Awaitable` methods** — cancellation tokens do. `SetActive` changes only `activeSelf`; check `activeInHierarchy` for the effective state.
@@ -574,11 +586,12 @@ Rules:
 - ❌ `Invoke("Explode", 2f)` / `StartCoroutine("Blink")` → ✅ `Awaitable.WaitForSecondsAsync(2f, destroyCancellationToken)` / `m_blinkRoutine = StartCoroutine(Blink())`
 - ❌ `await Task.Delay(500)` / `Task.Run(...)` → ✅ `await Awaitable.WaitForSecondsAsync(0.5f, token)` / `await Awaitable.BackgroundThreadAsync()` then `MainThreadAsync()`
 - ❌ awaiting one stored `Awaitable` from two places → ✅ await once, or wrap in `Task` via `AsTask`
+- ❌ wrapping a DOTween tween in `Task` (`AsTask`) to `WhenAll` it with a scene load → ✅ `.ToUniTask()` both sides, `UniTask.WhenAll`
 - ❌ `yield return new WaitForSeconds(0.1f)` inside a loop → ✅ cached `m_wait` field
 - ❌ `DestroyImmediate(go)` in gameplay → ✅ `Destroy(go)`
 - ❌ `Log.Info($"pos {transform.position}", this)` in `Update` → ✅ remove, or `Debug.Assert`, or Profiler (see [05](./05-performance.md))
 - ❌ `Debug.Log("spawned", this)` / `print("spawned")` in gameplay code → ✅ `Log.Info("spawned", this)` (direct `Debug.Log*` only inside `Log.cs` and `_Sandbox/`)
-- ❌ `using UnityEditor;` at the top of a runtime file → ✅ move to `SheNicest.Editor` or guard with `#if UNITY_EDITOR`
+- ❌ `using UnityEditor;` at the top of a runtime file → ✅ move to `RootsDance.Editor` or guard with `#if UNITY_EDITOR`
 - ❌ `public record PlayerStats(...)` / `init` setters → ✅ `[Serializable] struct`/class with fields or `{ get; private set; }`
 - ❌ mutating a ScriptableObject asset's fields as game state → ✅ runtime copy via `CreateInstance`/`Instantiate`, or keep state on a MonoBehaviour
 
@@ -593,12 +606,13 @@ Rules:
 - [ ] Tags compared with `CompareTag`.
 - [ ] `Destroy` not `DestroyImmediate`; spawned-often objects are pooled.
 - [ ] Every `async Awaitable` method takes and forwards a `CancellationToken`; entry points are `async void` with `try/catch`; no double awaits; main thread restored before Unity API calls.
+- [ ] UniTask (if used) only composes a tween with a non-tween async op via `.ToUniTask()`; plain multi-tween composition uses DOTween `Sequence`, not UniTask or `Awaitable`.
 - [ ] Coroutines started/stopped by reference, yield instructions cached, no `Invoke(string)`.
 - [ ] Movement scaled by `Time.deltaTime`; Rigidbody code in `FixedUpdate`; Unity 6 physics names used.
 - [ ] Input read through `InputSystem.actions`; one-shot presses polled in `Update`; no `UnityEngine.Input`.
 - [ ] C# `event` for code, `UnityEvent` only for Inspector wiring; all subscriptions removed.
-- [ ] No log call in per-frame code; all logging goes through `SheNicest.Core.Log` with `this` as context; no direct `Debug.Log*` or `print()` outside `Log.cs`/`_Sandbox/`.
-- [ ] File is inside the right asmdef (or under `ThirdParty/`/`_Sandbox/`); Editor-only code is in `SheNicest.Editor` or `#if UNITY_EDITOR`; tests are in a test assembly.
+- [ ] No log call in per-frame code; all logging goes through `RootsDance.Core.Log` with `this` as context; no direct `Debug.Log*` or `print()` outside `Log.cs`/`_Sandbox/`.
+- [ ] File is inside the right asmdef (or under `ThirdParty/`/`_Sandbox/`); Editor-only code is in `RootsDance.Editor` or `#if UNITY_EDITOR`; tests are in a test assembly.
 - [ ] No records/`init`, `dynamic`, finalizers, `[ThreadStatic]`, LINQ in hot paths; static mutable values have a `[RuntimeInitializeOnLoadMethod]` reset; static event handlers are unsubscribed.
 - [ ] `Renderer.material` not used; no `MaterialPropertyBlock`; property IDs and animator hashes cached as `k_` statics.
 

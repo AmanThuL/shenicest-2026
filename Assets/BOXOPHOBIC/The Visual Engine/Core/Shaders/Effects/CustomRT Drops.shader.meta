@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a24218c40d45f9c4aa8b8e0290e59690
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Effects/CustomRT Drops.shader
+  uploadId: 974988

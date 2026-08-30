@@ -1,6 +1,6 @@
-# Coding guidelines — Unity 6000.3 (Unity 6.3 LTS), URP, C# 9
+# Coding guidelines — Unity 6000.3 (Unity 6.3 LTS), HDRP, C# 9
 
-Eleven documents that together define how this project is built. They were distilled from the official Unity documentation snapshot in [`../reference/`](../reference/README.md) (Unity 6 e-books, the 6000.3 manual and Script Reference, unity.com how-to articles) and from a small set of explicit **[project decision]**s recorded in each document. The ≤ 15-line **TL;DR** at the top of each guideline is the fast path; the body has the rationale, examples and sources.
+Twelve documents that together define how this project is built. They were distilled from the official Unity documentation snapshot in [`../reference/`](../reference/README.md) (Unity 6 e-books, the 6000.3 manual and Script Reference, unity.com how-to articles), from the vendor documentation shipped with Odin Inspector ([`../reference/third-party/odin-inspector/`](../reference/third-party/odin-inspector/README.md)), and from a small set of explicit **[project decision]**s recorded in each document. The ≤ 15-line **TL;DR** at the top of each guideline is the fast path; the body has the rationale, examples and sources.
 
 ## Reading order
 
@@ -13,10 +13,11 @@ Eleven documents that together define how this project is built. They were disti
 | 04 | [Unity scripting rules](04-unity-scripting-rules.md) | Lifecycle, serialization, null checks, finding objects, Awaitable vs coroutines, physics API, input in code, logging, asmdef usage | writing MonoBehaviour/ScriptableObject code |
 | 05 | [Performance guidelines](05-performance.md) | Frame/memory budgets, allocation hygiene, pooling, physics, rendering and UI performance, import settings, profiling workflow | writing per-frame code, spawning, importing assets |
 | 06 | [Version control with Git](06-version-control.md) | Editor VCS settings, `.meta` rules, what to commit, Git LFS, `.gitattributes`, UnityYAMLMerge, branches and commits, conflict resolution | committing, branching, merging |
-| 07 | [Rendering and URP conventions](07-rendering-urp.md) | URP assets/renderers/quality tiers, Render Graph, lighting (APV/lightmaps), post-processing volumes, cameras, materials, Shader Graph, texture import | touching anything that renders |
+| 07 | [Rendering and HDRP conventions](07-rendering-hdrp.md) | HDRP asset/global settings/quality tier, custom passes, physical lighting + fixed exposure (APV/lightmaps), volumes (sky/fog/post), cameras, materials, Shader Graph, texture import | touching anything that renders |
 | 08 | [Testing, tooling and IDE setup](08-testing-tooling.md) | Unity Test Framework, test assemblies, CLI test/build commands, Build Profiles, IDE setup, analyzers, Console hygiene | writing tests, building, setting up a machine |
-| 09 | [Packages and game systems](09-packages-systems.md) | Package versions and policy; Input System, Cinemachine, UI Toolkit, physics layers, AI Navigation, animation, audio, Addressables (not used) | using a Unity package or engine subsystem |
+| 09 | [Packages and game systems](09-packages-systems.md) | Package versions and policy; Input System, Cinemachine, uGUI + TextMeshPro, physics layers, AI Navigation, animation, audio, Addressables (not used) | using a Unity package or engine subsystem |
 | 11 | [Scenes, prefabs and team workflow](11-scenes-prefabs-workflow.md) | Bootstrap + additive level scenes, scene/prefab ownership and coordination, prefab workflow, ScriptableObject tunables, daily routine, build scene list | opening scenes, making prefabs, coordinating work |
+| 12 | [Odin Inspector](12-odin-inspector.md) | What Odin is for (Editor UX only, never the serializer), approved attribute vocabulary, the standard content-asset layout, validation, editor windows, maintaining the plug-in | writing a content ScriptableObject, decorating an Inspector, touching `Assets/Plugins/Sirenix/` |
 
 ## Document structure (all guidelines)
 
@@ -34,7 +35,7 @@ Eleven documents that together define how this project is built. They were disti
 
 - **MUST / NEVER** — binding; a reviewer blocks on it. **SHOULD** — default, deviate with a stated reason. **MAY** — allowed.
 - **[project decision]** — our choice among options Unity leaves open; change it only with team agreement, then update the guideline.
-- Links of the form `../reference/<topic>/<file>.md` point at the offline copy of the Unity page; the file's front matter has the live `source_url`.
+- Links of the form `../reference/<topic>/<file>.md` point at the offline copy of the Unity page; the file's front matter has the live `source_url`. Links into `../reference/third-party/odin-inspector/` point at files generated from the Odin XML docs committed with the plug-in (front matter names the source XML and the Odin version).
 - Version facts are pinned to **Unity 6000.3.22f1**; when the project upgrades, re-check guideline 10 first.
 
 ## Root config files generated from these guidelines
@@ -44,5 +45,7 @@ Eleven documents that together define how this project is built. They were disti
 | `/.editorconfig` | [01 — Appendix: .editorconfig](01-csharp-style.md) |
 | `/.gitattributes` | [06 — Appendix: .gitattributes](06-version-control.md) |
 | `/.gitignore` | GitHub `Unity.gitignore` + the project additions listed in [06](06-version-control.md) |
-| `/Assets/SheNicest/**` folder skeleton, `.asmdef` files | [02 — Appendix: folder tree](02-project-structure.md) |
-| `/Assets/ScriptTemplates/*` | [01 — script templates](01-csharp-style.md) |
+| `/Assets/RootsDance/**` folder skeleton, `.asmdef` files | [02 — Appendix: folder tree](02-project-structure.md) |
+| `/Assets/ScriptTemplates/*` | [01 — script templates](01-csharp-style.md); the content-asset template's body from [12](12-odin-inspector.md) |
+| `/docs/third-party.md` | [02 — section 5](02-project-structure.md) (record of vendor-package exceptions) |
+| `/docs/reference/third-party/odin-inspector/*` | generated by `docs/reference/_tools/build_odin_reference.py` from `Assets/Plugins/Sirenix/Assemblies/*.xml` |

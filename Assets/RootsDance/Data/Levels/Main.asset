@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b4f7ecfeef5145f8bebe07ade2adf93, type: 3}
+  m_Name: Main
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Data.LevelSO
+  m_scenePaths:
+  - Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  - Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity
+  - Assets/RootsDance/Scenes/Levels/Main/Main_Environment_2.unity
+  - Assets/RootsDance/Scenes/Levels/Main/Main_Environment_Statue.unity

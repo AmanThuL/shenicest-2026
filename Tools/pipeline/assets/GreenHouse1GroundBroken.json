@@ -1,0 +1,40 @@
+{
+  "asset": "GreenHouse1GroundBroken",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/_TilingJigs/GreenHouse1GroundBrokenPlane.blend",
+    "object": "GreenHouse1GroundBroken",
+    "licence": "Authoring jig generated in-repo (a 4 m plane); sources are CC0.",
+    "note": "The broken half of the ground pair. The intact tile carries the platform; this one is blended in towards the rim, where a stone platform loses its bedding first and breaks up."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": false,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "material_slots": [
+      "GreenHouse1GroundBroken"
+    ]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": [
+    "GreenHouse1GroundBroken"
+  ],
+  "painter": {
+    "fills": [
+      "StoneBase(0,1.0):basecolor=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_diff_2k.jpg;normal=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_rough_2k.jpg",
+      "DeepCracks(0,0.9):basecolor=#0E0C0A;roughness=0.95|~grunge_cracked_deep",
+      "FineCracks(0,0.7):basecolor=#171410;roughness=0.93|~grunge_concrete_cracked",
+      "CrackSilt(0,0.55):basecolor=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_diff_2k.jpg;normal=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_rough_2k.jpg|~grunge_cracked_deep",
+      "CrackMoss(0,0.5):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|~grunge_concrete_moss_medium",
+      "Grime(0,0.35):basecolor=#2A251E;roughness=0.85|~grunge_dirt_large",
+      "PoolStain(0,0.25):basecolor=#17150F;roughness=0.24|~grunge_stains_hollow"
+    ],
+    "layers": [],
+    "note": "Broken ground tile per docs/architecture/废墟风化分层策略.md, blended against the intact tile by distance from the platform centre so the damage concentrates at the rim."
+  }
+}

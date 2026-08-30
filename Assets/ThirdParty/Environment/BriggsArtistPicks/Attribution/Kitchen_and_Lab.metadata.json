@@ -1,0 +1,167 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "f825c721edb541dbbc8cd210123616c7",
+      "name": "Architecture",
+      "slug": "architecture",
+      "uri": "https://api.sketchfab.com/v3/categories/f825c721edb541dbbc8cd210123616c7",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/0d6c3fa023a12c3d7aa493c542afd1b8-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/f825c721edb541dbbc8cd210123616c7/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/f825c721edb541dbbc8cd210123616c7/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 5,
+  "createdAt": "2025-02-20T16:47:46.942737",
+  "embedUrl": "https://sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/embed",
+  "faceCount": 22933,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 299,
+  "name": "🍪 Kitchen And Lab by Amogusstrikesback2",
+  "publishedAt": "2025-02-20T17:04:03.759675",
+  "soundCount": 0,
+  "staffpickedAt": null,
+  "tags": [
+    {
+      "name": "laboratory",
+      "slug": "laboratory",
+      "uri": "https://api.sketchfab.com/v3/tags/laboratory"
+    },
+    {
+      "name": "kitchen",
+      "slug": "kitchen",
+      "uri": "https://api.sketchfab.com/v3/tags/kitchen"
+    },
+    {
+      "name": "baked-lighting",
+      "slug": "baked-lighting",
+      "uri": "https://api.sketchfab.com/v3/tags/baked-lighting"
+    },
+    {
+      "name": "icescream",
+      "slug": "icescream",
+      "uri": "https://api.sketchfab.com/v3/tags/icescream"
+    },
+    {
+      "name": "interior",
+      "slug": "interior",
+      "uri": "https://api.sketchfab.com/v3/tags/interior"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "17e56522498b44af95683a029e332a5c",
+        "width": 1920,
+        "height": 1080,
+        "size": 349664,
+        "url": "https://media.sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/thumbnails/2bb969cc74c2498abd2c4c37f982b3ef/57bfd05d0cb34893bed1f7a337b73c1b.jpeg"
+      },
+      {
+        "uid": "9b288e5d38e14292afa8759a03fcb88b",
+        "width": 1024,
+        "height": 576,
+        "size": 69421,
+        "url": "https://media.sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/thumbnails/2bb969cc74c2498abd2c4c37f982b3ef/35cd99e0cc8443aa90d554bc111f3250.jpeg"
+      },
+      {
+        "uid": "6a0b8d3e4e11421aafd25f5c9fa0cc79",
+        "width": 720,
+        "height": 405,
+        "size": 35986,
+        "url": "https://media.sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/thumbnails/2bb969cc74c2498abd2c4c37f982b3ef/4540829180644b8dbe702980d28462fc.jpeg"
+      },
+      {
+        "uid": "3afb37094e4840f485e2ae75a7fd5f21",
+        "width": 256,
+        "height": 144,
+        "size": 6340,
+        "url": "https://media.sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/thumbnails/2bb969cc74c2498abd2c4c37f982b3ef/a145b1629cb345338e24f6f4e562529e.jpeg"
+      },
+      {
+        "uid": "76350c89dfd8469c902b93f898f3bc7d",
+        "width": 64,
+        "height": 36,
+        "size": 1268,
+        "url": "https://media.sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/thumbnails/2bb969cc74c2498abd2c4c37f982b3ef/a0014e52c3514ffba40c8b5bcec970f9.jpeg"
+      }
+    ]
+  },
+  "uid": "e9fdbbfb929e4bf796fa81d250fe6d64",
+  "uri": "https://api.sketchfab.com/v3/models/e9fdbbfb929e4bf796fa81d250fe6d64",
+  "user": {
+    "uid": "52f173fb4f13424cbc20ae4e6205bdcd",
+    "username": "sanchibbo",
+    "displayName": "@sanyabeast",
+    "account": "basic",
+    "profileUrl": "https://sketchfab.com/sanchibbo",
+    "avatar": {
+      "uid": "7615edb6bd814d17b1bd15f899730203",
+      "uri": "https://api.sketchfab.com/v3/avatars/7615edb6bd814d17b1bd15f899730203",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 1215,
+          "url": "https://media.sketchfab.com/avatars/7615edb6bd814d17b1bd15f899730203/ddc9dbfc2c2a4379b6aebbacc8548035.jpeg"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 1879,
+          "url": "https://media.sketchfab.com/avatars/7615edb6bd814d17b1bd15f899730203/52aedbb5d6e64819ae7e32a775fa976f.jpeg"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 4697,
+          "url": "https://media.sketchfab.com/avatars/7615edb6bd814d17b1bd15f899730203/10ada3c5052f44d189ec10d9008d4b33.jpeg"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 5543,
+          "url": "https://media.sketchfab.com/avatars/7615edb6bd814d17b1bd15f899730203/7fae39046cfd4c34ae110900334efb7d.jpeg"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/52f173fb4f13424cbc20ae4e6205bdcd"
+  },
+  "vertexCount": 14110,
+  "viewCount": 9594,
+  "viewerUrl": "https://sketchfab.com/3d-models/kitchen-and-lab-by-amogusstrikesback2-e9fdbbfb929e4bf796fa81d250fe6d64",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "The original model was created by **amogusstrikesback2** (https://sketchfab.com/3d-models/kitchen-and-lab-194bd5bcfcb14e1383d9ad65436f9bd0). If you enjoyed this work, don’t forget to check out the creator’s portfolio here: https://sketchfab.com/amogusstrikesback2. This project is intended to experiment with baked lighting. For the best experience, ensure HD textures are enabled in the quality settings. ;)",
+  "price": null,
+  "downloadCount": 1801,
+  "editorUrl": "https://sketchfab.com/models/e9fdbbfb929e4bf796fa81d250fe6d64/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2025-02-20T17:14:38.492351",
+  "pbrType": null,
+  "textureCount": 69,
+  "materialCount": 69
+}

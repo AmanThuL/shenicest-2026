@@ -1,0 +1,24 @@
+{
+    "name": "RootsDance.Runtime",
+    "rootNamespace": "RootsDance",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
+        "IngameDebugConsole.Runtime",
+        "DOTween.Modules",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "CurvedUIUtility",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

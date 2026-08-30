@@ -1,0 +1,16 @@
+{
+  "extends": "psx_prop",
+  "description": "Retro character / first-person arms. 512 matches the Arms_BaseMap.png sheet in the current source asset.",
+  "texture": {
+    "resolution": 512,
+    "maps": ["BaseMap"]
+  },
+  "uv": {
+    "padding_px": 6,
+    "padding_reference_resolution": 512,
+    "target_texel_density_px_per_m": 256
+  },
+  "unity": {
+    "max_size": 512
+  }
+}

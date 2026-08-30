@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0bf31e2ca6ebf2c4884a107a3c1d727d
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Elements/Flow Intensity
+    Animated.shader
+  uploadId: 974988

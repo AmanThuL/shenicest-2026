@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d9ac7ad4f0387004fb72c16019bf8392
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Block Motion.asset
+  uploadId: 974988

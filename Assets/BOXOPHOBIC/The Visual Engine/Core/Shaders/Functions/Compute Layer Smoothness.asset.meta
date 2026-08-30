@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 42d0edb6ef71f6f49b3e2643eeb879a9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Compute Layer
+    Smoothness.asset
+  uploadId: 974988

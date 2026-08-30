@@ -1,21 +1,21 @@
 # 09. Packages and game systems
 
-> **Scope:** Which Unity packages this project uses (and which it does not), how each is set up, and the conventions for using them from scenes and code: Package Manager, Input System, Cinemachine, UI Toolkit (+ uGUI/TextMeshPro), Physics, AI Navigation, Animation, Audio, Addressables, ProBuilder/Timeline/Visual Scripting.
-> **Applies to:** `Packages/manifest.json`, all assets under `Assets/SheNicest/`, and all C# under `Assets/SheNicest/Scripts`.
-> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-23
+> **Scope:** Which Unity packages this project uses (and which it does not), how each is set up, and the conventions for using them from scenes and code: Package Manager, Input System, Cinemachine, uGUI + TextMeshPro (runtime UI), Physics, AI Navigation, Animation, Audio, Addressables, ProBuilder/Timeline/Visual Scripting.
+> **Applies to:** `Packages/manifest.json`, all assets under `Assets/RootsDance/`, and all C# under `Assets/RootsDance/Scripts`.
+> **Status:** Unity 6000.3 LTS · last reviewed 2026-08-26
 
-Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); generic scripting rules (lifecycle, Update vs FixedUpdate, null checks, Awaitable) by [04-unity-scripting-rules.md](./04-unity-scripting-rules.md); the 6.3 API renames by [10-unity6-facts.md](./10-unity6-facts.md). This document only adds the package-specific rules on top of those.
+Rendering and HDRP are owned by [07-rendering-hdrp.md](./07-rendering-hdrp.md); generic scripting rules (lifecycle, Update vs FixedUpdate, null checks, Awaitable) by [04-unity-scripting-rules.md](./04-unity-scripting-rules.md); the 6.3 API renames by [10-unity6-facts.md](./10-unity6-facts.md). This document only adds the package-specific rules on top of those.
 
 ## TL;DR — rules at a glance
 
 1. **MUST** use only packages from the 6000.3 *Released* / *Core* lists, at the versions in the table below; adding, removing or bumping a package is a team decision and its own `chore(packages):` commit of `Packages/manifest.json` + `Packages/packages-lock.json`.
 2. **NEVER** add pre-release or experimental packages; **NEVER** add Git-URL, local-path or embedded (`Packages/<name>/`) packages without explicit team agreement (pin Git URLs to a tag or full commit hash).
-3. **MUST** read input through the single project-wide action asset `Assets/SheNicest/Input/SheNicest.inputactions` via `InputSystem.actions.FindAction("<Map>/<Action>")` (map-qualified); cache the result once, poll continuous values in `Update`, never call `FindAction` per frame.
+3. **MUST** read input through the single project-wide action asset `Assets/RootsDance/Input/RootsDance.inputactions` via `InputSystem.actions.FindAction("<Map>/<Action>")` (map-qualified); cache the result once, poll continuous values in `Update`, never call `FindAction` per frame.
 4. **NEVER** use `UnityEngine.Input`, the `PlayerInput` component, the generated C# wrapper class, or direct device reads (`Keyboard.current`) in shipping code.
 5. **MUST** keep Input System **Update Mode** at *Process Events in Dynamic Update* and call `WasPressedThisFrame()` / `WasReleasedThisFrame()` only from `Update`.
 6. **MUST** drive the camera with Cinemachine 3.1: exactly one Unity `Camera` with one `CinemachineBrain`, in `Bootstrap.unity`; every shot is a `CinemachineCamera` GameObject; switch shots by activating/deactivating GameObjects, not by moving the Unity Camera.
-7. **MUST** build runtime UI with UI Toolkit (`UIDocument` + one shared `PanelSettings`), UXML under `Assets/SheNicest/UI/Documents/`, USS under `Assets/SheNicest/UI/Styles/`, BEM class names, no inline styles.
-8. **MUST** wire UI in a presenter `MonoBehaviour` (MVP, see [03](./03-architecture-patterns.md)): query elements in `OnEnable`, unregister callbacks in `OnDisable`, cache every `Q<>()` result.
+7. **MUST** build runtime UI with uGUI: one screen = one prefab under `Assets/RootsDance/Prefabs/UI/`, one screen-space `Canvas` + `CanvasScaler` + `GraphicRaycaster` root and one `EventSystem` + **Input System UI Input Module** in `Bootstrap.unity`, all text in `TextMeshProUGUI`. **[project decision]**
+8. **MUST** wire UI in a presenter `MonoBehaviour` (MVP, see [03](./03-architecture-patterns.md)) that reaches every widget through a `[SerializeField] private` reference — never `GameObject.Find` / `transform.Find`, never a `Button.onClick` entry wired in the Inspector; subscribe in `OnEnable`, unsubscribe in `OnDisable`.
 9. **MUST** use `CharacterController` for the player and `Rigidbody` only for things that should be pushed, thrown or fall; never both on one object; move a Rigidbody only from `FixedUpdate` via Rigidbody APIs.
 10. **MUST** give every physics query an explicit `LayerMask` serialized field and an explicit `QueryTriggerInteraction`; project layers are the ones listed in the Physics section.
 11. **MUST** put NPC movement on `NavMeshAgent` + `NavMeshSurface`; if an agent needs physics, its Rigidbody is kinematic; never combine `NavMeshAgent` and `NavMeshObstacle` on the same active object.
@@ -30,11 +30,16 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 |---|---|---|---|
 | Input System `com.unity.inputsystem` | 1.20.0 (released) | **Required** | [ref](../reference/packages/manual-com-unity-inputsystem.md) |
 | Cinemachine `com.unity.cinemachine` | 3.1.7 (released) | **Required** | [ref](../reference/packages/manual-com-unity-cinemachine.md) |
+| UniTask (Cysharp) `com.cysharp.unitask` | 2.5.11 (OpenUPM) | **Installed**, narrow scope: only `WhenAll`/`WhenAny` across a DOTween tween **and** a non-tween async op (scene load, `InstantiateAsync`) via `.ToUniTask()`. `Awaitable` stays the default; DOTween `Sequence` for tween-only composition. Full rule in [04](./04-unity-scripting-rules.md#async-awaitable-dotween-sequence-and-unitask). | [github.com/Cysharp/UniTask](https://github.com/Cysharp/UniTask) |
+| Odin Inspector (Sirenix, Asset Store `.unitypackage`, **not** UPM) | 4.0.2.3 at `Assets/Plugins/Sirenix/` | **Required** — Editor-UX only, Odin serializer unused; rules in [12](./12-odin-inspector.md) | [ref](../reference/third-party/odin-inspector/README.md) |
+| The Visual Engine (BOXOPHOBIC, Asset Store `.unitypackage`) | 22.0.0 at `Assets/BOXOPHOBIC/` + `Assets/BOXOPHOBIC+/` | **Installed 2026-08-27** — HDRP vegetation/wind/interaction shaders and `TVE Manager`; demo, tutorial and pipeline archives deleted after import; record in [`docs/third-party.md`](../third-party.md) | `Assets/BOXOPHOBIC/The Visual Engine/The Visual Engine.pdf` |
+| Prefab World Builder (PluginMaster, Asset Store `.unitypackage`) | 4.12.2 at `Assets/PluginMaster/` | **Installed 2026-08-27** — Editor-only prefab painting/placement for level dressing ([11](./11-scenes-prefabs-workflow.md)); palettes + `ProjectSettings/PWBSettings.txt` committed; record in [`docs/third-party.md`](../third-party.md) | `Assets/PluginMaster/DesignTools/Editor/PrefabWorldBuilder/Documentation/Prefab World Builder Documentation.pdf` |
 | AI Navigation `com.unity.ai.navigation` | 2.0.14 (released) | **Required** when there are NPCs | [ref](../reference/packages/manual-com-unity-ai-navigation.md) |
-| UI Toolkit | part of the core Editor, no package | **Required** (runtime UI) | [ref](../reference/packages/manual-install-ui-toolkit-and-sample-projects.md) |
-| uGUI + TextMeshPro `com.unity.ugui` | 2.0 (core, fixed to Editor) | Present; use only per the UI section | [ref](../reference/packages/manual-com-unity-ugui.md), [ref](../reference/packages/ugui-2-0-textmeshpro-index.md) |
-| URP / Shader Graph | 17.3 (core) | Required — see [07](./07-rendering-urp.md) | [ref](../reference/packages/manual-pack-core.md) |
+| uGUI + TextMeshPro `com.unity.ugui` | 2.0 (core, fixed to Editor) | **Required** (runtime UI) | [ref](../reference/packages/manual-com-unity-ugui.md), [ref](../reference/packages/ugui-2-0-textmeshpro-index.md) |
+| UI Toolkit | part of the core Editor, no package | Editor tooling only (custom Inspectors, Editor windows); **never** for runtime UI | [ref](../reference/packages/manual-install-ui-toolkit-and-sample-projects.md) |
+| HDRP `com.unity.render-pipelines.high-definition` / Shader Graph | 17.3.0 (built-in with the Editor) | **Required** — the only render pipeline, see [07](./07-rendering-hdrp.md); `com.unity.render-pipelines.high-definition-config` is a transitive dependency and is **never** embedded into `Packages/` | [ref](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-index.md) |
 | Test Framework `com.unity.test-framework` | 1.6 (core) | Required — see [08](./08-testing-tooling.md) | [ref](../reference/packages/manual-com-unity-test-framework.md) |
+| Unity Pipeline `com.unity.pipeline` | 0.5.0-exp.1 (experimental) | **Adopted 2026-08-25** — Editor/agent tooling only (official Unity CLI `unity command …` against the open Editor); trade-offs and rules in [Unity CLI agent workflow](../architecture/tooling/unity-cli-agent-workflow.md#3-the-package-decision-comunitypipeline-050-exp1) | [live](https://docs.unity3d.com/Packages/com.unity.pipeline@0.5/manual/index.html) |
 | ProBuilder `com.unity.probuilder` | 6.1 (released) | **Optional** (greyboxing) | [ref](../reference/packages/manual-pack-safe.md) |
 | Timeline `com.unity.timeline` | 1.8 (released) | **Not installed** (add when cutscenes are needed) | [ref](../reference/packages/manual-pack-safe.md) |
 | Addressables `com.unity.addressables` | 2.9.1 released for 6000.3; 3.x/4.0 also available | **Not installed** | [ref](../reference/packages/manual-com-unity-addressables.md) |
@@ -42,7 +47,9 @@ Rendering and URP are owned by [07-rendering-urp.md](./07-rendering-urp.md); gen
 | Visual Scripting `com.unity.visualscripting` | 1.9 (released) | **Not installed** | [ref](../reference/packages/manual-pack-safe.md) |
 | Netcode for GameObjects | 2.13 (released) | **Not used** (single-player) | [ref](../reference/packages/manual-pack-safe.md) |
 
-Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
+Removed from the Universal 3D template manifest at import (2026-08-24), all with zero dependents in the lock file: `com.unity.collab-proxy` (Unity Version Control plugin — this project is Git-only, [06](./06-version-control.md) rule 15), `com.unity.multiplayer.center` (single-player game), `com.unity.pipeline` 0.5.0-exp.1 (experimental — forbidden below; re-added 2026-08-25 as Editor/agent tooling for Editor/agent tooling, see its table row), `com.unity.timeline` and `com.unity.visualscripting` (per this table). `com.unity.cinemachine` 3.1.7 was added at the same time. **[project decision]**
+
+Removed on **2026-08-27** by the URP → HDRP migration: `com.unity.render-pipelines.universal` (and its transitive `com.unity.render-pipelines.universal-config`), replaced by `com.unity.render-pipelines.high-definition` 17.3.0. The two pipelines are mutually exclusive — HDRP assets, shaders and components do not work under URP and vice versa — so **NEVER** re-add the URP package "to compare" or to unblock a shader; raise it with the rendering owner instead. Both packages ship built into the 6000.3 Editor (`"source": "builtin"` in the lock file), so neither is downloaded. HDRP does not support WebGL/WebGPU or mobile: the project is desktop standalone only. **[project decision]**
 
 *Why:* "Released" packages are the ones Unity has tested against this Editor version; core packages ship with the Editor and cannot be switched to another version. Everything else is a risk the hackathon cannot absorb.
 *Source:* [Released packages](../reference/packages/manual-pack-safe.md), [Core packages](../reference/packages/manual-pack-core.md), [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md).
@@ -64,6 +71,7 @@ Removed from the Universal 3D template manifest at import (2026-08-24), all with
 **NEVER** install pre-release or experimental packages (version `0.x`, `-exp`, `-pre`), and leave **Show Pre-release Package Versions** off.
 - *Why:* Experimental packages are unsupported; pre-release packages are supported but not yet verified for this Editor version; deprecated ones may be nonfunctional. Only *Released* packages have passed validation for 6000.3.
 - *Source:* [Package states and lifecycle](../reference/packages/manual-upm-lifecycle.md), [Install a UPM package from a registry](../reference/packages/manual-upm-ui-install.md).
+- Experimental packages wanted for Editor/agent **tooling** rather than gameplay (today: `com.unity.pipeline`, adopted 2026-08-25) are not exempt: same team decision, same standalone `chore(packages):` commit, and the trade-offs written down in [`docs/architecture/tooling/`](../architecture/tooling/unity-cli-agent-workflow.md) before the decision. **[project decision]**
 
 **NEVER** add a Git-URL dependency without team agreement. If agreed: pin it with `#<tag>` or a **full** commit hash, note that every machine needs Git ≥ 2.14 on `PATH`, and that LFS-tracked package content can silently import as pointer files.
 - *Why:* Unpinned Git dependencies resolve to "latest default branch", and the Package Manager's shallow clones do not reliably fetch LFS files.
@@ -73,7 +81,7 @@ Removed from the Universal 3D template manifest at import (2026-08-24), all with
 - *Why:* An embedded copy silently overrides the registry version for everyone and must then be tracked and merged like source; we have no capacity to maintain a fork.
 - *Source:* [Embedded dependencies](../reference/packages/manual-upm-embed.md).
 
-Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/ThirdParty/` per [02-project-structure.md](./02-project-structure.md).
+Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/ThirdParty/` per [02-project-structure.md](./02-project-structure.md) — except Odin Inspector, which stays at its vendor-required path `Assets/Plugins/Sirenix/` ([12](./12-odin-inspector.md), [`docs/third-party.md`](../third-party.md)). Adding any further Asset Store package is the same team decision and its own `chore:` commit as a UPM package.
 
 ## Input System 1.20
 
@@ -83,7 +91,7 @@ Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/
 - *Why:* Having the package installed does not by itself switch runtime input; `Both` keeps the legacy backend alive and invites `UnityEngine.Input` calls.
 - *Source:* [Runtime UI event system and input handling](../reference/packages/manual-uie-runtime-event-system.md), [Enable the correct input system](../reference/packages/inputsystem-1-20-enable-correct-input-system.md).
 
-**MUST** have exactly one action asset, `Assets/SheNicest/Input/SheNicest.inputactions`, assigned as project-wide in **Edit > Project Settings > Input System Package**. It is the template's `InputSystem_Actions` asset moved and renamed inside the Editor (see [02](./02-project-structure.md)).
+**MUST** have exactly one action asset, `Assets/RootsDance/Input/RootsDance.inputactions`, assigned as project-wide in **Edit > Project Settings > Input System Package**. It is the template's `InputSystem_Actions` asset moved and renamed inside the Editor (see [02](./02-project-structure.md)).
 - *Why:* Unity's recommended workflow is a single project-wide asset: it is preloaded, enabled automatically at startup, and reachable as `InputSystem.actions` without references.
 - *Source:* [About project-wide actions](../reference/packages/inputsystem-1-20-about-project-wide-actions.md), [Create and assign a default project-wide actions asset](../reference/packages/inputsystem-1-20-create-project-wide-actions.md), [Workflows](../reference/packages/inputsystem-1-20-workflows.md).
 
@@ -111,7 +119,7 @@ Asset Store `.unitypackage` content is not a UPM package: it goes under `Assets/
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SheNicest.Player
+namespace RootsDance.Player
 {
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerMotor : MonoBehaviour
@@ -176,8 +184,9 @@ namespace SheNicest.Player
 - *Why:* Nothing stops UI and gameplay from consuming the same click or stick; an explicit mode switch is the strategy Unity documents for this.
 - *Source:* [Handling input target ambiguity](../reference/packages/inputsystem-1-20-handling-input-target-ambiguity.md), [Enabling actions](../reference/packages/inputsystem-1-20-enable-actions.md).
 
-UI Toolkit-only scenes need no `EventSystem` GameObject: the default runtime event system derives UI events from the project-wide `UI` map. Only add an `EventSystem` + **Input System UI Input Module** if uGUI is mixed in.
-- *Source:* [Runtime UI event system and input handling](../reference/packages/manual-uie-runtime-event-system.md).
+**MUST** have exactly one `EventSystem` GameObject carrying an **Input System UI Input Module** (never the legacy `StandaloneInputModule`), in `Bootstrap.unity` next to the UI root; no additive scene adds a second one. **[project decision on placement]**
+- *Why:* uGUI receives no pointer, click or navigation event without an `EventSystem` and an input module; the Input System module is the one that reads the project-wide `UI` action map. Only one input module can be active at a time, and `EventSystem.current` is a single static, so a second `EventSystem` in an additively loaded scene is at best redundant.
+- *Source:* [Event System](../reference/packages/ugui-2-0-eventsystem.md), [Input Modules](../reference/packages/ugui-2-0-inputmodules.md), [Input System — UI input](../reference/packages/inputsystem-1-20-ui-input.md), [Input System UI Input Module](../reference/packages/inputsystem-1-20-introduction-ui-input-module.md).
 
 ## Cinemachine 3.1
 
@@ -202,7 +211,7 @@ UI Toolkit-only scenes need no `EventSystem` GameObject: the default runtime eve
 using Unity.Cinemachine;
 using UnityEngine;
 
-namespace SheNicest.Cameras   // not "Camera": it would shadow UnityEngine.Camera
+namespace RootsDance.Cameras   // not "Camera": it would shadow UnityEngine.Camera
 {
     public sealed class DialogueCameraSwitch : MonoBehaviour
     {
@@ -224,7 +233,7 @@ namespace SheNicest.Cameras   // not "Camera": it would shadow UnityEngine.Camer
 }
 ```
 
-**SHOULD** configure transitions on the Brain only: **Default Blend** *Ease In Out* ~1 s for gameplay, plus a **Custom Blends** asset at `Assets/SheNicest/Settings/Cinemachine/CustomBlends.asset` for pairs that need a cut. Keep **Update Method** at *Smart Update* and **Blend Update Method** at *Late Update*. **[project decision on values and path]**
+**SHOULD** configure transitions on the Brain only: **Default Blend** *Ease In Out* ~1 s for gameplay, plus a **Custom Blends** asset at `Assets/RootsDance/Settings/Cinemachine/CustomBlends.asset` for pairs that need a cut. Keep **Update Method** at *Smart Update* and **Blend Update Method** at *Late Update*. **[project decision on values and path]**
 - *Why:* The Brain owns transition rules; *Smart Update* and *Late Update* are Unity's recommended settings.
 - *Source:* [Cinemachine Brain reference](../reference/packages/cinemachine-3-1-cinemachinebrain.md), [Set up multiple Cinemachine Cameras](../reference/packages/cinemachine-3-1-setup-multiple-cameras.md).
 
@@ -242,72 +251,79 @@ namespace SheNicest.Cameras   // not "Camera": it would shadow UnityEngine.Camer
 
 If the camera follows a Rigidbody-driven object and jitters, set that Rigidbody's **Interpolate** to *Interpolate*; see Physics below.
 
-## UI Toolkit runtime UI
+## uGUI runtime UI
 
 ### Decision and file layout
 
-**MUST** build menus and HUD with UI Toolkit; uGUI is allowed only for a feature UI Toolkit cannot do in 6.3 (keyframed Animation Clip / Timeline-driven UI, serialized `UnityEvent` hookups) and must be agreed first. The 6.3 manual's general runtime recommendation is uGUI with UI Toolkit as the alternative; its use-case table lists UI Toolkit as "often used for" multi-resolution menus and HUD, which is our case. **[project decision]**
-- *Why:* Our reasons **[project decision]**: UXML/USS are text files that diff and merge cleanly and are easy for AI agents to author; UI lives in assets, not scenes/prefabs, so no scene-merge conflicts; UI Toolkit is Unity's active development direction. Its gaps per the comparison page (Animation Clips/Timeline integration, serialized events) are exactly the uGUI escape hatch.
-- *Source:* [Comparison of UI systems in Unity](../reference/packages/manual-ui-system-compare.md).
+**MUST** build menus and HUD with uGUI — `Canvas` + `CanvasScaler` + `GraphicRaycaster` for the root, `UnityEngine.UI` widgets for interaction, `TextMeshProUGUI` for every piece of text. UI Toolkit is not used for runtime UI (Editor tooling only). **[project decision]**
+- *Source:* [Comparison of UI systems in Unity](../reference/packages/manual-ui-system-compare.md), [Unity UI (uGUI)](../reference/packages/ugui-2-0-index.md).
 
-**MUST** keep UI assets as: `Assets/SheNicest/UI/Documents/<Screen>.uxml`, `Assets/SheNicest/UI/Styles/<Screen>.uss` + `Styles/Common.uss` (variables, shared classes), one `Assets/SheNicest/UI/PanelSettings.asset` referenced by every `UIDocument`, and UI sprites/fonts in `UI/Sprites/`, `UI/Fonts/`. Presenters live in `Scripts/Runtime/UI/` (`SheNicest.UI`). **[project decision]**
-- *Why:* One `PanelSettings` asset = one panel, one theme, one scale mode; splitting documents per screen keeps UXML diffs small.
-- *Source:* [Get started with runtime UI](../reference/packages/manual-uie-get-started-with-runtime-ui.md), [Configure runtime UI](../reference/packages/manual-uie-render-runtime-ui.md); folder layout in [02](./02-project-structure.md).
+**MUST** keep UI assets as: one screen (main menu, HUD, pause…) = one prefab at `Assets/RootsDance/Prefabs/UI/<Screen>.prefab`; UI sprites in `Assets/RootsDance/UI/Sprites/`; TMP font assets and their material presets in `Assets/RootsDance/UI/Fonts/`. Presenters live in `Scripts/Runtime/UI/` (namespace `RootsDance.UI`). **[project decision]**
+- *Why:* A uGUI screen is a GameObject hierarchy, so it lives in prefab YAML — which is not hand-mergeable ([06](./06-version-control.md)). One prefab per screen keeps the conflict unit small and gives each screen exactly one owner ([11](./11-scenes-prefabs-workflow.md)).
+- *Source:* folder layout in [02](./02-project-structure.md).
 
-**MUST** reference UXML/USS from code only through serialized `VisualTreeAsset` / `StyleSheet` fields, never `Resources.Load`.
-- *Why:* Serialized references are checked by the Editor and stripped correctly; `Resources` bloats the build and bypasses references (asset-loading rule below).
-- *Source:* [Load UXML and USS in C# scripts](../reference/packages/manual-uie-manage-asset-reference.md).
+**MUST** put exactly one screen-space canvas root in `Bootstrap.unity` — a `UI` GameObject with `Canvas` in **Screen Space – Overlay**, `CanvasScaler` in **Scale With Screen Size** at reference resolution 1920×1080 with **Match** = 0.5, and `GraphicRaycaster`. Screen prefabs are instantiated as children of it. **[project decision on the reference resolution and Match value]**
+- *Why:* Screen Space – Overlay renders without a camera, so the one-camera rule in [07](./07-rendering-hdrp.md) still holds (HDRP has no camera stacking, so a second camera would be a second full frame); Scale With Screen Size against a fixed reference resolution is Unity's documented way to keep one layout usable on other resolutions, and Match 0.5 splits the scaling between width and height.
+- *Source:* [Canvas](../reference/packages/ugui-2-0-uicanvas.md), [Canvas Scaler](../reference/packages/ugui-2-0-script-canvasscaler.md), [Designing UI for multiple resolutions](../reference/packages/ugui-2-0-howto-uimultiresolution.md).
 
-### USS and naming
+**MUST** have exactly one `EventSystem` + **Input System UI Input Module**, in `Bootstrap.unity` next to the UI root — see [UI vs gameplay input](#ui-vs-gameplay-input) above for the rule and its sources.
 
-**MUST** name classes in BEM kebab-case — block `pause-menu`, element `pause-menu__resume`, modifier `pause-menu__resume--disabled` — and style with single-class selectors. Element `name` attributes use the same BEM string so `Q<>("pause-menu__resume")` and `.pause-menu__resume` agree. **[project decision on reusing the BEM string as `name`]**
-- *Why:* BEM removes hierarchical selectors, which are the main styling cost; type and `#name` selectors in BEM rules are discouraged.
-- *Source:* [Best practices for USS](../reference/packages/manual-uie-uss-writingstylesheets.md), [UI Toolkit BPG — Styling](../reference/packages/manual-styling.md).
+### Layout
 
-**NEVER** leave inline styles in UXML or set `style.*` from C# for things a class could express; extract them to a selector in UI Builder. **NEVER** use `:hover` on elements with many descendants or selectors ending in `*`.
-- *Why:* Inline styles cost memory per element; hover and universal selectors invalidate large parts of the tree.
-- *Source:* [Best practices for USS](../reference/packages/manual-uie-uss-writingstylesheets.md).
+**MUST** position elements with `RectTransform` anchors and pivots — anchor to the edge or corner the element belongs to, stretch what should scale — never absolute coordinates tuned for one resolution.
+- *Source:* [Rect Transform](../reference/packages/ugui-2-0-class-recttransform.md), [Basic layout](../reference/packages/ugui-2-0-uibasiclayout.md).
 
-**SHOULD** put colours, spacing and font sizes in USS variables (`--color-accent`) inside `Common.uss`, and swap state with `AddToClassList` / `RemoveFromClassList` plus USS transitions rather than animating from C#.
-- *Why:* Updating a variable updates every property that uses it; a class swap plus a USS transition animates without per-frame C# and keeps look and behaviour in the stylesheet.
-- *Source:* [UI Toolkit BPG — Styling](../reference/packages/manual-styling.md).
+**SHOULD** use the auto-layout components (`HorizontalLayoutGroup`, `VerticalLayoutGroup`, `GridLayoutGroup`, `ContentSizeFitter`) where item count or text length varies; **NEVER** nest layout groups more than two deep, and **NEVER** leave a `ContentSizeFitter` on content that changes every frame.
+- *Why:* Each layout group re-runs the layout pass for its subtree when anything inside it is marked dirty; nesting multiplies that cost, and a per-frame `ContentSizeFitter` rebuilds the whole chain every frame.
+- *Source:* [Auto layout](../reference/packages/ugui-2-0-uiautolayout.md), [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md).
 
-**SHOULD** hide screens with `display: none` (a `--hidden` modifier class) rather than removing them from the hierarchy; use `visibility: hidden` only when layout must be preserved.
-- *Why:* Recreating elements is the slow path; `display: none` keeps them ready at near-zero per-frame cost.
-- *Source:* [Best practices for managing elements](../reference/packages/manual-uie-best-practices-for-managing-elements.md).
+**MUST** turn **Raycast Target** off on every `Image` / `TextMeshProUGUI` that is not clickable, and split a canvas whose elements change every frame from the static one.
+- *Why:* Every raycast target is tested on every pointer event; any change to one graphic rebuilds the mesh of its whole canvas, so a per-frame HUD value on the menu canvas re-batches the menu too.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md); full performance rules in [05](./05-performance.md).
+
+**MUST** name UI GameObjects PascalCase after what they are (`ResumeButton`, `HealthBar`, `ReportToast`), matching the presenter field that references them; naming rules are owned by [02](./02-project-structure.md).
+
+### Text
+
+**MUST** use `TextMeshProUGUI` for all UI text; the legacy `UnityEngine.UI.Text` component is never used. Import **Window > TextMeshPro > Import TMP Essential Resources** once and commit the generated `Assets/TextMesh Pro/` folder. **[project decision]**
+- *Why:* TMP is the maintained text component in uGUI 2.0 (`UnityEngine.UI.Text` is legacy) and renders from an SDF atlas, so text stays sharp at any scale.
+- *Source:* [TextMesh Pro](../reference/packages/ugui-2-0-textmeshpro-index.md), [UI Text](../reference/packages/ugui-2-0-textmeshpro-tmpobjectuitext.md), [TextMeshProUGUI API](../reference/packages/ugui-2-0-tmpro-textmeshprougui.md).
+
+**MUST** keep each project font as a TMP **Font Asset** under `UI/Fonts/`, generated once with the Font Asset Creator; CJK coverage comes from a dynamic font asset plus a fallback chain, never from one static atlas per screen.
+- *Source:* [Font Assets](../reference/packages/ugui-2-0-textmeshpro-fontassets.md), [Font Asset Creator](../reference/packages/ugui-2-0-textmeshpro-fontassetscreator.md), [Fallback font assets](../reference/packages/ugui-2-0-textmeshpro-fontassetsfallback.md).
+
+**MUST** set Latin text in **m5x7** (CC0, Daniel Linssen — `Assets/RootsDance/Fonts/m5x7.ttf`) and Simplified Chinese in **Fusion Pixel 12px zh_hans** (OFL-1.1 — `FusionPixel-12px-Zh_Hans.ttf`), wired as one face: m5x7 is the primary TMP font asset, Fusion Pixel sits in its fallback table, and m5x7's Face Info `Scale` is `4/3`. `ElectronicUIKitBuilder.EnsureFont()` generates and maintains both assets. **[project decision]**
+- *Why:* Fusion Pixel ships Latin too, so ordering it first would leave m5x7 unused; its Latin cut is CJK-companion filler where m5x7 is a purpose-drawn 5×7 instrument face. The `4/3` scale puts a 16 px em and a 12 px em on the same pixel grid, so a mixed line does not read as two resolutions. Rationale and the measured type sizes: [电子类UI组件库规范 §2C](../effects/电子类UI组件库规范.md).
+
+**SHOULD** style runs inside one label with TMP rich-text tags instead of splitting the line into several text objects.
+- *Source:* [Rich text](../reference/packages/ugui-2-0-textmeshpro-richtext.md).
 
 ### Presenters
 
-**MUST** pair each UXML document with one presenter `MonoBehaviour` (pattern and responsibilities in [03 — UI: MVP](./03-architecture-patterns.md#ui-mvp-by-default-mvvm-data-binding-where-it-removes-code)) that holds a serialized `UIDocument` reference, normally on the same GameObject: query in `OnEnable`, cache every `Q<>()` result in a field, register callbacks there, unregister in `OnDisable`.
-- *Why:* `rootVisualElement` is only valid after the document loads in `OnEnable`; disabling the GameObject rebuilds the hierarchy, so cached elements and callbacks must be redone on re-enable.
-- *Source:* [Get started with runtime UI](../reference/packages/manual-uie-get-started-with-runtime-ui.md), [FAQ for input and event systems](../reference/packages/manual-uie-faq-event-and-input-system.md), [Find visual elements with UQuery](../reference/packages/manual-uie-uquery.md), [Handle event callbacks and value changes](../reference/packages/manual-uie-events-handling.md).
+**MUST** pair each screen prefab with one presenter `MonoBehaviour` (pattern and responsibilities in [03 — UI: MVP](./03-architecture-patterns.md#ui-mvp-presenters-over-ugui)) on the prefab root, holding a `[SerializeField] private` reference to every widget it drives; subscribe to model/channel events and widget events in `OnEnable`, unsubscribe in `OnDisable`.
+- *Why:* Serialized references are resolved by the Editor and break loudly when a widget is renamed, moved or deleted; `GameObject.Find` / `transform.Find` by path break silently at runtime and walk the hierarchy to do it.
+- *Source:* [Supported events](../reference/packages/ugui-2-0-supportedevents.md), [Button API](../reference/packages/ugui-2-0-unityengine-ui-button.md).
 
 ```csharp
+using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
-namespace SheNicest.UI
+namespace RootsDance.UI
 {
-    [RequireComponent(typeof(UIDocument))]
     public sealed class PauseMenuPresenter : MonoBehaviour
     {
-        [SerializeField] private UIDocument m_document;
-
-        private Button m_resumeButton;
+        [SerializeField] private Button m_resumeButton;
+        [SerializeField] private TextMeshProUGUI m_titleLabel;
 
         private void OnEnable()
         {
-            VisualElement root = m_document.rootVisualElement;
-            m_resumeButton = root.Q<Button>("pause-menu__resume");   // cached once per enable
-            m_resumeButton.clicked += OnResumeClicked;
+            m_resumeButton.onClick.AddListener(OnResumeClicked);
         }
 
         private void OnDisable()
         {
-            if (m_resumeButton != null)
-            {
-                m_resumeButton.clicked -= OnResumeClicked;
-            }
+            m_resumeButton.onClick.RemoveListener(OnResumeClicked);
         }
 
         private void OnResumeClicked()
@@ -318,46 +334,30 @@ namespace SheNicest.UI
 }
 ```
 
-**SHOULD** build reusable widgets (health bar, item slot) as `[UxmlElement] partial class X : VisualElement` with a template UXML, not as copies of markup.
-- *Why:* Visual elements are not GameObjects, so prefabs do not apply; a custom control is Unity's reusable unit and one fix applies to every instance.
-- *Source:* [Encapsulate UXML documents with logic](../reference/packages/manual-uie-encapsulate-uxml-with-logic.md).
+**NEVER** wire a gameplay method into a `Button`'s `onClick` list in the Inspector; the presenter adds the listener in `OnEnable` and removes it in `OnDisable`. **[project decision]**
+- *Why:* Inspector-wired `UnityEvent`s hide the call graph from *Find References* and from code review, and they are stored in the prefab YAML, so every rewiring is a prefab diff instead of a code diff.
 
-**SHOULD** capture only the element you need in closures and never keep `VisualElement` references in objects that outlive the `UIDocument`.
-- *Why:* Elements are garbage-collected, not destroyed; a closure over `this` or a long-lived reference keeps the whole tree alive (a leak).
-- *Source:* [Find visual elements with UQuery](../reference/packages/manual-uie-uquery.md).
+**SHOULD** build a widget that appears more than once (health bar, item slot, log line) as its own prefab + one component, and use prefab variants for skins — never a copy of the hierarchy.
+- *Source:* [Create variations of prefabs](../reference/project-structure/manual-prefabvariants.md).
 
-### Data binding basics
+**SHOULD** capture only the widget you need in a closure, and never keep a `Button` / `TextMeshProUGUI` reference in an object that outlives the screen prefab instance.
+- *Why:* The reference is to a `UnityEngine.Object` that gets destroyed with the instance; a stale reference then fails the `== null` check only if it is checked at all ([04](./04-unity-scripting-rules.md)).
 
-**SHOULD** bind HUD values with runtime data binding instead of per-frame label updates: the data source is a `ScriptableObject` or plain class whose bindable members are `[CreateProperty]` properties (backing fields `[SerializeField, DontCreateProperty]`); set `root.dataSource` in the presenter; author paths in UXML with an unresolved data source type, binding mode **ToTarget** for read-only UI.
-- *Why:* `CreateProperty` generates the property bag at compile time (no reflection); unresolved bindings let one `dataSource =` line rewire a whole screen.
-- *Source:* [UI Toolkit BPG — Data binding](../reference/packages/manual-data-binding.md), [Get started with runtime binding](../reference/packages/manual-uie-get-started-runtime-binding.md).
+### Showing and hiding screens
 
-```csharp
-using Unity.Properties;
-using UnityEngine;
+**SHOULD** show and hide a screen by enabling/disabling its root GameObject, or the root `Canvas` component when the hierarchy must keep running; **NEVER** by moving it off-screen or by setting `CanvasGroup.alpha = 0` without also clearing `blocksRaycasts`.
+- *Why:* A disabled root stops layout, raycasting and rendering; disabling only the `Canvas` component keeps the elements alive and skips the rebuild on re-show; alpha 0 still costs a draw and still swallows pointer events.
+- *Source:* [Unity UI optimization tips](../reference/performance/how-to-unity-ui-optimization-tips.md), [Canvas](../reference/packages/ugui-2-0-uicanvas.md).
 
-namespace SheNicest.Player
-{
-    [CreateAssetMenu(menuName = "SheNicest/Player Stats")]   // asset files carry no SO suffix
-    public sealed class PlayerStatsSO : ScriptableObject
-    {
-        [SerializeField, DontCreateProperty] private int m_health = 100;
+**SHOULD** update a HUD value only when the value changes (from an event channel or a property setter), never by assigning `label.text` every frame.
+- *Why:* Assigning `text` marks the canvas dirty and allocates a string; unchanged frames should cost nothing ([05](./05-performance.md)).
 
-        [CreateProperty]
-        public int Health
-        {
-            get { return m_health; }
-            set { m_health = value; }
-        }
-    }
-}
-```
+### When something other than screen-space uGUI
 
-### When uGUI / TextMeshPro instead
-
-- World-space labels attached to 3D objects (name tags, damage numbers): **TextMesh Pro 3D Text** (`GameObject > 3D GameObject > TextMesh Pro - Text`). Import **Window > TextMeshPro > Import TMP Essential Resources** once and commit the `TextMesh Pro` folder. **[project decision]**
-- UI that must be keyframed in an Animation Clip or driven by Timeline: uGUI Canvas + TextMeshProUGUI, with an `EventSystem` + **Input System UI Input Module** in the scene.
-- *Source:* [TextMesh Pro](../reference/packages/ugui-2-0-textmeshpro-index.md), [Creating text](../reference/packages/ugui-2-0-textmeshpro-tmpobjects.md), [Comparison of UI systems](../reference/packages/manual-ui-system-compare.md), [Runtime UI event system](../reference/packages/manual-uie-runtime-event-system.md).
+- World-space labels attached to 3D objects (name tags, damage numbers): **TextMesh Pro 3D Text** (`GameObject > 3D GameObject > TextMeshPro - Text`). **[project decision]**
+- Diegetic UI on a surface in the level (a terminal screen, a wrist display): uGUI `Canvas` in **World Space** with an explicit **Event Camera**; it needs the same `EventSystem`.
+- Editor windows, custom Inspectors and property drawers: UI Toolkit — that is Unity's supported path for Editor UI and is unaffected by this decision (see [12](./12-odin-inspector.md) for how it interacts with Odin). Runtime UI stays uGUI.
+- *Source:* [TextMesh Pro 3D Text](../reference/packages/ugui-2-0-textmeshpro-tmpobject3dtext.md), [World space UI](../reference/packages/ugui-2-0-howto-uiworldspace.md), [Comparison of UI systems](../reference/packages/manual-ui-system-compare.md).
 
 ## Physics (built-in 3D)
 
@@ -427,7 +427,7 @@ Unity Behavior 1.0.16 (behavior graphs) is a released package and **MAY** be add
 
 ## Animation
 
-**MUST** give each character type one Animator Controller asset `Assets/SheNicest/Animations/Controllers/<Character>.controller` (override controllers `<Character>_<Variant>.overrideController` next to it; clips in `Animations/Clips/`, per [02](./02-project-structure.md)), with a locomotion **Blend Tree** driven by a `Speed` float, a hub-and-spoke layout around `Idle`, and layers only when a body region must be overridden. Variants of the same rig reuse the controller through an **Animator Override Controller**. **[project decision on layout]**
+**MUST** give each character type one Animator Controller asset `Assets/RootsDance/Animations/Controllers/<Character>.controller` (override controllers `<Character>_<Variant>.overrideController` next to it; clips in `Animations/Clips/`, per [02](./02-project-structure.md)), with a locomotion **Blend Tree** driven by a `Speed` float, a hub-and-spoke layout around `Idle`, and layers only when a body region must be overridden. Variants of the same rig reuse the controller through an **Animator Override Controller**. **[project decision on layout]**
 - *Why:* Blend trees hide complexity without callbacks; hub-and-spoke keeps transitions debuggable.
 - *Source:* [Tips for building animator controllers](../reference/scripting/how-to-build-animator-controllers.md), [Introduction to Mecanim](../reference/scripting/manual-animationoverview.md).
 
@@ -460,7 +460,7 @@ public void Jump()
 
 ## Audio
 
-**MUST** keep exactly one `AudioListener` (on the Unity Camera in `Bootstrap.unity`) and one `AudioMixer` asset `Assets/SheNicest/Audio/Mixers/Main.mixer` with groups `Master > Music`, `Master > SFX`, `Master > UI`, and exposed parameters `MusicVolume`, `SfxVolume`, `UiVolume`. Every `AudioSource` sets **Output** to one of these groups. **[project decision on names]**
+**MUST** keep exactly one `AudioListener` (on the Unity Camera in `Bootstrap.unity`) and one `AudioMixer` asset `Assets/RootsDance/Audio/Mixers/Main.mixer` with groups `Master > Music`, `Master > SFX`, `Master > UI`, and exposed parameters `MusicVolume`, `SfxVolume`, `UiVolume`. Every `AudioSource` sets **Output** to one of these groups. **[project decision on names]**
 - *Why:* Sources bypass the mixer when **Output** is *None*; category groups are what make global volume, ducking and snapshots possible.
 - *Source:* [Audio overview](../reference/scripting/manual-audiooverview.md), [Introduction to the Audio Source component](../reference/scripting/manual-audiosource-overview.md), [Introduction to the Audio Mixer](../reference/scripting/manual-audiomixeroverview.md).
 
@@ -476,15 +476,15 @@ public void Jump()
 
 **NEVER** install Addressables or create a `Resources/` folder for this hackathon. Load content through serialized references on prefabs/ScriptableObjects and additive scenes (see [11](./11-scenes-prefabs-workflow.md)). **[project decision]**
 - *Why:* Addressables adds a content build per platform, a catalog, reference counting and mandatory `Release` calls — real work that buys nothing for a desktop build of a small game. `Resources` bloats the build and load time.
-- *Source:* [Addressables introduction](../reference/packages/addressables-2-9-addressableassetsoverview.md), [Unload Addressable assets](../reference/packages/addressables-2-9-unloadingaddressableassets.md), [Load UXML and USS in C# scripts](../reference/packages/manual-uie-manage-asset-reference.md) (Resources note).
+- *Source:* [Addressables introduction](../reference/packages/addressables-2-9-addressableassetsoverview.md), [Unload Addressable assets](../reference/packages/addressables-2-9-unloadingaddressableassets.md); the no-`Resources` rule itself is in [02](./02-project-structure.md).
 
 If a real need appears (remote content, memory pressure from optional content), install **2.9.1** — the version released for 6000.3 — not 4.0, reference assets with typed `AssetReferenceT<T>` fields, and pair every load with `Addressables.Release`.
 - *Source:* [Addressables package page (6000.3)](../reference/packages/manual-com-unity-addressables.md), [Introduction to asset references](../reference/packages/addressables-2-9-asset-reference-intro.md), [Introduction to loading Addressable assets](../reference/packages/addressables-2-9-load-addressable-assets.md).
 
 ## ProBuilder, Timeline, Visual Scripting and multiplayer policy
 
-- **ProBuilder 6.1 — MAY.** Greybox levels with it; keep ProBuilder meshes in the scene or, if exported, in `Assets/SheNicest/Meshes/Environment/` with a `Greybox_` prefix (folder rules in [02](./02-project-structure.md)); final art replaces them. *Source:* [About ProBuilder](../reference/packages/probuilder-6-1-index.md).
-- **Timeline 1.8 — MAY** for cutscenes. A Timeline with a Cinemachine track overrides Brain priorities while a clip is active, so cutscene cameras never need priorities. Timeline assets live in `Assets/SheNicest/Animations/Timelines/`. *Source:* [Unity's Timeline](../reference/packages/timeline-1-8-index.md), [Camera control and transitions](../reference/packages/cinemachine-3-1-concept-camera-control-transitions.md).
+- **ProBuilder 6.1 — MAY.** Greybox levels with it; keep ProBuilder meshes in the scene or, if exported, in `Assets/RootsDance/Meshes/Environment/` with a `Greybox_` prefix (folder rules in [02](./02-project-structure.md)); final art replaces them. *Source:* [About ProBuilder](../reference/packages/probuilder-6-1-index.md).
+- **Timeline 1.8 — MAY** for cutscenes. A Timeline with a Cinemachine track overrides Brain priorities while a clip is active, so cutscene cameras never need priorities. Timeline assets live in `Assets/RootsDance/Animations/Timelines/`. *Source:* [Unity's Timeline](../reference/packages/timeline-1-8-index.md), [Camera control and transitions](../reference/packages/cinemachine-3-1-concept-camera-control-transitions.md).
 - **Visual Scripting 1.9 — NEVER.** All logic is C# so it can be reviewed, tested and merged. **[project decision]**
 - **Netcode / Multiplayer Center — out of scope.** The game is single-player; do not click **Install Packages** in the Multiplayer Center (**Window > Multiplayer > Multiplayer Center**) — it adds Netcode and service packages to the manifest. **[project decision]** *Source:* [Get started with the Multiplayer Center](../reference/packages/en-us-multiplayer-center.md).
 
@@ -496,9 +496,11 @@ If a real need appears (remote content, memory pressure from optional content), 
 - ❌ A second action asset per feature, or **Generate C# Class** → ✅ one project-wide asset, new action map per context.
 - ❌ `CinemachineVirtualCamera`, `using Cinemachine;`, `vcam.m_Priority` → ✅ `CinemachineCamera`, `using Unity.Cinemachine;`, `SetActive`/`Prioritize()`.
 - ❌ Moving `Camera.main.transform` from a script → ✅ switch `CinemachineCamera`s; the Brain owns the Unity Camera.
-- ❌ `label.style.color = Color.red` per frame, `#title` selectors, `VisualElement > * > Button` → ✅ BEM classes, `AddToClassList("hud__health--critical")`, variables in `Common.uss`.
-- ❌ Querying `rootVisualElement` in `Awake` / `Start` → ✅ query in `OnEnable`, unregister in `OnDisable`.
-- ❌ `Resources.Load<VisualTreeAsset>("Hud")` → ✅ `[SerializeField] private VisualTreeAsset m_hudDocument;`.
+- ❌ `label.text = score.ToString()` every frame, or a `ContentSizeFitter` on it → ✅ assign only when the value changes; keep per-frame content off layout groups.
+- ❌ `transform.Find("Panel/HealthBar")` in a presenter → ✅ `[SerializeField] private Image m_healthBar;` wired on the prefab.
+- ❌ A gameplay method dragged into `Button.onClick` in the Inspector → ✅ `onClick.AddListener` in `OnEnable`, `RemoveListener` in `OnDisable`.
+- ❌ `UnityEngine.UI.Text`, or a second `EventSystem` in an additive scene → ✅ `TextMeshProUGUI`; the one `EventSystem` in `Bootstrap.unity`.
+- ❌ A screen built directly in `Bootstrap.unity` → ✅ a prefab in `Prefabs/UI/`, instanced under the canvas root.
 - ❌ `transform.position += velocity` on a non-kinematic Rigidbody → ✅ `rb.linearVelocity` / `MovePosition` in `FixedUpdate`, or a `CharacterController`.
 - ❌ `Physics.Raycast(origin, dir, out hit)` with no mask → ✅ explicit `LayerMask` field + `QueryTriggerInteraction.Ignore`.
 - ❌ `NavMeshAgent` + dynamic `Rigidbody`, or agent + `NavMeshObstacle` both enabled → ✅ kinematic Rigidbody; toggle agent/obstacle exclusively.
@@ -510,11 +512,12 @@ If a real need appears (remote content, memory pressure from optional content), 
 ## Review checklist
 
 - [ ] `Packages/manifest.json` / `packages-lock.json` changed only in a dedicated `chore(packages):` commit; no Git/local/embedded/pre-release entries.
+- [ ] No new Asset Store package outside `Assets/ThirdParty/` (Odin at `Assets/Plugins/Sirenix/`, The Visual Engine at `Assets/BOXOPHOBIC*/` and Prefab World Builder at `Assets/PluginMaster/` are the recorded exceptions — [`docs/third-party.md`](../third-party.md)); Odin usage follows the checklist in [12](./12-odin-inspector.md).
 - [ ] No legacy `UnityEngine.Input` calls, `PlayerInput`, generated input class, or `Keyboard.current` outside `_Sandbox/`.
 - [ ] `FindAction` only in `Awake`/`Start`; `WasPressedThisFrame` only in `Update`; Player map disabled while menus are open.
 - [ ] New camera shots are `CinemachineCamera` GameObjects named `CM_*`, switched by `SetActive`; nobody touches the Unity Camera transform; Brain settings unchanged.
-- [ ] UXML in `UI/Documents/`, USS in `UI/Styles/`, BEM classes, no inline styles, shared `PanelSettings`.
-- [ ] UI presenter holds a serialized `UIDocument`, queries in `OnEnable`, unregisters in `OnDisable`, caches `Q<>()` results; UXML/USS referenced by serialized fields.
+- [ ] Every screen is its own prefab in `Prefabs/UI/`; one screen-space `Canvas` root and one `EventSystem` + Input System UI Input Module, both in `Bootstrap.unity`; `CanvasScaler` at 1920×1080 / Match 0.5.
+- [ ] UI presenter holds `[SerializeField]` widget references (no `Find`), subscribes in `OnEnable` and unsubscribes in `OnDisable`; no Inspector-wired `onClick`; all text is `TextMeshProUGUI`; Raycast Target off on non-interactive graphics.
 - [ ] Physics: no CharacterController + Rigidbody combos; Rigidbody moved only in `FixedUpdate`; every query has a `LayerMask` field and explicit `QueryTriggerInteraction`; only project layers used; collision-matrix changes committed deliberately.
 - [ ] `NavMeshSurface` only in `<Level>_Environment` with **Include Layers** = `Environment`; NavMesh data committed per [11](./11-scenes-prefabs-workflow.md); agents have kinematic Rigidbodies at most; no agent+obstacle overlap.
 - [ ] Animator parameters hashed into `static readonly int k_<Name>Hash`; Root Motion off unless documented; no gameplay in `StateMachineBehaviour`.
@@ -569,20 +572,20 @@ If a real need appears (remote content, memory pressure from optional content), 
 44. [cinemachine-3-1-cinemachinedeoccluder.md](../reference/packages/cinemachine-3-1-cinemachinedeoccluder.md) — Cinemachine Deoccluder — https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachineDeoccluder.html
 45. [cinemachine-3-1-cinemachineimpulse.md](../reference/packages/cinemachine-3-1-cinemachineimpulse.md) — Cinemachine Impulse — https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachineImpulse.html
 46. [manual-ui-system-compare.md](../reference/packages/manual-ui-system-compare.md) — Comparison of UI systems in Unity — https://docs.unity3d.com/6000.3/Documentation/Manual/UI-system-compare.html
-47. [manual-install-ui-toolkit-and-sample-projects.md](../reference/packages/manual-install-ui-toolkit-and-sample-projects.md) — UI Toolkit BPG: Install UI Toolkit and sample projects — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/install-ui-toolkit-and-sample-projects.html
-48. [manual-uie-get-started-with-runtime-ui.md](../reference/packages/manual-uie-get-started-with-runtime-ui.md) — Get started with runtime UI — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-with-runtime-ui.html
-49. [manual-uie-render-runtime-ui.md](../reference/packages/manual-uie-render-runtime-ui.md) — Render UI in the Game view — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-render-runtime-ui.html
-50. [manual-uie-manage-asset-reference.md](../reference/packages/manual-uie-manage-asset-reference.md) — Load UXML and USS in C# scripts — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-manage-asset-reference.html
-51. [manual-uie-uss-writingstylesheets.md](../reference/packages/manual-uie-uss-writingstylesheets.md) — Best practices for USS — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-USS-WritingStyleSheets.html
-52. [manual-styling.md](../reference/packages/manual-styling.md) — UI Toolkit BPG: Styling — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/styling.html
-53. [manual-uie-best-practices-for-managing-elements.md](../reference/packages/manual-uie-best-practices-for-managing-elements.md) — Best practices for managing elements — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-best-practices-for-managing-elements.html
-54. [manual-uie-faq-event-and-input-system.md](../reference/packages/manual-uie-faq-event-and-input-system.md) — FAQ for input and event systems with UI Toolkit — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-faq-event-and-input-system.html
-55. [manual-uie-uquery.md](../reference/packages/manual-uie-uquery.md) — Find visual elements with UQuery — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-UQuery.html
-56. [manual-uie-events-handling.md](../reference/packages/manual-uie-events-handling.md) — Handle event callbacks and value changes — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-Events-Handling.html
-57. [manual-uie-encapsulate-uxml-with-logic.md](../reference/packages/manual-uie-encapsulate-uxml-with-logic.md) — Encapsulate UXML documents with logic — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-encapsulate-uxml-with-logic.html
-58. [manual-data-binding.md](../reference/packages/manual-data-binding.md) — UI Toolkit BPG: Data binding — https://docs.unity3d.com/6000.3/Documentation/Manual/best-practice-guides/ui-toolkit-for-advanced-unity-developers/data-binding.html
-59. [manual-uie-get-started-runtime-binding.md](../reference/packages/manual-uie-get-started-runtime-binding.md) — Get started with runtime binding — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-get-started-runtime-binding.html
-60. [manual-uie-runtime-event-system.md](../reference/packages/manual-uie-runtime-event-system.md) — Runtime UI event system and input handling — https://docs.unity3d.com/6000.3/Documentation/Manual/UIE-Runtime-Event-System.html
+47. [ugui-2-0-index.md](../reference/packages/ugui-2-0-index.md) — Unity UI (uGUI) manual — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/index.html
+48. [ugui-2-0-uicanvas.md](../reference/packages/ugui-2-0-uicanvas.md) — Canvas — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UICanvas.html
+49. [ugui-2-0-script-canvasscaler.md](../reference/packages/ugui-2-0-script-canvasscaler.md) — Canvas Scaler — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/script-CanvasScaler.html
+50. [ugui-2-0-howto-uimultiresolution.md](../reference/packages/ugui-2-0-howto-uimultiresolution.md) — Designing UI for multiple resolutions — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/HOWTO-UIMultiResolution.html
+51. [ugui-2-0-class-recttransform.md](../reference/packages/ugui-2-0-class-recttransform.md) — Rect Transform — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/class-RectTransform.html
+52. [ugui-2-0-uibasiclayout.md](../reference/packages/ugui-2-0-uibasiclayout.md) — Basic layout — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UIBasicLayout.html
+53. [ugui-2-0-uiautolayout.md](../reference/packages/ugui-2-0-uiautolayout.md) — Auto layout — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UIAutoLayout.html
+54. [ugui-2-0-eventsystem.md](../reference/packages/ugui-2-0-eventsystem.md) — Event System — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/EventSystem.html
+55. [ugui-2-0-inputmodules.md](../reference/packages/ugui-2-0-inputmodules.md) — Input Modules — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/InputModules.html
+56. [ugui-2-0-supportedevents.md](../reference/packages/ugui-2-0-supportedevents.md) — Supported Events — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/SupportedEvents.html
+57. [inputsystem-1-20-ui-input.md](../reference/packages/inputsystem-1-20-ui-input.md) — Input System: UI input — https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/ui-input.html
+58. [inputsystem-1-20-introduction-ui-input-module.md](../reference/packages/inputsystem-1-20-introduction-ui-input-module.md) — Input System UI Input Module — https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/introduction-ui-input-module.html
+59. [ugui-2-0-unityengine-ui-button.md](../reference/packages/ugui-2-0-unityengine-ui-button.md) — Class Button — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/api/UnityEngine.UI.Button.html
+60. [ugui-2-0-howto-uiworldspace.md](../reference/packages/ugui-2-0-howto-uiworldspace.md) — World space UI — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/HOWTO-UIWorldSpace.html
 61. [manual-com-unity-ugui.md](../reference/packages/manual-com-unity-ugui.md) — uGUI package page (6000.3) — https://docs.unity3d.com/6000.3/Documentation/Manual/com.unity.ugui.html
 62. [ugui-2-0-textmeshpro-index.md](../reference/packages/ugui-2-0-textmeshpro-index.md) — TextMesh Pro Documentation — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/index.html
 63. [ugui-2-0-textmeshpro-tmpobjects.md](../reference/packages/ugui-2-0-textmeshpro-tmpobjects.md) — TextMesh Pro: Creating text — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/TMPObjects.html
@@ -628,3 +631,12 @@ If a real need appears (remote content, memory pressure from optional content), 
 103. CinemachineVirtualCameraBase API (live, not downloaded) — https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/api/Unity.Cinemachine.CinemachineVirtualCameraBase.html — verified 2026-08-23 for `Priority` (type `PrioritySettings`) and `Prioritize()`.
 104. QueryTriggerInteraction enum (live, not downloaded) — https://docs.unity3d.com/6000.3/Documentation/ScriptReference/QueryTriggerInteraction.html — verified 2026-08-23 for members `UseGlobal`, `Ignore`, `Collide`.
 105. [inputsystem-1-20-quick-start-guide.md](../reference/packages/inputsystem-1-20-quick-start-guide.md) — Input System - Quick start guide — https://docs.unity3d.com/Packages/com.unity.inputsystem@1.20/manual/quick-start-guide.html
+106. [ugui-2-0-textmeshpro-tmpobjectuitext.md](../reference/packages/ugui-2-0-textmeshpro-tmpobjectuitext.md) — TextMesh Pro: UI Text — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/TMPObjectUIText.html
+107. [ugui-2-0-textmeshpro-tmpobject3dtext.md](../reference/packages/ugui-2-0-textmeshpro-tmpobject3dtext.md) — TextMesh Pro: 3D Text — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/TMPObject3DText.html
+108. [ugui-2-0-tmpro-textmeshprougui.md](../reference/packages/ugui-2-0-tmpro-textmeshprougui.md) — Class TextMeshProUGUI — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/api/TMPro.TextMeshProUGUI.html
+109. [ugui-2-0-textmeshpro-fontassets.md](../reference/packages/ugui-2-0-textmeshpro-fontassets.md) — TextMesh Pro: Font Assets — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/FontAssets.html
+110. [ugui-2-0-textmeshpro-fontassetscreator.md](../reference/packages/ugui-2-0-textmeshpro-fontassetscreator.md) — TextMesh Pro: Font Asset Creator — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/FontAssetsCreator.html
+111. [ugui-2-0-textmeshpro-fontassetsfallback.md](../reference/packages/ugui-2-0-textmeshpro-fontassetsfallback.md) — TextMesh Pro: Fallback Font Assets — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/FontAssetsFallback.html
+112. [ugui-2-0-textmeshpro-richtext.md](../reference/packages/ugui-2-0-textmeshpro-richtext.md) — TextMesh Pro: Rich Text — https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/TextMeshPro/RichText.html
+113. [how-to-unity-ui-optimization-tips.md](../reference/performance/how-to-unity-ui-optimization-tips.md) — Unity UI optimization tips — https://unity.com/how-to/unity-ui-optimization-tips
+114. [manual-prefabvariants.md](../reference/project-structure/manual-prefabvariants.md) — Create variations of prefabs — https://docs.unity3d.com/6000.3/Documentation/Manual/PrefabVariants.html

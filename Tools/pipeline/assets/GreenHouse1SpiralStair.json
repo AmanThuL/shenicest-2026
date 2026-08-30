@@ -1,0 +1,47 @@
+{
+  "asset": "GreenHouse1SpiralStair",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/GreenHouse1Glass/GreenHouse1Glass_Preview_Whole.blend",
+    "object": "STAIR",
+    "licence": "In-repo source art (GAIA1 greenhouse, GREENHOUSE2 export).",
+    "note": "GreenHouse1 module: the interior spiral stair, 49 treads + 2 stub treads + the horseshoe landing, 782 faces, z 1.37-22.93. Taken from GreenHouse1Glass_Preview_Whole.blend because that is the ground truth (docs/architecture/温室玻璃工作交接.md section 0): the three source blends still carry the retired 6905-face stair. Railings and newel were deleted with the swap, so this is treads and landing only; SketchUp UVs are unusable, hence uv.mode = unwrap."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": true,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "rename_slots": [
+      "PreviewIron=GreenHouse1SpiralStair"
+    ],
+    "material_slots": [
+      "GreenHouse1SpiralStair"
+    ],
+    "merge_doubles": 0.0001,
+    "delete_degenerate": true,
+    "delete_duplicate_faces": true
+  },
+  "uv": {
+    "mode": "unwrap"
+  },
+  "texture_sets": [
+    "GreenHouse1SpiralStair"
+  ],
+  "painter": {
+    "fills": [
+      "MarbleBase(0.45,1.0):basecolor=SourceArt/Reference/Weathering/Marble012/Marble012_2K-JPG_Color.jpg;normal=SourceArt/Reference/Weathering/Marble012/Marble012_2K-JPG_NormalGL.jpg;roughness=SourceArt/Reference/Weathering/Marble012/Marble012_2K-JPG_Roughness.jpg",
+      "SootFilm(0,0.35):basecolor=#3A3833;roughness=0.72|Dirt",
+      "TreadPolish(0,0.3):basecolor=#B9BCBD;roughness=0.22|Edges Scratched",
+      "LimeBloom(0,0.3):basecolor=#C3BDAE;roughness=0.92|Dirt Leak Dry",
+      "DampRecess(0,0.35):basecolor=#1E1C19;roughness=0.55|Moisture",
+      "SiltBed(0.25,0.25):basecolor=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_diff_2k.jpg;normal=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_rough_2k.jpg|Dirt Ground",
+      "MossCarpet(0.2,0.3):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|Moss From Top",
+      "Lichen(0.3,0.15):basecolor=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_diff_2k.jpg;normal=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/lichen_rock/lichen_rock_rough_2k.jpg|Moss"
+    ],
+    "layers": [],
+    "note": "Layered per docs/architecture/废弃温室材质研究.md, dialled per docs/architecture/废墟风化分层策略.md tier 1: the pattern belongs to the module, the position-driven amount is tier 2 in the shader."
+  }
+}

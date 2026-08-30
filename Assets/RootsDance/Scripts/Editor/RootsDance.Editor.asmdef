@@ -1,0 +1,28 @@
+{
+    "name": "RootsDance.Editor",
+    "rootNamespace": "RootsDance.Editor",
+    "references": [
+        "RootsDance.Runtime",
+        "Boxophobic.TheVisualEngine.Runtime",
+        "Boxophobic.Utils.Scripts",
+        "CurvedUIUtility",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

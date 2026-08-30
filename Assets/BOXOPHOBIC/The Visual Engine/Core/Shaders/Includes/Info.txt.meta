@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 32bc02fb939da7643b61388ce73392b8
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Includes/Info.txt
+  uploadId: 974988

@@ -134,11 +134,18 @@ def main() -> int:
     workers = int(args[args.index("--workers") + 1]) if "--workers" in args else 6
     force = "--force" in args
     entries = json.loads(manifest_path.read_text())
+    # Entries whose file already exists are skipped; keep the kind/words/pages recorded by the run that
+    # fetched them so build_index.py does not lose e-book page counts on incremental runs.
+    previous: dict[str, dict] = {}
+    if results_path.exists():
+        previous = {r["url"]: r for r in json.loads(results_path.read_text()) if r.get("ok")}
     results: list[dict] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(process, e, root, force): e for e in entries}
         for fut in as_completed(futures):
             r = fut.result()
+            if r.get("skipped") and r["url"] in previous:
+                r = {**previous[r["url"]], **r}
             results.append(r)
             status = "ok" if r.get("ok") else "FAIL"
             extra = r.get("error") or r.get("warning") or ""

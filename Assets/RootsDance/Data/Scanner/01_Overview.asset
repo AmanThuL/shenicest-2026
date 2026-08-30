@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a75474ddc26b4cbe9a864f0c99ae9e2, type: 3}
+  m_Name: 01_Overview
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerReportSectionSO
+  m_number: 01
+  m_displayName: "\u8C03\u67E5\u6982\u51B5"
+  m_feedsFromReport: 0
+  m_category: 1
+  m_requiredFlag: 
+  m_pages:
+  - m_index: 1.1
+    m_title: "\u9057\u8FF9\u73AF\u5883\u603B\u89C8"
+    m_body: "\u672C\u533A\u57DF\u4F4D\u4E8E\u65E7\u89C2\u6D4B\u7AD9\u4EE5\u5357 <u>\u7EA6
+      1.4 \u516C\u91CC</u>\u3002\u5730\u8868\u8986\u76D6\u5C42\u4EE5\u706B\u5C71\u7070\u8D28\u58E4\u571F\u4E3A\u4E3B\uFF0C\u542B\u6C34\u91CF
+      <mark=#52320088>\u4F4E\u4E8E\u5E38\u5E74\u5747\u503C 37%</mark>\u3002\n\n\u690D\u88AB\u5448\u6591\u5757\u72B6\u5206\u5E03\uFF0C\u672A\u89C1\u8FDE\u7EED\u51A0\u5C42\u3002\u591C\u95F4\u5730\u8868\u6E29\u5EA6\u9AA4\u964D\uFF0C\u5EFA\u8BAE\u5168\u7A0B\u4F69\u6234\u9632\u62A4\u3002"
+    m_functionTabs:
+    - "\u5730\u5F62"
+    - "\u6C14\u5019"
+    - "\u98CE\u9669"
+    m_preview: {fileID: 0}
+  - m_index: 1.2
+    m_title: "\u8D44\u6E90\u5206\u5E03"
+    m_body: "\u53EF\u7528\u6C34\u6E90\u4EC5\u89C1\u4E8E\u9057\u8FF9\u4E1C\u4FA7\u65AD\u5C42\u5E26\u3002\u91D1\u5C5E\u6B8B\u4EF6\u96C6\u4E2D\u4E8E\u897F\u4FA7\u584C\u9677\u533A\uFF0C<mark=#52320088>\u56DE\u6536\u4EF7\u503C\u4E2D\u7B49</mark>\uFF0C\u4F46\u7ED3\u6784\u4E0D\u7A33\u3002"
+    m_functionTabs:
+    - "\u6C34\u6E90"
+    - "\u6750\u6599"
+    m_preview: {fileID: 0}

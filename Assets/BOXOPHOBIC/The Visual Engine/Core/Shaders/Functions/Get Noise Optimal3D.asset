@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b2425a2284af743826c689403a4924, type: 3}
+  m_Name: Get Noise Optimal3D
+  m_EditorClassIdentifier: 
+  m_functionInfo: "// Made with Amplify Shader Editor v1.9.9.12\n// Available at
+    the Unity Asset Store - http://u3d.as/y3X \n/*ASEBEGIN\nVersion=19912\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":6,\"pos\":[-1024,0],\"params\":[\"Inherit\",\"False\",\"Position\",\"3\",\"0\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionInput,
+    AmplifyShaderEditor\",\"id\":7,\"pos\":[-1024,128],\"params\":[\"Inherit\",\"False\",\"Tilling\",\"1\",\"1\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":8,\"pos\":[-832,128],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.RangedFloatNode,
+    AmplifyShaderEditor\",\"id\":9,\"pos\":[-1024,192],\"params\":[\"Half\",\"False\",\"Constant\",\"_Float1\",\"Float
+    1\",\"1\",\"0\",\"Create\",\"True\",\"0\",\"0\",\"0\",\"False\",\"0\",\"False\",\"Object\",\"-1\",\"\",\"0.2\",\"0\",\"0\",\"0\",\"0\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.SimpleMultiplyOpNode,
+    AmplifyShaderEditor\",\"id\":5,\"pos\":[-640,0],\"params\":[\"Inherit\",\"False\",\"2\",\"2\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT3\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":11,\"pos\":[-384,0],\"params\":[\"Half\",\"False\",\"   
+    float3 i = floor(p);\\n    float3 f = frac(p);\\n\\n    f = f * f * (3.0 - 2.0
+    * f);\\n\\n    float n000 = hash31(i);\\n    float n100 = hash31(i + float3(1,0,0));\\n   
+    float n010 = hash31(i + float3(0,1,0));\\n    float n110 = hash31(i + float3(1,1,0));\\n\\n   
+    float n001 = hash31(i + float3(0,0,1));\\n    float n101 = hash31(i + float3(1,0,1));\\n   
+    float n011 = hash31(i + float3(0,1,1));\\n    float n111 = hash31(i + float3(1,1,1));\\n\\n   
+    float nx00 = lerp(n000,n100,f.x);\\n    float nx10 = lerp(n010,n110,f.x);\\n   
+    float nx01 = lerp(n001,n101,f.x);\\n    float nx11 = lerp(n011,n111,f.x);\\n\\n   
+    float nxy0 = lerp(nx00,nx10,f.y);\\n    float nxy1 = lerp(nx01,nx11,f.y);\\n\\n   
+    return lerp(nxy0,nxy1,f.z);\",\"1\",\"Create\",\"1\",\"True\",\"p\",\"FLOAT3\",\"0,0,0\",\"In\",\"\",\"Inherit\",\"False\",\"SimpleNoise3D\",\"False\",\"False\",\"1\",\"12\",\"\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":12,\"pos\":[-384,-256],\"params\":[\"Inherit\",\"False\",\"   
+    p = frac(p * float3(0.1031, 0.1030, 0.0973));\\n    p += dot(p, p.yzx + 33.33);\\n   
+    return frac((p.x + p.y) * p.z);\",\"1\",\"Create\",\"1\",\"True\",\"p\",\"FLOAT3\",\"0,0,0\",\"In\",\"\",\"Inherit\",\"False\",\"hash31\",\"False\",\"False\",\"0\",\"\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":2,\"pos\":[-1024,384],\"params\":[\"Half\",\"False\",\"return
+    x - floor(x * 0.00346020761) * 289.0;\",\"4\",\"Create\",\"1\",\"True\",\"x\",\"FLOAT4\",\"0,0,0,0\",\"In\",\"\",\"Half\",\"False\",\"mod289\",\"False\",\"False\",\"0\",\"\",\"False\",\"1\",\"0\",\"FLOAT4\",\"0,0,0,0\",\"False\",\"1\",\"FLOAT4\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":3,\"pos\":[-1024,480],\"params\":[\"Half\",\"False\",\"return
+    mod289((x * 34.0h + 1.0h) * x);\",\"4\",\"Create\",\"1\",\"True\",\"x\",\"FLOAT4\",\"0,0,0,0\",\"In\",\"\",\"Half\",\"False\",\"perm4\",\"False\",\"False\",\"1\",\"2\",\"\",\"False\",\"1\",\"0\",\"FLOAT4\",\"0,0,0,0\",\"False\",\"1\",\"FLOAT4\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":1,\"pos\":[-1024,640],\"params\":[\"Half\",\"False\",\"   
+    float3 i = floor(p);\\n    float3 f = frac(p);\\n\\n    f = f * f * (3.0 - 2.0
+    * f);\\n\\n    float n000 = hash31(i);\\n    float n100 = hash31(i + float3(1,0,0));\\n   
+    float n010 = hash31(i + float3(0,1,0));\\n    float n110 = hash31(i + float3(1,1,0));\\n\\n   
+    float n001 = hash31(i + float3(0,0,1));\\n    float n101 = hash31(i + float3(1,0,1));\\n   
+    float n011 = hash31(i + float3(0,1,1));\\n    float n111 = hash31(i + float3(1,1,1));\\n\\n   
+    float nx00 = lerp(n000,n100,f.x);\\n    float nx10 = lerp(n010,n110,f.x);\\n   
+    float nx01 = lerp(n001,n101,f.x);\\n    float nx11 = lerp(n011,n111,f.x);\\n\\n   
+    float nxy0 = lerp(nx00,nx10,f.y);\\n    float nxy1 = lerp(nx01,nx11,f.y);\\n\\n   
+    return lerp(nxy0,nxy1,f.z);\",\"1\",\"Create\",\"1\",\"True\",\"p\",\"FLOAT3\",\"0,0,0\",\"In\",\"\",\"Inherit\",\"False\",\"SimpleNoise3D\",\"False\",\"False\",\"2\",\"2\",\"3\",\"\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.CustomExpressionNode,
+    AmplifyShaderEditor\",\"id\":10,\"pos\":[-1024,768],\"params\":[\"Half\",\"False\",\"   
+    // Compute integer and fractional parts.\\n    float3 i = floor(p);\\n    float3
+    f = p - i;\\n    // Cubic interpolation (smoothstep)\\n    f = f * f * (3.0 -
+    2.0 * f);\\n\\n    // Build 4-component vectors using swizzling.\\n    // a =
+    (i.x, i.x+1, i.y, i.y+1)\\n    float4 a = float4(i.x, i.x, i.y, i.y) + float4(0.0,
+    1.0, 0.0, 1.0);\\n\\n    // Permutations along the x and y axes.\\n    float4
+    k1 = perm(a.xyxy);\\n    float4 k2 = perm(k1.xyxy + a.zzww);\\n\\n    // Incorporate
+    the z component.\\n    float4 c  = k2 + float4(i.z, i.z, i.z, i.z);\\n    float4
+    k3 = perm(c);\\n    float4 k4 = perm(c + 1.0);\\n\\n    // Map results to the
+    [0,1] range.\\n    float4 o1 = frac(k3 * 0.0243902439);\\n    float4 o2 = frac(k4
+    * 0.0243902439);\\n\\n    // Interpolate along z, then x, then y.\\n    float4
+    o3 = lerp(o1, o2, f.z);           // f.z blends between layers.\\n    float2
+    o4 = lerp(o3.xz, o3.yw, f.x);       // f.x blends between pairs.\\n    return
+    lerp(o4.x, o4.y, f.y); \",\"1\",\"Create\",\"1\",\"True\",\"p\",\"FLOAT3\",\"0,0,0\",\"In\",\"\",\"Inherit\",\"False\",\"SimpleNoise3D_OLD\",\"False\",\"False\",\"2\",\"12\",\"11\",\"\",\"False\",\"1\",\"0\",\"FLOAT3\",\"0,0,0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"type\":\"AmplifyShaderEditor.FunctionOutput,
+    AmplifyShaderEditor\",\"id\":0,\"pos\":[0,0],\"params\":[\"Inherit\",\"False\",\"True\",\"-1\",\"\",\"0\",\"False\",\"1\",\"0\",\"FLOAT\",\"0\",\"False\",\"1\",\"FLOAT\",\"0\"]}\n{\"wire\":[8,0,7,0]}\n{\"wire\":[8,1,9,0]}\n{\"wire\":[5,0,6,0]}\n{\"wire\":[5,1,8,0]}\n{\"wire\":[11,0,5,0]}\n{\"wire\":[0,0,11,0]}\nASEEND*/\n//CHKSM=3F59F3A1EB3326A7F4FFF77EF3E15FDCF9B227A0"
+  m_functionName: 
+  m_description: 
+  m_additionalIncludes:
+    m_additionalIncludes: []
+    m_outsideIncludes: []
+  m_additionalPragmas:
+    m_additionalPragmas: []
+    m_outsidePragmas: []
+  m_additionalDirectives:
+    m_validData: 0
+    m_isDirty: 0
+    m_moduleName: ' Additional Directives'
+    m_independentModule: 1
+    m_customEdited: 0
+    m_additionalDirectives: []
+    m_shaderFunctionDirectives: []
+    m_nativeDirectives: []
+    m_nativeDirectivesIndex: -1
+    m_nativeDirectivesFoldout: 0
+    m_directivesSaveItems: []
+    m_versionMaxExclusive: 1
+  m_nodeCategory: 0
+  m_headerStyle: 2
+  m_headerColor: {r: 1, g: 0.627451, b: 0, a: 1}
+  m_customNodeCategory: The Visual Engine
+  m_previewPosition: 0
+  m_hidden: 0
+  m_url: 

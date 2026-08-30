@@ -1,0 +1,186 @@
+{
+  "animationCount": 0,
+  "categories": [
+    {
+      "uid": "606f202e5a3c4e62bf9aab1cd9f63e1b",
+      "name": "Furniture & Home",
+      "slug": "furniture-home",
+      "uri": "https://api.sketchfab.com/v3/categories/606f202e5a3c4e62bf9aab1cd9f63e1b",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/c999ae9e0525ccfb8fd8953190d5307d-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/606f202e5a3c4e62bf9aab1cd9f63e1b/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/606f202e5a3c4e62bf9aab1cd9f63e1b/800x450.png"
+        }
+      ]
+    },
+    {
+      "uid": "17d20ca7b35243d4a45171838b50704c",
+      "name": "Science & Technology",
+      "slug": "science-technology",
+      "uri": "https://api.sketchfab.com/v3/categories/17d20ca7b35243d4a45171838b50704c",
+      "icon": "https://static.sketchfab.com/static/builds/web/dist/static/assets/images/icons/categories/86b1bae49e0ed3f43b2d59b26700234e-v2.svg",
+      "thumbnails": [
+        {
+          "width": "512",
+          "height": "288",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/512x288.png"
+        },
+        {
+          "width": "800",
+          "height": "450",
+          "url": "https://static.sketchfab.com/categories/17d20ca7b35243d4a45171838b50704c/800x450.png"
+        }
+      ]
+    }
+  ],
+  "commentCount": 1,
+  "createdAt": "2021-12-04T11:55:27.554741",
+  "embedUrl": "https://sketchfab.com/models/18910c5df5134de784ed6811407e2a05/embed",
+  "faceCount": 2278,
+  "isAgeRestricted": false,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "likeCount": 146,
+  "name": "Lab Glassware",
+  "publishedAt": "2021-12-04T12:02:20.426613",
+  "soundCount": 0,
+  "staffpickedAt": null,
+  "tags": [
+    {
+      "name": "flower",
+      "slug": "flower",
+      "uri": "https://api.sketchfab.com/v3/tags/flower"
+    },
+    {
+      "name": "cylinder",
+      "slug": "cylinder",
+      "uri": "https://api.sketchfab.com/v3/tags/cylinder"
+    },
+    {
+      "name": "science",
+      "slug": "science",
+      "uri": "https://api.sketchfab.com/v3/tags/science"
+    },
+    {
+      "name": "beaker",
+      "slug": "beaker",
+      "uri": "https://api.sketchfab.com/v3/tags/beaker"
+    },
+    {
+      "name": "flask",
+      "slug": "flask",
+      "uri": "https://api.sketchfab.com/v3/tags/flask"
+    }
+  ],
+  "thumbnails": {
+    "images": [
+      {
+        "uid": "092aedb0bed8433cb98fb14edda9a21b",
+        "width": 1920,
+        "height": 1080,
+        "size": 256404,
+        "url": "https://media.sketchfab.com/models/18910c5df5134de784ed6811407e2a05/thumbnails/8854f2d6621643eebf1b8d7e314fd02a/d839b810c16143d5ad0a52775beadf42.jpeg"
+      },
+      {
+        "uid": "adf2e23e40384b2790bc8e54ebcaec5c",
+        "width": 1024,
+        "height": 576,
+        "size": 78910,
+        "url": "https://media.sketchfab.com/models/18910c5df5134de784ed6811407e2a05/thumbnails/8854f2d6621643eebf1b8d7e314fd02a/b21cc1670ca843f6a8f107a387f0c7cb.jpeg"
+      },
+      {
+        "uid": "ab1e9e0414f14922a7c7a2b0c73a520d",
+        "width": 720,
+        "height": 405,
+        "size": 43399,
+        "url": "https://media.sketchfab.com/models/18910c5df5134de784ed6811407e2a05/thumbnails/8854f2d6621643eebf1b8d7e314fd02a/eb0d67b46da14e9b867864ceece515c0.jpeg"
+      },
+      {
+        "uid": "c800d88abab546ef8b035413dfc921aa",
+        "width": 256,
+        "height": 144,
+        "size": 7285,
+        "url": "https://media.sketchfab.com/models/18910c5df5134de784ed6811407e2a05/thumbnails/8854f2d6621643eebf1b8d7e314fd02a/240b66747a714476bfa4f4667dd226fa.jpeg"
+      },
+      {
+        "uid": "3f080ef0915c44fa8d4f2c55be87d323",
+        "width": 64,
+        "height": 36,
+        "size": 1243,
+        "url": "https://media.sketchfab.com/models/18910c5df5134de784ed6811407e2a05/thumbnails/8854f2d6621643eebf1b8d7e314fd02a/9828fd896146469392c975bba2d5ecd7.jpeg"
+      }
+    ]
+  },
+  "uid": "18910c5df5134de784ed6811407e2a05",
+  "uri": "https://api.sketchfab.com/v3/models/18910c5df5134de784ed6811407e2a05",
+  "user": {
+    "uid": "6ebbfd76e005400a98c06e2f60eb5492",
+    "username": "thelegokid4455",
+    "displayName": "thelegokid4455",
+    "account": "basic",
+    "profileUrl": "https://sketchfab.com/thelegokid4455",
+    "avatar": {
+      "uid": "c37cedfd82804958b0b55aa863de4384",
+      "uri": "https://api.sketchfab.com/v3/avatars/c37cedfd82804958b0b55aa863de4384",
+      "images": [
+        {
+          "width": 32,
+          "height": 32,
+          "size": 504,
+          "url": "https://media.sketchfab.com/avatars/c37cedfd82804958b0b55aa863de4384/22522ff8b899448b9f4bbb5898940d00.png"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "size": 804,
+          "url": "https://media.sketchfab.com/avatars/c37cedfd82804958b0b55aa863de4384/e69be78f5407471e969108438d7ff844.png"
+        },
+        {
+          "width": 90,
+          "height": 90,
+          "size": 1651,
+          "url": "https://media.sketchfab.com/avatars/c37cedfd82804958b0b55aa863de4384/9d4849d8546e4a3f8907c475ac5bf1e7.png"
+        },
+        {
+          "width": 100,
+          "height": 100,
+          "size": 1886,
+          "url": "https://media.sketchfab.com/avatars/c37cedfd82804958b0b55aa863de4384/8dddde335a714d0ba2f92595924ee6e3.png"
+        }
+      ]
+    },
+    "uri": "https://api.sketchfab.com/v3/users/6ebbfd76e005400a98c06e2f60eb5492"
+  },
+  "vertexCount": 1160,
+  "viewCount": 9133,
+  "viewerUrl": "https://sketchfab.com/3d-models/lab-glassware-18910c5df5134de784ed6811407e2a05",
+  "isDownloadable": true,
+  "isProtected": false,
+  "description": "# Glassware\nLab glassware consisting of a beaker, measuring glass, graduated cylinder, flask, and pipette\n# Low poly\neach model has low polygon count. perfect for mobile and VR development.\nMade with Blender",
+  "price": null,
+  "downloadCount": 3080,
+  "editorUrl": "https://sketchfab.com/models/18910c5df5134de784ed6811407e2a05/edit",
+  "status": {
+    "warning": {},
+    "processing": "SUCCEEDED"
+  },
+  "source": "website",
+  "hasCommentsDisabled": false,
+  "updatedAt": "2022-07-21T13:03:16.828568",
+  "pbrType": null,
+  "textureCount": 1,
+  "materialCount": 3
+}

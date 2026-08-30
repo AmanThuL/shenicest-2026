@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 9ec50640d43b3ee4fbe2262b47bb617a
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Legacy/Prop Simple
+    Lit.shader
+  uploadId: 974988

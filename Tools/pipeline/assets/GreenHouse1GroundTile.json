@@ -1,0 +1,41 @@
+{
+  "asset": "GreenHouse1GroundTile",
+  "category": "Environment",
+  "preset": "environment_module",
+  "source": {
+    "blend": "SourceArt/Blender/_TilingJigs/GroundTilePlane.blend",
+    "object": "GreenHouse1GroundTile",
+    "licence": "Authoring jig generated in-repo (a 4 m plane); the texture sources are CC0.",
+    "note": "A 4 m square with 0-1 UVs. The greenhouse plinth is 44.5 m across, so a unique unwrap gives about 46 px/m on a 2K map. This tile is 2K over 4 m -- 512 px/m -- and repeats over the plinth by world-space triplanar, which also keeps it continuous across the stair joins. Every mask here is a procedural: a flat plane bakes uniform AO and curvature, so the mesh-map smart masks would cover everything."
+  },
+  "prepare": {
+    "apply_rotation": true,
+    "apply_scale": true,
+    "to_origin": false,
+    "strip_animation": false,
+    "drop_empty_slots": true,
+    "material_slots": [
+      "GreenHouse1GroundTile"
+    ]
+  },
+  "uv": {
+    "mode": "preserve"
+  },
+  "texture_sets": [
+    "GreenHouse1GroundTile"
+  ],
+  "painter": {
+    "fills": [
+      "StoneBase(0,1.0):basecolor=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_diff_2k.jpg;normal=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/monastery_stone_floor/monastery_stone_floor_rough_2k.jpg",
+      "Cracks(0,0.65):basecolor=#15130F;roughness=0.92|~grunge_concrete_cracked",
+      "GrimeFilm(0,0.4):basecolor=#2A251E;roughness=0.85|~grunge_dirt_large",
+      "MudBed(0,0.38):basecolor=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_diff_2k.jpg;normal=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/brown_mud_leaves_01/brown_mud_leaves_01_rough_2k.jpg|~grunge_dirt_muddy",
+      "MossPatch(0,0.28):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;normal=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_nor_gl_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|~grunge_concrete_moss_medium",
+      "MossFine(0,0.18):basecolor=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_diff_2k.jpg;roughness=SourceArt/Reference/Weathering/concrete_moss/concrete_moss_rough_2k.jpg|~grunge_concrete_moss_small",
+      "PoolStain(0,0.3):basecolor=#17150F;roughness=0.24|~grunge_stains_hollow",
+      "Scuff(0,0.2):basecolor=#8A857A;roughness=0.42|~grunge_scratches"
+    ],
+    "layers": [],
+    "note": "Tiling ground per docs/architecture/废墟风化分层策略.md: authored on a 4 m tile with procedural masks so it stays seamless and repeats, instead of one unique bake stretched over 44.5 m. Every mask is non-directional -- the drip and leak procedurals describe a wall, not a floor."
+  }
+}

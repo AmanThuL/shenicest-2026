@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 80310eebc23239149b6cf572872eb680
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286827
+  packageName: The Visual Engine
+  packageVersion: 22.0.0
+  assetPath: Assets/BOXOPHOBIC/The Visual Engine/Core/Shaders/Functions/Element Type
+    Vertx.asset
+  uploadId: 974988
