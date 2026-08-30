@@ -4,6 +4,7 @@ using System.IO;
 using RootsDance.Data;
 using RootsDance.Events;
 using RootsDance.Interaction;
+using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -35,6 +36,14 @@ namespace RootsDance.EditorTools
             "Assets/RootsDance/Data/Events/InteractionPrompt.asset";
 
         private const float k_ModelScale = 0.25f;
+        private const float k_InspectFieldOfView = 40f;
+        private static readonly Vector3 k_LegacyInspectPosition =
+            new Vector3(0.05f, -0.03f, 1.05f);
+        private static readonly Vector3 k_LegacyConfirmPosition =
+            new Vector3(0.156f, -0.407f, 0.774f);
+        private static readonly Quaternion k_LegacyPropRotation = Quaternion.Euler(0f, -90f, 0f);
+        private const float k_LegacyInspectScale = 0.75f;
+        private const float k_LegacyConfirmScale = 0.7f;
         private static readonly Vector3 k_Placement = new Vector3(31.847f, 7.835f, 107.114f);
         private const float k_PlacementYaw = 13.5f;
 
@@ -164,6 +173,14 @@ namespace RootsDance.EditorTools
                         root.GetComponentsInChildren<Renderer>(true), new Vector3(0.025f, 0.025f, 0.025f));
                     root.layer = RequireLayer("Interactable");
 
+                    CinemachineCamera inspectCamera = BuildInspectCamera(root.transform);
+                    InvertPropPose(
+                        k_LegacyConfirmPosition,
+                        k_LegacyPropRotation,
+                        k_LegacyConfirmScale,
+                        out Vector3 confirmCameraPosition,
+                        out Quaternion confirmCameraRotation);
+
                     RuneKeypadInteractable interactable = root.AddComponent<RuneKeypadInteractable>();
                     interactable.Configure(
                         worldCollider,
@@ -173,6 +190,9 @@ namespace RootsDance.EditorTools
                         solvedRunes,
                         clearButton,
                         confirmButton,
+                        inspectCamera,
+                        confirmCameraPosition,
+                        confirmCameraRotation.eulerAngles,
                         RequireAsset<LevelEventChannelSO>(k_LoadLevelChannelPath),
                         RequireAsset<LevelSO>(k_DestinationLevelPath),
                         RequireAsset<StringEventChannelSO>(k_PromptChannelPath));
@@ -196,6 +216,41 @@ namespace RootsDance.EditorTools
             {
                 EditorSceneManager.ClosePreviewScene(preview);
             }
+        }
+
+        private static CinemachineCamera BuildInspectCamera(Transform parent)
+        {
+            GameObject cameraObject = new GameObject("InspectCamera");
+            cameraObject.transform.SetParent(parent, false);
+            InvertPropPose(
+                k_LegacyInspectPosition,
+                k_LegacyPropRotation,
+                k_LegacyInspectScale,
+                out Vector3 cameraPosition,
+                out Quaternion cameraRotation);
+            cameraObject.transform.localPosition = cameraPosition;
+            cameraObject.transform.localRotation = cameraRotation;
+
+            CinemachineCamera camera = cameraObject.AddComponent<CinemachineCamera>();
+            camera.Lens.FieldOfView = k_InspectFieldOfView;
+            camera.Priority = 30;
+            cameraObject.SetActive(false);
+            return camera;
+        }
+
+        /// <summary>
+        /// Converts the legacy "prop in front of the eye" pose into the inverse fixed-prop camera
+        /// pose, preserving the exact framing while leaving the wall mount untouched.
+        /// </summary>
+        private static void InvertPropPose(
+            Vector3 propPosition,
+            Quaternion propRotation,
+            float propScale,
+            out Vector3 cameraPosition,
+            out Quaternion cameraRotation)
+        {
+            cameraRotation = Quaternion.Inverse(propRotation);
+            cameraPosition = cameraRotation * -propPosition / propScale;
         }
 
         private static RuneKeypadButton BuildButton(
