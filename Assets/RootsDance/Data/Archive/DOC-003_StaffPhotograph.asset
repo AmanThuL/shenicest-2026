@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f9faa274b38f437480356fc5a5a34ed, type: 3}
+  m_Name: DOC-003_StaffPhotograph
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Archive.ArchiveDocumentSO
+  m_id: DOC-003
+  m_kind: 1
+  m_title: "\u7814\u7A76\u4EBA\u5458\u5408\u7167"
+  m_subtitle: "Briggs Botanical Gardens \u2014 Research Division"
+  m_promptText: "\u62FE\u53D6"
+  m_pageSizeMeters: {x: 0.16, y: 0.21}
+  m_dustAmount: 0.75
+  m_requiredFlag: 
+  m_bodyLines: []
+  m_transcription: 
+  m_diagram: {fileID: 0}
+  m_photo: {fileID: 2800000, guid: 1e84b7eb31e3040a9810764550c45e88, type: 3}
+  m_composedPage: {fileID: 2800000, guid: ed35c4daf479c43a5b64d14b953566e8, type: 3}
+  m_marginNote: 
+  m_stampText: APRIL 17 1974
+  m_signature: 
+  m_archiveCode: S9-01
+  m_fileLocation: GREENHOUSE
+  m_flagOnRead: 
+  m_isCollected: 0

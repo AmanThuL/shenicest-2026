@@ -28,6 +28,7 @@ MonoBehaviour:
     responds to it. This is not parasitism, but a mutual exchange of nutrients. I
     have not yet fully understood this mechanism.
   m_diagram: {fileID: 0}
+  m_photo: {fileID: 0}
   m_composedPage: {fileID: 2800000, guid: 9c32a9cecef41413c8dd1c6f71e4cbf0, type: 3}
   m_marginNote: 
   m_stampText: 

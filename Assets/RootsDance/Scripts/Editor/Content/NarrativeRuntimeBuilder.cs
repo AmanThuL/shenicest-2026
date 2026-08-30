@@ -47,6 +47,7 @@ namespace RootsDance.Editor.Content
         private const string k_EventsFolder = "Assets/RootsDance/Data/Events";
         private const string k_DialogueChannelPath = k_EventsFolder + "/DialogueRequested.asset";
         private const string k_DialogueFolder = "Assets/RootsDance/Data/Dialogue";
+        private const string k_AudioFolder = "Assets/RootsDance/Data/Audio";
         private const string k_VoiceCuePath = "Assets/RootsDance/Data/Audio/VOX_Dialogue.asset";
 
         [MenuItem("RootsDance/Content/Wire Narrative Runtime")]
@@ -477,16 +478,53 @@ namespace RootsDance.Editor.Content
             ConfigureInteractTrigger(console.gameObject, "DLG-008_CirculationConsole",
                 new Vector3(1.4f, 1.4f, 0.9f), "查看终端");
 
-            // Either wrong cycle: the outburst plays over the start of the chase, not before it —
-            // the dialogue step does not wait, and the chase flag follows one breath later.
-            EnsureWrongChoiceSequence(root, "WrongChoiceCore", WorldFlags.k_CirculationCore);
-            EnsureWrongChoiceSequence(root, "WrongChoiceRing", WorldFlags.k_CirculationRing);
+            // Either wrong cycle: the breath bed and the outburst start together, over the start of
+            // the chase rather than before it — the dialogue step does not wait, and the chase flag
+            // follows one breath later.
+            Transform player = FindTransform(scene, "Player");
+
+            if (player == null)
+            {
+                throw new InvalidOperationException(
+                    scene.name + " has no Player root to hang the panic-breath bed on.");
+            }
+
+            GameObject panicBreath = EnsurePanicBreathBed(player);
+            EnsureWrongChoiceSequence(root, "WrongChoiceCore", WorldFlags.k_CirculationCore, panicBreath);
+            EnsureWrongChoiceSequence(root, "WrongChoiceRing", WorldFlags.k_CirculationRing, panicBreath);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }
 
-        private static void EnsureWrongChoiceSequence(Transform root, string name, string startFlag)
+        /// <summary>
+        /// The protagonist's own breathing (docs/architecture/systems/对话与场景序列.md §4.6): a
+        /// loop needs a source that owns it, and <see cref="AmbienceZone"/> already is one — always
+        /// on once enabled, flat rather than positioned, because the sound is not somewhere in the
+        /// greenhouse. Left inactive here; a wrong-choice sequence's Set Active step is what turns
+        /// it on, and only one of them ever will.
+        /// </summary>
+        private static GameObject EnsurePanicBreathBed(Transform player)
+        {
+            Transform bed = EnsureChild(player, "Bed_PanicBreath");
+
+            EnsureComponent<AudioSource>(bed.gameObject).playOnAwake = false;
+            AmbienceZone zone = EnsureComponent<AmbienceZone>(bed.gameObject);
+
+            using (SerializedObject serialized = new SerializedObject(zone))
+            {
+                serialized.FindProperty("m_cue").objectReferenceValue =
+                    LoadRequired<AudioCueSO>(k_AudioFolder + "/AMB_PanicBreath.asset");
+                serialized.FindProperty("m_alwaysOn").boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            bed.gameObject.SetActive(false);
+            return bed.gameObject;
+        }
+
+        private static void EnsureWrongChoiceSequence(
+            Transform root, string name, string startFlag, GameObject panicBreath)
         {
             Transform host = EnsureChild(root, name);
             CueSequence sequence = EnsureComponent<CueSequence>(host.gameObject);
@@ -502,15 +540,21 @@ namespace RootsDance.Editor.Content
                     EnsureDialogueChannel();
 
                 SerializedProperty steps = serialized.FindProperty("m_steps");
-                steps.arraySize = 2;
+                steps.arraySize = 3;
 
-                SerializedProperty outburst = steps.GetArrayElementAtIndex(0);
+                SerializedProperty breath = steps.GetArrayElementAtIndex(0);
+                breath.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.SetActive;
+                breath.FindPropertyRelative("m_delay").floatValue = 0f;
+                breath.FindPropertyRelative("m_target").objectReferenceValue = panicBreath;
+                breath.FindPropertyRelative("m_isActive").boolValue = true;
+
+                SerializedProperty outburst = steps.GetArrayElementAtIndex(1);
                 outburst.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.PlayDialogue;
                 outburst.FindPropertyRelative("m_delay").floatValue = 1.5f;
                 outburst.FindPropertyRelative("m_conversation").objectReferenceValue =
                     LoadDialogue("DLG-009_TheyAreNotThere");
 
-                SerializedProperty chase = steps.GetArrayElementAtIndex(1);
+                SerializedProperty chase = steps.GetArrayElementAtIndex(2);
                 chase.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.RaiseFlag;
                 chase.FindPropertyRelative("m_delay").floatValue = 0f;
                 chase.FindPropertyRelative("m_flagId").stringValue = WorldFlags.k_ChaseStarted;
