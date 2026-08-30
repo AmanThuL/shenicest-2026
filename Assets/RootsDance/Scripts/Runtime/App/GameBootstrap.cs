@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using RootsDance.Core;
 using RootsDance.Data;
@@ -16,6 +17,7 @@ namespace RootsDance.App
     {
         [Header("Services")]
         [SerializeField] private SceneLoader m_sceneLoader;
+        [SerializeField] private CheckpointRescueService m_rescueService;
 
         [Header("Listens to")]
         [SerializeField] private LevelEventChannelSO m_loadLevelRequested;
@@ -45,6 +47,14 @@ namespace RootsDance.App
 
         /// <summary>The only sanctioned way to change the world.</summary>
         public CommandQueue Commands => m_commands;
+        public ICheckpointRescueService RescueService => m_rescueService;
+
+        /// <summary>Called only after outgoing scenes unload and before fresh gameplay initializes.</summary>
+        public void RestoreCheckpointSnapshot(IReadOnlyList<string> flags, IReadOnlyList<ReportEntry> report,
+            bool hasTimeOfDay, TimeOfDay timeOfDay)
+        {
+            m_worldState.RestoreSnapshot(flags, report, hasTimeOfDay, timeOfDay);
+        }
 
         protected override void Awake()
         {
@@ -176,6 +186,11 @@ namespace RootsDance.App
 
         private void OnLoadLevelRequested(LevelSO level)
         {
+            if (m_rescueService != null && m_rescueService.IsBusy)
+            {
+                return;
+            }
+
             if (m_sceneLoader == null)
             {
                 Log.Error("No SceneLoader assigned on GameBootstrap.", this);

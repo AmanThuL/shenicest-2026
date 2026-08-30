@@ -24,6 +24,10 @@ D14/D15/D16 的 Unity 侧实测结果，见
 Play、把玩家放到某个站点并按命令队列补齐此前应有的世界状态（flag、报告条目）；Play 中可直接跳到别的检查点；也可从 shell
 调用。见 [dev-play-checkpoints.md](dev-play-checkpoints.md)（英文；2026-08-27）。
 
+导出版的隐藏救援窗口：`Ctrl + Shift + D` 选择 checkpoint，确认后清空当前运行进度并重载目标关卡；
+数据从 Dev Play 导出，支持普通测试包，公开发布前可关闭。见
+[build-checkpoint-rescue.md](build-checkpoint-rescue.md)（英文）。
+
 一条命令从当前提交出一个可分享的 zip：`python3 Tools/build/build.py [PROFILE] [--dev] [--package-only]
 [--dry-run] [--force]` 跑 preflight 检查、以 `-executeMethod` 无头调用 Unity 构建、再把 `Builds/<PROFILE>/`
 打包成按 `RootsDance_<平台>_v<版本>_<日期>_<短 sha>[-dirty][-dev].zip` 命名的压缩包；构建 profile

@@ -149,6 +149,18 @@ namespace RootsDance.Tests.EditMode.Scanner
         }
 
         [Test]
+        public void ResetForRescue_MagnifiedReport_DetachesFromPersistentCamera()
+        {
+            m_magnifier.MagnifyImmediate(m_eye);
+
+            m_magnifier.ResetForRescue();
+
+            Assert.IsFalse(m_magnifier.IsMagnified);
+            Assert.AreEqual(m_anchor, m_canvas.parent);
+            Assert.DoesNotThrow(m_magnifier.ResetForRescue);
+        }
+
+        [Test]
         public void Restore_PutsTheReportBackOnThePlate()
         {
             Vector3 position = m_canvas.position;

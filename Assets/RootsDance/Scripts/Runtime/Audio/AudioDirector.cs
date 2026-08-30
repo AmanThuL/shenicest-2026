@@ -21,7 +21,7 @@ namespace RootsDance.Audio
     /// instead of a call into the audio thread per voice per frame.
     /// </para>
     /// </summary>
-    public class AudioDirector : MonoBehaviour
+    public class AudioDirector : MonoBehaviour, IRescueResetParticipant
     {
         /// <summary>A cue's memory between plays: what it played last, and when.</summary>
         private struct CueState
@@ -156,6 +156,13 @@ namespace RootsDance.Audio
             }
 
             m_active.Clear();
+        }
+
+        /// <summary>Old voices and cue cooldowns belong to the discarded playthrough.</summary>
+        public void ResetForRescue()
+        {
+            StopAll();
+            m_cueStates.Clear();
         }
 
         private void OnCueRequested(AudioCueRequest request)

@@ -1,3 +1,4 @@
+using RootsDance.Core;
 using RootsDance.Data;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace RootsDance.Player
     /// is never pushed by physics, and mixing the two on one object is a project rule violation.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]
-    public class FirstPersonController : MonoBehaviour
+    public class FirstPersonController : MonoBehaviour, ICheckpointSpawnTarget
     {
         [SerializeField] private PlayerConfigSO m_config;
 
@@ -25,6 +26,7 @@ namespace RootsDance.Player
 
         /// <summary>Metres per second along Y, negative while falling; drives the free-fall camera.</summary>
         public float VerticalVelocity => m_verticalVelocity;
+        public Transform SpawnTransform => transform;
 
         private void Awake()
         {
@@ -48,6 +50,18 @@ namespace RootsDance.Player
             Vector3 motion = m_horizontalVelocity;
             motion.y = m_verticalVelocity;
             m_controller.Move(motion * deltaTime);
+        }
+
+        public void ApplyCheckpoint(Vector3 position, float yaw)
+        {
+            bool wasEnabled = m_controller.enabled;
+            m_controller.enabled = false;
+            m_horizontalVelocity = Vector3.zero;
+            m_verticalVelocity = 0f;
+            m_isGrounded = false;
+            transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+            m_controller.enabled = wasEnabled;
+            Physics.SyncTransforms();
         }
 
         private void UpdateGrounded()

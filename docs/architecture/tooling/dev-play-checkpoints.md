@@ -6,6 +6,9 @@ dragging two scenes into the Hierarchy. Nothing here ships: every script lives i
 
 **Menu:** `RootsDance > Dev Play > Window` (dock it next to the Inspector). Added 2026-08-27.
 
+For ordinary exported test builds, use the separate [checkpoint rescue panel](build-checkpoint-rescue.md): it exports
+these definitions as runtime-safe records and performs a full reset/reload instead of additive teleport/seeding.
+
 ## What a checkpoint is
 
 `DevCheckpointSO` assets under `Assets/RootsDance/Data/DevPlay/` (create more with

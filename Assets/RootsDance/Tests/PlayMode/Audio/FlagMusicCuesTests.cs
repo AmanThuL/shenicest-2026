@@ -3,6 +3,8 @@ using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using RootsDance.Audio;
+using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Events;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -108,6 +110,50 @@ namespace RootsDance.Tests.PlayMode.Audio
             m_flagRaised.RaiseEvent("flow.some_other_thing");
 
             Assert.AreSame(m_opening, m_director.Playing);
+        }
+
+        [UnityTest]
+        public IEnumerator RestoreAfterRescue_MultipleHistoricalBeats_RequestsOnlyFinalTrack()
+        {
+            m_root.SetActive(true);
+            yield return null;
+            int requests = 0;
+            Action<AudioCueRequest> count = request => requests++;
+            m_musicRequested.EventRaised += count;
+
+            try
+            {
+                RescueCheckpoint checkpoint = new RescueCheckpoint("test", "Test", null,
+                    string.Empty, Vector3.zero, 0f, false, TimeOfDay.Day,
+                    new[] { "flow.test_silence", "flow.test_beat", "flow.test_unfinished" }, null);
+                m_director.ResetForRescue();
+                m_cues.RestoreAfterRescue(checkpoint);
+
+                Assert.That(requests, Is.EqualTo(1));
+                Assert.That(m_director.Playing, Is.SameAs(m_beat));
+            }
+            finally
+            {
+                m_musicRequested.EventRaised -= count;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ResetForRescue_TrackPlaying_ClearsBothAudioSourcesImmediately()
+        {
+            m_root.SetActive(true);
+            yield return null;
+            m_flagRaised.RaiseEvent("flow.test_beat");
+
+            m_director.ResetForRescue();
+
+            Assert.That(m_director.Playing, Is.Null);
+
+            foreach (AudioSource source in m_root.GetComponentsInChildren<AudioSource>())
+            {
+                Assert.That(source.clip, Is.Null);
+                Assert.That(source.isPlaying, Is.False);
+            }
         }
 
         /// <summary>A cue with one second of silence in it — the director refuses a clipless cue.</summary>

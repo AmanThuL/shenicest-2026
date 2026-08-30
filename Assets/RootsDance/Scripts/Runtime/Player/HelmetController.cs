@@ -64,6 +64,7 @@ namespace RootsDance.Player
         private bool m_isRemoving;
         private bool m_isRemoved;
         private bool m_isConversationActive;
+        private bool m_checkedInitialState;
 
         public bool IsRemoved => m_isRemoved;
 
@@ -97,6 +98,8 @@ namespace RootsDance.Player
 
         private void Update()
         {
+            RestoreInitialState();
+
             if (m_isRemoving || m_isRemoved || m_input == null)
             {
                 return;
@@ -117,6 +120,31 @@ namespace RootsDance.Player
             }
 
             Raise(m_warningRequested, m_warningText);
+        }
+
+        private void RestoreInitialState()
+        {
+            if (m_checkedInitialState)
+            {
+                return;
+            }
+
+            IWorldStateReader state = WorldAccess.State;
+
+            if (state == null)
+            {
+                return;
+            }
+
+            m_checkedInitialState = true;
+            m_isRemoved = state.HasFlag(WorldFlags.k_HelmetRemoved);
+            m_isUnlocked = m_isRemoved || state.HasFlag(m_unlockFlag);
+
+            // A snapshot is already-completed history, not another removal performance or notice.
+            if (m_isUnlocked && !m_isRemoved)
+            {
+                Raise(m_hintRequested, m_hintText);
+            }
         }
 
         private void OnDisable()

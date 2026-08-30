@@ -1,4 +1,6 @@
 using System;
+using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Events;
 using UnityEngine;
 
@@ -24,7 +26,7 @@ namespace RootsDance.Audio
     /// Lives on the bootstrap root, next to the director. Wired by
     /// <c>RootsDance/Audio/Wire Music</c>.
     /// </summary>
-    public class FlagMusicCues : MonoBehaviour
+    public class FlagMusicCues : MonoBehaviour, IRescueStateRestoredParticipant
     {
         /// <summary>One row of the table.</summary>
         [Serializable]
@@ -109,6 +111,34 @@ namespace RootsDance.Audio
                 Request(binding.m_cue);
                 return;
             }
+        }
+
+        /// <summary>Resolve the final track without replaying every historical music transition.</summary>
+        public void RestoreAfterRescue(RescueCheckpoint checkpoint)
+        {
+            AudioCueSO selected = m_openingMusic;
+
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                for (int j = 0; j < m_bindings.Length; j++)
+                {
+                    Binding binding = m_bindings[j];
+
+                    if (binding.m_flagId != checkpoint.Flags[i])
+                    {
+                        continue;
+                    }
+
+                    if (binding.m_cue != null || binding.m_stopsMusic)
+                    {
+                        selected = binding.m_cue;
+                    }
+
+                    break;
+                }
+            }
+
+            Request(selected);
         }
 
         /// <summary>A request carrying no cue is how the director is asked for silence.</summary>

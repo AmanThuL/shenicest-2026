@@ -93,7 +93,7 @@ namespace RootsDance.Chase
         {
             // The resume check lives in Update because WorldAccess may not exist yet in OnEnable;
             // it runs exactly once, on the first frame the bootstrap answers.
-            if (m_resumeChecked || m_resumeSpawn == null || m_isChasing)
+            if (m_resumeChecked || m_isChasing)
             {
                 return;
             }
@@ -109,7 +109,17 @@ namespace RootsDance.Chase
 
             if (state.HasFlag(WorldFlags.k_ChaseStarted) && !state.HasFlag(WorldFlags.k_ChaseEscaped))
             {
-                MovePlayerTo(m_resumeSpawn);
+                // The rescue loader has already placed the player at the selected checkpoint.
+                // Normal cross-level chase continuation still uses its authored portal spawn.
+                bool isRescue = GameBootstrap.Instance != null
+                    && GameBootstrap.Instance.RescueService != null
+                    && GameBootstrap.Instance.RescueService.IsBusy;
+
+                if (m_resumeSpawn != null && !isRescue)
+                {
+                    MovePlayerTo(m_resumeSpawn);
+                }
+
                 StartChase(skipBirth: true);
             }
         }

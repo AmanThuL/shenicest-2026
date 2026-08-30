@@ -50,11 +50,49 @@ namespace RootsDance.App
 
         /// <summary>Unscaled time the cover went up, so the minimum hold survives a paused game.</summary>
         private float m_coverShownAt;
+        private string m_currentLevelName;
 
         public bool IsLoading => m_isLoading;
 
         /// <summary>Where the current load is, 0..1. Sits at 1 while nothing is loading.</summary>
         public float Progress { get; private set; } = 1f;
+        public string CurrentLevelName => string.IsNullOrEmpty(m_currentLevelName)
+            ? SceneManager.GetActiveScene().name : m_currentLevelName;
+
+        /// <summary>Runs rescue hooks behind the cover, with spawn applied before each scene's Start.</summary>
+        public Awaitable ReloadForRescueAsync(LevelSO level, Action beforeLoad, Action<Scene> sceneReady,
+            Action beforeReveal, CancellationToken cancellationToken)
+        {
+            return LoadLevelInternalAsync(level, beforeLoad, sceneReady, beforeReveal, cancellationToken);
+        }
+
+        /// <summary>One rescue-initialization traversal, including props reparented below Bootstrap's camera.</summary>
+        public void CollectRescueParticipants(List<MonoBehaviour> participants)
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded)
+                {
+                    continue;
+                }
+
+                GameObject[] roots = scene.GetRootGameObjects();
+                for (int j = 0; j < roots.Length; j++)
+                {
+                    MonoBehaviour[] behaviours = roots[j].GetComponentsInChildren<MonoBehaviour>(true);
+                    for (int k = 0; k < behaviours.Length; k++)
+                    {
+                        MonoBehaviour behaviour = behaviours[k];
+                        if (behaviour != null && !participants.Contains(behaviour)
+                            && (behaviour is IRescueResetParticipant || behaviour is IRescueStateRestoredParticipant))
+                        {
+                            participants.Add(behaviour);
+                        }
+                    }
+                }
+            }
+        }
 
         // Fire-and-forget entry point (called by the LoadLevelRequested channel listener).
         public void RequestLoad(LevelSO level)
@@ -77,18 +115,48 @@ namespace RootsDance.App
             HideCover();
         }
 
-        public async Awaitable LoadLevelAsync(LevelSO level, CancellationToken cancellationToken)
+        public Awaitable LoadLevelAsync(LevelSO level, CancellationToken cancellationToken)
+        {
+            return LoadLevelInternalAsync(level, null, null, null, cancellationToken);
+        }
+
+        private async Awaitable LoadLevelInternalAsync(LevelSO level, Action beforeLoad, Action<Scene> sceneReady,
+            Action beforeReveal, CancellationToken cancellationToken)
         {
             if (m_isLoading)
             {
-                Log.Warning("Scene load already in progress; request ignored.", this);
-                return;
+                throw new InvalidOperationException("Scene load already in progress.");
             }
 
             if (level == null)
             {
-                Log.Error("SceneLoader received a null level.", this);
-                return;
+                throw new ArgumentNullException(nameof(level));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            if (level.ScenePaths == null || level.ScenePaths.Count == 0)
+            {
+                throw new InvalidOperationException("The level contains no scenes.");
+            }
+
+            // Unity dispatches this event after Awake/OnEnable and before Start. Exceptions are captured
+            // and rethrown by the owning task, rather than escaping Unity's event dispatcher.
+            Exception initializationFailure = null;
+            void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+            {
+                if (initializationFailure != null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    sceneReady?.Invoke(scene);
+                }
+                catch (Exception exception)
+                {
+                    initializationFailure = exception;
+                }
             }
 
             m_isLoading = true;
@@ -145,21 +213,30 @@ namespace RootsDance.App
 
                 await RunStepAsync(Resources.UnloadUnusedAssets(), completedSteps, stepCount, cancellationToken);
                 completedSteps++;
+                beforeLoad?.Invoke();
+                SceneManager.sceneLoaded += OnSceneLoaded;
 
                 for (int i = 0; i < paths.Count; i++)
                 {
                     AsyncOperation load = SceneManager.LoadSceneAsync(paths[i], LoadSceneMode.Additive);
                     await RunStepAsync(load, completedSteps, stepCount, cancellationToken);
+                    if (initializationFailure != null)
+                    {
+                        throw initializationFailure;
+                    }
                     completedSteps++;
                 }
 
                 // First part = the one holding lighting/environment settings.
                 SceneManager.SetActiveScene(SceneManager.GetSceneByPath(paths[0]));
+                beforeReveal?.Invoke();
+                m_currentLevelName = level.name;
 
                 await SettleAsync(cancellationToken);
             }
             finally
             {
+                SceneManager.sceneLoaded -= OnSceneLoaded;
                 m_isLoading = false;
                 Progress = 1f;
                 HideCover();
@@ -174,11 +251,20 @@ namespace RootsDance.App
         private async Awaitable RunStepAsync(AsyncOperation operation, int stepIndex, int stepCount,
             CancellationToken cancellationToken)
         {
+            if (operation == null)
+            {
+                throw new InvalidOperationException("Unity could not start the requested scene operation.");
+            }
+
             while (!operation.isDone)
             {
                 Report(stepIndex, stepCount, operation.progress);
-                await Awaitable.NextFrameAsync(cancellationToken);
+                // Unity scene operations cannot be cancelled. Finish the operation before honoring
+                // cancellation so a retry cannot race an unfinished load or unload.
+                await Awaitable.NextFrameAsync();
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             Report(stepIndex + 1, stepCount, 0f);
         }

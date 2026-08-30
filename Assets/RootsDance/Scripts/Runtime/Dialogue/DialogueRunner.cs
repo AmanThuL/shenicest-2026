@@ -8,6 +8,7 @@ using RootsDance.Core.Commands;
 using RootsDance.Events;
 using RootsDance.Player;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RootsDance.Dialogue
 {
@@ -20,7 +21,7 @@ namespace RootsDance.Dialogue
     /// <see cref="IDialogueView"/>.
     /// </para>
     /// </summary>
-    public class DialogueRunner : MonoBehaviour
+    public class DialogueRunner : MonoBehaviour, IRescueResetParticipant
     {
         [Header("Listens to")]
         [Tooltip("Data/Events/DialogueRequested. Triggers in content scenes raise it.")]
@@ -70,6 +71,7 @@ namespace RootsDance.Dialogue
         private readonly List<int> m_remaining = new List<int>();
         private IDialogueView m_view;
         private int m_pendingChoice = -1;
+        private CancellationTokenSource m_conversationCancellation;
 
         /// <summary>True while a conversation is on screen. A second request is refused, not queued.</summary>
         public bool IsPlaying { get; private set; }
@@ -96,6 +98,8 @@ namespace RootsDance.Dialogue
 
         private void OnEnable()
         {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             if (m_playRequested != null)
             {
                 m_playRequested.EventRaised += Play;
@@ -109,6 +113,9 @@ namespace RootsDance.Dialogue
 
         private void OnDisable()
         {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            CancelConversation();
+
             if (m_playRequested != null)
             {
                 m_playRequested.EventRaised -= Play;
@@ -128,7 +135,52 @@ namespace RootsDance.Dialogue
                 return;
             }
 
-            PlayEntryAsync(conversation, destroyCancellationToken);
+            m_conversationCancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            PlayEntryAsync(conversation, m_conversationCancellation);
+        }
+
+        /// <summary>Cancels unfinished dialogue without carrying its completion flags into a new checkpoint.</summary>
+        public void ResetForRescue()
+        {
+            CancelConversation();
+            m_played.Clear();
+            m_remaining.Clear();
+            m_pendingChoice = -1;
+            m_input = null;
+        }
+
+        private void CancelConversation()
+        {
+            CancellationTokenSource cancellation = m_conversationCancellation;
+            m_conversationCancellation = null;
+            cancellation?.Cancel();
+
+            bool wasPlaying = IsPlaying;
+            IsPlaying = false;
+            m_view?.Hide();
+
+            if (wasPlaying)
+            {
+                Raise(m_conversationEnded);
+            }
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (m_input != null)
+            {
+                return;
+            }
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                m_input = root.GetComponentInChildren<PlayerInputReader>();
+
+                if (m_input != null)
+                {
+                    return;
+                }
+            }
         }
 
         private bool CanPlay(DialogueSO conversation)
@@ -138,12 +190,18 @@ namespace RootsDance.Dialogue
                 return false;
             }
 
+            IWorldStateReader state = WorldAccess.State;
+            if (conversation.PlaysOnce && state != null
+                && !string.IsNullOrEmpty(conversation.FlagOnComplete)
+                && state.HasFlag(conversation.FlagOnComplete))
+            {
+                return false;
+            }
+
             if (string.IsNullOrEmpty(conversation.RequiredFlag))
             {
                 return true;
             }
-
-            IWorldStateReader state = WorldAccess.State;
 
             if (state == null)
             {
@@ -158,14 +216,14 @@ namespace RootsDance.Dialogue
             return state.HasFlag(conversation.RequiredFlag);
         }
 
-        private async void PlayEntryAsync(DialogueSO conversation, CancellationToken cancellationToken)
+        private async void PlayEntryAsync(DialogueSO conversation, CancellationTokenSource cancellation)
         {
             IsPlaying = true;
             Raise(m_conversationStarted);
 
             try
             {
-                await ConversationAsync(conversation, cancellationToken);
+                await ConversationAsync(conversation, cancellation.Token);
             }
             catch (OperationCanceledException)
             {
@@ -177,14 +235,15 @@ namespace RootsDance.Dialogue
             }
             finally
             {
-                IsPlaying = false;
-
-                if (m_view != null)
+                if (m_conversationCancellation == cancellation)
                 {
-                    m_view.Hide();
+                    m_conversationCancellation = null;
+                    IsPlaying = false;
+                    m_view?.Hide();
+                    Raise(m_conversationEnded);
                 }
 
-                Raise(m_conversationEnded);
+                cancellation.Dispose();
             }
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using RootsDance.Core;
 using RootsDance.Player;
 using RootsDance.Rendering;
@@ -25,7 +26,7 @@ namespace RootsDance.Scanner
     /// that fills it.
     /// </para>
     /// </summary>
-    public class ScannerInspectController : MonoBehaviour
+    public class ScannerInspectController : MonoBehaviour, IRescueResetParticipant
     {
         /// <summary>Where the read loop is. Public so a debug trigger can show it.</summary>
         public enum ScannerState
@@ -77,6 +78,7 @@ namespace RootsDance.Scanner
         private IScannerScreenView m_screen;
         private ScannerState m_state = ScannerState.Idle;
         private ScannableTarget m_target;
+        private CancellationTokenSource m_scanCancellation;
 
         /// <summary>Where the read loop is right now.</summary>
         public ScannerState State => m_state;
@@ -143,6 +145,7 @@ namespace RootsDance.Scanner
 
         private void OnDisable()
         {
+            CancelScan();
             if (m_view != null)
             {
                 m_view.RaiseFinished -= OnRaiseFinished;
@@ -233,6 +236,24 @@ namespace RootsDance.Scanner
             m_view.PlayLower();
         }
 
+        /// <summary>Stops unfinished scans without recording them and removes camera-parented report UI.</summary>
+        public void ResetForRescue()
+        {
+            CancelScan();
+            m_state = ScannerState.Idle;
+            m_target = null;
+            m_screen?.Close();
+            if (m_scanEffect != null)
+            {
+                m_scanEffect.Stop();
+            }
+
+            if (m_framing != null)
+            {
+                m_framing.ResetForRescue();
+            }
+        }
+
         /// <summary>
         /// The arm is up. Sweep the beam over the target before the screen comes on: the reading is
         /// meant to be the result of the scan, so the two cannot happen at once.
@@ -251,10 +272,12 @@ namespace RootsDance.Scanner
             }
 
             m_state = ScannerState.Scanning;
-            _ = ScanThenReadAsync();
+            CancelScan();
+            m_scanCancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            _ = ScanThenReadAsync(m_scanCancellation.Token);
         }
 
-        private async Awaitable ScanThenReadAsync()
+        private async Awaitable ScanThenReadAsync(CancellationToken cancellationToken)
         {
             if (m_target == null)
             {
@@ -268,7 +291,7 @@ namespace RootsDance.Scanner
             try
             {
                 await Awaitable.WaitForSecondsAsync(
-                    m_scanEffect.Duration + m_scanHoldSeconds, destroyCancellationToken);
+                    m_scanEffect.Duration + m_scanHoldSeconds, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -285,7 +308,7 @@ namespace RootsDance.Scanner
                 // report presenter opens, so the page revealed by this scan is visible on the first frame.
                 try
                 {
-                    await Awaitable.NextFrameAsync(destroyCancellationToken);
+                    await Awaitable.NextFrameAsync(cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -316,6 +339,17 @@ namespace RootsDance.Scanner
             }
 
             ReadingStarted?.Invoke();
+        }
+
+        private void CancelScan()
+        {
+            CancellationTokenSource cancellation = m_scanCancellation;
+            m_scanCancellation = null;
+            if (cancellation != null)
+            {
+                cancellation.Cancel();
+                cancellation.Dispose();
+            }
         }
 
         private void OnLowerFinished()

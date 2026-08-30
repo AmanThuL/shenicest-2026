@@ -1,3 +1,4 @@
+using RootsDance.App;
 using RootsDance.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -30,33 +31,37 @@ namespace RootsDance.Player
         private InputAction m_point;
         private InputAction m_click;
 
-        public Vector2 MoveInput => m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
+        private bool IsBlocked => GameBootstrap.Instance != null
+            && GameBootstrap.Instance.RescueService != null && GameBootstrap.Instance.RescueService.IsModalOpen;
 
-        public Vector2 LookInput => m_look == null ? Vector2.zero : m_look.ReadValue<Vector2>();
+        public Vector2 MoveInput => IsBlocked || m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
+
+        public Vector2 LookInput => IsBlocked || m_look == null ? Vector2.zero : m_look.ReadValue<Vector2>();
 
         /// <summary>Current screen-space pointer position, used by close-up physical interfaces.</summary>
-        public Vector2 PointerPosition => m_point == null ? Vector2.zero : m_point.ReadValue<Vector2>();
+        public Vector2 PointerPosition => IsBlocked || m_point == null ? Vector2.zero : m_point.ReadValue<Vector2>();
 
         /// <summary>True while the look-around input (right mouse button) is held.</summary>
-        public bool IsLookHeld => m_lookHold != null && m_lookHold.IsPressed();
+        public bool IsLookHeld => !IsBlocked && m_lookHold != null && m_lookHold.IsPressed();
 
-        public bool IsSprinting => m_sprint != null && m_sprint.IsPressed();
+        public bool IsSprinting => !IsBlocked && m_sprint != null && m_sprint.IsPressed();
 
         /// <summary>True on the frame the interact button went down. Read from Update only.</summary>
-        public bool InteractPressedThisFrame => m_interact != null && m_interact.WasPressedThisFrame();
+        public bool InteractPressedThisFrame => !IsBlocked && m_interact != null && m_interact.WasPressedThisFrame();
 
         /// <summary>True on the frame the flashlight button went down. Read from Update only.</summary>
-        public bool FlashlightPressedThisFrame => m_flashlight != null && m_flashlight.WasPressedThisFrame();
+        public bool FlashlightPressedThisFrame => !IsBlocked && m_flashlight != null
+            && m_flashlight.WasPressedThisFrame();
 
         /// <summary>
         /// True on the frame the primary button went down. Read from Update only. Named for what it
         /// does rather than for the action it comes from: the project-wide asset ships an "Attack"
         /// action and this game has nothing to attack, so it is the turn-the-page button.
         /// </summary>
-        public bool FlipPressedThisFrame => m_flip != null && m_flip.WasPressedThisFrame();
+        public bool FlipPressedThisFrame => !IsBlocked && m_flip != null && m_flip.WasPressedThisFrame();
 
         /// <summary>True on the frame the UI pointer button went down. Read from Update only.</summary>
-        public bool ClickPressedThisFrame => m_click != null && m_click.WasPressedThisFrame();
+        public bool ClickPressedThisFrame => !IsBlocked && m_click != null && m_click.WasPressedThisFrame();
 
         private void Awake()
         {

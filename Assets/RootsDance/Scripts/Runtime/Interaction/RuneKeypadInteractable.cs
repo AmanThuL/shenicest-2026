@@ -15,7 +15,7 @@ namespace RootsDance.Interaction
     /// camera like an archive page, while the pointer selects real key colliders on the model.
     /// </summary>
     [DisallowMultipleComponent]
-    public class RuneKeypadInteractable : MonoBehaviour, IInteractable
+    public class RuneKeypadInteractable : MonoBehaviour, IInteractable, IRescueResetParticipant
     {
         private const string k_DropActionId = "drop";
         private const string k_HoldActionId = "hold";
@@ -120,6 +120,7 @@ namespace RootsDance.Interaction
         private bool m_isButtonAnimating;
         private string m_waitingActionId;
         private bool m_didActionFinish;
+        private CancellationTokenSource m_inspectionCancellation;
 
         public string PromptText => m_promptText;
 
@@ -143,13 +144,13 @@ namespace RootsDance.Interaction
 
             if (m_input.InteractPressedThisFrame)
             {
-                LowerEntryAsync(destroyCancellationToken);
+                LowerEntryAsync(m_inspectionCancellation.Token);
                 return;
             }
 
             if (!m_isButtonAnimating && m_input.ClickPressedThisFrame && m_hoveredButton != null)
             {
-                PressButtonEntryAsync(m_hoveredButton, destroyCancellationToken);
+                PressButtonEntryAsync(m_hoveredButton, m_inspectionCancellation.Token);
             }
         }
 
@@ -164,6 +165,11 @@ namespace RootsDance.Interaction
             }
         }
 
+        private void OnDestroy()
+        {
+            CancelInspection();
+        }
+
         public void Interact(GameObject interactor)
         {
             if (m_state != InspectState.Idle || interactor == null)
@@ -171,7 +177,43 @@ namespace RootsDance.Interaction
                 return;
             }
 
-            BeginInspectEntryAsync(interactor, destroyCancellationToken);
+            CancelInspection();
+            m_inspectionCancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            BeginInspectEntryAsync(interactor, m_inspectionCancellation.Token);
+        }
+
+        /// <summary>Returns a camera-parented keypad to its outgoing scene without completing the puzzle.</summary>
+        public void ResetForRescue()
+        {
+            CancelInspection();
+            if (m_state == InspectState.Idle)
+            {
+                return;
+            }
+
+            UnsubscribeFromArms();
+            ClearHover();
+            if (m_originScene.IsValid() && m_originScene.isLoaded)
+            {
+                RestoreOriginTransform();
+            }
+
+            // The outgoing player will be unloaded. Do not play a return animation or change the
+            // cursor here: the rescue modal owns input and the camera until loading finishes.
+            m_stowedItem = null;
+            m_isButtonAnimating = false;
+            m_state = InspectState.Idle;
+        }
+
+        private void CancelInspection()
+        {
+            CancellationTokenSource cancellation = m_inspectionCancellation;
+            m_inspectionCancellation = null;
+            if (cancellation != null)
+            {
+                cancellation.Cancel();
+                cancellation.Dispose();
+            }
         }
 
         /// <summary>Editor construction hook used by the idempotent prefab builder.</summary>

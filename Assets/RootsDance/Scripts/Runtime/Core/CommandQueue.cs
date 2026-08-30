@@ -11,12 +11,13 @@ namespace RootsDance.Core
     {
         private readonly Queue<IWorldCommand> m_pending = new Queue<IWorldCommand>();
         private bool m_isDraining;
+        private bool m_isDiscarding;
 
         public int PendingCount => m_pending.Count;
 
         public void Enqueue(IWorldCommand command)
         {
-            if (command == null)
+            if (command == null || m_isDiscarding)
             {
                 return;
             }
@@ -24,9 +25,27 @@ namespace RootsDance.Core
             m_pending.Enqueue(command);
         }
 
+        /// <summary>Discards pending and outgoing-scene teardown commands during a rescue reset.</summary>
+        public void BeginReset()
+        {
+            m_isDiscarding = true;
+            m_pending.Clear();
+        }
+
+        public void EndReset()
+        {
+            if (!m_isDiscarding)
+            {
+                return;
+            }
+
+            m_pending.Clear();
+            m_isDiscarding = false;
+        }
+
         public void Drain(WorldState state)
         {
-            if (m_isDraining)
+            if (m_isDraining || m_isDiscarding)
             {
                 // Commands raised from a handler wait for the next frame's drain.
                 return;

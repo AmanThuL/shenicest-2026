@@ -1063,6 +1063,89 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Debug",
+            "id": "ebb8e156-72a4-4abb-96f9-6f13e4f4d638",
+            "actions": [
+                {
+                    "name": "ToggleCheckpointRescue",
+                    "type": "Button",
+                    "id": "2bc40aec-e962-42e0-8a89-b1ea82900eff",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "CloseCheckpointRescue",
+                    "type": "Button",
+                    "id": "bc6567a9-dc7a-45a9-b075-96fdc2cfd32f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "ButtonWithTwoModifiers",
+                    "id": "3a24c976-8a79-4283-82a0-525352e1ed81",
+                    "path": "ButtonWithTwoModifiers",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleCheckpointRescue",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "Modifier1",
+                    "id": "80292f49-68d1-4a4a-a586-5fefc9d94023",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleCheckpointRescue",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Modifier2",
+                    "id": "22c5c24a-348d-4e22-b87b-fa98fa9ab5ce",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleCheckpointRescue",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Button",
+                    "id": "eb156872-1c9c-4224-bf9e-15ac95036109",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleCheckpointRescue",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "c452fd86-5515-4412-b3c2-6dc2637cdccf",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CloseCheckpointRescue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

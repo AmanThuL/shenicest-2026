@@ -1,0 +1,391 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d06aee6e5e3743b9bdd54bcfbb5e17b, type: 3}
+  m_Name: RescueCheckpoints
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Data.RescueCheckpointCatalogSO
+  m_enabledInPlayer: 1
+  m_checkpoints:
+  - m_id: 1f0c8b0cfd7614f5e8006ced6a2bc26a
+    m_label: 00-01 Wake
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: 
+    m_position: {x: 0, y: 3.8, z: -10}
+    m_yaw: 0
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags: []
+    m_recordedTargets: []
+  - m_id: 7964e03a8a29041fe8fc0d4393d6b246
+    m_label: 00-04 Radio briefing
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: 
+    m_position: {x: 0, y: 5, z: 0}
+    m_yaw: 0
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    m_recordedTargets: []
+  - m_id: cb9bbad810ef543b2a28c09b390c178b
+    m_label: 00-05 Helmet unlock
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: 
+    m_position: {x: 0, y: 5, z: 15}
+    m_yaw: 0
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    m_recordedTargets: []
+  - m_id: 2765630455d4f4c85836ebebc8c7ea94
+    m_label: 00-06 Grass belt
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-06_GrassBelt
+    m_position: {x: -16, y: 7, z: 28}
+    m_yaw: 20
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    m_recordedTargets: []
+  - m_id: 88b01f13cca6b414eb56fb5b26821d30
+    m_label: 00-07 First tool use
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-07_FirstToolUse
+    m_position: {x: -12, y: 6.285, z: 39}
+    m_yaw: 20
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    m_recordedTargets: []
+  - m_id: c4b00bb01d41a43e488b2a3d8a056e82
+    m_label: 00-08 Facility reveal
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-08_ResearchFacilityView
+    m_position: {x: 1.5, y: 7.289, z: 73.5}
+    m_yaw: 10
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets:
+    - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
+  - m_id: aa6fa0b2ba14d49319f3f22e42ac9d0e
+    m_label: 00-09 Blocked main entrance
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-09_BlockedMainEntrance
+    m_position: {x: 30, y: 7.8, z: 96.2}
+    m_yaw: 0
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets:
+    - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
+  - m_id: f099f43fbde53464ca99d575da4d379f
+    m_label: 00-10 Main entrance sign
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-10_MainEntranceSign
+    m_position: {x: 25.8, y: 7.8, z: 95.5}
+    m_yaw: 70
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.main_entrance_blocked
+    m_recordedTargets:
+    - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
+  - m_id: 7dfd6881f3f994093b767acbca62698d
+    m_label: 00-11 Research facility poster
+    m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
+    m_anchorName: Anchor_00-11_ResearchFacilityPoster
+    m_position: {x: 23, y: 7.8, z: 97.8}
+    m_yaw: 75
+    m_snapToGround: 1
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.main_entrance_blocked
+    - flow.main_entrance_sign_read
+    m_recordedTargets:
+    - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
+    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
+  - m_id: dd519febe6c9c4b95aa6f5fa7cbdc202
+    m_label: 02-01 Plant research lab
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
+    m_anchorName: Checkpoint_PlantResearchLab
+    m_position: {x: 3, y: 1, z: -5.5}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 1
+    m_timeOfDay: 1
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets: []
+  - m_id: 50340584f0109463390e633bc9424f19
+    m_label: 02-02 Sample storage
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
+    m_anchorName: Checkpoint_SampleStorage
+    m_position: {x: -4.1, y: 1, z: -0.7}
+    m_yaw: 90
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 1
+    m_timeOfDay: 1
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets: []
+  - m_id: cecc1f714077c4da9abd702a3f3034ec
+    m_label: 02-03 Greenhouse
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
+    m_anchorName: Checkpoint_Greenhouse
+    m_position: {x: 6.8, y: 1, z: -3.2}
+    m_yaw: 180
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 1
+    m_timeOfDay: 1
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets: []
+  - m_id: e86f8cd5964b8449795e0c128b1c97cf
+    m_label: 02-04A Corridor entrance
+    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_anchorName: Checkpoint_CorridorEntrance
+    m_position: {x: 0.13872959, y: 6.1544313, z: -2.023664}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags: []
+    m_recordedTargets: []
+  - m_id: 4b6fc46e702124e4cbd9e7545ace5d88
+    m_label: 02-04B Flower sprite encounter
+    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_anchorName: Checkpoint_FlowerSpriteEncounter
+    m_position: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+    m_yaw: 180
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags: []
+    m_recordedTargets: []
+  - m_id: 34802efc2b1b54ee8bf6a32a3ff19d60
+    m_label: 03-01 Greenhouse entrance
+    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
+    m_anchorName: Checkpoint_GreenhouseEntrance
+    m_position: {x: 0, y: 1.05, z: -10}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets: []
+  - m_id: 9ca5c37cb7d5f4a65a3ece9ea5ac82a3
+    m_label: 03-02 Central greenhouse
+    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
+    m_anchorName: Checkpoint_CentralGreenhouse
+    m_position: {x: 0, y: 1, z: 0}
+    m_yaw: 180
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    m_recordedTargets: []
+  - m_id: fc113b8a136ff4ac58d801aba23d44bd
+    m_label: 03-03 Monster Chase
+    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
+    m_anchorName: Checkpoint_ChaseStart
+    m_position: {x: 0, y: 1.05, z: 2}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 0
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 1
+    m_timeOfDay: 1
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.saw_underground_network
+    - flow.met_flower_sprite
+    - flow.heard_about_her
+    - flow.entered_greenhouse
+    - flow.circulation_core
+    - flow.chase_started
+    m_recordedTargets: []

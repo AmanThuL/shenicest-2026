@@ -3,6 +3,7 @@ using System.Threading;
 using RootsDance.Core;
 using RootsDance.Player;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RootsDance.Archive
 {
@@ -17,7 +18,7 @@ namespace RootsDance.Archive
     /// up, so it cannot also be turning the head. One owner per axis.
     /// </para>
     /// </summary>
-    public class DocumentInspectController : MonoBehaviour
+    public class DocumentInspectController : MonoBehaviour, IRescueResetParticipant
     {
         /// <summary>Where the read loop is. Public so a debug trigger can show it.</summary>
         public enum ReadState
@@ -102,6 +103,8 @@ namespace RootsDance.Archive
         private IArchiveDocumentPageView m_page;
         private Transform m_sheet;
         private Transform m_originParent;
+        private Scene m_originScene;
+        private Vector3 m_originLocalScale;
         private Vector3 m_originWorldPosition;
         private Quaternion m_originWorldRotation;
         private Vector2 m_tilt;
@@ -110,6 +113,7 @@ namespace RootsDance.Archive
         private float m_farDistance;
         private float m_flipAngle;
         private float m_flipTarget;
+        private CancellationTokenSource m_readCancellation;
 
         /// <summary>Where the read loop is right now.</summary>
         public ReadState State => m_state;
@@ -172,6 +176,29 @@ namespace RootsDance.Archive
             ApplyReadPose();
         }
 
+        private void OnDestroy()
+        {
+            CancelRead();
+        }
+
+        /// <summary>Returns the sheet to its outgoing scene without marking it read or raising story flags.</summary>
+        public void ResetForRescue()
+        {
+            CancelRead();
+            if (m_state == ReadState.Idle)
+            {
+                return;
+            }
+
+            m_page?.EndReading();
+            RestoreSheetOrigin();
+            m_state = ReadState.Idle;
+            m_pickup = null;
+            m_page = null;
+            m_sheet = null;
+            m_originParent = null;
+        }
+
         /// <summary>
         /// Lifts <paramref name="pickup"/> off the desk. Returns false when a sheet is already up,
         /// which is how a second press in the same frame is dropped rather than queued.
@@ -195,6 +222,8 @@ namespace RootsDance.Archive
             m_page = pickup.PageView;
             m_sheet = sheet;
             m_originParent = sheet.parent;
+            m_originScene = sheet.gameObject.scene;
+            m_originLocalScale = sheet.localScale;
             m_originWorldPosition = sheet.position;
             m_originWorldRotation = sheet.rotation;
 
@@ -210,7 +239,9 @@ namespace RootsDance.Archive
 
             m_state = ReadState.Raising;
             SuspendPlayer(true);
-            RaiseEntryAsync(destroyCancellationToken);
+            CancelRead();
+            m_readCancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            RaiseEntryAsync(m_readCancellation.Token);
 
             return true;
         }
@@ -230,7 +261,7 @@ namespace RootsDance.Archive
                 m_page.EndReading();
             }
 
-            LowerEntryAsync(destroyCancellationToken);
+            LowerEntryAsync(m_readCancellation.Token);
         }
 
         /// <summary>
@@ -281,8 +312,7 @@ namespace RootsDance.Archive
 
                 ArchiveDocumentPickup pickup = m_pickup;
 
-                m_sheet.SetParent(m_originParent, true);
-                m_sheet.SetPositionAndRotation(m_originWorldPosition, m_originWorldRotation);
+                RestoreSheetOrigin();
 
                 m_state = ReadState.Idle;
                 m_pickup = null;
@@ -353,6 +383,34 @@ namespace RootsDance.Archive
         {
             m_sheet.localPosition = ReadPosition();
             m_sheet.localRotation = ReadRotation();
+        }
+
+        private void RestoreSheetOrigin()
+        {
+            if (m_sheet == null)
+            {
+                return;
+            }
+
+            m_sheet.SetParent(m_originParent, true);
+            if (m_originParent == null && m_originScene.IsValid() && m_originScene.isLoaded)
+            {
+                SceneManager.MoveGameObjectToScene(m_sheet.gameObject, m_originScene);
+            }
+
+            m_sheet.SetPositionAndRotation(m_originWorldPosition, m_originWorldRotation);
+            m_sheet.localScale = m_originLocalScale;
+        }
+
+        private void CancelRead()
+        {
+            CancellationTokenSource cancellation = m_readCancellation;
+            m_readCancellation = null;
+            if (cancellation != null)
+            {
+                cancellation.Cancel();
+                cancellation.Dispose();
+            }
         }
 
         private Vector3 ReadPosition()
