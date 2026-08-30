@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using RootsDance.Companion;
+using RootsDance.Player;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.TestTools.Utils;
 
@@ -40,6 +42,30 @@ namespace RootsDance.Tests.EditMode.Companion
             Vector3 position = CompanionFollowStep.AppearPosition(Vector3.zero, Vector3.up, 2f);
 
             Assert.That(position, Is.EqualTo(new Vector3(0f, 0f, -2f)).Using(Vector3Comparer()));
+        }
+
+        [Test]
+        public void Appear_PlayerRootIsAboveFloor_KeepsAuthoredGroundOffset()
+        {
+            GameObject player = new GameObject("Player", typeof(PlayerTriggerProbe));
+            GameObject companionObject = new GameObject("FlowerSprite");
+
+            try
+            {
+                player.transform.position = new Vector3(0f, 6.154f, 0f);
+                companionObject.transform.position = new Vector3(0f, 5.104f, 1f);
+                FollowCompanion companion = companionObject.AddComponent<FollowCompanion>();
+                InvokeStart(companion);
+
+                companion.Appear();
+
+                Assert.That(companion.transform.position.y, Is.EqualTo(5.104f).Within(0.001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(companionObject);
+                Object.DestroyImmediate(player);
+            }
         }
 
         [Test]
@@ -125,6 +151,14 @@ namespace RootsDance.Tests.EditMode.Companion
         private static Vector3EqualityComparer Vector3Comparer()
         {
             return new Vector3EqualityComparer(0.001f);
+        }
+
+        private static void InvokeStart(FollowCompanion companion)
+        {
+            MethodInfo start = typeof(FollowCompanion).GetMethod(
+                "Start", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(start, Is.Not.Null);
+            start.Invoke(companion, null);
         }
     }
 }
