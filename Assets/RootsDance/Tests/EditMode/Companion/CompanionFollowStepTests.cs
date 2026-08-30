@@ -1,7 +1,7 @@
+using System.Reflection;
 using NUnit.Framework;
 using RootsDance.Companion;
 using RootsDance.Player;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.TestTools.Utils;
 

@@ -54,6 +54,10 @@ namespace RootsDance.Dialogue
         [Tooltip("The English label inside each button, index-matched. May be left empty.")]
         [SerializeField] private TextMeshProUGUI[] m_choiceEnglishLabels = new TextMeshProUGUI[0];
 
+        private CursorLockMode m_cursorLockBeforeChoices;
+        private bool m_cursorVisibleBeforeChoices;
+        private bool m_hasChoiceCursor;
+
         /// <inheritdoc />
         public event Action<int> ChoiceSelected;
 
@@ -76,6 +80,8 @@ namespace RootsDance.Dialogue
 
         private void OnDestroy()
         {
+            RestoreChoiceCursor();
+
             for (int i = 0; i < m_choiceButtons.Length; i++)
             {
                 if (m_choiceButtons[i] != null)
@@ -119,6 +125,14 @@ namespace RootsDance.Dialogue
                 HideChoiceButtons();
                 return;
             }
+
+            if (chinese.Length == 0)
+            {
+                HideChoiceButtons();
+                return;
+            }
+
+            ReleaseChoiceCursor();
 
             if (chinese.Length > m_choiceButtons.Length)
             {
@@ -177,6 +191,34 @@ namespace RootsDance.Dialogue
                     m_choiceButtons[i].gameObject.SetActive(false);
                 }
             }
+
+            RestoreChoiceCursor();
+        }
+
+        private void ReleaseChoiceCursor()
+        {
+            if (m_hasChoiceCursor)
+            {
+                return;
+            }
+
+            m_cursorLockBeforeChoices = Cursor.lockState;
+            m_cursorVisibleBeforeChoices = Cursor.visible;
+            m_hasChoiceCursor = true;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        private void RestoreChoiceCursor()
+        {
+            if (!m_hasChoiceCursor)
+            {
+                return;
+            }
+
+            m_hasChoiceCursor = false;
+            Cursor.lockState = m_cursorLockBeforeChoices;
+            Cursor.visible = m_cursorVisibleBeforeChoices;
         }
 
         private void SetRootVisible(bool isVisible)

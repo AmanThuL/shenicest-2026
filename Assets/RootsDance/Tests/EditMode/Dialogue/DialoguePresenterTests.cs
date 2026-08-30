@@ -37,6 +37,8 @@ namespace RootsDance.Tests.EditMode.Dialogue
             DialoguePresenter presenter = CreatePresenter();
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            CursorLockMode acceptedLockState = Cursor.lockState;
+            bool acceptedVisibility = Cursor.visible;
 
             presenter.ShowChoices(new[] { "回答" }, new[] { "Answer" });
 
@@ -45,8 +47,8 @@ namespace RootsDance.Tests.EditMode.Dialogue
 
             presenter.Hide();
 
-            Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.Locked));
-            Assert.That(Cursor.visible, Is.False);
+            Assert.That(Cursor.lockState, Is.EqualTo(acceptedLockState));
+            Assert.That(Cursor.visible, Is.EqualTo(acceptedVisibility));
         }
 
         private DialoguePresenter CreatePresenter()

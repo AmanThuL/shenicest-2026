@@ -79,6 +79,7 @@ namespace RootsDance.Companion
         private Animator m_animator;
         private Renderer[] m_renderers;
         private int m_speedParameterId;
+        private float m_playerGroundOffset;
         private bool m_hasAppeared;
         private bool m_isFollowing;
         private bool m_stateChecked;
@@ -115,6 +116,7 @@ namespace RootsDance.Companion
             }
 
             m_player = probe.transform;
+            m_playerGroundOffset = transform.position.y - m_player.position.y;
         }
 
         private void OnEnable()
@@ -161,8 +163,10 @@ namespace RootsDance.Companion
 
             if (m_player != null)
             {
-                transform.position = CompanionFollowStep.AppearPosition(
+                Vector3 position = CompanionFollowStep.AppearPosition(
                     m_player.position, m_player.forward, m_appearStandoff);
+                position.y += m_playerGroundOffset;
+                transform.position = position;
                 FaceInstantly();
             }
 
@@ -242,9 +246,9 @@ namespace RootsDance.Companion
             Vector3 target = CompanionFollowStep.DesiredPosition(
                 m_player.position, transform.position, m_followDistance);
 
-            // She keeps the player's floor height. The chapter house hands her a catwalk and the
-            // greenhouse a flat slab, and neither needs a ground probe to stand on.
-            target.y = m_player.position.y;
+            // Both scenes author her root at floor level and the player root at eye clearance.
+            // Preserve that authored relationship as the player moves between floor heights.
+            target.y = m_player.position.y + m_playerGroundOffset;
 
             Vector3 before = transform.position;
             transform.position = Vector3.MoveTowards(before, target, m_moveSpeed * Time.deltaTime);
