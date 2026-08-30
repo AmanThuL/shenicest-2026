@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using RootsDance.App;
@@ -159,6 +160,77 @@ namespace RootsDance.Tests.EditMode.Environment
             finally
             {
                 EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void EnvironmentScene_SpiralStairRisesFitPlayerStepOffset()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform stair = environment.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                    .Single(item => item.name == "GreenhouseSpiralStair");
+                MeshCollider stairCollider = stair.GetComponentInChildren<MeshCollider>();
+                CharacterController player = FindRootComponent<CharacterController>(gameplay);
+                Assert.IsTrue(stairCollider != null && stairCollider.sharedMesh != null);
+                Assert.IsTrue(player != null);
+
+                Mesh mesh = stairCollider.sharedMesh;
+                Vector3[] vertices = mesh.vertices;
+                int[] triangles = mesh.triangles;
+                Dictionary<float, float> horizontalAreaByHeight = new Dictionary<float, float>();
+
+                for (int i = 0; i < triangles.Length; i += 3)
+                {
+                    Vector3 a = stairCollider.transform.TransformPoint(vertices[triangles[i]]);
+                    Vector3 b = stairCollider.transform.TransformPoint(vertices[triangles[i + 1]]);
+                    Vector3 c = stairCollider.transform.TransformPoint(vertices[triangles[i + 2]]);
+                    Vector3 cross = Vector3.Cross(b - a, c - a);
+
+                    if (cross.normalized.y <= 0.99f)
+                    {
+                        continue;
+                    }
+
+                    float height = Mathf.Round(((a.y + b.y + c.y) / 3f) * 1000f) / 1000f;
+                    float area = cross.magnitude * 0.5f;
+                    horizontalAreaByHeight.TryGetValue(height, out float accumulatedArea);
+                    horizontalAreaByHeight[height] = accumulatedArea + area;
+                }
+
+                float playerFootprintArea = Mathf.PI * player.radius * player.radius;
+                float[] treadLevels = horizontalAreaByHeight
+                    .Where(pair => pair.Value >= playerFootprintArea
+                        && pair.Value <= playerFootprintArea * 10f)
+                    .Select(pair => pair.Key)
+                    .OrderBy(height => height)
+                    .ToArray();
+                Assert.Greater(treadLevels.Length, 2, "The collider exposes no player-sized stair treads.");
+
+                float largestRise = 0f;
+
+                for (int i = 1; i < treadLevels.Length; i++)
+                {
+                    largestRise = Mathf.Max(largestRise, treadLevels[i] - treadLevels[i - 1]);
+                }
+
+                Assert.That(largestRise, Is.EqualTo(0.317f).Within(0.002f));
+                Assert.LessOrEqual(largestRise, player.stepOffset,
+                    $"The greenhouse stair rises {largestRise:F3}m per tread, but the Player can only step "
+                    + $"{player.stepOffset:F3}m.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
             }
         }
 
