@@ -179,6 +179,71 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void BriggsCentralTableProps_AfterPlacement_RestOnWorktop()
+        {
+            const float worktopY = 0.942f;
+            string[] groupNames =
+            {
+                "BI_CentralSet_Glassware_Main",
+                "BI_CentralSet_Glassware_Back",
+            };
+            string[] glasswareNames =
+            {
+                "Beaker",
+                "Erenmayer",
+                "Gelas Ukur",
+                "Graduated Cylinder",
+                "Pipette",
+                "Plane",
+                "Tube",
+                "Volumetric Flask",
+            };
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform pwb = FindRoot(scene, "Prefab World Builder");
+                Transform props = FindRoot(scene, "_Props");
+
+                for (int groupIndex = 0; groupIndex < groupNames.Length; groupIndex++)
+                {
+                    Transform group = FindDescendant(pwb, groupNames[groupIndex]);
+                    Assert.That(group, Is.Not.Null, groupNames[groupIndex]);
+
+                    for (int glasswareIndex = 0; glasswareIndex < glasswareNames.Length; glasswareIndex++)
+                    {
+                        string glasswareName = glasswareNames[glasswareIndex];
+                        Transform glassware = FindDescendant(group, glasswareName);
+                        Assert.That(glassware, Is.Not.Null, groupNames[groupIndex] + "/" + glasswareName);
+                        Renderer renderer = glassware.GetComponent<Renderer>();
+                        Assert.That(renderer, Is.Not.Null, groupNames[groupIndex] + "/" + glasswareName);
+                        Assert.That(renderer.bounds.min.y, Is.EqualTo(worktopY).Within(0.003f),
+                            groupNames[groupIndex] + "/" + glasswareName + " floats above the central worktop.");
+                    }
+                }
+
+                Transform blueFlask = FindDescendant(props, "BlueFlask_CentralTable");
+                Assert.That(blueFlask, Is.Not.Null, "BlueFlask_CentralTable");
+                Bounds blueFlaskBounds = GetRendererBounds(blueFlask);
+                Assert.That(blueFlaskBounds.min.y, Is.EqualTo(worktopY).Within(0.003f),
+                    "BlueFlask_CentralTable floats above the central worktop.");
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        [Test]
         public void BriggsEnvironmentScene_FitsCeilingToRoomAndRetainsHangingVegetation()
         {
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
@@ -799,6 +864,20 @@ namespace RootsDance.Tests.EditMode.Environment
                 name + " world size is not fitted to the laboratory roof.");
             Assert.That(actual.size.x, Is.LessThan(20f), name + " must not wrap the laboratory.");
             Assert.That(actual.size.z, Is.LessThan(16f), name + " must not wrap the laboratory.");
+        }
+
+        private static Bounds GetRendererBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            Assert.That(renderers, Is.Not.Empty, root.name + " has no renderer.");
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds;
         }
 
         private static void AssertHasNoEnabledCollider(GameObject prefab, string path)
