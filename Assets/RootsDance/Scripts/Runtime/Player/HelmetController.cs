@@ -64,6 +64,7 @@ namespace RootsDance.Player
         private bool m_isRemoving;
         private bool m_isRemoved;
         private bool m_isConversationActive;
+        private bool m_checkedInitialState;
 
         public bool IsRemoved => m_isRemoved;
 
@@ -97,6 +98,8 @@ namespace RootsDance.Player
 
         private void Update()
         {
+            RestoreInitialState();
+
             if (m_isRemoving || m_isRemoved || m_input == null)
             {
                 return;
@@ -117,6 +120,34 @@ namespace RootsDance.Player
             }
 
             Raise(m_warningRequested, m_warningText);
+        }
+
+        private void RestoreInitialState()
+        {
+            if (m_checkedInitialState)
+            {
+                return;
+            }
+
+            IWorldStateReader state = WorldAccess.State;
+
+            if (state == null)
+            {
+                return;
+            }
+
+            m_checkedInitialState = true;
+            m_isUnlocked = state.HasFlag(m_unlockFlag);
+
+            // A snapshot is already-completed history, not another removal performance or notice.
+            if (state.HasFlag(WorldFlags.k_HelmetRemoved))
+            {
+                SetRemovedImmediately();
+            }
+            else if (m_isUnlocked)
+            {
+                Raise(m_hintRequested, m_hintText);
+            }
         }
 
         private void OnDisable()
@@ -156,6 +187,12 @@ namespace RootsDance.Player
 
         private void OnFlagRaised(string flagId)
         {
+            if (flagId == WorldFlags.k_HelmetRemoved)
+            {
+                SetRemovedImmediately();
+                return;
+            }
+
             if (m_isUnlocked || flagId != m_unlockFlag)
             {
                 return;
@@ -169,6 +206,22 @@ namespace RootsDance.Player
             // the player must be able to read what the game is waiting for at any moment, not only
             // in the seconds the subtitle was up.
             Raise(m_hintRequested, m_hintText);
+        }
+
+        private void SetRemovedImmediately()
+        {
+            if (m_isRemoved)
+            {
+                return;
+            }
+
+            m_isUnlocked = true;
+            m_isRemoving = false;
+            m_isRemoved = true;
+            m_view?.SetRemovedImmediately();
+            Raise(m_noticeRequested, string.Empty);
+            Raise(m_hintRequested, string.Empty);
+            Raise(m_warningRequested, string.Empty);
         }
 
         private void BeginRemove()

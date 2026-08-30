@@ -159,6 +159,7 @@ namespace RootsDance.Editor.Environment
             CreateWalkableFloor(geometry, greenhouseBounds);
             CreateBotanicalBeds(props, scene);
             CreateScaleReference(props);
+            GreenhouseRainwaterSinkBuilder.BuildInto(props, scene);
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_GreenhouseInteriorEnvironment);
         }
@@ -554,9 +555,10 @@ namespace RootsDance.Editor.Environment
 
             SerializedObject serialized = new SerializedObject(level);
             SerializedProperty scenePaths = serialized.FindProperty("m_scenePaths");
-            scenePaths.arraySize = 2;
+            scenePaths.arraySize = 3;
             scenePaths.GetArrayElementAtIndex(0).stringValue = ScenePaths.k_GreenhouseInteriorEnvironment;
             scenePaths.GetArrayElementAtIndex(1).stringValue = ScenePaths.k_GreenhouseInteriorGameplay;
+            scenePaths.GetArrayElementAtIndex(2).stringValue = ScenePaths.k_GreenhouseInteriorEnvironment2;
             serialized.ApplyModifiedProperties();
 
             if (isNew)
@@ -646,6 +648,7 @@ namespace RootsDance.Editor.Environment
             List<EditorBuildSettingsScene> scenes = EditorBuildSettings.scenes.ToList();
             AddSceneIfMissing(scenes, ScenePaths.k_GreenhouseInteriorEnvironment);
             AddSceneIfMissing(scenes, ScenePaths.k_GreenhouseInteriorGameplay);
+            AddSceneIfMissing(scenes, ScenePaths.k_GreenhouseInteriorEnvironment2);
             EditorBuildSettings.scenes = scenes.ToArray();
         }
 

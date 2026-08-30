@@ -1,3 +1,4 @@
+using RootsDance.Core;
 using UnityEngine;
 
 namespace RootsDance.Audio
@@ -13,7 +14,7 @@ namespace RootsDance.Audio
     /// </para>
     /// A request carrying no cue is a stop, which is how the ending's silence is asked for.
     /// </summary>
-    public class MusicDirector : MonoBehaviour
+    public class MusicDirector : MonoBehaviour, IRescueResetParticipant
     {
         [Header("Listens to")]
         [Tooltip("Data/Events/MusicRequested. A request with no cue fades the current track out.")]
@@ -110,6 +111,26 @@ namespace RootsDance.Audio
         {
             m_currentTarget = 0f;
             m_playing = null;
+        }
+
+        /// <summary>A rescue discards both sides of a crossfade immediately, including paused voices.</summary>
+        public void ResetForRescue()
+        {
+            Stop();
+            ClearSource(m_current);
+            ClearSource(m_previous);
+        }
+
+        private static void ClearSource(AudioSource source)
+        {
+            if (source == null)
+            {
+                return;
+            }
+
+            source.Stop();
+            source.clip = null;
+            source.volume = 0f;
         }
 
         private void OnMusicRequested(AudioCueRequest request)

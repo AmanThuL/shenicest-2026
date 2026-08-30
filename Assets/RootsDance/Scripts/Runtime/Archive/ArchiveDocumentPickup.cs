@@ -42,6 +42,7 @@ namespace RootsDance.Archive
         private IInteractableView m_view;
         private bool m_isHeld;
         private bool m_hasBeenRead;
+        private bool m_restoredFromWorldState;
 
         /// <summary>
         /// Every enabled sheet, in registration order, so a proximity offer can find the nearest
@@ -148,6 +149,36 @@ namespace RootsDance.Archive
         private void OnDisable()
         {
             s_active.Remove(this);
+        }
+
+        private void Update()
+        {
+            if (!m_restoredFromWorldState)
+            {
+                RestoreFromWorldState(WorldAccess.State);
+            }
+        }
+
+        /// <summary>Restores a read/collected sheet from seeded flags without replaying completion events.</summary>
+        public void RestoreFromWorldState(IWorldStateReader state)
+        {
+            if (m_restoredFromWorldState || state == null || m_document == null)
+            {
+                return;
+            }
+
+            m_restoredFromWorldState = true;
+            if (string.IsNullOrEmpty(m_document.FlagOnRead) || !state.HasFlag(m_document.FlagOnRead))
+            {
+                return;
+            }
+
+            m_hasBeenRead = true;
+            m_view?.SetInvestigated(true);
+            if (m_document.IsCollected)
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         public void Interact(GameObject interactor)

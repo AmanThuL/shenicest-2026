@@ -1,4 +1,5 @@
 using System;
+using RootsDance.Core;
 using RootsDance.Player;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace RootsDance.World
     /// because two terminals in one room would otherwise fight over one camera.
     /// </para>
     /// </summary>
-    public class TerminalInspectController : MonoBehaviour
+    public class TerminalInspectController : MonoBehaviour, IRescueResetParticipant
     {
         public enum ReadState
         {
@@ -162,6 +163,12 @@ namespace RootsDance.World
             m_terminal = null;
             m_state = ReadState.Idle;
             ReadingEnded?.Invoke();
+        }
+
+        /// <summary>Restore the persistent camera's blend before the terminal's scene is discarded.</summary>
+        public void ResetForRescue()
+        {
+            EndRead();
         }
 
         private void SuspendPlayer(bool suspended)

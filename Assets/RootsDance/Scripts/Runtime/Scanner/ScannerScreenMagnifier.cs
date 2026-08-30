@@ -22,7 +22,7 @@ namespace RootsDance.Scanner
     /// </para>
     /// </summary>
     [DisallowMultipleComponent]
-    public class ScannerScreenMagnifier : MonoBehaviour
+    public class ScannerScreenMagnifier : MonoBehaviour, IRescueResetParticipant
     {
         [Header("Wiring")]
         [Tooltip("Transform at the centre of the lit screen area — where the canvas lives when the "
@@ -147,6 +147,15 @@ namespace RootsDance.Scanner
 
             canvas.SetParent(m_screenAnchor, false);
             m_surface.Apply();
+        }
+
+        /// <summary>Detach the report from the persistent camera before the scanner's scene unloads.</summary>
+        public void ResetForRescue()
+        {
+            if (m_isMagnified)
+            {
+                RestoreImmediate();
+            }
         }
 
         /// <summary>

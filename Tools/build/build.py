@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 import sys
@@ -20,6 +21,7 @@ import time
 import zipfile
 
 from naming import parse_bundle_version, platform_for_profile, zip_stem
+import windows as windows_tools
 
 EXIT_OK = 0
 EXIT_PREFLIGHT = 1
@@ -29,6 +31,7 @@ EXIT_PACKAGE = 3
 BUILD_METHOD = "RootsDance.Editor.Build.BuildScript.BuildFromCommandLine"
 PROFILE_FOLDER = "Assets/RootsDance/Settings/BuildProfiles"
 APP_NAME = "RootsDance"
+BUILD_INFO_FILE = "build-info.json"
 
 # Unity's IL2CPP backend drops these next to the player it builds. Their own folder
 # names say not to ship them (multi-gigabyte debug symbols / Burst debug info), and the
@@ -47,6 +50,15 @@ developer, that is Gatekeeper quarantining an unsigned download, not a broken
 build. Either right-click the app and choose Open, or run:
 
     xattr -dr com.apple.quarantine "{app}"
+
+Built from commit {sha} on {date}.
+"""
+
+WINDOWS_RUN_README = """{stem}
+
+Windows x64 player. Extract the entire zip to a folder, then launch RootsDance.exe.
+Keep UnityPlayer.dll, GameAssembly.dll, RootsDance_Data and the other shipped files
+beside the executable; do not copy only the .exe. HDRP requires a compatible GPU.
 
 Built from commit {sha} on {date}.
 """
@@ -75,12 +87,14 @@ def editor_is_running(repo):
     if not os.path.exists(instance):
         return False
     try:
-        with open(instance) as handle:
+        with open(instance, encoding="utf-8") as handle:
             pid = int(json.load(handle).get("process_id", 0))
-    except (ValueError, OSError):
+    except (ValueError, TypeError, AttributeError, OSError):
         return False
     if pid <= 0:
         return False
+    if platform.system() == "Windows":
+        return windows_tools.process_is_running(pid)
     try:
         os.kill(pid, 0)
     except OSError:
@@ -89,7 +103,7 @@ def editor_is_running(repo):
 
 
 def editor_version(repo):
-    with open(os.path.join(repo, "ProjectSettings", "ProjectVersion.txt")) as handle:
+    with open(os.path.join(repo, "ProjectSettings", "ProjectVersion.txt"), encoding="utf-8") as handle:
         for line in handle:
             if line.startswith("m_EditorVersion:"):
                 return line.split(":", 1)[1].strip()
@@ -99,19 +113,22 @@ def editor_version(repo):
 def resolve_unity(override, version):
     """Find the Unity binary: --unity, then $UNITY_EDITOR, then the known install paths."""
     if override:
-        if not os.path.exists(override):
-            raise PreflightError("--unity path does not exist: " + override)
+        if not os.path.isfile(override):
+            raise PreflightError("--unity must point to the Editor executable: " + override)
         return override
 
     candidates = []
     env = os.environ.get("UNITY_EDITOR")
     if env:
         candidates.append(env)
-    candidates.append("/Applications/Unity/Unity-{0}/Unity.app/Contents/MacOS/Unity".format(version))
-    candidates.append("/Applications/Unity/Hub/Editor/{0}/Unity.app/Contents/MacOS/Unity".format(version))
+    if platform.system() == "Windows":
+        candidates.extend(windows_tools.unity_candidates(version))
+    else:
+        candidates.append("/Applications/Unity/Unity-{0}/Unity.app/Contents/MacOS/Unity".format(version))
+        candidates.append("/Applications/Unity/Hub/Editor/{0}/Unity.app/Contents/MacOS/Unity".format(version))
 
     for candidate in candidates:
-        if os.path.exists(candidate):
+        if os.path.isfile(candidate):
             return candidate
     raise PreflightError(
         "Unity {0} not found. Tried:\n  {1}\nPass --unity <path> or set $UNITY_EDITOR.".format(
@@ -120,15 +137,24 @@ def resolve_unity(override, version):
 
 def module_installed(unity_binary, target_platform):
     """True when the playback engine for this platform is installed."""
-    contents = os.path.dirname(os.path.dirname(unity_binary))
+    if platform.system() == "Windows":
+        contents = os.path.join(os.path.dirname(unity_binary), "Data")
+    else:
+        contents = os.path.dirname(os.path.dirname(unity_binary))
     folder = "MacStandaloneSupport" if target_platform == "macOS" else "WindowsStandaloneSupport"
     return os.path.isdir(os.path.join(contents, "PlaybackEngines", folder))
+
+
+def windows_il2cpp_installed(unity_binary, dev):
+    variant = "win64_player_{0}_il2cpp".format("development" if dev else "nondevelopment")
+    return os.path.isdir(os.path.join(os.path.dirname(unity_binary), "Data", "PlaybackEngines",
+                                     "WindowsStandaloneSupport", "Variations", variant))
 
 
 def enabled_scenes(repo):
     """Return the paths of scenes marked enabled: 1 in EditorBuildSettings.asset."""
     path = os.path.join(repo, "ProjectSettings", "EditorBuildSettings.asset")
-    with open(path) as handle:
+    with open(path, encoding="utf-8") as handle:
         lines = handle.readlines()
 
     scenes = []
@@ -145,7 +171,7 @@ def enabled_scenes(repo):
     return scenes
 
 
-def preflight(repo, profile, target_platform, unity_binary, package_only, dry_run=False):
+def preflight(repo, profile, target_platform, unity_binary, package_only, dry_run=False, dev=False):
     asset = os.path.join(repo, PROFILE_FOLDER, profile + ".asset")
     if not os.path.exists(asset):
         available = sorted(
@@ -159,7 +185,7 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
     if package_only:
         return
 
-    host = "macOS" if platform.system() == "Darwin" else "Windows"
+    host = {"Darwin": "macOS", "Windows": "Windows"}.get(platform.system(), platform.system())
     if target_platform != host:
         raise PreflightError(
             "Cannot build {0} on {1}. Build {0} on a {0} machine.".format(target_platform, host))
@@ -176,6 +202,14 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
 
     if target_platform == "macOS" and shutil.which("xcodebuild") is None:
         raise PreflightError("IL2CPP macOS builds require Xcode. Install it, then run xcode-select --install.")
+    if target_platform == "Windows":
+        if not windows_il2cpp_installed(unity_binary, dev):
+            raise PreflightError(
+                "Windows Build Support (IL2CPP) is missing for this Editor/build variant. "
+                "Add that module in Unity Hub; Mono support alone is insufficient.")
+        compiler, sdk = windows_tools.validate_toolchain()
+        print("MSVC: " + compiler)
+        print("Windows SDK: " + sdk)
 
     scenes = enabled_scenes(repo)
     if len(scenes) == 0:
@@ -191,6 +225,7 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
 def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path):
     command = [
         unity_binary, "-batchmode", "-quit", "-projectPath", repo,
+        "-buildTarget", "StandaloneWindows64" if platform_for_profile(profile) == "Windows" else "StandaloneOSX",
         "-executeMethod", BUILD_METHOD,
         "-rdProfile", profile, "-rdOutput", output_path,
         "-logFile", log_path,
@@ -198,6 +233,10 @@ def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
     if dev:
         command.append("-rdDev")
     return command
+
+
+def format_command(command):
+    return subprocess.list2cmdline(command) if platform.system() == "Windows" else shlex.join(command)
 
 
 def build_log_path(repo, profile):
@@ -219,7 +258,6 @@ def build_succeeded(profile, log_text):
 
 def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
     log_path = build_log_path(repo, profile)
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     command = unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
 
@@ -227,16 +265,25 @@ def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
     print("  log: {0}".format(log_path))
     print("  An IL2CPP build takes a while — 10-25 minutes is normal, and batch mode is silent.")
     if verbose:
-        print("  " + " ".join(command))
+        print("  " + format_command(command))
 
     started = time.time()
-    process = subprocess.Popen(command)
+    try:
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        # An early launch failure may leave Unity unable to open its log. Never
+        # let a previous invocation's success marker authorize this build.
+        with open(log_path, "w"):
+            pass
+        process = subprocess.Popen(command)
+    except OSError as error:
+        print("error: could not launch Unity build: {0}".format(error), file=sys.stderr)
+        raise SystemExit(EXIT_BUILD)
     while process.poll() is None:
         time.sleep(10)
         print("  ... {0:.0f}s".format(time.time() - started), flush=True)
     elapsed = time.time() - started
 
-    if process.returncode != 0 and not build_succeeded(profile, read_log(log_path)):
+    if not build_succeeded(profile, read_log(log_path)):
         print(tail(log_path, 40), file=sys.stderr)
         raise SystemExit(EXIT_BUILD)
     print("Build finished in {0:.0f}s".format(elapsed))
@@ -244,7 +291,7 @@ def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
 
 def read_log(path):
     try:
-        with open(path, errors="replace") as handle:
+        with open(path, encoding="utf-8", errors="replace") as handle:
             return handle.read()
     except OSError:
         return ""
@@ -252,7 +299,7 @@ def read_log(path):
 
 def tail(path, lines):
     try:
-        with open(path, errors="replace") as handle:
+        with open(path, encoding="utf-8", errors="replace") as handle:
             return "".join(handle.readlines()[-lines:])
     except OSError:
         return "(no log at {0})".format(path)
@@ -263,7 +310,71 @@ def stageable_entries(names):
     return [name for name in names if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES)]
 
 
-def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, version, profile, dev):
+def snapshot_build_info(repo, profile, target_platform, dev):
+    with open(os.path.join(repo, "ProjectSettings", "ProjectSettings.asset"),
+              encoding="utf-8", errors="replace") as handle:
+        version = parse_bundle_version(handle.read())
+    sha, dirty = git_state(repo)
+    return {
+        "product": APP_NAME,
+        "version": version,
+        "commit": sha,
+        "dirty": dirty,
+        "development": dev,
+        "profile": profile,
+        "platform": target_platform,
+        "unityVersion": editor_version(repo),
+        "builtAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+
+
+def write_build_info(build_dir, info):
+    path = os.path.join(build_dir, BUILD_INFO_FILE)
+    temporary = path + ".tmp"
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump(info, handle, indent=2)
+            handle.write("\n")
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
+
+
+def load_build_info(build_dir, profile, target_platform, dev):
+    """Read original provenance; never guess it from a newer checkout."""
+    path = os.path.join(build_dir, BUILD_INFO_FILE)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            info = json.load(handle)
+        if not isinstance(info, dict):
+            raise ValueError("expected a JSON object")
+        for field in ("product", "version", "commit", "profile", "platform", "unityVersion", "builtAt"):
+            if not isinstance(info.get(field), str) or not info[field]:
+                raise ValueError("missing or invalid " + field)
+        for field in ("dirty", "development"):
+            if type(info.get(field)) is not bool:
+                raise ValueError("missing or invalid " + field)
+        for field in ("version", "commit"):
+            if any(character in info[field] for character in "/\\\0\n\r"):
+                raise ValueError("invalid filename component: " + field)
+        if (info["product"] != APP_NAME or info["profile"] != profile
+                or info["platform"] != target_platform):
+            raise ValueError("product, profile or platform does not match the requested player")
+        built_at = datetime.datetime.fromisoformat(info["builtAt"])
+        if built_at.utcoffset() is None:
+            raise ValueError("builtAt must include a timezone")
+    except (OSError, ValueError) as error:
+        raise PreflightError(
+            "Cannot reuse {0}: {1}. Rebuild without --package-only to record provenance.".format(path, error))
+    if dev and not info["development"]:
+        raise PreflightError(
+            "--dev cannot relabel an existing release player. Rebuild with --dev, or omit --dev.")
+    return info
+
+
+def package(repo, build_dir, stem, output_dir, info):
+    target_platform = info["platform"]
     zip_path = os.path.join(output_dir, stem + ".zip")
 
     staging_root = os.path.join(repo, "Builds", ".staging")
@@ -290,25 +401,13 @@ def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, vers
                 shutil.copy2(source, destination)
 
         app_name = APP_NAME + ".app"
-        with open(os.path.join(staging, "build-info.json"), "w") as handle:
-            json.dump({
-                "product": APP_NAME,
-                "version": version,
-                "commit": sha,
-                "dirty": dirty,
-                "development": dev,
-                "profile": profile,
-                "platform": target_platform,
-                "unityVersion": editor_version(repo),
-                "builtAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-            }, handle, indent=2)
-            handle.write("\n")
+        write_build_info(staging, info)
 
-        if target_platform == "macOS":
-            with open(os.path.join(staging, "README.txt"), "w") as handle:
-                handle.write(RUN_README.format(
-                    stem=stem, app=app_name, sha=sha,
-                    date=datetime.date.today().isoformat()))
+        readme = RUN_README if target_platform == "macOS" else WINDOWS_RUN_README
+        with open(os.path.join(staging, "README.txt"), "w", encoding="utf-8") as handle:
+            handle.write(readme.format(
+                stem=stem, app=app_name, sha=info["commit"],
+                date=datetime.datetime.fromisoformat(info["builtAt"]).date().isoformat()))
 
         os.makedirs(output_dir, exist_ok=True)
         if target_platform == "macOS":
@@ -337,7 +436,8 @@ def sha256(path):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Build and package a RootsDance player.")
-    parser.add_argument("profile", nargs="?", default="macOS-Release")
+    parser.add_argument("profile", nargs="?",
+                        default="Windows-Release" if platform.system() == "Windows" else "macOS-Release")
     parser.add_argument("--dev", action="store_true", help="development build; tags the zip -dev")
     parser.add_argument("--package-only", action="store_true", help="package an existing build")
     parser.add_argument("--dry-run", action="store_true", help="print the plan and exit")
@@ -350,34 +450,38 @@ def main(argv=None):
     repo = repo_root()
     try:
         target_platform = platform_for_profile(args.profile)
-        version_text = open(os.path.join(repo, "ProjectSettings", "ProjectSettings.asset"),
-                            errors="replace").read()
-        version = parse_bundle_version(version_text)
-        unity_binary = resolve_unity(args.unity, editor_version(repo))
-        preflight(repo, args.profile, target_platform, unity_binary, args.package_only, dry_run=args.dry_run)
-    except (PreflightError, ValueError, OSError) as error:
+        build_dir = os.path.join(repo, "Builds", args.profile)
+        if args.package_only:
+            info = load_build_info(build_dir, args.profile, target_platform, args.dev)
+        else:
+            unity_binary = resolve_unity(args.unity, editor_version(repo))
+            preflight(repo, args.profile, target_platform, unity_binary, False, dry_run=args.dry_run, dev=args.dev)
+            info = snapshot_build_info(repo, args.profile, target_platform, args.dev)
+    except (PreflightError, ValueError, OSError, subprocess.SubprocessError) as error:
         print("error: {0}".format(error), file=sys.stderr)
         return EXIT_PREFLIGHT
 
-    sha, dirty = git_state(repo)
-    stem = zip_stem(target_platform, version, datetime.date.today().strftime("%Y%m%d"),
-                    sha, dirty, args.dev)
-    build_dir = os.path.join(repo, "Builds", args.profile)
+    build_date = datetime.datetime.fromisoformat(info["builtAt"]).strftime("%Y%m%d")
+    stem = zip_stem(target_platform, info["version"], build_date,
+                    info["commit"], info["dirty"], info["development"])
     extension = ".app" if target_platform == "macOS" else ".exe"
     output_path = os.path.join(build_dir, APP_NAME + extension)
     output_dir = args.output_dir or os.path.join(repo, "Builds")
     zip_path = os.path.join(output_dir, stem + ".zip")
 
     if args.dry_run:
-        log_path = build_log_path(repo, args.profile)
-        command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
-        print("profile:  {0}{1}".format(args.profile, " (dev)" if args.dev else ""))
-        print("unity:    {0}".format(unity_binary))
+        print("profile:  {0}{1}".format(args.profile, " (dev)" if info["development"] else ""))
+        if args.package_only:
+            print("mode:     package existing player with saved build-info.json")
+        else:
+            log_path = build_log_path(repo, args.profile)
+            command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
+            print("unity:    {0}".format(unity_binary))
+            print("command:  {0}".format(format_command(command)))
         print("player:   {0}".format(output_path))
-        print("command:  {0}".format(" ".join(command)))
         print("zip:      {0}".format(zip_path))
-        if dirty:
-            print("note:     working tree is dirty, the zip is tagged -dirty")
+        if info["dirty"]:
+            print("note:     build source was dirty, the zip is tagged -dirty")
         return EXIT_OK
 
     # Checked before the (possibly 10-25 minute) build, not just before packaging — two
@@ -399,8 +503,11 @@ def main(argv=None):
         return EXIT_PACKAGE
 
     try:
-        zip_path = package(repo, build_dir, stem, output_dir, target_platform,
-                           sha, dirty, version, args.profile, args.dev)
+        # Only a successful build with a player on disk gets reusable provenance.
+        # Keep it even if archiving fails, so --package-only can retry safely.
+        if not args.package_only:
+            write_build_info(build_dir, info)
+        zip_path = package(repo, build_dir, stem, output_dir, info)
     except (subprocess.CalledProcessError, OSError) as error:
         print("error: packaging failed: {0}".format(error), file=sys.stderr)
         return EXIT_PACKAGE

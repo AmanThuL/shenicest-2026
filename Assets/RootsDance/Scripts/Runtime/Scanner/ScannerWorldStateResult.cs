@@ -1,4 +1,5 @@
 using RootsDance.App;
+using RootsDance.Core;
 using RootsDance.Core.Commands;
 using RootsDance.Investigation;
 using UnityEngine;
@@ -42,20 +43,25 @@ namespace RootsDance.Scanner
 
         private void Update()
         {
+            RestoreFromWorldState(WorldAccess.State);
+        }
+
+        /// <summary>Restores historical records without re-emitting the scan's completion commands.</summary>
+        public void RestoreFromWorldState(IWorldStateReader state)
+        {
             if (m_restoredFromWorldState || m_reportTarget == null || m_target == null)
             {
                 return;
             }
-
-            var state = WorldAccess.State;
 
             if (state == null)
             {
                 return;
             }
 
-            if (!string.IsNullOrEmpty(m_reportTarget.FlagOnRecorded)
-                && state.HasFlag(m_reportTarget.FlagOnRecorded))
+            if (state.HasReportEntry(m_reportTarget.Id)
+                || (!string.IsNullOrEmpty(m_reportTarget.FlagOnRecorded)
+                    && state.HasFlag(m_reportTarget.FlagOnRecorded)))
             {
                 m_restoredFromWorldState = true;
                 m_target.RestoreScannedState();

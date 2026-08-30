@@ -12,6 +12,58 @@ namespace RootsDance.Tests.EditMode.Core
         private const string k_Flag = "flow.test_flag";
 
         [Test]
+        public void RestoreSnapshot_LaterProgressExists_ReplacesWithoutHistoricalEvents()
+        {
+            var state = new WorldState();
+            state.RaiseFlag("later");
+            state.AddReportEntry(new ReportEntry(ReportCategory.EnvironmentSample, "later", "Later", ""));
+            state.SetTimeOfDay(TimeOfDay.Night);
+            int notifications = 0;
+            state.FlagRaised += _ => notifications++;
+            state.ReportEntryAdded += _ => notifications++;
+            state.TimeOfDayChanged += _ => notifications++;
+            var report = new[] { new ReportEntry(ReportCategory.EnvironmentSample, "early", "Early", "") };
+
+            state.RestoreSnapshot(new[] { "early" }, report, true, TimeOfDay.Day);
+
+            Assert.That(state.HasFlag("later"), Is.False);
+            Assert.That(state.HasFlag("early"), Is.True);
+            Assert.That(state.HasReportEntry("later"), Is.False);
+            Assert.That(state.HasReportEntry("early"), Is.True);
+            Assert.That(state.TimeOfDay, Is.EqualTo(TimeOfDay.Day));
+            Assert.That(state.IsTimeOfDaySet, Is.True);
+            Assert.That(notifications, Is.Zero);
+        }
+
+        [Test]
+        public void RestoreSnapshot_LevelDefault_ClearsTimeChoiceAndReport()
+        {
+            var state = new WorldState();
+            state.SetTimeOfDay(TimeOfDay.Night);
+
+            state.RestoreSnapshot(null, null, false, TimeOfDay.Night);
+
+            Assert.That(state.IsTimeOfDaySet, Is.False);
+            Assert.That(state.TimeOfDay, Is.EqualTo(TimeOfDay.Day));
+            Assert.That(state.Report, Is.Empty);
+        }
+
+        [Test]
+        public void RestoreSnapshot_DuplicateAndEmptyIds_AcceptsOnlyUniqueValidEntries()
+        {
+            var state = new WorldState();
+            var entry = new ReportEntry(ReportCategory.EnvironmentSample, "sample", "Sample", "");
+
+            state.RestoreSnapshot(new[] { null, "", " ", "early", "early" },
+                new[] { entry, entry, default(ReportEntry) }, false, TimeOfDay.Day);
+
+            Assert.That(state.Report.Count, Is.EqualTo(1));
+            Assert.That(state.HasFlag("early"), Is.True);
+            Assert.That(state.HasFlag(" "), Is.False);
+            Assert.That(state.RaiseFlag("early"), Is.False);
+        }
+
+        [Test]
         public void RaiseFlag_FirstTime_SetsFlagAndAnnouncesIt()
         {
             WorldState state = new WorldState();

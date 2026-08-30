@@ -250,6 +250,10 @@ GameObject:
   m_Component:
   - component: {fileID: 2702194408234759578}
   - component: {fileID: 7311915090064941908}
+  - component: {fileID: 6092922534952526741}
+  - component: {fileID: 8136480222936436763}
+  - component: {fileID: 5003961993527081499}
+  - component: {fileID: 7052435421230465614}
   m_Layer: 0
   m_Name: BlueFlask
   m_TagString: Untagged
@@ -295,6 +299,84 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.64, y: 1.08, z: 0.64}
   m_Center: {x: 0, y: 0.54, z: 0}
+--- !u!54 &6092922534952526741
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6637240637185873796}
+  serializedVersion: 5
+  m_Mass: 0.5
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &8136480222936436763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6637240637185873796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bda148ee19a04be4880585145c788af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.CarriedItem
+  m_hand: 1
+  m_kind: 4
+  m_gripPosition: {x: 0, y: -0.36, z: 0}
+  m_gripRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_body: {fileID: 6092922534952526741}
+  m_colliders:
+  - {fileID: 7311915090064941908}
+--- !u!114 &5003961993527081499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6637240637185873796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf4cee88d2b984213bcb32a502029720, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.GroundPickup
+  m_displayName: "\u84DD\u8272\u70E7\u74F6"
+  m_grabPoint: {fileID: 0}
+  m_pickupActionId: grabGroundTube
+--- !u!114 &7052435421230465614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6637240637185873796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a34deab6f0c45416f9d843d4101f0116, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.ThrownItemFlight
+  m_horizontalSpeed: 9
+  m_minFlightSeconds: 0.25
+  m_maxFlightSeconds: 2
+  m_gravity: 9.81
+  m_spinDegreesPerSecond: {x: 180, y: 90, z: 420}
 --- !u!1001 &4869416540382397519
 PrefabInstance:
   m_ObjectHideFlags: 0

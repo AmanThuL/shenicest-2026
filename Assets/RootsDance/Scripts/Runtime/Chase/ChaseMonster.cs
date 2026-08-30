@@ -131,13 +131,8 @@ namespace RootsDance.Chase
 
             transform.position = next;
 
-            // Retime the cycle to how fast it is actually travelling, so a boss that has slowed to
-            // hold its gap does not keep running on the spot at full tempo.
-            if (m_animator != null && m_config.BaseSpeed > 0.0001f)
-            {
-                float travelled = step / Mathf.Max(Time.deltaTime, 0.0001f);
-                m_animator.speed = m_config.ChaseCycleSpeed * (travelled / m_config.BaseSpeed);
-            }
+            // The chase cycle belongs to the creature, not the player's input. The transform may
+            // briefly hold its theatrical gap, but the mutated body remains active and threatening.
         }
 
         /// <summary>The highest ground under the point, or its own height when nothing is hit.</summary>

@@ -120,6 +120,7 @@ GameObject:
   - component: {fileID: 8163118375396427749}
   - component: {fileID: 6841962975302966709}
   - component: {fileID: 5093586072011387537}
+  - component: {fileID: 1267723497874549201}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -165,7 +166,7 @@ CharacterController:
   m_Height: 1.8
   m_Radius: 0.5
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_StepOffset: 0.35
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
@@ -314,14 +315,33 @@ MonoBehaviour:
   m_socket: {fileID: 7863462782624755283}
   m_player: {fileID: 6772109266663148318}
   m_input: {fileID: 2523268967826309828}
-  m_director: {fileID: 0}
-  m_throwTrigger: {fileID: 0}
+  m_director: {fileID: 6881924305928856330}
+  m_throwTrigger: {fileID: 1267723497874549201}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 3
   m_dropKey: 21
   m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
   m_dropPromptFormat: "[G] \u653E\u4E0B {0}"
   m_swapPromptFormat: "[G] \u5148\u653E\u4E0B {1} \u624D\u80FD\u62FE\u53D6 {0}"
+--- !u!114 &1267723497874549201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c22958ef0adf4c819428d5c79b65a0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.ThrowProximityTrigger
+  m_socket: {fileID: 7863462782624755283}
+  m_player: {fileID: 6772109266663148318}
+  m_input: {fileID: 2523268967826309828}
+  m_director: {fileID: 6881924305928856330}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 6.5
+  m_actionId: throw
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
@@ -1780,7 +1800,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsDebugConsole
   m_director: {fileID: 6881924305928856330}
   m_actions: {fileID: 11400000, guid: fb7b76d35c7074739b827d38ed65815b, type: 2}
-  m_showOverlay: 1
+  m_showOverlay: 0
   m_toggleKey: 94
   m_extraRows:
   - m_key: J

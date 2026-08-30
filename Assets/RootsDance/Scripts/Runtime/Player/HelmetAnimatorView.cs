@@ -59,6 +59,26 @@ namespace RootsDance.Player
             PlayRemoveAsync();
         }
 
+        public void SetRemovedImmediately()
+        {
+            if (m_hasRemoved)
+            {
+                return;
+            }
+
+            m_hasRemoved = true;
+            m_isPlaying = false;
+            m_animator.speed = 0f;
+
+            if (m_helmetRenderer != null)
+            {
+                m_helmetRenderer.enabled = false;
+            }
+
+            RemoveStarted?.Invoke(0f);
+            RemoveFinished?.Invoke();
+        }
+
         private async Awaitable PlayRemoveAsync()
         {
             m_animator.Play(m_stateHash, 0, 0f);

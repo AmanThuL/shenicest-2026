@@ -43,6 +43,9 @@ namespace RootsDance.Chase
         [Tooltip("The Player root: pursuit target, and what gets moved on a resume.")]
         [SerializeField] private Transform m_player;
 
+        [Tooltip("The original flower sprite. Hidden when its mutated chase form takes over.")]
+        [SerializeField] private GameObject m_hideWhenChasing;
+
         [Tooltip("Chase-only objects — the exit portal, the victory volume — switched on when the "
             + "chase starts. Keep them inactive in the scene so normal play never touches them.")]
         [SerializeField] private GameObject[] m_armWhenChasing = new GameObject[0];
@@ -93,7 +96,7 @@ namespace RootsDance.Chase
         {
             // The resume check lives in Update because WorldAccess may not exist yet in OnEnable;
             // it runs exactly once, on the first frame the bootstrap answers.
-            if (m_resumeChecked || m_resumeSpawn == null || m_isChasing)
+            if (m_resumeChecked || m_isChasing)
             {
                 return;
             }
@@ -109,7 +112,17 @@ namespace RootsDance.Chase
 
             if (state.HasFlag(WorldFlags.k_ChaseStarted) && !state.HasFlag(WorldFlags.k_ChaseEscaped))
             {
-                MovePlayerTo(m_resumeSpawn);
+                // The rescue loader has already placed the player at the selected checkpoint.
+                // Normal cross-level chase continuation still uses its authored portal spawn.
+                bool isRescue = GameBootstrap.Instance != null
+                    && GameBootstrap.Instance.RescueService != null
+                    && GameBootstrap.Instance.RescueService.IsBusy;
+
+                if (m_resumeSpawn != null && !isRescue)
+                {
+                    MovePlayerTo(m_resumeSpawn);
+                }
+
                 StartChase(skipBirth: true);
             }
         }
@@ -118,7 +131,16 @@ namespace RootsDance.Chase
         {
             if (flagId == WorldFlags.k_ChaseStarted)
             {
-                StartChase();
+                if (m_resumeSpawn != null)
+                {
+                    MovePlayerTo(m_resumeSpawn);
+                    m_resumeChecked = true;
+                    StartChase(skipBirth: true);
+                }
+                else
+                {
+                    StartChase();
+                }
             }
 
             if (flagId == WorldFlags.k_ChaseEscaped)
@@ -145,6 +167,11 @@ namespace RootsDance.Chase
             }
 
             m_isChasing = true;
+
+            if (m_hideWhenChasing != null)
+            {
+                m_hideWhenChasing.SetActive(false);
+            }
 
             for (int i = 0; i < m_armWhenChasing.Length; i++)
             {

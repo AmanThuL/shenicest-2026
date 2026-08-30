@@ -68,6 +68,10 @@ namespace RootsDance.Archive
         [Tooltip("The researcher's drawing, when the sheet carries one.")]
         [SerializeField] private RawImage m_diagram;
 
+        [Tooltip("The exposure inside the clipped photograph. Left untouched — an undeveloped "
+            + "dark plate — when the document has no photo of its own.")]
+        [SerializeField] private RawImage m_photo;
+
         [Tooltip("The grime layer over the whole sheet, wiped off when the sheet is raised.")]
         [SerializeField] private Graphic m_dustOverlay;
 
@@ -122,6 +126,12 @@ namespace RootsDance.Archive
             if (m_diagram != null)
             {
                 m_diagram.texture = document.Diagram;
+            }
+
+            if (m_photo != null && document.Photo != null)
+            {
+                m_photo.texture = document.Photo;
+                m_photo.color = Color.white;
             }
 
             Arrange(document.Kind);
@@ -261,6 +271,7 @@ namespace RootsDance.Archive
             switch (block)
             {
                 case Block.Photo:
+                    return m_document.Photo != null || !string.IsNullOrEmpty(m_document.Signature);
                 case Block.Signature:
                     return !string.IsNullOrEmpty(m_document.Signature);
                 case Block.TapedNote:
@@ -275,6 +286,8 @@ namespace RootsDance.Archive
                     return !string.IsNullOrEmpty(m_document.Transcription);
                 case Block.Diagram:
                     return m_document.Diagram != null;
+                case Block.Body:
+                    return !string.IsNullOrEmpty(m_document.BodyText());
                 default:
                     // The pin, the stamps and the turned-up corner are the paper's own furniture;
                     // whether they appear is the arrangement's business, not the copy's.

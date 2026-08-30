@@ -1,3 +1,4 @@
+using RootsDance.Core;
 using RootsDance.Events;
 using TMPro;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace RootsDance.UI
     /// appearing whole or crawling out one character at a time.
     /// </para>
     /// </summary>
-    public class SubtitlePresenter : MonoBehaviour
+    public class SubtitlePresenter : MonoBehaviour, IRescueResetParticipant
     {
         [Header("Listens to")]
         [Tooltip("Every channel whose text should appear here, in no particular order.")]
@@ -84,6 +85,17 @@ namespace RootsDance.UI
         {
             Show(text);
             m_remaining = string.IsNullOrEmpty(text) ? 0f : m_autoHideSeconds;
+        }
+
+        /// <summary>Do not carry the previous scene's subtitle or typing tween into a rescue.</summary>
+        public void ResetForRescue()
+        {
+            m_remaining = 0f;
+
+            if (m_label != null)
+            {
+                Show(string.Empty);
+            }
         }
 
         private void Show(string text)

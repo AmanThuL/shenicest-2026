@@ -35,9 +35,8 @@ namespace RootsDance.Editor.Tools
         private const string k_BeltTrigger = "GrassBelt";
 
         /// <summary>
-        /// Metres past the unlock volume's centre. Its box is 4 m deep, so this clears the far face
-        /// by a few strides: long enough that the notice has been read and the player is walking
-        /// on, short enough that the wall is obviously the answer to it.
+        /// Metres past the unlock station's anchor. The trigger collider is fitted to the wall
+        /// afterwards, so every route receives the notice before the player reaches the seal.
         /// </summary>
         private const float k_GateDistance = 8f;
 
@@ -51,6 +50,36 @@ namespace RootsDance.Editor.Tools
         private const float k_GateHeight = 20f;
 
         private const float k_GateThickness = 2f;
+
+        // Cover every approach to the wall, including the sloping route along its left end.
+        private const float k_UnlockApproachDepth = 10f;
+        private const float k_UnlockMargin = 2f;
+
+        /// <summary>Fits the loaded scene's unlock volume without rebuilding or saving other content.</summary>
+        [MenuItem("RootsDance/Content/Fit Helmet Unlock To Existing Gate (No Save)")]
+        public static void FitUnlockToExistingGate()
+        {
+            Scene scene = SceneManager.GetSceneByPath(ScenePaths.k_MainGameplay);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                Debug.LogError("[Content] Open Main_Gameplay before fitting the helmet unlock trigger.");
+                return;
+            }
+
+            Transform triggers = Find(scene, k_TriggersRoot);
+            Transform gates = Find(scene, k_GatesRoot);
+            Transform unlock = triggers == null ? null : triggers.Find(k_UnlockTrigger);
+            Transform gate = gates == null ? null : gates.Find(k_GateName);
+            BoxCollider wall = gate == null ? null : gate.GetComponent<BoxCollider>();
+            if (unlock == null || wall == null || unlock.GetComponent<BoxCollider>() == null)
+            {
+                Debug.LogError("[Content] HelmetUnlock and HelmetSealGate must both have BoxColliders.");
+                return;
+            }
+
+            FitUnlockTrigger(unlock, wall);
+            EditorSceneManager.MarkSceneDirty(scene);
+        }
 
         [MenuItem("RootsDance/Content/Wire Chapter 00 Helmet Seal")]
         public static void Build()
@@ -181,6 +210,8 @@ namespace RootsDance.Editor.Tools
             BoxCollider box = gate.GetComponent<BoxCollider>();
             box.size = new Vector3(k_GateWidth, k_GateHeight, k_GateThickness);
 
+            FitUnlockTrigger(unlock, box);
+
             FlagGate flagGate = gate.AddComponent<FlagGate>();
             SerializedObject serialized = new SerializedObject(flagGate);
             serialized.FindProperty("m_flagRaised").objectReferenceValue =
@@ -195,6 +226,27 @@ namespace RootsDance.Editor.Tools
                 + $"across and {travelled:0.#} m past '{k_UnlockTrigger}' towards '{k_BeltTrigger}'. "
                 + $"It opens on '{WorldFlags.k_HelmetRemoved}' and never closes again. Walk the "
                 + "route in Play mode and check both ends of the wall meet the forest shell.");
+        }
+
+        private static void FitUnlockTrigger(Transform unlock, BoxCollider wall)
+        {
+            BoxCollider trigger = unlock.GetComponent<BoxCollider>();
+            Undo.RecordObjects(new Object[] { unlock, trigger }, "Fit helmet unlock approach");
+
+            // Keep the station's position: the seal and radio builders use it as a route anchor.
+            // Shift only the collider centre, so rebuilding the seal cannot move it farther forward.
+            unlock.rotation = wall.transform.rotation;
+            Vector3 wallSize = Vector3.Scale(wall.size, wall.transform.lossyScale);
+            float depth = Mathf.Max(k_UnlockApproachDepth, wallSize.z);
+            Vector3 centre = wall.transform.TransformPoint(wall.center)
+                - wall.transform.forward * ((depth - wallSize.z) * 0.5f);
+            Vector3 scale = unlock.lossyScale;
+            trigger.center = unlock.InverseTransformPoint(centre);
+            trigger.size = new Vector3(
+                (wallSize.x + k_UnlockMargin) / scale.x,
+                (wallSize.y + k_UnlockMargin) / scale.y,
+                depth / scale.z);
+            trigger.isTrigger = true;
         }
 
         private static Transform Find(Scene scene, string rootName)

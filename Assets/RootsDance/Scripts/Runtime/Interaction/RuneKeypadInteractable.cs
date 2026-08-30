@@ -5,17 +5,18 @@ using RootsDance.Data;
 using RootsDance.Events;
 using RootsDance.Player;
 using RootsDance.Player.Arms;
+using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace RootsDance.Interaction
 {
     /// <summary>
-    /// The wall-mounted rune lock and its close-up interaction. The physical prop travels to the
-    /// camera like an archive page, while the pointer selects real key colliders on the model.
+    /// The wall-mounted rune lock and its close-up interaction. A keypad-owned Cinemachine camera
+    /// flies the player's view squarely onto the fixed model, while the pointer selects its real
+    /// key colliders.
     /// </summary>
     [DisallowMultipleComponent]
-    public class RuneKeypadInteractable : MonoBehaviour, IInteractable
+    public class RuneKeypadInteractable : MonoBehaviour, IInteractable, IRescueResetParticipant
     {
         private const string k_DropActionId = "drop";
         private const string k_HoldActionId = "hold";
@@ -65,20 +66,17 @@ namespace RootsDance.Interaction
 
         [SerializeField] private RuneKeypadButton m_confirmButton;
 
-        [Header("Close-up pose")]
-        [Tooltip("Camera-local root pose aligned to the keypad-poke animation's finger contact.")]
-        [SerializeField] private Vector3 m_inspectPosition = new Vector3(0.05f, -0.03f, 1.05f);
+        [Header("Close-up camera")]
+        [Tooltip("Inactive camera parked squarely in front of this wall-mounted keypad.")]
+        [SerializeField] private CinemachineCamera m_inspectCamera;
 
-        [SerializeField] private Vector3 m_inspectEuler = new Vector3(0f, -90f, 0f);
+        [Tooltip("Camera-local-to-keypad pose that aligns the confirm key with the poke animation.")]
+        [SerializeField] private Vector3 m_confirmCameraPosition =
+            new Vector3(-1.105714f, 0.581429f, 0.222857f);
 
-        [Range(0.4f, 1f)]
-        [SerializeField] private float m_inspectScale = 0.75f;
+        [SerializeField] private Vector3 m_confirmCameraEuler = new Vector3(0f, 90f, 0f);
 
-        [Tooltip("Camera-local pose that puts the confirm key under keypadPoke's fingertip.")]
-        [SerializeField] private Vector3 m_confirmPosition = new Vector3(0.156f, -0.407f, 0.774f);
-
-        [Range(0.4f, 1f)]
-        [SerializeField] private float m_confirmScale = 0.7f;
+        [SerializeField] private int m_activeCameraPriority = 30;
 
         [Range(0.05f, 2f)]
         [SerializeField] private float m_raiseSeconds = 0.4f;
@@ -110,16 +108,17 @@ namespace RootsDance.Interaction
         private RuneKeypadButton m_hoveredButton;
         private Behaviour[] m_suspendedBehaviours = new Behaviour[0];
         private bool[] m_suspendedEnabledStates = new bool[0];
-        private Transform m_originParent;
-        private Scene m_originScene;
-        private Vector3 m_originWorldPosition;
-        private Quaternion m_originWorldRotation;
-        private Vector3 m_originLocalScale;
+        private CinemachineBrain m_brain;
+        private CinemachineBlendDefinition m_previousBlend;
+        private bool m_hasStoredBlend;
+        private Vector3 m_inspectCameraPosition;
+        private Quaternion m_inspectCameraRotation;
         private CursorLockMode m_originCursorLock;
         private bool m_originCursorVisible;
         private bool m_isButtonAnimating;
         private string m_waitingActionId;
         private bool m_didActionFinish;
+        private CancellationTokenSource m_inspectionCancellation;
 
         public string PromptText => m_promptText;
 
@@ -130,6 +129,12 @@ namespace RootsDance.Interaction
             ResetSequence();
             SetEntryIndicators(0);
             SetSolvedRunes(false);
+
+            if (m_inspectCamera != null)
+            {
+                m_inspectCameraPosition = m_inspectCamera.transform.localPosition;
+                m_inspectCameraRotation = m_inspectCamera.transform.localRotation;
+            }
         }
 
         private void Update()
@@ -143,25 +148,31 @@ namespace RootsDance.Interaction
 
             if (m_input.InteractPressedThisFrame)
             {
-                LowerEntryAsync(destroyCancellationToken);
+                LowerEntryAsync(m_inspectionCancellation.Token);
                 return;
             }
 
             if (!m_isButtonAnimating && m_input.ClickPressedThisFrame && m_hoveredButton != null)
             {
-                PressButtonEntryAsync(m_hoveredButton, destroyCancellationToken);
+                PressButtonEntryAsync(m_hoveredButton, m_inspectionCancellation.Token);
             }
         }
 
         private void OnDisable()
         {
             UnsubscribeFromArms();
+            StopInspectCamera();
 
             if (m_hoveredButton != null)
             {
                 m_hoveredButton.SetHovered(false);
                 m_hoveredButton = null;
             }
+        }
+
+        private void OnDestroy()
+        {
+            CancelInspection();
         }
 
         public void Interact(GameObject interactor)
@@ -171,13 +182,48 @@ namespace RootsDance.Interaction
                 return;
             }
 
-            BeginInspectEntryAsync(interactor, destroyCancellationToken);
+            CancelInspection();
+            m_inspectionCancellation = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            BeginInspectEntryAsync(interactor, m_inspectionCancellation.Token);
+        }
+
+        /// <summary>Ends a close-up without completing the puzzle.</summary>
+        public void ResetForRescue()
+        {
+            CancelInspection();
+            if (m_state == InspectState.Idle)
+            {
+                return;
+            }
+
+            UnsubscribeFromArms();
+            ClearHover();
+            StopInspectCamera();
+
+            // The outgoing player will be unloaded. Do not play a return animation or change the
+            // cursor here: the rescue modal owns input and the camera until loading finishes.
+            m_stowedItem = null;
+            m_isButtonAnimating = false;
+            m_state = InspectState.Idle;
+        }
+
+        private void CancelInspection()
+        {
+            CancellationTokenSource cancellation = m_inspectionCancellation;
+            m_inspectionCancellation = null;
+            if (cancellation != null)
+            {
+                cancellation.Cancel();
+                cancellation.Dispose();
+            }
         }
 
         /// <summary>Editor construction hook used by the idempotent prefab builder.</summary>
         public void Configure(Collider worldCollider, LayerMask buttonLayers,
             RuneKeypadButton[] buttons, GameObject[] entryIndicators, GameObject[] solvedRunes,
             RuneKeypadButton clearButton, RuneKeypadButton confirmButton,
+            CinemachineCamera inspectCamera, Vector3 confirmCameraPosition,
+            Vector3 confirmCameraEuler,
             LevelEventChannelSO loadLevelRequested, LevelSO destinationLevel,
             StringEventChannelSO promptChanged)
         {
@@ -188,6 +234,9 @@ namespace RootsDance.Interaction
             m_solvedRunes = solvedRunes;
             m_clearButton = clearButton;
             m_confirmButton = confirmButton;
+            m_inspectCamera = inspectCamera;
+            m_confirmCameraPosition = confirmCameraPosition;
+            m_confirmCameraEuler = confirmCameraEuler;
             m_loadLevelRequested = loadLevelRequested;
             m_destinationLevel = destinationLevel;
             m_promptChanged = promptChanged;
@@ -211,20 +260,14 @@ namespace RootsDance.Interaction
                 SetCursorForInspect(false);
                 SetWorldCollider(false);
 
-                m_originParent = transform.parent;
-                m_originScene = gameObject.scene;
-                m_originWorldPosition = transform.position;
-                m_originWorldRotation = transform.rotation;
-                m_originLocalScale = transform.localScale;
-
                 // Start putting the torch away before the close-up, but do not leave the player
-                // staring at an unmoving wall while the arms action runs. The keypad's raise gives
+                // waiting on an unmoving view while the arms action runs. The camera blend gives
                 // immediate feedback and overlaps the first part of the stow animation.
                 Awaitable<bool> stowOperation = StowTorchAsync(cancellationToken);
-                transform.SetParent(m_camera.transform, true);
 
                 m_state = InspectState.Raising;
-                await TweenToInspectPoseAsync(m_raiseSeconds, cancellationToken);
+                ActivateInspectCamera(m_raiseSeconds);
+                await WaitUnscaledAsync(m_raiseSeconds, cancellationToken);
 
                 if (!await stowOperation)
                 {
@@ -260,9 +303,10 @@ namespace RootsDance.Interaction
                 SetCursorForInspect(false);
                 ClearHover();
                 PublishPrompt(string.Empty);
-                await TweenToOriginAsync(m_lowerSeconds, cancellationToken);
+                DeactivateInspectCamera(m_lowerSeconds);
+                await WaitUnscaledAsync(m_lowerSeconds, cancellationToken);
 
-                RestoreOriginTransform();
+                FinishInspectCamera();
                 RestoreStowedItem();
                 RestoreCursor();
                 SuspendPlayer(false);
@@ -350,9 +394,11 @@ namespace RootsDance.Interaction
 
             Transform playerRoot = m_input == null ? null : m_input.transform;
 
-            if (m_input == null || m_camera == null || playerRoot == null)
+            if (m_input == null || m_camera == null || playerRoot == null
+                || m_inspectCamera == null)
             {
-                Log.Error("Rune keypad could not resolve the player's input or main camera.", this);
+                Log.Error("Rune keypad could not resolve the player's input, main camera or "
+                    + "fixed inspect camera.", this);
                 return false;
             }
 
@@ -438,9 +484,9 @@ namespace RootsDance.Interaction
         private async Awaitable ConfirmAndTransitionAsync(CancellationToken cancellationToken)
         {
             PublishPrompt("密码正确");
-            await TweenToCameraPoseAsync(
-                m_confirmPosition,
-                m_confirmScale,
+            await TweenInspectCameraAsync(
+                m_confirmCameraPosition,
+                Quaternion.Euler(m_confirmCameraEuler),
                 m_buttonPressSeconds * 2f,
                 cancellationToken);
 
@@ -450,9 +496,9 @@ namespace RootsDance.Interaction
             if (!didPlay)
             {
                 PublishPrompt("手臂动作暂时不可用，请重试");
-                await TweenToCameraPoseAsync(
-                    m_inspectPosition,
-                    m_inspectScale,
+                await TweenInspectCameraAsync(
+                    m_inspectCameraPosition,
+                    m_inspectCameraRotation,
                     m_buttonPressSeconds * 2f,
                     cancellationToken);
                 ResetSequence();
@@ -483,22 +529,9 @@ namespace RootsDance.Interaction
         {
             ClearHover();
             SetCursorForInspect(false);
-            RestoreOriginTransform();
+            StopInspectCamera();
             SetWorldCollider(false);
             gameObject.SetActive(false);
-        }
-
-        private void RestoreOriginTransform()
-        {
-            transform.SetParent(m_originParent, true);
-
-            if (m_originParent == null && m_originScene.IsValid() && m_originScene.isLoaded)
-            {
-                SceneManager.MoveGameObjectToScene(gameObject, m_originScene);
-            }
-
-            transform.SetPositionAndRotation(m_originWorldPosition, m_originWorldRotation);
-            transform.localScale = m_originLocalScale;
         }
 
         private async Awaitable<bool> PlayArmsActionAsync(string actionId,
@@ -651,61 +684,99 @@ namespace RootsDance.Interaction
             PublishPrompt("[鼠标] 选择符文  [左键] 输入  [E] 退出");
         }
 
-        private async Awaitable TweenToInspectPoseAsync(float seconds,
-            CancellationToken cancellationToken)
-        {
-            await TweenToCameraPoseAsync(
-                m_inspectPosition,
-                m_inspectScale,
-                seconds,
-                cancellationToken);
-        }
-
-        private async Awaitable TweenToCameraPoseAsync(
+        private async Awaitable TweenInspectCameraAsync(
             Vector3 targetPosition,
-            float targetUniformScale,
+            Quaternion targetRotation,
             float seconds,
             CancellationToken cancellationToken)
         {
-            Vector3 fromPosition = transform.localPosition;
-            Quaternion fromRotation = transform.localRotation;
-            Vector3 fromScale = transform.localScale;
-            Quaternion targetRotation = Quaternion.Euler(m_inspectEuler);
-            Vector3 targetScale = Vector3.one * targetUniformScale;
+            if (m_inspectCamera == null)
+            {
+                return;
+            }
+
+            Transform cameraTransform = m_inspectCamera.transform;
+            Vector3 fromPosition = cameraTransform.localPosition;
+            Quaternion fromRotation = cameraTransform.localRotation;
 
             for (float elapsed = 0f; elapsed < seconds; elapsed += Time.unscaledDeltaTime)
             {
                 float t = Smooth(elapsed / seconds);
-                transform.localPosition = Vector3.Lerp(fromPosition, targetPosition, t);
-                transform.localRotation = Quaternion.Slerp(fromRotation, targetRotation, t);
-                transform.localScale = Vector3.Lerp(fromScale, targetScale, t);
+                cameraTransform.localPosition = Vector3.Lerp(fromPosition, targetPosition, t);
+                cameraTransform.localRotation = Quaternion.Slerp(fromRotation, targetRotation, t);
                 await Awaitable.NextFrameAsync(cancellationToken);
             }
 
-            transform.localPosition = targetPosition;
-            transform.localRotation = targetRotation;
-            transform.localScale = targetScale;
+            cameraTransform.localPosition = targetPosition;
+            cameraTransform.localRotation = targetRotation;
         }
 
-        private async Awaitable TweenToOriginAsync(float seconds,
-            CancellationToken cancellationToken)
+        private void ActivateInspectCamera(float blendSeconds)
         {
-            Vector3 fromPosition = transform.localPosition;
-            Quaternion fromRotation = transform.localRotation;
-            Vector3 fromScale = transform.localScale;
-
-            for (float elapsed = 0f; elapsed < seconds; elapsed += Time.unscaledDeltaTime)
+            if (m_inspectCamera == null)
             {
-                float t = Smooth(elapsed / seconds);
-                Vector3 targetPosition = m_camera.transform.InverseTransformPoint(m_originWorldPosition);
-                Quaternion targetRotation = Quaternion.Inverse(m_camera.transform.rotation)
-                    * m_originWorldRotation;
-
-                transform.localPosition = Vector3.Lerp(fromPosition, targetPosition, t);
-                transform.localRotation = Quaternion.Slerp(fromRotation, targetRotation, t);
-                transform.localScale = Vector3.Lerp(fromScale, m_originLocalScale, t);
-                await Awaitable.NextFrameAsync(cancellationToken);
+                return;
             }
+
+            m_brain = CinemachineCore.FindPotentialTargetBrain(m_inspectCamera);
+            SetBlendDuration(blendSeconds);
+            m_inspectCamera.Priority = m_activeCameraPriority;
+            m_inspectCamera.gameObject.SetActive(true);
+        }
+
+        private void DeactivateInspectCamera(float blendSeconds)
+        {
+            if (m_inspectCamera == null)
+            {
+                return;
+            }
+
+            SetBlendDuration(blendSeconds);
+            m_inspectCamera.gameObject.SetActive(false);
+        }
+
+        private void SetBlendDuration(float seconds)
+        {
+            if (m_brain == null)
+            {
+                return;
+            }
+
+            if (!m_hasStoredBlend)
+            {
+                m_previousBlend = m_brain.DefaultBlend;
+                m_hasStoredBlend = true;
+            }
+
+            m_brain.DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Styles.EaseInOut, seconds);
+        }
+
+        private void FinishInspectCamera()
+        {
+            if (m_inspectCamera != null)
+            {
+                m_inspectCamera.transform.localPosition = m_inspectCameraPosition;
+                m_inspectCamera.transform.localRotation = m_inspectCameraRotation;
+            }
+
+            if (m_brain != null && m_hasStoredBlend)
+            {
+                m_brain.DefaultBlend = m_previousBlend;
+            }
+
+            m_hasStoredBlend = false;
+            m_brain = null;
+        }
+
+        private void StopInspectCamera()
+        {
+            if (m_inspectCamera != null)
+            {
+                m_inspectCamera.gameObject.SetActive(false);
+            }
+
+            FinishInspectCamera();
         }
 
         private static async Awaitable WaitUnscaledAsync(float seconds,
@@ -798,11 +869,7 @@ namespace RootsDance.Interaction
 
         private void AbortInspect()
         {
-            if (m_camera != null && transform.parent == m_camera.transform)
-            {
-                RestoreOriginTransform();
-            }
-
+            StopInspectCamera();
             RestoreStowedItem();
             RestoreCursor();
             SuspendPlayer(false);

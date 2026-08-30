@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: FrontColor
+    second: {fileID: 2100000, guid: 16bdd1da5a53d42ef8023e40c09b647d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: GH_Glass
     second: {fileID: 2100000, guid: d5fc04c4a2e7d45878ab3abc6446bbf3, type: 2}
   - first:

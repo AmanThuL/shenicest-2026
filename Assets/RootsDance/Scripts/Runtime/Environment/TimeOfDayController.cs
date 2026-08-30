@@ -117,11 +117,12 @@ namespace RootsDance.Environment
         }
 
         // Frame 0 must already look right: a level that plays at night may never fade in from day.
-        // WorldAccess is deliberately not read here — when Play starts in a level scene the bootstrap
-        // arrives a frame later.
+        // Rescue snapshots already exist before this scene activates. A level-only Editor start
+        // still has no bootstrap yet and uses the authored default.
         private void Start()
         {
-            ApplyImmediate(m_levelDefault);
+            IWorldStateReader state = WorldAccess.State;
+            ApplyImmediate(state != null && state.IsTimeOfDaySet ? state.TimeOfDay : m_levelDefault);
         }
 
         private void Update()

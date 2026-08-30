@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dc1c5644c25240498edb2ff50341347, type: 3}
+  m_Name: Arms_throw
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsActionSO
+  m_id: throw
+  m_stateName: Throw
+  m_clip: {fileID: -623603649343465320, guid: 62e69b3d06cc14710b91f41961515c0d, type: 3}
+  m_scope: 2
+  m_loop: 0
+  m_resultPose: 0
+  m_chainToId: 
+  m_holdAfterFinish: 0
+  m_heightBase: 0
+  m_handEvents:
+  - m_normalizedTime: 0.5897436
+    m_hand: 1
+    m_kind: 1
+  m_speed: 1
+  m_fadeIn: 0.08
+  m_fadeOut: 0.12
+  m_debugKey: 34

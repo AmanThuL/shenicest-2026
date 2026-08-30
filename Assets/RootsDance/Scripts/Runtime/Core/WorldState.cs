@@ -44,6 +44,41 @@ namespace RootsDance.Core
         }
 
         /// <summary>
+        /// Replaces progress without broadcasting historical events. New scenes read this snapshot
+        /// in Start; completed dialogue, sounds and cinematics must not be replayed while seeding.
+        /// </summary>
+        public void RestoreSnapshot(IReadOnlyList<string> flags, IReadOnlyList<ReportEntry> report,
+            bool hasTimeOfDay, TimeOfDay timeOfDay)
+        {
+            m_flags.Clear();
+            m_report.Clear();
+            m_timeOfDaySet = hasTimeOfDay;
+            m_timeOfDay = hasTimeOfDay ? timeOfDay : TimeOfDay.Day;
+
+            if (flags != null)
+            {
+                for (int i = 0; i < flags.Count; i++)
+                {
+                    if (!string.IsNullOrWhiteSpace(flags[i]))
+                    {
+                        m_flags.Add(flags[i]);
+                    }
+                }
+            }
+
+            if (report != null)
+            {
+                for (int i = 0; i < report.Count; i++)
+                {
+                    if (!string.IsNullOrWhiteSpace(report[i].Id) && !HasReportEntry(report[i].Id))
+                    {
+                        m_report.Add(report[i]);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Idempotent: the second and later calls for the same <paramref name="id"/> change nothing
         /// and return false. This is what makes trigger volumes safe to re-enter.
         /// </summary>

@@ -4,7 +4,9 @@ using RootsDance.Audio;
 using RootsDance.Cameras;
 using RootsDance.Companion;
 using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Dialogue;
+using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Environment;
 using RootsDance.Events;
 using RootsDance.Sequencing;
@@ -47,7 +49,30 @@ namespace RootsDance.Editor.Content
         private const string k_EventsFolder = "Assets/RootsDance/Data/Events";
         private const string k_DialogueChannelPath = k_EventsFolder + "/DialogueRequested.asset";
         private const string k_DialogueFolder = "Assets/RootsDance/Data/Dialogue";
+        private const string k_AudioFolder = "Assets/RootsDance/Data/Audio";
         private const string k_VoiceCuePath = "Assets/RootsDance/Data/Audio/VOX_Dialogue.asset";
+
+        private const string k_GreenhouseCheckpointFolder = "Assets/RootsDance/Data/DevPlay/GreenhouseInterior";
+        private const string k_GreenhouseLevelPath = "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
+        private const string k_ConsoleCheckpointAnchorName = "Checkpoint_CirculationConsole";
+
+        // The same ground the player has covered by 03-04_MonsterChase (see
+        // MonsterChaseSetupBuilder), minus the console flags — this checkpoint's whole point is to
+        // stand in front of the console with none of the three cycles picked yet.
+        private static readonly string[] k_ConsoleCheckpointFlags =
+        {
+            WorldFlags.k_LeftStartArea,
+            WorldFlags.k_RadioBriefingStarted,
+            WorldFlags.k_RadioBriefingFinished,
+            WorldFlags.k_HelmetRemovable,
+            WorldFlags.k_HelmetRemoved,
+            WorldFlags.k_EnteredGrassBelt,
+            WorldFlags.k_FirstInvestigationDone,
+            WorldFlags.k_SawUndergroundNetwork,
+            WorldFlags.k_MetFlowerSprite,
+            WorldFlags.k_HeardAboutHer,
+            WorldFlags.k_EnteredGreenhouse,
+        };
 
         [MenuItem("RootsDance/Content/Wire Narrative Runtime")]
         public static void ApplyFromMenu()
@@ -461,32 +486,74 @@ namespace RootsDance.Editor.Content
                 WorldFlags.k_EnteredGreenhouse);
 
             // Grey-box interactables: statue at the north centre, photograph east of the statue,
-            // console south of it — all placeholders for props.
-            Transform statue = EnsureChild(root, "GaiaStatue");
-            statue.position = new Vector3(0f, 1.4f, 6f);
+            // console south of it — all placeholders for props. The default position is only ever
+            // applied to a freshly created object: once art or a level designer has moved one onto
+            // the built geometry (the statue plinth, the console's landing atop the spiral stair),
+            // re-running this generator must not silently snap it back down to the grey-box guess.
+            Transform statue = EnsureChildAt(root, "GaiaStatue", new Vector3(0f, 1.4f, 6f));
             ConfigureInteractTrigger(statue.gameObject, "DLG-006_SheUsedToMove",
                 new Vector3(1.4f, 2.4f, 1.4f), "端详雕像");
 
-            Transform photo = EnsureChild(root, "StaffPhotograph");
-            photo.position = new Vector3(4f, 1.5f, 6.5f);
+            Transform photo = EnsureChildAt(root, "StaffPhotograph", new Vector3(4f, 1.5f, 6.5f));
             ConfigureInteractTrigger(photo.gameObject, "DLG-007_StaffPhotograph",
                 new Vector3(1.6f, 1.1f, 0.4f), "查看合照");
 
-            Transform console = EnsureChild(root, "CirculationConsole");
-            console.position = new Vector3(0f, 1.2f, 2.5f);
+            Transform console = EnsureChildAt(root, "CirculationConsole", new Vector3(0f, 1.2f, 2.5f));
             ConfigureInteractTrigger(console.gameObject, "DLG-008_CirculationConsole",
                 new Vector3(1.4f, 1.4f, 0.9f), "查看终端");
 
-            // Either wrong cycle: the outburst plays over the start of the chase, not before it —
-            // the dialogue step does not wait, and the chase flag follows one breath later.
-            EnsureWrongChoiceSequence(root, "WrongChoiceCore", WorldFlags.k_CirculationCore);
-            EnsureWrongChoiceSequence(root, "WrongChoiceRing", WorldFlags.k_CirculationRing);
+            // Standing room a step short of the console's own position, facing it — 03-04's chase
+            // skip already exists for testing the wrong-cycle outburst directly; this one is for
+            // testing the choice itself, so nothing about the three cycles can already be decided.
+            EnsureConsoleCheckpoint(scene, console.position);
+
+            // Either wrong cycle: the breath bed and the outburst start together, over the start of
+            // the chase rather than before it — the dialogue step does not wait, and the chase flag
+            // follows one breath later.
+            Transform player = FindTransform(scene, "Player");
+
+            if (player == null)
+            {
+                throw new InvalidOperationException(
+                    scene.name + " has no Player root to hang the panic-breath bed on.");
+            }
+
+            GameObject panicBreath = EnsurePanicBreathBed(player);
+            EnsureWrongChoiceSequence(root, "WrongChoiceCore", WorldFlags.k_CirculationCore, panicBreath);
+            EnsureWrongChoiceSequence(root, "WrongChoiceRing", WorldFlags.k_CirculationRing, panicBreath);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }
 
-        private static void EnsureWrongChoiceSequence(Transform root, string name, string startFlag)
+        /// <summary>
+        /// The protagonist's own breathing (docs/architecture/systems/对话与场景序列.md §4.6): a
+        /// loop needs a source that owns it, and <see cref="AmbienceZone"/> already is one — always
+        /// on once enabled, flat rather than positioned, because the sound is not somewhere in the
+        /// greenhouse. Left inactive here; a wrong-choice sequence's Set Active step is what turns
+        /// it on, and only one of them ever will.
+        /// </summary>
+        private static GameObject EnsurePanicBreathBed(Transform player)
+        {
+            Transform bed = EnsureChild(player, "Bed_PanicBreath");
+
+            EnsureComponent<AudioSource>(bed.gameObject).playOnAwake = false;
+            AmbienceZone zone = EnsureComponent<AmbienceZone>(bed.gameObject);
+
+            using (SerializedObject serialized = new SerializedObject(zone))
+            {
+                serialized.FindProperty("m_cue").objectReferenceValue =
+                    LoadRequired<AudioCueSO>(k_AudioFolder + "/AMB_PanicBreath.asset");
+                serialized.FindProperty("m_alwaysOn").boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            bed.gameObject.SetActive(false);
+            return bed.gameObject;
+        }
+
+        private static void EnsureWrongChoiceSequence(
+            Transform root, string name, string startFlag, GameObject panicBreath)
         {
             Transform host = EnsureChild(root, name);
             CueSequence sequence = EnsureComponent<CueSequence>(host.gameObject);
@@ -502,21 +569,71 @@ namespace RootsDance.Editor.Content
                     EnsureDialogueChannel();
 
                 SerializedProperty steps = serialized.FindProperty("m_steps");
-                steps.arraySize = 2;
+                steps.arraySize = 3;
 
-                SerializedProperty outburst = steps.GetArrayElementAtIndex(0);
+                SerializedProperty breath = steps.GetArrayElementAtIndex(0);
+                breath.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.SetActive;
+                breath.FindPropertyRelative("m_delay").floatValue = 0f;
+                breath.FindPropertyRelative("m_target").objectReferenceValue = panicBreath;
+                breath.FindPropertyRelative("m_isActive").boolValue = true;
+
+                SerializedProperty outburst = steps.GetArrayElementAtIndex(1);
                 outburst.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.PlayDialogue;
                 outburst.FindPropertyRelative("m_delay").floatValue = 1.5f;
                 outburst.FindPropertyRelative("m_conversation").objectReferenceValue =
                     LoadDialogue("DLG-009_TheyAreNotThere");
 
-                SerializedProperty chase = steps.GetArrayElementAtIndex(1);
+                SerializedProperty chase = steps.GetArrayElementAtIndex(2);
                 chase.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.RaiseFlag;
                 chase.FindPropertyRelative("m_delay").floatValue = 0f;
                 chase.FindPropertyRelative("m_flagId").stringValue = WorldFlags.k_ChaseStarted;
 
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
+        }
+
+        /// <summary>
+        /// Dev Play checkpoint 03-03: arrived at the console, nothing picked yet. Placed a step back
+        /// from it on the approach side (the entrance is south, at negative Z) so the player still
+        /// has to walk up and press interact rather than spawning on top of the trigger.
+        /// </summary>
+        private static void EnsureConsoleCheckpoint(Scene scene, Vector3 consolePosition)
+        {
+            Transform anchors = EnsureRoot(scene, "_Anchors");
+            Transform anchor = EnsureChild(anchors, k_ConsoleCheckpointAnchorName);
+            anchor.SetPositionAndRotation(
+                consolePosition + new Vector3(0f, -0.15f, -1.5f), Quaternion.identity);
+
+            string assetPath = k_GreenhouseCheckpointFolder + "/03-03_CirculationConsole.asset";
+            DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(assetPath);
+            bool isNew = checkpoint == null;
+
+            if (isNew)
+            {
+                checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+            }
+
+            checkpoint.Configure(
+                "03-03 Circulation console",
+                LoadRequired<LevelSO>(k_GreenhouseLevelPath),
+                k_ConsoleCheckpointAnchorName,
+                anchor.position,
+                yaw: 0f,
+                CheckpointTimeOfDay.LevelDefault,
+                k_ConsoleCheckpointFlags,
+                new RootsDance.Investigation.InvestigationTargetSO[0],
+                snapToGround: false);
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(checkpoint, assetPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(checkpoint);
+            }
+
+            AssetDatabase.SaveAssetIfDirty(checkpoint);
         }
 
         // ---- Trigger configuration -------------------------------------------------------------
@@ -663,6 +780,23 @@ namespace RootsDance.Editor.Content
             GameObject child = new GameObject(name);
             child.transform.SetParent(parent, false);
             return child.transform;
+        }
+
+        /// <summary>
+        /// <see cref="EnsureChild"/>, but the position is a default for a new object only — an
+        /// existing one keeps wherever it has since been moved to.
+        /// </summary>
+        private static Transform EnsureChildAt(Transform parent, string name, Vector3 defaultPosition)
+        {
+            bool isNew = parent.Find(name) == null;
+            Transform child = EnsureChild(parent, name);
+
+            if (isNew)
+            {
+                child.position = defaultPosition;
+            }
+
+            return child;
         }
 
         /// <summary>The first component of this type anywhere in the scene, inactive ones included.</summary>

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
 using UnityEngine;
@@ -52,6 +53,7 @@ namespace RootsDance.UI
         private IHelmetView m_view;
         private Vector2 m_wornPosition;
         private Sequence m_sequence;
+        private bool m_checkedInitialState;
 
         private void Awake()
         {
@@ -99,6 +101,29 @@ namespace RootsDance.UI
             }
         }
 
+        private void Update()
+        {
+            if (m_checkedInitialState)
+            {
+                return;
+            }
+
+            IWorldStateReader state = WorldAccess.State;
+
+            if (state == null)
+            {
+                return;
+            }
+
+            m_checkedInitialState = true;
+
+            if (state.HasFlag(WorldFlags.k_HelmetRemoved) && m_visorRoot != null)
+            {
+                m_sequence?.Kill();
+                m_visorRoot.gameObject.SetActive(false);
+            }
+        }
+
         private void OnDestroy()
         {
             m_sequence?.Kill();
@@ -108,6 +133,13 @@ namespace RootsDance.UI
         {
             if (m_visorRoot == null)
             {
+                return;
+            }
+
+            if (duration <= 0f)
+            {
+                m_sequence?.Kill();
+                m_visorRoot.gameObject.SetActive(false);
                 return;
             }
 

@@ -18,14 +18,15 @@ namespace RootsDance.Tests.EditMode.Archive
     {
         private const string k_ArchiveScenePath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
+        private const string k_EnvironmentPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
         private const string k_GameplayPath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
         private const string k_LevelPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
 
-        /// <summary>Desk top (0.78 slab centre + half of a 0.1 slab) plus the anti-z-fight lift.</summary>
-        private const float k_DeskSurface = 0.842f;
-
-        private const float k_HeightTolerance = 0.02f;
+        private const float k_MinimumLift = 0.005f;
+        private const float k_MaximumLift = 0.03f;
+        private const float k_CentreTolerance = 0.03f;
 
         [Test]
         public void BriggsLevel_LoadsTheArchivePartScene()
@@ -59,21 +60,28 @@ namespace RootsDance.Tests.EditMode.Archive
         [Test]
         public void BriggsArchiveScene_LaysBothDocumentsFaceUpOnTheDesk()
         {
-            Scene scene = SceneManager.GetSceneByPath(k_ArchiveScenePath);
-            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+            Scene archiveScene = SceneManager.GetSceneByPath(k_ArchiveScenePath);
+            bool closeArchiveWhenDone = !archiveScene.IsValid() || !archiveScene.isLoaded;
+            Scene environmentScene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeEnvironmentWhenDone = !environmentScene.IsValid() || !environmentScene.isLoaded;
 
-            if (closeWhenDone)
+            if (closeArchiveWhenDone)
             {
-                scene = EditorSceneManager.OpenScene(k_ArchiveScenePath, OpenSceneMode.Additive);
+                archiveScene = EditorSceneManager.OpenScene(k_ArchiveScenePath, OpenSceneMode.Additive);
+            }
+
+            if (closeEnvironmentWhenDone)
+            {
+                environmentScene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
             }
 
             try
             {
-                ArchiveDocumentPickup[] sheets = FindAll<ArchiveDocumentPickup>(scene);
+                ArchiveDocumentPickup[] sheets = FindAll<ArchiveDocumentPickup>(archiveScene);
                 Assert.AreEqual(2, sheets.Length, "Expected both sheets in the archive scene.");
 
                 LayerMask interactable = InteractableLayers();
-                string firstDocument = null;
+                HashSet<string> documentIds = new HashSet<string>();
 
                 for (int i = 0; i < sheets.Length; i++)
                 {
@@ -82,13 +90,25 @@ namespace RootsDance.Tests.EditMode.Archive
                     Object document = new SerializedObject(sheets[i])
                         .FindProperty("m_document").objectReferenceValue;
                     Assert.IsTrue(document != null, sheetName + " has no document assigned.");
-                    Assert.AreNotEqual(firstDocument, document.name,
-                        "Both sheets show the same document.");
-                    firstDocument = document.name;
+                    documentIds.Add(document.name);
 
-                    Assert.That(sheets[i].transform.position.y,
-                        Is.EqualTo(k_DeskSurface).Within(k_HeightTolerance),
-                        sheetName + " is not lying on the desk top.");
+                    string supportName = sheetName.EndsWith("DOC-001")
+                        ? "BI_S9_Clipboard"
+                        : "BI_S9_Binder";
+                    Transform support = FindTransform(environmentScene, supportName);
+                    Assert.IsTrue(support != null, supportName + " is missing from the Lab.");
+
+                    Bounds supportBounds = CombinedRendererBounds(support);
+                    float lift = sheets[i].transform.position.y - supportBounds.max.y;
+                    Assert.That(lift, Is.InRange(k_MinimumLift, k_MaximumLift),
+                        sheetName + " is embedded in or floating above " + supportName + ".");
+
+                    Vector2 sheetCentre = new Vector2(
+                        sheets[i].transform.position.x, sheets[i].transform.position.z);
+                    Vector2 supportCentre = new Vector2(support.position.x, support.position.z);
+                    Assert.That(Vector2.Distance(sheetCentre, supportCentre),
+                        Is.LessThan(k_CentreTolerance),
+                        sheetName + " is not centred on " + supportName + ".");
 
                     // The readable side looks back along the page's own forward, so a sheet flat on
                     // a table has its forward pointing at the table.
@@ -98,12 +118,22 @@ namespace RootsDance.Tests.EditMode.Archive
                     Assert.AreNotEqual(0, interactable.value & (1 << sheets[i].gameObject.layer),
                         sheetName + " is on a layer interaction ignores.");
                 }
+
+                CollectionAssert.AreEquivalent(
+                    new[] { "DOC-001_UndergroundNetwork", "DOC-002_RingExpansion" },
+                    documentIds,
+                    "The Lab must contain its two research sheets, not greenhouse-only documents.");
             }
             finally
             {
-                if (closeWhenDone)
+                if (closeEnvironmentWhenDone)
                 {
-                    EditorSceneManager.CloseScene(scene, true);
+                    EditorSceneManager.CloseScene(environmentScene, true);
+                }
+
+                if (closeArchiveWhenDone)
+                {
+                    EditorSceneManager.CloseScene(archiveScene, true);
                 }
             }
         }
@@ -186,6 +216,41 @@ namespace RootsDance.Tests.EditMode.Archive
             }
 
             return found.ToArray();
+        }
+
+        private static Transform FindTransform(Scene scene, string name)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                Transform[] transforms = roots[i].GetComponentsInChildren<Transform>(true);
+
+                for (int j = 0; j < transforms.Length; j++)
+                {
+                    if (transforms[j].name == name)
+                    {
+                        return transforms[j];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static Bounds CombinedRendererBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            Assert.AreNotEqual(0, renderers.Length, root.name + " has no visible renderer.");
+
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds;
         }
     }
 }

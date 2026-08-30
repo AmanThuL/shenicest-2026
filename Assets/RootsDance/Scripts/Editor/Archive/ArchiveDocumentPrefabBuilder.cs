@@ -242,7 +242,8 @@ namespace RootsDance.Editor.Archive
             RectTransform inkLayer = CreateGroup(layers, "Ink");
 
             RectTransform diagramRect = AddDiagram(inkLayer, furniture, inkGraphics);
-            RectTransform photoRect = AddPhoto(inkLayer, furniture, inkGraphics);
+            RectTransform photoRect = AddPhoto(inkLayer, furniture, inkGraphics,
+                out RawImage photoExposure);
             RectTransform signatureRect = AddText(inkLayer, "Signature", furniture.HandFont, 24f,
                 k_SignatureInk, TextAlignmentOptions.Midline, texts,
                 out TextMeshProUGUI signature);
@@ -335,6 +336,7 @@ namespace RootsDance.Editor.Archive
             Bind(serialized, "m_signature", signature);
             Bind(serialized, "m_archiveCode", archiveCode);
             Bind(serialized, "m_diagram", diagramRect.GetComponent<RawImage>());
+            Bind(serialized, "m_photo", photoExposure);
             Bind(serialized, "m_dustOverlay", dustLayer);
             BindBlocks(serialized, blocks);
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -484,7 +486,7 @@ namespace RootsDance.Editor.Archive
         /// actually holding it to the sheet.
         /// </summary>
         private static RectTransform AddPhoto(RectTransform parent, Furniture furniture,
-            List<Graphic> inkGraphics)
+            List<Graphic> inkGraphics, out RawImage exposureImage)
         {
             // A Polaroid: a cream card with the exposure sunk into it and a deep border along the
             // bottom, which is the only part of a photograph anyone ever writes on.
@@ -495,6 +497,7 @@ namespace RootsDance.Editor.Archive
                 furniture.Ink);
             inkGraphics.Add(exposure);
             InsetSides(exposure.rectTransform, 14f, 14f, 14f, 62f);
+            exposureImage = exposure;
 
             RawImage clip = CreateRaw(card.rectTransform, "Paperclip", furniture.Clip, Color.white,
                 furniture.Ink);

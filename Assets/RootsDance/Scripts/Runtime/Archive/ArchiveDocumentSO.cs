@@ -71,6 +71,11 @@ namespace RootsDance.Archive
             + "leaves the sheet to its writing.")]
         private Texture2D m_diagram;
 
+        [SerializeField, TitleGroup("Result")]
+        [Tooltip("The clipped photograph on an observation record. Empty leaves the plate an "
+            + "undeveloped dark exposure.")]
+        private Texture2D m_photo;
+
         [SerializeField, TitleGroup("Result"), ReadOnly]
         [Tooltip("The whole sheet — paper and writing together — composed into one image by "
             + "RootsDance/Archive/Compose Pages. Generated: do not assign by hand. The page is "
@@ -118,6 +123,7 @@ namespace RootsDance.Archive
         public string RequiredFlag => m_requiredFlag;
         public string[] BodyLines => m_bodyLines;
         public Texture2D Diagram => m_diagram;
+        public Texture2D Photo => m_photo;
 
         /// <summary>The whole sheet composed into one image; see the field tooltip.</summary>
         public Texture2D ComposedPage => m_composedPage;

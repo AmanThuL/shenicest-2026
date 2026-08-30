@@ -1020,8 +1020,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 405401863}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.8870108, z: -0, w: -0.46174866}
-  m_LocalPosition: {x: 52, y: 6, z: 108}
+  m_LocalRotation: {x: -0, y: 0.9914449, z: -0, w: -0.13052621}
+  m_LocalPosition: {x: 30, y: 8.9, z: 105}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2332,6 +2332,7 @@ MonoBehaviour:
   m_monster: {fileID: 973342487}
   m_monsterSpawn: {fileID: 1608846279}
   m_player: {fileID: 510528444}
+  m_hideWhenChasing: {fileID: 0}
   m_armWhenChasing:
   - {fileID: 825808310}
   m_birthSeconds: 1.1
@@ -2351,7 +2352,7 @@ GameObject:
   - component: {fileID: 825808313}
   - component: {fileID: 825808312}
   - component: {fileID: 825808311}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: VictoryVolume
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2390,7 +2391,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 60, y: 24, z: 12}
+  m_Size: {x: 14, y: 8, z: 12}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &825808313
 Transform:
@@ -2401,7 +2402,7 @@ Transform:
   m_GameObject: {fileID: 825808310}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8, z: 8}
+  m_LocalPosition: {x: 0.4, y: 5.5, z: -9.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2762,19 +2763,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 57
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8
+      value: 8.9
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 112
+      value: 116.5
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.46174866
+      value: -0.13052621
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalRotation.x
@@ -2782,7 +2783,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.8870108
+      value: 0.9914449
       objectReference: {fileID: 0}
     - target: {fileID: 2456318749790758046, guid: 56c601f1e654e406eafe6598e614e5c2, type: 3}
       propertyPath: m_LocalRotation.z
@@ -3655,7 +3656,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1416126124}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0.42977166, z: -0, w: 0.9029376}
   m_LocalPosition: {x: 0, y: 4.9380655, z: 15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3694,8 +3695,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 10, y: 3, z: 10}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 86, y: 22, z: 10}
+  m_Center: {x: -0.0000009536743, y: 0.68260384, z: 3.999999}
 --- !u!1 &1425002530
 GameObject:
   m_ObjectHideFlags: 0
@@ -3941,8 +3942,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1608846278}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.8870108, z: -0, w: -0.46174866}
-  m_LocalPosition: {x: 57, y: 8, z: 112}
+  m_LocalRotation: {x: -0, y: 0.9914449, z: -0, w: -0.13052621}
+  m_LocalPosition: {x: 34, y: 8.9, z: 116.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4216,7 +4217,7 @@ MonoBehaviour:
   m_panicOnFlag: 
   m_calmOnFlag: 
   m_lookBackOnFlag: 
-  m_controller: {fileID: 0}
+  m_controller: {fileID: 510528445}
   m_fullStrideSpeed: 4.4
   m_runOnsetSpeed: 2.6
   m_stepsPerSecond: 2.9

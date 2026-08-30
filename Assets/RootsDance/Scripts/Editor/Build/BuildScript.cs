@@ -45,6 +45,8 @@ namespace RootsDance.Editor.Build
                     ". Run RootsDance > Build > Create Default Build Profiles first.");
             }
 
+            ValidateBuildProfile(profile, profileName);
+
             BuildOptions options = BuildOptions.StrictMode | BuildOptions.DetailedBuildReport;
             if (development)
             {
@@ -63,6 +65,11 @@ namespace RootsDance.Editor.Build
             };
 
             BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
+            if (report == null)
+            {
+                throw new BuildFailedException("Unity returned no build report. Check the preceding build errors.");
+            }
+
             BuildSummary summary = report.summary;
 
             Debug.Log(string.Format(
@@ -73,6 +80,98 @@ namespace RootsDance.Editor.Build
             {
                 throw new BuildFailedException(string.Format(
                     "Build {0} with {1} error(s).", summary.result, summary.totalErrors));
+            }
+        }
+
+        private static void ValidateBuildProfile(BuildProfile profile, string profileName)
+        {
+            BuildTarget expectedTarget;
+            if (profileName.StartsWith("Windows-", StringComparison.Ordinal))
+            {
+                expectedTarget = BuildTarget.StandaloneWindows64;
+            }
+            else if (profileName.StartsWith("macOS-", StringComparison.Ordinal))
+            {
+                expectedTarget = BuildTarget.StandaloneOSX;
+            }
+            else
+            {
+                throw new BuildFailedException("Unsupported profile name: " + profileName);
+            }
+
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, expectedTarget))
+            {
+                throw new BuildFailedException(
+                    "Build support for " + expectedTarget + " is unavailable. Install the matching " +
+                    "IL2CPP build support module for this Unity Editor, then restart the Editor.");
+            }
+
+            // Unity 6.3 exposes these profile fields only internally. Read through SerializedObject;
+            // never repair or save project assets as a side effect of a command-line build.
+            using (var serializedProfile = new SerializedObject(profile))
+            {
+                SerializedProperty target = serializedProfile.FindProperty("m_BuildTarget");
+                SerializedProperty subtarget = serializedProfile.FindProperty("m_Subtarget");
+                SerializedProperty platform = serializedProfile.FindProperty("m_PlatformBuildProfile");
+                if (target == null || subtarget == null || platform == null)
+                {
+                    throw new BuildFailedException(
+                        "Build profile serialization changed. This build script requires Unity 6000.3.22f1.");
+                }
+
+                if (target.intValue != (int)expectedTarget
+                    || subtarget.intValue != (int)StandaloneBuildSubtarget.Player)
+                {
+                    throw new BuildFailedException(
+                        profileName + " must target " + expectedTarget + " with subtarget Player. " +
+                        "Correct the profile in File > Build Profiles before building.");
+                }
+
+                // BuildProfile.OnEnable initializes a previously null platform profile when its
+                // module is available, including the Windows profile first authored on macOS.
+                if (platform.managedReferenceValue == null)
+                {
+                    throw new BuildFailedException(
+                        profileName + " has no platform settings. Install its build support module, restart " +
+                        "Unity, and run RootsDance > Build > Create Default Build Profiles.");
+                }
+            }
+
+            if (EditorUserBuildSettings.activeBuildTarget != expectedTarget)
+            {
+                throw new BuildFailedException(
+                    "The Editor compiled scripts for " + EditorUserBuildSettings.activeBuildTarget + ". " +
+                    "Restart the batch build with -buildTarget " + expectedTarget + " before -executeMethod.");
+            }
+
+            ValidateInheritedPlayerSettings(profile);
+            BuildProfile activeProfile = BuildProfile.GetActiveBuildProfile();
+            if (activeProfile != null && activeProfile != profile)
+            {
+                // PlayerSettings getters can otherwise read a different active profile's override
+                // before BuildPipeline activates the requested profile.
+                ValidateInheritedPlayerSettings(activeProfile);
+            }
+
+            if (PlayerSettings.GetScriptingBackend(NamedBuildTarget.Standalone) != ScriptingImplementation.IL2CPP)
+            {
+                throw new BuildFailedException(
+                    "Standalone Scripting Backend must be IL2CPP; refusing to silently build Mono. " +
+                    "Run RootsDance > Build > Create Default Build Profiles, then retry.");
+            }
+        }
+
+        private static void ValidateInheritedPlayerSettings(BuildProfile profile)
+        {
+            using (var serializedProfile = new SerializedObject(profile))
+            {
+                SerializedProperty settings = serializedProfile.FindProperty("m_PlayerSettingsYaml.m_Settings");
+                if (settings == null || settings.arraySize != 0)
+                {
+                    throw new BuildFailedException(
+                        "Profile " + profile.name + " must inherit global Player Settings for this build script. " +
+                        "Remove its Player Settings override in File > Build Profiles before building.");
+                }
             }
         }
 

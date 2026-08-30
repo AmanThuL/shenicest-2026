@@ -12,6 +12,51 @@ namespace RootsDance.Tests.EditMode.Core
     public class CommandQueueTests
     {
         [Test]
+        public void BeginReset_PendingAndTeardownCommands_DiscardsBoth()
+        {
+            var state = new WorldState();
+            var queue = new CommandQueue();
+            queue.Enqueue(new RaiseFlagCommand("pending"));
+
+            queue.BeginReset();
+            queue.Enqueue(new RaiseFlagCommand("teardown"));
+            queue.Drain(state);
+
+            Assert.That(queue.PendingCount, Is.Zero);
+            Assert.That(state.HasFlag("pending"), Is.False);
+            Assert.That(state.HasFlag("teardown"), Is.False);
+        }
+
+        [Test]
+        public void EndReset_FreshSceneCommand_IsAccepted()
+        {
+            var state = new WorldState();
+            var queue = new CommandQueue();
+            queue.BeginReset();
+            queue.EndReset();
+            queue.Enqueue(new RaiseFlagCommand("fresh"));
+
+            queue.Drain(state);
+
+            Assert.That(state.HasFlag("fresh"), Is.True);
+        }
+
+        [Test]
+        public void EndReset_AlreadyResumed_PreservesFreshPendingCommands()
+        {
+            var state = new WorldState();
+            var queue = new CommandQueue();
+            queue.BeginReset();
+            queue.EndReset();
+            queue.Enqueue(new RaiseFlagCommand("fresh"));
+
+            queue.EndReset();
+            queue.Drain(state);
+
+            Assert.That(state.HasFlag("fresh"), Is.True);
+        }
+
+        [Test]
         public void Drain_ExecutesEveryQueuedCommand()
         {
             WorldState state = new WorldState();
