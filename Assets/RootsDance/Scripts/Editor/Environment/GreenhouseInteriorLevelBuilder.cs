@@ -159,6 +159,7 @@ namespace RootsDance.Editor.Environment
             CreateWalkableFloor(geometry, greenhouseBounds);
             CreateBotanicalBeds(props, scene);
             CreateScaleReference(props);
+            GreenhouseRainwaterSinkBuilder.BuildInto(props, scene);
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_GreenhouseInteriorEnvironment);
         }
