@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: MainMenu
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Data.LevelSO
   m_scenePaths:
+  - Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu_Background.unity
   - Assets/RootsDance/Scenes/Levels/MainMenu/MainMenu.unity

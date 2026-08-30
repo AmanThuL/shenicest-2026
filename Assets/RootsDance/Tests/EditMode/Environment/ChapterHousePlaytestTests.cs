@@ -6,6 +6,7 @@ using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Dialogue;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Environment;
 using RootsDance.Sequencing;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -33,6 +34,7 @@ namespace RootsDance.Tests.EditMode.Environment
         private const string k_CorridorEntranceCheckpointPath =
             "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
         private const string k_FirstMeetingPath = "Assets/RootsDance/Data/Dialogue/DLG-001_FirstMeeting.asset";
+        private const string k_GreenhouseLevelPath = "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
         private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
         private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
         private const string k_BridgePart = "Bridge_Metal_Center.001";
@@ -367,6 +369,38 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsTrue(conversation != null, k_FirstMeetingPath);
             Assert.IsNotEmpty(conversation.Lines, "The first meeting has no lines.");
             Assert.IsNotEmpty(conversation.Id, "The conversation has no id.");
+        }
+
+        [Test]
+        public void Step7_TheFarDoorLoadsTheGreenhouseEntrance()
+        {
+            Scene gameplay = OpenAdditive(ScenePaths.k_ChapterHouseInteriorGameplay);
+
+            try
+            {
+                Transform exit = Require(gameplay, "_Triggers", "ExitToGreenhouse");
+                LevelPortal portal = exit.GetComponent<LevelPortal>();
+                Assert.IsTrue(portal != null, "The far door has no level portal.");
+                Assert.AreEqual(LayerMask.NameToLayer("TriggerVolume"), exit.gameObject.layer,
+                    "The greenhouse exit is on a layer the player's trigger probe cannot reach.");
+
+                BoxCollider trigger = exit.GetComponent<BoxCollider>();
+                Assert.IsTrue(trigger != null && trigger.isTrigger,
+                    "The greenhouse exit is not a trigger volume.");
+
+                using (SerializedObject serialized = new SerializedObject(portal))
+                {
+                    Object destination = serialized.FindProperty("m_level").objectReferenceValue;
+                    Assert.AreEqual(k_GreenhouseLevelPath, AssetDatabase.GetAssetPath(destination),
+                        "The far door does not load the greenhouse entrance level.");
+                    Assert.IsTrue(serialized.FindProperty("m_loadLevelRequested").objectReferenceValue != null,
+                        "The far door has no level-load channel to raise.");
+                }
+            }
+            finally
+            {
+                Close(gameplay);
+            }
         }
 
         // ---- helpers ---------------------------------------------------------------------------
