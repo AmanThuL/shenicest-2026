@@ -178,26 +178,11 @@ namespace RootsDance.Tests.EditMode.Environment
             }
         }
 
-        [Test]
-        public void BriggsCentralTableProps_AfterPlacement_RestOnWorktop()
+        [TestCase("BI_CentralSet_Glassware_Main", 0.942f, 6)]
+        [TestCase("BI_CentralSet_Glassware_Back", 0.002f, 8)]
+        public void BriggsGlassware_AuthoredLayout_RestsOnSupportingSurface(
+            string groupName, float surfaceY, int expectedCount)
         {
-            const float worktopY = 0.942f;
-            string[] groupNames =
-            {
-                "BI_CentralSet_Glassware_Main",
-                "BI_CentralSet_Glassware_Back",
-            };
-            string[] glasswareNames =
-            {
-                "Beaker",
-                "Erenmayer",
-                "Gelas Ukur",
-                "Graduated Cylinder",
-                "Pipette",
-                "Plane",
-                "Tube",
-                "Volumetric Flask",
-            };
             Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
 
@@ -209,29 +194,45 @@ namespace RootsDance.Tests.EditMode.Environment
             try
             {
                 Transform pwb = FindRoot(scene, "Prefab World Builder");
-                Transform props = FindRoot(scene, "_Props");
+                Transform group = FindDescendant(pwb, groupName);
+                Assert.That(group, Is.Not.Null, groupName);
+                Renderer[] glassware = group.GetComponentsInChildren<Renderer>(true);
+                Assert.That(glassware.Length, Is.EqualTo(expectedCount), groupName);
 
-                for (int groupIndex = 0; groupIndex < groupNames.Length; groupIndex++)
+                // The authored layout moved the back set to the floor and removed two main-set pieces.
+                foreach (Renderer renderer in glassware)
                 {
-                    Transform group = FindDescendant(pwb, groupNames[groupIndex]);
-                    Assert.That(group, Is.Not.Null, groupNames[groupIndex]);
-
-                    for (int glasswareIndex = 0; glasswareIndex < glasswareNames.Length; glasswareIndex++)
-                    {
-                        string glasswareName = glasswareNames[glasswareIndex];
-                        Transform glassware = FindDescendant(group, glasswareName);
-                        Assert.That(glassware, Is.Not.Null, groupNames[groupIndex] + "/" + glasswareName);
-                        Renderer renderer = glassware.GetComponent<Renderer>();
-                        Assert.That(renderer, Is.Not.Null, groupNames[groupIndex] + "/" + glasswareName);
-                        Assert.That(renderer.bounds.min.y, Is.EqualTo(worktopY).Within(0.003f),
-                            groupNames[groupIndex] + "/" + glasswareName + " floats above the central worktop.");
-                    }
+                    Assert.That(renderer.bounds.min.y, Is.EqualTo(surfaceY).Within(0.003f),
+                        groupName + "/" + renderer.name + " does not rest on its supporting surface.");
                 }
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
 
+        [Test]
+        public void BriggsBlueFlask_AuthoredLayout_RestsOnWorktop()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform props = FindRoot(scene, "_Props");
                 Transform blueFlask = FindDescendant(props, "BlueFlask_CentralTable");
                 Assert.That(blueFlask, Is.Not.Null, "BlueFlask_CentralTable");
                 Bounds blueFlaskBounds = GetRendererBounds(blueFlask);
-                Assert.That(blueFlaskBounds.min.y, Is.EqualTo(worktopY).Within(0.003f),
+                Assert.That(blueFlaskBounds.min.y, Is.EqualTo(0.942f).Within(0.003f),
                     "BlueFlask_CentralTable floats above the central worktop.");
             }
             finally
