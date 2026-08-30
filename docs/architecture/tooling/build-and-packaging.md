@@ -6,8 +6,9 @@
 > teammate reading the profile/player-settings rationale.
 > **Status:** written alongside the implementation on 2026-08-28 from
 > `docs/superpowers/specs/2026-08-28-build-and-packaging-design.md`; build-result checks and
-> package provenance updated 2026-08-30. macOS is the verified path; Windows is designed but
-> untested (see Open follow-ups).
+> package provenance and Windows support updated 2026-08-30. macOS is the verified build path.
+> Windows implementation and script tests are in place; actual Windows IL2CPP compilation and
+> player launch remain **UNVERIFIED** (see Open follow-ups).
 
 Owning guideline: [08 — Testing, tooling and IDE setup](../../guidelines/08-testing-tooling.md)
 holds the project's build-profile and command-line-build rules (profiles live under
@@ -29,7 +30,7 @@ python3 Tools/build/build.py [PROFILE] [--dev] [--package-only] [--dry-run] [--f
                              [--output-dir DIR] [--unity PATH]
 ```
 
-`PROFILE` defaults to `macOS-Release`. Command usage lives in
+`PROFILE` defaults to `macOS-Release` on macOS and `Windows-Release` on Windows. Command usage lives in
 [`Tools/build/README.md`](../../../Tools/build/README.md); this document is the specification it
 points back to.
 
@@ -104,6 +105,11 @@ a `.app` bundle, and the unzipped app fails to launch. macOS packaging shells ou
 `ditto -c -k --sequesterRsrc --keepParent` instead. Windows output is a plain folder with no
 symlinks, so `zipfile` with `ZIP_DEFLATED` is used there.
 
+The Windows archive also has one enclosing folder and includes `build-info.json` and a
+Windows-specific `README.txt`. It ships the complete player output: `RootsDance.exe`, its DLLs,
+`*_Data` directory and other runtime files. Extract the entire archive before launching the
+executable; copying only the `.exe` will not work.
+
 **What's excluded, and why.** Every build directory also contains two folders Unity's IL2CPP
 backend writes next to the player itself: `<ProductName>_BackUpThisFolder_ButDontShipItWithYourGame`
 (an incremental-build cache) and `<ProductName>_BurstDebugInformation_DoNotShip` (Burst's native
@@ -123,12 +129,18 @@ crash from this specific build later.
 
 ## One-time setup
 
+Use Python 3.9 or newer (64-bit recommended), Git and Git LFS. Install the pinned Unity Editor
+version and restore the repository's LFS assets before building.
+
 Open the project in the Editor once and run **`RootsDance > Build > Create Default Build
 Profiles`**. It creates `macOS-Release.asset` and `Windows-Release.asset` under
 `Assets/RootsDance/Settings/BuildProfiles/` (guideline 08's required location) and applies the
 player settings in the table below to `NamedBuildTarget.Standalone`. It is idempotent — an
 existing profile asset is loaded and updated in place rather than duplicated, so re-running it
 after a settings change is the way to re-apply that change.
+The normal build path does not run this generator or save profile assets. It validates the
+requested target and Player subtarget, installed module, inherited Player Settings and IL2CPP
+backend, and fails with instructions if they are unsuitable instead of silently changing them.
 
 On a machine with no macOS Build Support module installed (e.g. a Windows-only teammate), the
 generator logs a warning and skips baking ARM64 architecture onto `macOS-Release.asset` instead of
@@ -143,6 +155,36 @@ there today.
 There are **no separate `-Dev` profile assets** — see "Why the scripting backend is global" below
 for why, and the "Dev builds" row of the settings table for what changes instead.
 
+### Windows IL2CPP prerequisites
+
+Build Windows on a Windows machine; the CLI does not cross-compile. Install:
+
+- The pinned Unity Editor with **Windows Build Support (IL2CPP)**. Having only Mono player
+  support is insufficient. The script checks the selected `win64_player_nondevelopment_il2cpp`
+  or `win64_player_development_il2cpp` variation under the Editor's playback engine.
+- **Visual Studio 2019 or newer**, or the corresponding **Build Tools**, with **Desktop
+  development with C++** and the **MSVC x64/x86 build tools** component.
+- A **Windows SDK 10.0.19041.0 or newer**, including x64 libraries, headers, UCRT and `rc.exe`.
+
+These toolchain minimums come from the vendored [Unity system requirements](../../reference/unity6-release/manual-system-requirements.md).
+`windows.py` queries Visual Studio Installer's `vswhere.exe` for VS 2019+ installations,
+including Build Tools, requiring `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`. It then
+checks the installed x64 `cl.exe` and `link.exe`. SDK discovery checks `WindowsSdkDir`, Windows
+Kits registry entries and the standard Program Files location, and requires one complete SDK
+version rather than treating an empty installation folder as sufficient.
+
+Unity discovery honors `--unity` first, then `UNITY_EDITOR`, then the standard Program Files
+paths `Unity/Hub/Editor/<version>/Editor/Unity.exe` and `Unity/Editor/Unity.exe`. Windows modules
+live beneath `Editor/Data/PlaybackEngines/`; the macOS `Unity.app/Contents/` layout is handled
+separately. An Editor-running check queries Win32 process state without sending a signal; the
+POSIX `os.kill(pid, 0)` probe is not used on Windows.
+
+A Windows profile originally created on a Mac can have absent platform settings in its saved
+asset. Unity initializes the platform defaults when that profile is loaded with Windows build
+support installed. No manual YAML repair or automatic profile regeneration is needed. If the
+global backend was changed to Mono, explicitly run **RootsDance > Build > Create Default Build
+Profiles** once to restore the project's IL2CPP settings, then close the Editor before building.
+
 ## Commands
 
 ```bash
@@ -154,6 +196,19 @@ python3 Tools/build/build.py --dry-run              # print the plan, build and 
 python3 Tools/build/build.py --force                # overwrite an existing zip of the same name
 ```
 
+On Windows, from PowerShell in the repository root:
+
+```powershell
+py -3 Tools/build/build.py Windows-Release --dry-run
+py -3 Tools/build/build.py Windows-Release
+py -3 Tools/build/build.py Windows-Release --dev
+py -3 Tools/build/build.py Windows-Release --force
+py -3 Tools/build/build.py Windows-Release --unity "D:\Unity\6000.3.22f1\Editor\Unity.exe"
+```
+
+Omitting the profile on Windows selects `Windows-Release`. The custom path must identify the
+Unity executable; `UNITY_EDITOR` is the equivalent environment-variable override.
+
 Full flag reference and combinations: [`Tools/build/README.md`](../../../Tools/build/README.md).
 
 Under the hood, phase 2 is the same shape as guideline 08's `-executeMethod` escape hatch, run
@@ -161,10 +216,14 @@ non-interactively:
 
 ```
 -batchmode -quit -projectPath <repo root>
+-buildTarget <StandaloneOSX|StandaloneWindows64>
 -executeMethod RootsDance.Editor.Build.BuildScript.BuildFromCommandLine
 -rdProfile <ProfileName> -rdOutput <path> [-rdDev]
 -logFile Logs/build-<profile>.log
 ```
+
+Selecting `-buildTarget` before `-executeMethod` makes Unity compile scripts for the requested
+platform before invoking the build entry point. The Windows player target is x64.
 
 Batch mode prints nothing to the terminal while it works, so the script prints an elapsed-time
 heartbeat and the log path up front — with an explicit warning that a first IL2CPP build can take
@@ -235,11 +294,14 @@ minutes of an IL2CPP build. Each one exits `1` and names its own fix:
 |---|---|
 | `ProjectSettings/ProjectVersion.txt` missing (repo root not resolved) | Run the script from inside the project, or check `Tools/build/build.py`'s repo-root resolution. |
 | Named profile asset does not exist under `BuildProfiles/` | The error lists what *is* there — run the one-time setup menu item, or check the spelling of `PROFILE`. |
-| Platform token does not parse from the profile name | Only `macOS-*` and `Windows-*` are recognized; rename or add the profile to `Tools/build/naming.py`. |
+| Profile name is unsupported | Use `macOS-Release` or `Windows-Release`, or add the intended profile to `Tools/build/naming.py`. |
 | Target platform ≠ host platform | "Build Windows on Windows" — this script does not cross-compile. |
 | The platform's PlaybackEngine module is not installed | Install it via Unity Hub, or `unity install --module <name>`. |
 | The Editor is already running for this project | Close it — a batch build cannot share the project with an open Editor (the same rule as guideline 08 / `CLAUDE.local.md`). |
-| No usable Unity binary found | Pass `--unity PATH`, or set `$UNITY_EDITOR`; the script otherwise tries the direct-install path, then the Hub path, for the version pinned in `ProjectVersion.txt`. |
+| No usable Unity binary found | Pass `--unity PATH` or set `UNITY_EDITOR` to the executable. The script checks standard Hub/direct-install paths for the host platform; use the version pinned in `ProjectVersion.txt`. |
+| Selected Windows IL2CPP player variation is missing | Add **Windows Build Support (IL2CPP)** to this Editor installation in Unity Hub. The matching release or development win64 variation must exist. |
+| `vswhere.exe` or a usable MSVC x64 compiler/linker is missing | Install VS 2019+ or Build Tools with **Desktop development with C++** and the MSVC x64/x86 tools using Visual Studio Installer. |
+| No complete Windows SDK 10.0.19041.0+ is found | Install a Windows 10/11 SDK including x64 libraries, headers, UCRT and resource compiler using Visual Studio Installer. |
 | `xcodebuild` not found on `PATH` (`shutil.which("xcodebuild")`) on a macOS IL2CPP profile | Install full Xcode from the App Store or developer.apple.com — the Command Line Tools alone are not enough: `xcode-select -p` succeeds with just CLT installed, but IL2CPP's C++ toolchain needs the full `Xcode.app` (the CLT bundle doesn't ship it). Then run `xcode-select --install` if prompted. |
 | No scenes are enabled in `EditorBuildSettings.asset` | Enable at least one in **File > Build Profiles > Scene List** (Bootstrap first). |
 | A zip of that exact name already exists in the output directory | Checked in `main()` right after the plan is resolved, before the (possibly 10–25 minute) Unity build starts — not after. Pass `--force` to overwrite, or remove the existing zip. |
@@ -276,6 +338,11 @@ xattr -dr com.apple.quarantine RootsDance.app
   error. Fix the compile errors first (Console, or the log file) — see guideline 08's
   [compile-check-without-tests note](../../guidelines/08-testing-tooling.md#from-the-command-line-humans-and-agents)
   (sourced from `manual-safemode.md`).
+- **A profile or Player Settings validation error is a build failure (`2`).** The C# entry point
+  refuses a missing module/platform settings object, a wrong target or subtarget, per-profile
+  Player Settings overrides, and a non-IL2CPP Standalone backend. Follow the error's Editor
+  instructions and retry; the build command does not repair or save assets. A saved active
+  profile with Player Settings overrides must also be corrected so it cannot affect validation.
 - **A non-zero exit does not always mean the build failed — but the mere existence of the `.app`
   bundle doesn't prove it succeeded either.** `-executeMethod` can report "Timeout after 300
   seconds while waiting async operations to finish" and exit non-zero *after* the player has
@@ -310,19 +377,12 @@ xattr -dr com.apple.quarantine RootsDance.app
 
 - **HDRP shader-variant stripping is unexplored.** It lives in HDRP Global Settings, not in this
   script, and is the rendering owner's call — not addressed here.
-- **The Windows path is untested.** It needs a Windows machine: this Mac has only
-  `MacStandaloneSupport` installed, no Windows Playback Engine module. Windows IL2CPP additionally
-  requires Visual Studio 2019+ with the C++ build tools and Windows SDK 10.0.19041.0+ (source:
-  `docs/reference/unity6-release/manual-system-requirements.md`). Two things in `build.py` itself
-  are also macOS-path-only today: `resolve_unity()`'s candidate paths are both
-  `/Applications/Unity/...`, and `module_installed()` derives the `PlaybackEngines` folder from a
-  `Unity.app/Contents/MacOS/Unity` layout that a Windows install does not have. A Windows host
-  currently fails the module-installed check regardless of what is actually installed — pass
-  `--unity PATH` to skip `resolve_unity()`, but `module_installed()` still needs a real fix before
-  a Windows preflight can pass on its own. Separately, the committed `Windows-Release.asset` has a
-  null platform-settings object (`rid: -2`, vs. macOS's real `rid`) because the Windows module was
-  absent on the machine that generated it — whoever first builds Windows must re-run
-  `RootsDance > Build > Create Default Build Profiles` there and commit the re-serialized asset.
+- **Windows compilation and runtime remain UNVERIFIED.** Windows discovery, toolchain checks,
+  process probing, invocation and zip packaging are implemented and covered by script tests
+  using mocks, fixtures and real archive operations. This is not evidence that Unity has built
+  or launched a Windows player. On a configured Windows machine, run the Python suite, a
+  `Windows-Release --dry-run`, a real release build and an extracted-player smoke test; check the
+  build log's fresh success marker and the archive's runtime files before sharing it.
 - **The global scene list is content-owned.** As checked on 2026-08-30,
   `ProjectSettings/EditorBuildSettings.asset` enables 13 scenes: `Bootstrap`, `Main_Environment`,
   `Main_Gameplay`, `Main_Environment_2`, `MainMenu`, `BriggsInterior_Environment`,
@@ -341,9 +401,14 @@ xattr -dr com.apple.quarantine RootsDance.app
   `BuildFromCommandLine`, reading `-rdProfile` / `-rdOutput` / `-rdDev`.
 - `Tools/build/naming.py` — the naming convention, pure logic, no side effects.
 - `Tools/build/build.py` — the CLI: preflight, build, package, report.
+- `Tools/build/windows.py` — Windows Unity discovery, read-only process checks and MSVC/SDK
+  validation; standard-library only.
 - `Tools/build/test_naming.py` — `unittest` coverage (`python3 -m unittest discover -s
   Tools/build`) for `naming.py` plus the pure/stubbable helpers in `build.py`: `git_state`,
   `editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`.
 - `Tools/build/test_build.py` — orchestration and provenance regressions: fresh build-result logs,
   manifest persistence and validation, and package-only behavior. These tests do not replace a
   real Unity build and player smoke test.
+- `Tools/build/test_windows.py` — Windows host behavior, toolchain fixtures and zip packaging
+  regressions. Run with the same discovery command, or
+  `py -3 -m unittest discover -s Tools/build` on Windows.

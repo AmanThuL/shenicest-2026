@@ -61,7 +61,7 @@ class BuildFlowTests(unittest.TestCase):
                     build.subprocess, "Popen", side_effect=self.fake_unity(log_text, 0)), \
                     mock.patch.object(build, "package") as package:
                 with self.assertRaises(SystemExit) as failure:
-                    build.main([])
+                    build.main([PROFILE])
                 self.assertEqual(failure.exception.code, build.EXIT_BUILD)
                 package.assert_not_called()
                 self.assertFalse(os.path.exists(os.path.join(self.build_dir, build.BUILD_INFO_FILE)))
@@ -74,7 +74,7 @@ class BuildFlowTests(unittest.TestCase):
         with mock.patch.object(build.subprocess, "Popen", side_effect=self.fake_unity(None, 1)), \
                 mock.patch.object(build, "package") as package:
             with self.assertRaises(SystemExit) as failure:
-                build.main([])
+                build.main([PROFILE])
             self.assertEqual(failure.exception.code, build.EXIT_BUILD)
             self.assertEqual(build.read_log(self.log), "")
             package.assert_not_called()
@@ -84,7 +84,7 @@ class BuildFlowTests(unittest.TestCase):
         with mock.patch.object(build.subprocess, "Popen", side_effect=self.fake_unity(
                 "[BuildScript] macOS-Release: result=Succeeded\n", 1)), \
                 mock.patch.object(build, "package", side_effect=OSError("disk full")):
-            self.assertEqual(build.main([]), build.EXIT_PACKAGE)
+            self.assertEqual(build.main([PROFILE]), build.EXIT_PACKAGE)
         self.assertEqual(build.load_build_info(self.build_dir, PROFILE, "macOS", False), original_info())
 
     def test_launch_error_returns_build_failure_without_packaging(self):
@@ -92,7 +92,7 @@ class BuildFlowTests(unittest.TestCase):
         with mock.patch.object(build.subprocess, "Popen", side_effect=OSError("not executable")), \
                 mock.patch.object(build, "package") as package:
             with self.assertRaises(SystemExit) as failure:
-                build.main([])
+                build.main([PROFILE])
             self.assertEqual(failure.exception.code, build.EXIT_BUILD)
             package.assert_not_called()
 
@@ -106,7 +106,7 @@ class BuildFlowTests(unittest.TestCase):
 
         with mock.patch.object(build.subprocess, "Popen", side_effect=launch), \
                 mock.patch.object(build, "package") as package:
-            self.assertEqual(build.main([]), build.EXIT_PACKAGE)
+            self.assertEqual(build.main([PROFILE]), build.EXIT_PACKAGE)
             package.assert_not_called()
         self.assertFalse(os.path.exists(os.path.join(self.build_dir, build.BUILD_INFO_FILE)))
 
@@ -131,13 +131,13 @@ class BuildFlowTests(unittest.TestCase):
             return path
 
         with mock.patch.object(build, "package", side_effect=archive):
-            self.assertEqual(build.main(["--package-only"]), build.EXIT_OK)
+            self.assertEqual(build.main([PROFILE, "--package-only"]), build.EXIT_OK)
         self.assertEqual(build.load_build_info(self.build_dir, PROFILE, "macOS", False), info)
 
     def test_package_only_cannot_relabel_release_as_dev(self):
         self.prepare_existing(original_info())
         with mock.patch.object(build, "package") as package:
-            self.assertEqual(build.main(["--package-only", "--dev"]), build.EXIT_PREFLIGHT)
+            self.assertEqual(build.main([PROFILE, "--package-only", "--dev"]), build.EXIT_PREFLIGHT)
             package.assert_not_called()
 
     def test_missing_invalid_or_mismatched_manifest_requires_rebuild(self):
@@ -155,13 +155,13 @@ class BuildFlowTests(unittest.TestCase):
                 if content is not None:
                     with open(path, "w") as handle:
                         handle.write(content)
-                self.assertEqual(build.main(["--package-only"]), build.EXIT_PREFLIGHT)
+                self.assertEqual(build.main([PROFILE, "--package-only"]), build.EXIT_PREFLIGHT)
                 package.assert_not_called()
 
     def test_package_only_dry_run_uses_saved_plan_without_changes(self):
         self.prepare_existing(original_info())
         with mock.patch.object(build, "package") as package:
-            self.assertEqual(build.main(["--package-only", "--dry-run"]), build.EXIT_OK)
+            self.assertEqual(build.main([PROFILE, "--package-only", "--dry-run"]), build.EXIT_OK)
             package.assert_not_called()
         self.assertIn("20260828_abc1234.zip", self.stdout.getvalue())
         self.assertNotIn("-executeMethod", self.stdout.getvalue())
