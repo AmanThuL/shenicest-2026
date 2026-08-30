@@ -364,6 +364,8 @@ Prefab World Builder
 - 保留现有 Trigger 和行走净空，正式门模型仅替换视觉与必要动画引用。
 - 菌丝膜、剧情感应点、专属灯光、Reflection Probe、VFX 和 Shader 仍属于后续交互表现，不在本轮布景中扩展。
 - 正式模型到位后应复核门框厚度、门叶收纳空间、触发距离和 Collider，不改变圆门中心位置。
+- 2026-08-30：门后加入 `BriggsChapterHousePortal`。开门可见黑色遮挡，触碰后加载 Chapter House
+  的默认入口（02-04A），保留当前剧情状态。触发区在门叶后，不在实验室内提前触发。
 
 ## 6. 素材分级清单
 

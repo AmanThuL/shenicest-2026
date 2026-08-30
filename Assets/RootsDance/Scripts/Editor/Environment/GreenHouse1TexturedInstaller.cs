@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Editor.Environment
@@ -21,7 +22,7 @@ namespace RootsDance.Editor.Environment
     /// level places it offset and scaled by 1.198.
     /// </para>
     /// Idempotent, and nothing is deleted — the old dome objects are deactivated and the opaque
-    /// window shells overlapping the glass are disabled. Runs over every loaded scene.
+    /// window shells overlapping the glass are disabled in the interior level only. Runs over every loaded scene.
     /// Menu: RootsDance > Environment > Install Textured GreenHouse1.
     /// </summary>
     public static class GreenHouse1TexturedInstaller
@@ -43,6 +44,9 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx";
 
         private const string k_Installed = "GreenHouse1_Textured";
+
+        private const string k_InteriorMaterialFolder =
+            "Assets/RootsDance/Materials/Environment/GreenhouseInterior";
 
         private const string k_OpaqueWindowMaterial = "GreenHouse1Window";
 
@@ -122,7 +126,9 @@ namespace RootsDance.Editor.Environment
             }
 
             int assigned = AssignMaterials(installed);
-            int hiddenWindowPanels = HideOpaqueWindowPanels(installed);
+            int hiddenWindowPanels = old.scene.name == "GreenhouseInterior_Environment"
+                ? HideOpaqueWindowPanels(installed)
+                : 0;
             int hiddenOldDomeObjects = HideOldDome(old);
 
             if (hiddenWindowPanels > 0 || hiddenOldDomeObjects > 0)
@@ -264,12 +270,21 @@ namespace RootsDance.Editor.Environment
                 }
             }
 
+            // Keep the exterior's weathered glass while giving chapter 03 clearer glazing.
+            if (root.scene.name == "GreenhouseInterior_Environment")
+            {
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassIntact", 0.28f, 0.75f);
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassCracked", 0.40f, 0.65f);
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassShattered", 0.34f, 0.60f);
+            }
+
             int bound = 0;
             List<string> missing = new List<string>();
 
             foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
             {
                 Material[] slots = renderer.sharedMaterials;
+                bool changed = false;
 
                 for (int i = 0; i < slots.Length; i++)
                 {
@@ -284,7 +299,12 @@ namespace RootsDance.Editor.Environment
 
                     if (byName.TryGetValue(wanted, out Material match))
                     {
-                        slots[i] = match;
+                        if (slots[i] != match)
+                        {
+                            slots[i] = match;
+                            changed = true;
+                        }
+
                         bound++;
                     }
                     else if (!missing.Contains(wanted))
@@ -293,7 +313,12 @@ namespace RootsDance.Editor.Environment
                     }
                 }
 
-                renderer.sharedMaterials = slots;
+                if (changed)
+                {
+                    renderer.sharedMaterials = slots;
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+                    EditorSceneManager.MarkSceneDirty(root.scene);
+                }
             }
 
             if (missing.Count > 0)
@@ -303,6 +328,33 @@ namespace RootsDance.Editor.Environment
             }
 
             return bound;
+        }
+
+        private static void AddInteriorGlassVariant(Dictionary<string, Material> byName,
+            string sourceName, float opacity, float smoothnessMin)
+        {
+            Material source = byName[sourceName];
+            string name = sourceName + "_Interior";
+            string path = k_InteriorMaterialFolder + "/" + name + ".mat";
+            Material variant = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (variant == null)
+            {
+                variant = new Material(source);
+                variant.name = name;
+                variant.parent = source;
+                AssetDatabase.CreateAsset(variant, path);
+            }
+
+            Color tint = source.GetColor("_BaseColor");
+            tint.a = opacity;
+            variant.SetColor("_BaseColor", tint);
+            variant.SetFloat("_SmoothnessRemapMin", smoothnessMin);
+            HDMaterial.ValidateMaterial(variant);
+            EditorUtility.SetDirty(variant);
+            AssetDatabase.SaveAssetIfDirty(variant);
+            byName[sourceName] = variant;
+            byName[name] = variant;
         }
 
         /// <summary>

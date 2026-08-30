@@ -4,10 +4,10 @@
 > Dance*, and their packaging into a zip named after the exact commit that produced them.
 > **Applies to:** anyone producing a build to share (jam submission, playtest hand-off) or a
 > teammate reading the profile/player-settings rationale.
-> **Status:** written 2026-08-28 from the design spec
-> (`docs/superpowers/specs/2026-08-28-build-and-packaging-design.md`), alongside the
-> implementation. macOS is the verified path; Windows is designed but untested (see Open
-> follow-ups).
+> **Status:** written alongside the implementation on 2026-08-28 from
+> `docs/superpowers/specs/2026-08-28-build-and-packaging-design.md`; build-result checks and
+> package provenance updated 2026-08-30. macOS is the verified path; Windows is designed but
+> untested (see Open follow-ups).
 
 Owning guideline: [08 — Testing, tooling and IDE setup](../../guidelines/08-testing-tooling.md)
 holds the project's build-profile and command-line-build rules (profiles live under
@@ -45,13 +45,17 @@ RootsDance_Windows_v0.1.0_20260828_fb56640-dev.zip
 
 | Field | Source |
 |---|---|
-| `Base` | The constant `RootsDance` (`Tools/build/naming.py: BASE_NAME`). **Not** `productName` — see Open follow-ups. |
-| `Platform` | Derived from the profile name's prefix: `macOS-*` → `macOS`, `Windows-*` → `Windows`. |
+| `Base` | The constant `RootsDance` (`Tools/build/naming.py: BASE_NAME`), also the current Player Settings `productName`. |
+| `Platform` | Mapped from the supported profile name: `macOS-Release` → `macOS`, `Windows-Release` → `Windows`. |
 | `Version` | `bundleVersion`, parsed read-only from `ProjectSettings/ProjectSettings.asset` (currently `0.1.0`). The script never writes this file. |
-| `YYYYMMDD` | Local date, snapshotted once in `main()` **before** the Unity build runs, not after it finishes. A `--package-only` run (no build phase) stamps today regardless of how old the build itself is. |
+| `YYYYMMDD` | Local date from `builtAt`, snapshotted **before** the Unity build runs. A `--package-only` run preserves that original date. |
 | `shortsha` | `git rev-parse --short HEAD` (7 characters). |
 | `-dirty` | Appended when `git status --porcelain` is non-empty, snapshotted at that same point — before the build, not after. Doing it early rather than at package time is deliberate: Unity's own re-serialization of project files during a build could otherwise tag a zip `-dirty` for a build that actually came from a clean commit. |
-| `-dev` | Appended when `--dev` was passed. |
+| `-dev` | Appended for a development build; `--package-only` preserves the saved `development` value. |
+
+The table describes a new build's snapshot. For `--package-only`, every value comes from the
+player's saved `Builds/<PROFILE>/build-info.json`; current Git state, Player Settings and the
+repackaging date never replace the original provenance.
 
 The convention is implemented in exactly one place — `Tools/build/naming.py`, pure functions, no
 I/O. The Unity side never computes a name; it only ever writes to `Builds/<ProfileName>/`, so
@@ -76,13 +80,24 @@ RootsDance_macOS_v0.1.0_20260828_fb56640/
 └── README.txt           # how to run it, including the Gatekeeper quarantine workaround
 ```
 
-Packaging stages into `Builds/.staging/<stem>/` first, writes `build-info.json` and `README.txt`
-into it, archives, then removes the staging directory — on success and on failure, so
-`Builds/.staging/` never lingers between runs. `build-info.json` carries `product, version, commit,
-dirty, development, profile, platform, unityVersion, builtAt` — the date and the `-dirty` flag are
-both computed once in `main()`, before the Unity build runs, not at package time: Unity's own
-re-serialization of project files during a build could otherwise tag a zip `-dirty` for a build
-that was actually made from a clean commit.
+A new build snapshots `product, version, commit, dirty, development, profile, platform,
+unityVersion, builtAt` before launching Unity. `builtAt` is a local ISO 8601 timestamp including
+the UTC offset. After a successful build, the script saves these fields to
+`Builds/<PROFILE>/build-info.json` alongside the player, before packaging. This prevents Unity's
+own re-serialization during a build from changing the recorded `dirty` flag and lets packaging
+be retried without losing the original provenance.
+
+Packaging stages into `Builds/.staging/<stem>/`, includes the saved `build-info.json`, generates
+`README.txt` from the same metadata, archives, then removes the staging directory on success or
+failure. `--package-only` validates that manifest and preserves its values and original zip
+name. It does not read current Git state or project settings and does not need Unity installed.
+Missing, invalid or mismatched metadata is a preflight error (`1`): rebuild to produce a valid
+manifest. Older players without a manifest are not assigned guessed provenance.
+
+A saved development build automatically retains its `-dev` suffix. Passing
+`--package-only --dev` for a saved release build is rejected; packaging cannot change how the
+player was built. `--package-only --dry-run` validates the saved manifest and prints a package
+plan without resolving or invoking Unity.
 
 **Why not Python's `zipfile` on macOS:** it silently drops the symlinks and executable bits inside
 a `.app` bundle, and the unzipped app fails to launch. macOS packaging shells out to
@@ -133,7 +148,8 @@ for why, and the "Dev builds" row of the settings table for what changes instead
 ```bash
 python3 Tools/build/build.py                       # macOS-Release, build + package
 python3 Tools/build/build.py --dev                  # development build, zip tagged -dev
-python3 Tools/build/build.py --package-only         # zip an existing Builds/<PROFILE>/, skip Unity
+python3 Tools/build/build.py --package-only         # package an existing player with its saved manifest
+python3 Tools/build/build.py --package-only --dry-run # inspect the original package name and metadata
 python3 Tools/build/build.py --dry-run              # print the plan, build and touch nothing
 python3 Tools/build/build.py --force                # overwrite an existing zip of the same name
 ```
@@ -227,6 +243,11 @@ minutes of an IL2CPP build. Each one exits `1` and names its own fix:
 | `xcodebuild` not found on `PATH` (`shutil.which("xcodebuild")`) on a macOS IL2CPP profile | Install full Xcode from the App Store or developer.apple.com — the Command Line Tools alone are not enough: `xcode-select -p` succeeds with just CLT installed, but IL2CPP's C++ toolchain needs the full `Xcode.app` (the CLT bundle doesn't ship it). Then run `xcode-select --install` if prompted. |
 | No scenes are enabled in `EditorBuildSettings.asset` | Enable at least one in **File > Build Profiles > Scene List** (Bootstrap first). |
 | A zip of that exact name already exists in the output directory | Checked in `main()` right after the plan is resolved, before the (possibly 10–25 minute) Unity build starts — not after. Pass `--force` to overwrite, or remove the existing zip. |
+| `--package-only` has missing, invalid or mismatched `build-info.json` | Rebuild with this script to create a valid manifest alongside the player. Do not fill in provenance from the current checkout. |
+| `--package-only --dev` is used on a saved release build | Drop `--dev` to preserve the release build, or run a new build with `--dev`. |
+
+Package-only runs skip the Unity, toolchain, profile-asset and scene-list checks above. They
+validate the existing player and saved manifest instead, without reading Git or project settings.
 
 ## Exit codes
 
@@ -261,10 +282,11 @@ xattr -dr com.apple.quarantine RootsDance.app
   already been written successfully — the timeout is Unity's batch-mode shutdown logic, not the
   build step. Unity also creates the `.app` skeleton *before* the IL2CPP/link stages run, so a
   StrictMode or IL2CPP failure late in the build can leave a `.app` on disk that will not launch.
-  `build.py` handles both: on a non-zero exit it greps the log for `BuildScript.cs`'s own
-  `[BuildScript] <profile>: result=Succeeded` marker (`build_succeeded()` in `build.py`) rather
-  than trusting the exit code or `os.path.exists()` alone. If you are diagnosing a build by hand,
-  do the same — look for that exact line in `Logs/build-<profile>.log`.
+  `build.py` requires `BuildScript.cs`'s own `[BuildScript] <profile>: result=Succeeded` marker
+  (`build_succeeded()` in `build.py`) regardless of Unity's exit code. It clears
+  `Logs/build-<profile>.log` before launching Unity so an early failure cannot reuse a previous
+  run's success. A zero exit without the fresh marker fails; a nonzero shutdown exit with it is
+  accepted. If you are diagnosing a build by hand, look for that exact line in the current log.
 - **An Editor that was already open when you pulled will overwrite `ProjectSettings.asset` with
   its stale in-memory copy.** Unity loads Player Settings once, at project open; it does not
   re-read the file when git changes it underneath. The next thing that saves — any
@@ -288,9 +310,6 @@ xattr -dr com.apple.quarantine RootsDance.app
 
 - **HDRP shader-variant stripping is unexplored.** It lives in HDRP Global Settings, not in this
   script, and is the rendering owner's call — not addressed here.
-- **`productName` is still `she-nicest-temp-proj`.** That is why `Base` in the naming convention
-  is a hardcoded constant (`RootsDance`) rather than read from Player Settings — using
-  `productName` today would put the placeholder name on every shared build.
 - **The Windows path is untested.** It needs a Windows machine: this Mac has only
   `MacStandaloneSupport` installed, no Windows Playback Engine module. Windows IL2CPP additionally
   requires Visual Studio 2019+ with the C++ build tools and Windows SDK 10.0.19041.0+ (source:
@@ -304,12 +323,13 @@ xattr -dr com.apple.quarantine RootsDance.app
   null platform-settings object (`rid: -2`, vs. macOS's real `rid`) because the Windows module was
   absent on the machine that generated it — whoever first builds Windows must re-run
   `RootsDance > Build > Create Default Build Profiles` there and commit the re-serialized asset.
-- **`develop` currently ships six enabled scenes**, not just `Bootstrap` + `Main_*`:
-  `ProjectSettings/EditorBuildSettings.asset` has `Bootstrap`, `PlayerTest_Environment`,
-  `PlayerTest_Gameplay`, `Main_Environment`, `Main_Gameplay` and `MainMenu` all enabled. Because
-  both profiles inherit that global scene list, every build made from `develop` today includes all
-  six, until someone disables the ones that shouldn't ship in **File > Build Profiles > Scene
-  List**. (The scene list itself is a content decision, not something this doc governs.)
+- **The global scene list is content-owned.** As checked on 2026-08-30,
+  `ProjectSettings/EditorBuildSettings.asset` enables 13 scenes: `Bootstrap`, `Main_Environment`,
+  `Main_Gameplay`, `Main_Environment_2`, `MainMenu`, `BriggsInterior_Environment`,
+  `BriggsInterior_Gameplay`, `BriggsInterior_Environment_2`, `GreenhouseInterior_Environment`,
+  `GreenhouseInterior_Gameplay`, `Main_Environment_Statue`, `ChapterHouseInterior_Environment`
+  and `ChapterHouseInterior_Gameplay`. Both `PlayerTest` scenes and `Main_DevGround` are disabled.
+  Both profiles inherit the global list; inspect preflight's printed list for the current build.
 
 ## Files
 
@@ -324,3 +344,6 @@ xattr -dr com.apple.quarantine RootsDance.app
 - `Tools/build/test_naming.py` — `unittest` coverage (`python3 -m unittest discover -s
   Tools/build`) for `naming.py` plus the pure/stubbable helpers in `build.py`: `git_state`,
   `editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`.
+- `Tools/build/test_build.py` — orchestration and provenance regressions: fresh build-result logs,
+  manifest persistence and validation, and package-only behavior. These tests do not replace a
+  real Unity build and player smoke test.
