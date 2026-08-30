@@ -29,6 +29,10 @@ namespace RootsDance.Editor.Environment
         private const string k_OwnedPrefix = "BI_";
         private const string k_PwbRootName = "Prefab World Builder";
         private const string k_PinName = "PIN";
+        private const string k_BlueFlaskName = "BlueFlask_CentralTable";
+        private const float k_CentralWorktopY = 0.94f;
+        private const float k_SurfaceClearance = 0.002f;
+        private const float k_BlueFlaskScale = 0.45f;
 
         private const string k_LabFurniturePalette = "LabFurniture";
         private const string k_CampEvidencePalette = "CampEvidence";
@@ -167,6 +171,9 @@ namespace RootsDance.Editor.Environment
                 Place(centralSet[i], prefabs[prefabPath], pins[centralSet[i].Palette]);
             }
 
+            ApplyCentralGlasswareScatter(pins[k_CampEvidencePalette]);
+            ApplyBlueFlaskPlacement(scene);
+
             Placement quintant = Furniture(
                 "BI_NE_OpticalCalibrator",
                 BriggsImportedLabPrefabBuilder.PrefabPath("Astronomical_Quintant"),
@@ -215,6 +222,7 @@ namespace RootsDance.Editor.Environment
 
             Dictionary<string, Transform> pins = EnsurePalettePins(scene);
             ApplyCentralGlasswareScatter(pins[k_CampEvidencePalette]);
+            ApplyBlueFlaskPlacement(scene);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
 
@@ -267,6 +275,7 @@ namespace RootsDance.Editor.Environment
             }
 
             ApplyCentralGlasswareScatter(pins[k_CampEvidencePalette]);
+            ApplyBlueFlaskPlacement(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             return placements.Length;
@@ -372,30 +381,28 @@ namespace RootsDance.Editor.Environment
 
         private static void AddAbandonedTableClutter(List<Placement> placements)
         {
-            const float worktop = 0.94f;
-
             placements.Add(ArtistEvidence("BI_CentralSet_Glassware_Main", "Lab_Glassware",
-                new Vector3(-0.28f, worktop, -0.62f), new Vector3(0f, 18f, 0f), 0.48f));
+                new Vector3(-0.28f, k_CentralWorktopY, -0.62f), new Vector3(0f, 18f, 0f), 0.48f));
             placements.Add(ArtistEvidence("BI_CentralSet_Glassware_Back", "Lab_Glassware",
-                new Vector3(0.28f, worktop, 0.72f), new Vector3(0f, 168f, 0f), 0.4f));
+                new Vector3(0.28f, k_CentralWorktopY, 0.72f), new Vector3(0f, 168f, 0f), 0.4f));
             placements.Add(ArtistEvidence("BI_CentralSet_OldTubes", "Chemistry_Old_Lab_Tubes",
-                new Vector3(-0.45f, worktop, 1.72f), new Vector3(0f, -8f, 0f), 0.5f));
+                new Vector3(-0.45f, k_CentralWorktopY, 1.72f), new Vector3(0f, -8f, 0f), 0.5f));
             placements.Add(LooseEvidence("BI_CentralSet_IronStand_A", "heating_equipment_iron_stand",
-                new Vector3(0.58f, worktop, -1.55f), new Vector3(0f, 9f, 0f), 0.72f, true));
+                new Vector3(0.58f, k_CentralWorktopY, -1.55f), new Vector3(0f, 9f, 0f), 0.72f, true));
             placements.Add(LooseEvidence("BI_CentralSet_IronStand_B", "heating_equipment_ring_stand",
-                new Vector3(0.52f, worktop, 0.28f), new Vector3(0f, -18f, 0f), 0.62f, true));
+                new Vector3(0.52f, k_CentralWorktopY, 0.28f), new Vector3(0f, -18f, 0f), 0.62f, true));
             placements.Add(LooseEvidence("BI_CentralSet_SeparatoryFunnel", "funnel_seperatory_funnel",
-                new Vector3(0.4f, worktop, -0.82f), new Vector3(0f, 21f, 0f), 0.72f, true));
+                new Vector3(0.4f, k_CentralWorktopY, -0.82f), new Vector3(0f, 21f, 0f), 0.72f, true));
             placements.Add(LooseEvidence("BI_CentralSet_FilterFlask", "bottle_glassware_filtering_flask_large",
-                new Vector3(-0.42f, worktop, -1.72f), new Vector3(0f, -24f, 0f), 0.68f, true));
+                new Vector3(-0.42f, k_CentralWorktopY, -1.72f), new Vector3(0f, -24f, 0f), 0.68f, true));
             placements.Add(LooseEvidence("BI_CentralSet_TestTubeRack", "bottle_test_tube_rack",
-                new Vector3(-0.48f, worktop, 1.18f), new Vector3(0f, 14f, 0f), 0.75f, true));
+                new Vector3(-0.48f, k_CentralWorktopY, 1.18f), new Vector3(0f, 14f, 0f), 0.75f, true));
             placements.Add(LooseEvidence("BI_CentralSet_Burner", "heating_equipment_bunsen_burner",
-                new Vector3(0.18f, worktop, 0.05f), new Vector3(0f, 22f, 0f), 0.7f, true));
+                new Vector3(0.18f, k_CentralWorktopY, 0.05f), new Vector3(0f, 22f, 0f), 0.7f, true));
             placements.Add(LooseEvidence("BI_CentralSet_Beaker_A", "bottle_glassware_beaker_large",
-                new Vector3(-0.42f, worktop, 0.18f), new Vector3(0f, -12f, 0f), 0.62f, true));
+                new Vector3(-0.42f, k_CentralWorktopY, 0.18f), new Vector3(0f, -12f, 0f), 0.62f, true));
             placements.Add(LooseEvidence("BI_CentralSet_Beaker_B", "bottle_glassware_beaker_large",
-                new Vector3(0.38f, worktop, 1.48f), new Vector3(0f, 32f, 0f), 0.52f, true));
+                new Vector3(0.38f, k_CentralWorktopY, 1.48f), new Vector3(0f, 32f, 0f), 0.52f, true));
         }
 
         private static void AddWestArchives(List<Placement> placements)
@@ -919,6 +926,25 @@ namespace RootsDance.Editor.Environment
                 true);
         }
 
+        private static void ApplyBlueFlaskPlacement(Scene scene)
+        {
+            Transform props = FindSceneRoot(scene, "_Props");
+            Transform blueFlask = props != null ? FindDescendant(props, k_BlueFlaskName) : null;
+
+            if (blueFlask == null)
+            {
+                throw new InvalidOperationException(
+                    $"Briggs central table is missing '{k_BlueFlaskName}' under _Props.");
+            }
+
+            blueFlask.SetPositionAndRotation(
+                new Vector3(0.1f, k_CentralWorktopY, 0.1f),
+                Quaternion.Euler(0f, 18f, 0f));
+            blueFlask.localScale = Vector3.one * k_BlueFlaskScale;
+            SnapRendererBottomToSurface(blueFlask.gameObject, k_CentralWorktopY);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(blueFlask);
+        }
+
         private static void ApplyGlasswareScatter(Transform instance, bool backSet)
         {
             if (instance == null)
@@ -966,7 +992,6 @@ namespace RootsDance.Editor.Environment
                     new Vector3(0f, 13f, 0f), Vector3.one * 0.33f);
             }
 
-            SnapRendererBottomToSurface(instance.gameObject, 0.94f);
             PrefabUtility.RecordPrefabInstancePropertyModifications(instance);
         }
 
@@ -996,6 +1021,7 @@ namespace RootsDance.Editor.Environment
             child.localPosition = source.localPosition + sourceOffset;
             child.localRotation = source.localRotation * Quaternion.Euler(eulerOffset);
             child.localScale = Vector3.Scale(source.localScale, sourceScaleMultiplier);
+            SnapRendererBottomToSurface(child.gameObject, k_CentralWorktopY);
             PrefabUtility.RecordPrefabInstancePropertyModifications(child);
         }
 
@@ -1038,7 +1064,7 @@ namespace RootsDance.Editor.Environment
 
             if (authoredY > 0.95f)
             {
-                return 0.94f;
+                return k_CentralWorktopY;
             }
 
             if (authoredY > 0.8f && authoredY < 0.9f)
@@ -1066,7 +1092,7 @@ namespace RootsDance.Editor.Environment
             }
 
             Vector3 position = instance.transform.position;
-            position.y += surfaceY - bounds.min.y + 0.002f;
+            position.y += surfaceY - bounds.min.y + k_SurfaceClearance;
             instance.transform.position = position;
         }
 

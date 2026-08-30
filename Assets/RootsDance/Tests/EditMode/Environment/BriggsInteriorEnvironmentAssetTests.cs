@@ -178,6 +178,72 @@ namespace RootsDance.Tests.EditMode.Environment
             }
         }
 
+        [TestCase("BI_CentralSet_Glassware_Main", 0.942f, 6)]
+        [TestCase("BI_CentralSet_Glassware_Back", 0.002f, 8)]
+        public void BriggsGlassware_AuthoredLayout_RestsOnSupportingSurface(
+            string groupName, float surfaceY, int expectedCount)
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform pwb = FindRoot(scene, "Prefab World Builder");
+                Transform group = FindDescendant(pwb, groupName);
+                Assert.That(group, Is.Not.Null, groupName);
+                Renderer[] glassware = group.GetComponentsInChildren<Renderer>(true);
+                Assert.That(glassware.Length, Is.EqualTo(expectedCount), groupName);
+
+                // The authored layout moved the back set to the floor and removed two main-set pieces.
+                foreach (Renderer renderer in glassware)
+                {
+                    Assert.That(renderer.bounds.min.y, Is.EqualTo(surfaceY).Within(0.003f),
+                        groupName + "/" + renderer.name + " does not rest on its supporting surface.");
+                }
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        [Test]
+        public void BriggsBlueFlask_AuthoredLayout_RestsOnWorktop()
+        {
+            Scene scene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
+
+            if (closeWhenDone)
+            {
+                scene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            try
+            {
+                Transform props = FindRoot(scene, "_Props");
+                Transform blueFlask = FindDescendant(props, "BlueFlask_CentralTable");
+                Assert.That(blueFlask, Is.Not.Null, "BlueFlask_CentralTable");
+                Bounds blueFlaskBounds = GetRendererBounds(blueFlask);
+                Assert.That(blueFlaskBounds.min.y, Is.EqualTo(0.942f).Within(0.003f),
+                    "BlueFlask_CentralTable floats above the central worktop.");
+            }
+            finally
+            {
+                if (closeWhenDone)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
         [Test]
         public void BriggsEnvironmentScene_FitsCeilingToRoomAndRetainsHangingVegetation()
         {
@@ -799,6 +865,20 @@ namespace RootsDance.Tests.EditMode.Environment
                 name + " world size is not fitted to the laboratory roof.");
             Assert.That(actual.size.x, Is.LessThan(20f), name + " must not wrap the laboratory.");
             Assert.That(actual.size.z, Is.LessThan(16f), name + " must not wrap the laboratory.");
+        }
+
+        private static Bounds GetRendererBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            Assert.That(renderers, Is.Not.Empty, root.name + " has no renderer.");
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds;
         }
 
         private static void AssertHasNoEnabledCollider(GameObject prefab, string path)
