@@ -34,13 +34,26 @@ project with a running Editor).
 |---|---|
 | `python3 Tools/build/build.py macOS-Release` | Build and package the named profile. `PROFILE` defaults to `macOS-Release`. |
 | `python3 Tools/build/build.py --dev` | Development build (`BuildOptions.Development \| AllowDebugging`, LZ4 instead of LZ4HC); zip stem gets a `-dev` suffix. |
-| `python3 Tools/build/build.py --package-only` | Skip the Unity build; zip whatever is already in `Builds/<PROFILE>/`. |
-| `python3 Tools/build/build.py --dry-run` | Print the resolved Unity path, the exact command and the computed zip name; exit 0 without building or packaging. |
+| `python3 Tools/build/build.py --package-only` | Package the player in `Builds/<PROFILE>/` using its saved `build-info.json`; preserve its original commit, version, date and development flag. No Unity installation is needed. |
+| `python3 Tools/build/build.py --dry-run` | Print the build plan and exit without building or packaging. Combined with `--package-only`, print the package plan from the saved manifest instead. |
 | `python3 Tools/build/build.py --force` | Overwrite an existing zip of the same name (the script otherwise refuses and exits 1 — checked before the build runs, not just before packaging). |
 | `python3 Tools/build/build.py --output-dir DIR` | Write the zip to `DIR` instead of `Builds/`. |
 | `python3 Tools/build/build.py --unity PATH` | Use this Unity Editor binary instead of the auto-detected one. |
 
 Flags combine, e.g. `python3 Tools/build/build.py Windows-Release --dev --dry-run`.
+
+Every successful build saves `Builds/<PROFILE>/build-info.json` alongside the player before
+packaging. Keep that manifest with the player: `--package-only` reads it instead of the current
+checkout's Git state or Player Settings, and retains the original zip name even on another day.
+Missing, invalid or mismatched metadata exits `1` and asks you to rebuild; older builds without a
+manifest must be rebuilt rather than assigned guessed provenance. A saved development build
+keeps its `-dev` suffix without passing `--dev`; passing `--dev` for a saved release build is an
+error because packaging cannot change the player into a development build.
+
+A build succeeds only when its fresh log contains the requested profile's
+`[BuildScript] <profile>: result=Succeeded` marker. The script clears the previous log before
+launching Unity, rejects a zero exit without that marker, and accepts a nonzero shutdown exit
+when the marker confirms the build succeeded.
 
 ## What's excluded from the zip
 
@@ -70,5 +83,7 @@ python3 -m unittest discover -s Tools/build
 
 Stdlib `unittest`, no third-party dependencies. Covers `Tools/build/naming.py` — the naming and
 version-parsing logic — plus the pure/stubbable helpers in `Tools/build/build.py`: `git_state`,
-`editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`. It does not cover
-the Unity build or the packaging step themselves.
+`editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`.
+`test_build.py` covers build orchestration, fresh-log success checks and manifest provenance,
+including package-only validation and dry runs. These tests do not compile or launch a Unity
+player; a real build and player smoke test remain separate checks.

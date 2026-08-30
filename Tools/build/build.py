@@ -29,6 +29,7 @@ EXIT_PACKAGE = 3
 BUILD_METHOD = "RootsDance.Editor.Build.BuildScript.BuildFromCommandLine"
 PROFILE_FOLDER = "Assets/RootsDance/Settings/BuildProfiles"
 APP_NAME = "RootsDance"
+BUILD_INFO_FILE = "build-info.json"
 
 # Unity's IL2CPP backend drops these next to the player it builds. Their own folder
 # names say not to ship them (multi-gigabyte debug symbols / Burst debug info), and the
@@ -219,7 +220,6 @@ def build_succeeded(profile, log_text):
 
 def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
     log_path = build_log_path(repo, profile)
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     command = unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
 
@@ -230,13 +230,22 @@ def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
         print("  " + " ".join(command))
 
     started = time.time()
-    process = subprocess.Popen(command)
+    try:
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        # An early launch failure may leave Unity unable to open its log. Never
+        # let a previous invocation's success marker authorize this build.
+        with open(log_path, "w"):
+            pass
+        process = subprocess.Popen(command)
+    except OSError as error:
+        print("error: could not launch Unity build: {0}".format(error), file=sys.stderr)
+        raise SystemExit(EXIT_BUILD)
     while process.poll() is None:
         time.sleep(10)
         print("  ... {0:.0f}s".format(time.time() - started), flush=True)
     elapsed = time.time() - started
 
-    if process.returncode != 0 and not build_succeeded(profile, read_log(log_path)):
+    if not build_succeeded(profile, read_log(log_path)):
         print(tail(log_path, 40), file=sys.stderr)
         raise SystemExit(EXIT_BUILD)
     print("Build finished in {0:.0f}s".format(elapsed))
@@ -263,7 +272,71 @@ def stageable_entries(names):
     return [name for name in names if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES)]
 
 
-def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, version, profile, dev):
+def snapshot_build_info(repo, profile, target_platform, dev):
+    with open(os.path.join(repo, "ProjectSettings", "ProjectSettings.asset"),
+              errors="replace") as handle:
+        version = parse_bundle_version(handle.read())
+    sha, dirty = git_state(repo)
+    return {
+        "product": APP_NAME,
+        "version": version,
+        "commit": sha,
+        "dirty": dirty,
+        "development": dev,
+        "profile": profile,
+        "platform": target_platform,
+        "unityVersion": editor_version(repo),
+        "builtAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+
+
+def write_build_info(build_dir, info):
+    path = os.path.join(build_dir, BUILD_INFO_FILE)
+    temporary = path + ".tmp"
+    try:
+        with open(temporary, "w") as handle:
+            json.dump(info, handle, indent=2)
+            handle.write("\n")
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
+
+
+def load_build_info(build_dir, profile, target_platform, dev):
+    """Read original provenance; never guess it from a newer checkout."""
+    path = os.path.join(build_dir, BUILD_INFO_FILE)
+    try:
+        with open(path) as handle:
+            info = json.load(handle)
+        if not isinstance(info, dict):
+            raise ValueError("expected a JSON object")
+        for field in ("product", "version", "commit", "profile", "platform", "unityVersion", "builtAt"):
+            if not isinstance(info.get(field), str) or not info[field]:
+                raise ValueError("missing or invalid " + field)
+        for field in ("dirty", "development"):
+            if type(info.get(field)) is not bool:
+                raise ValueError("missing or invalid " + field)
+        for field in ("version", "commit"):
+            if any(character in info[field] for character in "/\\\0\n\r"):
+                raise ValueError("invalid filename component: " + field)
+        if (info["product"] != APP_NAME or info["profile"] != profile
+                or info["platform"] != target_platform):
+            raise ValueError("product, profile or platform does not match the requested player")
+        built_at = datetime.datetime.fromisoformat(info["builtAt"])
+        if built_at.utcoffset() is None:
+            raise ValueError("builtAt must include a timezone")
+    except (OSError, ValueError) as error:
+        raise PreflightError(
+            "Cannot reuse {0}: {1}. Rebuild without --package-only to record provenance.".format(path, error))
+    if dev and not info["development"]:
+        raise PreflightError(
+            "--dev cannot relabel an existing release player. Rebuild with --dev, or omit --dev.")
+    return info
+
+
+def package(repo, build_dir, stem, output_dir, info):
+    target_platform = info["platform"]
     zip_path = os.path.join(output_dir, stem + ".zip")
 
     staging_root = os.path.join(repo, "Builds", ".staging")
@@ -290,25 +363,13 @@ def package(repo, build_dir, stem, output_dir, target_platform, sha, dirty, vers
                 shutil.copy2(source, destination)
 
         app_name = APP_NAME + ".app"
-        with open(os.path.join(staging, "build-info.json"), "w") as handle:
-            json.dump({
-                "product": APP_NAME,
-                "version": version,
-                "commit": sha,
-                "dirty": dirty,
-                "development": dev,
-                "profile": profile,
-                "platform": target_platform,
-                "unityVersion": editor_version(repo),
-                "builtAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-            }, handle, indent=2)
-            handle.write("\n")
+        write_build_info(staging, info)
 
         if target_platform == "macOS":
             with open(os.path.join(staging, "README.txt"), "w") as handle:
                 handle.write(RUN_README.format(
-                    stem=stem, app=app_name, sha=sha,
-                    date=datetime.date.today().isoformat()))
+                    stem=stem, app=app_name, sha=info["commit"],
+                    date=datetime.datetime.fromisoformat(info["builtAt"]).date().isoformat()))
 
         os.makedirs(output_dir, exist_ok=True)
         if target_platform == "macOS":
@@ -350,34 +411,38 @@ def main(argv=None):
     repo = repo_root()
     try:
         target_platform = platform_for_profile(args.profile)
-        version_text = open(os.path.join(repo, "ProjectSettings", "ProjectSettings.asset"),
-                            errors="replace").read()
-        version = parse_bundle_version(version_text)
-        unity_binary = resolve_unity(args.unity, editor_version(repo))
-        preflight(repo, args.profile, target_platform, unity_binary, args.package_only, dry_run=args.dry_run)
+        build_dir = os.path.join(repo, "Builds", args.profile)
+        if args.package_only:
+            info = load_build_info(build_dir, args.profile, target_platform, args.dev)
+        else:
+            unity_binary = resolve_unity(args.unity, editor_version(repo))
+            preflight(repo, args.profile, target_platform, unity_binary, False, dry_run=args.dry_run)
+            info = snapshot_build_info(repo, args.profile, target_platform, args.dev)
     except (PreflightError, ValueError, OSError) as error:
         print("error: {0}".format(error), file=sys.stderr)
         return EXIT_PREFLIGHT
 
-    sha, dirty = git_state(repo)
-    stem = zip_stem(target_platform, version, datetime.date.today().strftime("%Y%m%d"),
-                    sha, dirty, args.dev)
-    build_dir = os.path.join(repo, "Builds", args.profile)
+    build_date = datetime.datetime.fromisoformat(info["builtAt"]).strftime("%Y%m%d")
+    stem = zip_stem(target_platform, info["version"], build_date,
+                    info["commit"], info["dirty"], info["development"])
     extension = ".app" if target_platform == "macOS" else ".exe"
     output_path = os.path.join(build_dir, APP_NAME + extension)
     output_dir = args.output_dir or os.path.join(repo, "Builds")
     zip_path = os.path.join(output_dir, stem + ".zip")
 
     if args.dry_run:
-        log_path = build_log_path(repo, args.profile)
-        command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
-        print("profile:  {0}{1}".format(args.profile, " (dev)" if args.dev else ""))
-        print("unity:    {0}".format(unity_binary))
+        print("profile:  {0}{1}".format(args.profile, " (dev)" if info["development"] else ""))
+        if args.package_only:
+            print("mode:     package existing player with saved build-info.json")
+        else:
+            log_path = build_log_path(repo, args.profile)
+            command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
+            print("unity:    {0}".format(unity_binary))
+            print("command:  {0}".format(" ".join(command)))
         print("player:   {0}".format(output_path))
-        print("command:  {0}".format(" ".join(command)))
         print("zip:      {0}".format(zip_path))
-        if dirty:
-            print("note:     working tree is dirty, the zip is tagged -dirty")
+        if info["dirty"]:
+            print("note:     build source was dirty, the zip is tagged -dirty")
         return EXIT_OK
 
     # Checked before the (possibly 10-25 minute) build, not just before packaging — two
@@ -399,8 +464,11 @@ def main(argv=None):
         return EXIT_PACKAGE
 
     try:
-        zip_path = package(repo, build_dir, stem, output_dir, target_platform,
-                           sha, dirty, version, args.profile, args.dev)
+        # Only a successful build with a player on disk gets reusable provenance.
+        # Keep it even if archiving fails, so --package-only can retry safely.
+        if not args.package_only:
+            write_build_info(build_dir, info)
+        zip_path = package(repo, build_dir, stem, output_dir, info)
     except (subprocess.CalledProcessError, OSError) as error:
         print("error: packaging failed: {0}".format(error), file=sys.stderr)
         return EXIT_PACKAGE
