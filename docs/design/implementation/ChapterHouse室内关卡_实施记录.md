@@ -103,9 +103,15 @@ Smoothness 压到 0.08：贴图是作者烘焙好的，上面再加一层高光�
 
 ## 4. 从实验室进来
 
-**还没接。** `RootsDance.Environment.LevelPortal` 组件已经在仓库里：一个 trigger 盒，走进去就朝
-`LoadLevelRequested` 抛出目标关卡。把它挂到 `BriggsInterior` 北墙圆门之后即可，但那要改 lab 场景，
-属于那个场景负责人的事，本分支不碰。
+**2026-08-30 已接。** 实验室圆门打开后看到纯黑遮挡，玩家触碰门后的触发区，通过
+`RootsDance.Environment.LevelPortal` 向 `LoadLevelRequested` 请求加载 `ChapterHouseInterior`。
+默认 Player 与 PlayerSpawn 和 `02-04A / Checkpoint_CorridorEntrance` 同位置、同朝向，
+因此加载后从第一个 checkpoint 开始；这是普通关卡切换，保留剧情状态，不执行救援 checkpoint 重置。
+
+`BriggsInterior_Gameplay/_Triggers/BriggsChapterHousePortal` 使用独立 prefab：根节点在 `(0, 0, 7.5)`，
+触发盒前沿为 `Z 7.45`，位于关闭门叶之后；黑色表面使用 alpha 为 1、关闭雾效的 HDRP/Unlit 材质。
+可通过 `RootsDance/Environment/Apply Briggs Chapter House Portal` 单独重建，原出口门 builder 也会保留它。
+不拼接两个建筑，不将 Chapter House 加入 Briggs 的同时加载列表。
 
 挂的时候有一条不能忘：**portal 必须在 `TriggerVolume` 层**。玩家的 trigger 检测挂在 `PlayerProbe`
 层的探针上，而物理矩阵里 `PlayerProbe` 只和 `TriggerVolume` 相撞。留在 Default 层的 trigger，
