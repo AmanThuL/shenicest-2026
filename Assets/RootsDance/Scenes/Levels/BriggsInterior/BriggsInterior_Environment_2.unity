@@ -119,204 +119,41 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!21 &325027201
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ArchivePaper (sheet)
-  m_Shader: {fileID: 4800000, guid: 1692144adba4d49c688dda70f15b6865, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _FoldTex:
-        m_Texture: {fileID: 2800000, guid: eaf824c29c79a40a395e8a1f38a171a4, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MaskTex:
-        m_Texture: {fileID: 2800000, guid: 83367e0b1d70f4a6e960de78f5012630, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalTex:
-        m_Texture: {fileID: 2800000, guid: 67b83d039fe4a4cf887dc193eb70c5de, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _WarpTex:
-        m_Texture: {fileID: 2800000, guid: 4f2b38b7ea8fc41d5b954a64c3a18e3c, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _AmbientWrap: 0.55
-    - _ColorMask: 15
-    - _CreaseDarken: 0.7
-    - _Gloss: 24
-    - _Occlusion: 0.7
-    - _ReliefStrength: 1.6
-    - _Sheen: 0.35
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _UseUIAlphaClip: 0
-    - _WarpStrength: 0.012
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _LightDirection: {r: 0, g: 0, b: 1, a: 0}
-    - _PaperLight: {r: 0.21350479, g: 0.27422732, b: 0.37640736, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
---- !u!1 &721845662
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 721845663}
-  m_Layer: 0
-  m_Name: _Archive
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &721845663
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721845662}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1835635258}
-  - {fileID: 2082512166}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &1810818156
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ArchivePaper (sheet)
-  m_Shader: {fileID: 4800000, guid: 1692144adba4d49c688dda70f15b6865, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _FoldTex:
-        m_Texture: {fileID: 2800000, guid: eaf824c29c79a40a395e8a1f38a171a4, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MaskTex:
-        m_Texture: {fileID: 2800000, guid: 83367e0b1d70f4a6e960de78f5012630, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalTex:
-        m_Texture: {fileID: 2800000, guid: 67b83d039fe4a4cf887dc193eb70c5de, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _WarpTex:
-        m_Texture: {fileID: 2800000, guid: 4f2b38b7ea8fc41d5b954a64c3a18e3c, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _AmbientWrap: 0.55
-    - _ColorMask: 15
-    - _CreaseDarken: 0.7
-    - _Gloss: 24
-    - _Occlusion: 0.7
-    - _ReliefStrength: 1.6
-    - _Sheen: 0.35
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _UseUIAlphaClip: 0
-    - _WarpStrength: 0.012
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _LightDirection: {r: 0, g: 0, b: 1, a: 0}
-    - _PaperLight: {r: 0.21350479, g: 0.27422732, b: 0.37640736, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
---- !u!1001 &1835635257
+--- !u!1001 &266459344
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 721845663}
+    m_TransformParent: {fileID: 1639723763}
     m_Modifications:
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.214655
+      value: -6.12
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.842
+      value: 0.8859904
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.1837149
+      value: -2.15
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.44499674
+      value: 0.37992817
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.44499674
+      value: 0.37992817
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.54952514
+      value: 0.59636784
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.5495252
+      value: -0.59636784
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -417,7 +254,7 @@ PrefabInstance:
     - target: {fileID: 3603630790617456943, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 325027201}
+      objectReference: {fileID: 1420957443}
     - target: {fileID: 3665725492380331969, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Name
       value: ArchiveDocument_DOC-001
@@ -461,7 +298,7 @@ PrefabInstance:
     - target: {fileID: 5101627424557055845, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 325027201}
+      objectReference: {fileID: 1420957443}
     - target: {fileID: 5103226331300273709, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_fontColor.b
       value: 0.079798356
@@ -567,46 +404,176 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9351f2041567e4774b9005778d29c109, type: 3}
---- !u!4 &1835635258 stripped
+--- !u!4 &266459345 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
-  m_PrefabInstance: {fileID: 1835635257}
+  m_PrefabInstance: {fileID: 266459344}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &2082512165
+--- !u!21 &904203170
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ArchivePaper (sheet)
+  m_Shader: {fileID: 4800000, guid: 1692144adba4d49c688dda70f15b6865, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FoldTex:
+        m_Texture: {fileID: 2800000, guid: eaf824c29c79a40a395e8a1f38a171a4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: 83367e0b1d70f4a6e960de78f5012630, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 2800000, guid: 67b83d039fe4a4cf887dc193eb70c5de, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WarpTex:
+        m_Texture: {fileID: 2800000, guid: 4f2b38b7ea8fc41d5b954a64c3a18e3c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientWrap: 0.55
+    - _ColorMask: 15
+    - _CreaseDarken: 0.7
+    - _Gloss: 24
+    - _Occlusion: 0.7
+    - _ReliefStrength: 1.6
+    - _Sheen: 0.35
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseUIAlphaClip: 0
+    - _WarpStrength: 0.012
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _LightDirection: {r: 0, g: 0, b: 1, a: 0}
+    - _PaperLight: {r: 0.21350479, g: 0.27422732, b: 0.37640736, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!21 &1420957443
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ArchivePaper (sheet)
+  m_Shader: {fileID: 4800000, guid: 1692144adba4d49c688dda70f15b6865, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FoldTex:
+        m_Texture: {fileID: 2800000, guid: eaf824c29c79a40a395e8a1f38a171a4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: 83367e0b1d70f4a6e960de78f5012630, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 2800000, guid: 67b83d039fe4a4cf887dc193eb70c5de, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WarpTex:
+        m_Texture: {fileID: 2800000, guid: 4f2b38b7ea8fc41d5b954a64c3a18e3c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientWrap: 0.55
+    - _ColorMask: 15
+    - _CreaseDarken: 0.7
+    - _Gloss: 24
+    - _Occlusion: 0.7
+    - _ReliefStrength: 1.6
+    - _Sheen: 0.35
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseUIAlphaClip: 0
+    - _WarpStrength: 0.012
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _LightDirection: {r: 0, g: 0, b: 1, a: 0}
+    - _PaperLight: {r: 0.21350479, g: 0.27422732, b: 0.37640736, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!1001 &1545053233
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 721845663}
+    m_TransformParent: {fileID: 1639723763}
     m_Modifications:
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.285345
+      value: -6.45
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.842
+      value: 0.8692894
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.516285
+      value: -2.58
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.44499674
+      value: 0.53366023
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.44499674
+      value: 0.53366023
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.54952514
+      value: 0.4639038
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.5495252
+      value: -0.4639038
       objectReference: {fileID: 0}
     - target: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -707,7 +674,7 @@ PrefabInstance:
     - target: {fileID: 3603630790617456943, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 1810818156}
+      objectReference: {fileID: 904203170}
     - target: {fileID: 3665725492380331969, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Name
       value: ArchiveDocument_DOC-002
@@ -751,7 +718,7 @@ PrefabInstance:
     - target: {fileID: 5101627424557055845, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 1810818156}
+      objectReference: {fileID: 904203170}
     - target: {fileID: 5103226331300273709, guid: 9351f2041567e4774b9005778d29c109, type: 3}
       propertyPath: m_fontColor.b
       value: 0.079798356
@@ -857,13 +824,46 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9351f2041567e4774b9005778d29c109, type: 3}
---- !u!4 &2082512166 stripped
+--- !u!4 &1545053234 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 21693045080296323, guid: 9351f2041567e4774b9005778d29c109, type: 3}
-  m_PrefabInstance: {fileID: 2082512165}
+  m_PrefabInstance: {fileID: 1545053233}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1639723762
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1639723763}
+  m_Layer: 0
+  m_Name: _Archive
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1639723763
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639723762}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 266459345}
+  - {fileID: 1545053234}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 721845663}
+  - {fileID: 1639723763}

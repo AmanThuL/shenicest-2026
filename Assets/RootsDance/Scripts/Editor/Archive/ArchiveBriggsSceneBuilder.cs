@@ -26,28 +26,19 @@ namespace RootsDance.Editor.Archive
         private const string k_ScenePath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
 
+        private const string k_EnvironmentPath =
+            "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
+
         private const string k_GameplayPath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Gameplay.unity";
 
         private const string k_RootName = "_Archive";
 
-        /// <summary>The archive desk, from <c>BriggsInterior_Environment</c>: BI_S9_ArchiveDesk.</summary>
-        private static readonly Vector3 k_DeskPosition = new Vector3(-6.25f, 0f, -2.35f);
-
-        /// <summary>The desk's yaw in the room, in degrees — the sheets lie along its long axis.</summary>
-        private const float k_DeskYawDegrees = 102f;
-
-        /// <summary>
-        /// Height of the desk top, in metres: the desktop slab sits at 0.78 and is 0.1 thick
-        /// (<c>BriggsInteriorDressingBuilder.BuildArchiveDeskPrefab</c>), so its surface is 0.83.
-        /// </summary>
-        private const float k_DeskTopHeight = 0.83f;
+        private static readonly string[] k_DocumentIds = { "DOC-001", "DOC-002" };
+        private static readonly string[] k_SupportNames = { "BI_S9_Clipboard", "BI_S9_Binder" };
 
         /// <summary>How far the paper floats above the surface, in metres — enough not to z-fight.</summary>
         private const float k_Lift = 0.012f;
-
-        /// <summary>How far apart the two sheets lie on the desk, in metres.</summary>
-        private const float k_Spacing = 0.34f;
 
         [MenuItem("RootsDance/Archive/Build Briggs Archive Scene")]
         public static void Build()
@@ -62,13 +53,39 @@ namespace RootsDance.Editor.Archive
                 return;
             }
 
-            ArchiveDocumentSO[] documents = ArchivePageStage.LoadDocuments();
+            ArchiveDocumentSO[] documents = LoadLabDocuments();
 
-            if (documents.Length == 0)
+            if (documents == null)
             {
-                Debug.LogError($"[{k_LogPrefix}] No documents under Data/Archive; run "
-                    + "RootsDance/Archive/Create Document Assets first.");
                 return;
+            }
+
+            Scene environmentScene = SceneManager.GetSceneByPath(k_EnvironmentPath);
+            bool wasEnvironmentOpen = environmentScene.IsValid() && environmentScene.isLoaded;
+
+            if (!wasEnvironmentOpen)
+            {
+                environmentScene = EditorSceneManager.OpenScene(k_EnvironmentPath, OpenSceneMode.Additive);
+            }
+
+            Transform[] supports = new Transform[k_SupportNames.Length];
+
+            for (int i = 0; i < supports.Length; i++)
+            {
+                supports[i] = FindTransform(environmentScene, k_SupportNames[i]);
+
+                if (supports[i] == null)
+                {
+                    Debug.LogError($"[{k_LogPrefix}] {k_SupportNames[i]} is missing from "
+                        + k_EnvironmentPath + ".");
+
+                    if (!wasEnvironmentOpen)
+                    {
+                        EditorSceneManager.CloseScene(environmentScene, true);
+                    }
+
+                    return;
+                }
             }
 
             // Always additive: an environment part scene owns no camera and no listener, and
@@ -99,17 +116,16 @@ namespace RootsDance.Editor.Archive
                 instance.name = $"ArchiveDocument_{documents[i].Id}";
                 instance.transform.SetParent(root.transform, false);
 
-                // Laid out along the desk's long axis, on its surface. Exact placement is the
-                // level owner's to nudge in the Editor.
-                Quaternion desk = Quaternion.Euler(0f, k_DeskYawDegrees, 0f);
-                float across = (i - (documents.Length - 1) * 0.5f) * k_Spacing;
-                instance.transform.position = k_DeskPosition
-                    + Vector3.up * (k_DeskTopHeight + k_Lift)
-                    + desk * new Vector3(across, 0f, 0f);
+                Bounds supportBounds = CombinedRendererBounds(supports[i]);
+                Vector3 supportPosition = supports[i].position;
+                instance.transform.position = new Vector3(
+                    supportPosition.x,
+                    supportBounds.max.y + k_Lift,
+                    supportPosition.z);
 
                 // Face up: the readable side of a page looks back along its own forward axis. Its
-                // up runs along the desk's depth, so the text reads from where you stand at it.
-                instance.transform.rotation = Quaternion.LookRotation(Vector3.down, desk * Vector3.forward);
+                // up follows the clipboard or binder it rests on.
+                instance.transform.rotation = Quaternion.LookRotation(Vector3.down, supports[i].forward);
 
                 SetLayerRecursively(instance, layer);
 
@@ -126,10 +142,75 @@ namespace RootsDance.Editor.Archive
                 EditorSceneManager.CloseScene(scene, true);
             }
 
+            if (!wasEnvironmentOpen)
+            {
+                EditorSceneManager.CloseScene(environmentScene, true);
+            }
+
             AssetDatabase.Refresh();
 
             Debug.Log($"[{k_LogPrefix}] Wrote {k_ScenePath} with {documents.Length} document(s) on "
                 + "the archive desk. Open it additively next to BriggsInterior_Environment to move them.");
+        }
+
+        private static ArchiveDocumentSO[] LoadLabDocuments()
+        {
+            ArchiveDocumentSO[] all = ArchivePageStage.LoadDocuments();
+            ArchiveDocumentSO[] selected = new ArchiveDocumentSO[k_DocumentIds.Length];
+
+            for (int i = 0; i < selected.Length; i++)
+            {
+                for (int j = 0; j < all.Length; j++)
+                {
+                    if (all[j] != null && all[j].Id == k_DocumentIds[i])
+                    {
+                        selected[i] = all[j];
+                        break;
+                    }
+                }
+
+                if (selected[i] == null)
+                {
+                    Debug.LogError($"[{k_LogPrefix}] {k_DocumentIds[i]} is missing under "
+                        + "Data/Archive; run RootsDance/Archive/Create Document Assets first.");
+                    return null;
+                }
+            }
+
+            return selected;
+        }
+
+        private static Transform FindTransform(Scene scene, string name)
+        {
+            GameObject[] roots = scene.GetRootGameObjects();
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                Transform[] transforms = roots[i].GetComponentsInChildren<Transform>(true);
+
+                for (int j = 0; j < transforms.Length; j++)
+                {
+                    if (transforms[j].name == name)
+                    {
+                        return transforms[j];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static Bounds CombinedRendererBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds;
         }
 
         /// <summary>
