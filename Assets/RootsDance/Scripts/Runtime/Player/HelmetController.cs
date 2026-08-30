@@ -64,6 +64,7 @@ namespace RootsDance.Player
         private bool m_isRemoving;
         private bool m_isRemoved;
         private bool m_isConversationActive;
+        private bool m_worldStateChecked;
 
         public bool IsRemoved => m_isRemoved;
 
@@ -97,6 +98,8 @@ namespace RootsDance.Player
 
         private void Update()
         {
+            SyncFromWorldState();
+
             if (m_isRemoving || m_isRemoved || m_input == null)
             {
                 return;
@@ -156,6 +159,12 @@ namespace RootsDance.Player
 
         private void OnFlagRaised(string flagId)
         {
+            if (flagId == WorldFlags.k_HelmetRemoved)
+            {
+                SetRemovedImmediately();
+                return;
+            }
+
             if (m_isUnlocked || flagId != m_unlockFlag)
             {
                 return;
@@ -169,6 +178,38 @@ namespace RootsDance.Player
             // the player must be able to read what the game is waiting for at any moment, not only
             // in the seconds the subtitle was up.
             Raise(m_hintRequested, m_hintText);
+        }
+
+        private void SyncFromWorldState()
+        {
+            if (m_worldStateChecked || WorldAccess.State == null)
+            {
+                return;
+            }
+
+            m_worldStateChecked = true;
+            m_isUnlocked = WorldAccess.State.HasFlag(m_unlockFlag);
+
+            if (WorldAccess.State.HasFlag(WorldFlags.k_HelmetRemoved))
+            {
+                SetRemovedImmediately();
+            }
+        }
+
+        private void SetRemovedImmediately()
+        {
+            if (m_isRemoved)
+            {
+                return;
+            }
+
+            m_isUnlocked = true;
+            m_isRemoving = false;
+            m_isRemoved = true;
+            m_view?.SetRemovedImmediately();
+            Raise(m_noticeRequested, string.Empty);
+            Raise(m_hintRequested, string.Empty);
+            Raise(m_warningRequested, string.Empty);
         }
 
         private void BeginRemove()

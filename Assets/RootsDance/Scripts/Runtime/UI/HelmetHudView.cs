@@ -111,6 +111,13 @@ namespace RootsDance.UI
                 return;
             }
 
+            if (duration <= 0f)
+            {
+                m_sequence?.Kill();
+                m_visorRoot.gameObject.SetActive(false);
+                return;
+            }
+
             m_sequence?.Kill();
             m_visorRoot.anchoredPosition = m_wornPosition;
             m_visorRoot.localScale = Vector3.one;
