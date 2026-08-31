@@ -71,7 +71,7 @@ namespace RootsDance.Tests.EditMode.UI
             SerializedObject so = new SerializedObject(root);
             Object theme = so.FindProperty("m_theme").objectReferenceValue;
             Assert.IsNotNull(theme, "the screen has no theme, so every element renders untinted.");
-            Assert.AreEqual("UITheme_Phosphor", theme.name,
+            Assert.AreEqual("UITheme_PhosphorWall", theme.name,
                 "the terminal changed family; the kit's inks come from the theme.");
         }
 

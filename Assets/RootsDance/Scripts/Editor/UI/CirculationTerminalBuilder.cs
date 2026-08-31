@@ -173,8 +173,11 @@ namespace RootsDance.EditorTools
                 }
             }
 
-            // Replaced rather than left alone: the prefab is what changes between runs, and an
-            // instance from an older one keeps its old children.
+            // Replace the contents but preserve the level artist's placement and readable side.
+            Vector3 position = existing == null ? k_WallPosition : existing.transform.position;
+            Quaternion rotation = existing == null ? k_WallRotation : existing.transform.rotation;
+            Vector3 scale = existing == null ? Vector3.one : existing.transform.localScale;
+
             if (existing != null)
             {
                 Object.DestroyImmediate(existing);
@@ -182,7 +185,8 @@ namespace RootsDance.EditorTools
 
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
             instance.name = k_InstanceName;
-            instance.transform.SetPositionAndRotation(k_WallPosition, k_WallRotation);
+            instance.transform.SetPositionAndRotation(position, rotation);
+            instance.transform.localScale = scale;
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -192,8 +196,8 @@ namespace RootsDance.EditorTools
                 EditorSceneManager.CloseScene(scene, true);
             }
 
-            Debug.Log($"[UI] '{k_InstanceName}' placed at {k_WallPosition} in {k_PropScene}. "
-                + "Move it in the Editor and write the new pose back here, or it moves back.");
+            Debug.Log($"[UI] '{k_InstanceName}' placed at {position} in {k_PropScene}. "
+                + "Existing placement is preserved when rebuilding.");
         }
 
         /// <summary>
