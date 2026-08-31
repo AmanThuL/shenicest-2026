@@ -22,6 +22,10 @@ namespace RootsDance.App
         [Header("Listens to")]
         [SerializeField] private LevelEventChannelSO m_loadLevelRequested;
 
+        [Tooltip("Requests an additive content stream (e.g. exterior geometry revealed through "
+            + "windows) without unloading or covering the current level. Payload is a scene path.")]
+        [SerializeField] private StringEventChannelSO m_streamSceneRequested;
+
         [Header("Broadcasts on")]
         [Tooltip("Every world flag, the first time it is raised. Content scenes listen here instead "
             + "of reaching into the world state, so load order stops mattering.")]
@@ -86,6 +90,11 @@ namespace RootsDance.App
             {
                 m_loadLevelRequested.EventRaised += OnLoadLevelRequested;
             }
+
+            if (m_streamSceneRequested != null)
+            {
+                m_streamSceneRequested.EventRaised += OnStreamSceneRequested;
+            }
         }
 
         private void Start()
@@ -144,6 +153,11 @@ namespace RootsDance.App
             {
                 m_loadLevelRequested.EventRaised -= OnLoadLevelRequested;
             }
+
+            if (m_streamSceneRequested != null)
+            {
+                m_streamSceneRequested.EventRaised -= OnStreamSceneRequested;
+            }
         }
 
         private void OnDestroy()
@@ -198,6 +212,17 @@ namespace RootsDance.App
             }
 
             m_sceneLoader.RequestLoad(level);
+        }
+
+        private void OnStreamSceneRequested(string scenePath)
+        {
+            if (m_sceneLoader == null)
+            {
+                Log.Error("No SceneLoader assigned on GameBootstrap.", this);
+                return;
+            }
+
+            m_sceneLoader.RequestStreamAdditiveContent(scenePath);
         }
     }
 }
