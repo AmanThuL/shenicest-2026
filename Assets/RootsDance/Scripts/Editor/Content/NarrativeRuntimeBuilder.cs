@@ -385,6 +385,7 @@ namespace RootsDance.Editor.Content
                 // Her face sits 225 degrees round from the rig's +Z; without the offset she
                 // greets the player with the back of her bud. Measured against the model.
                 serialized.FindProperty("m_modelYawOffset").floatValue = 225f;
+                serialized.FindProperty("m_groundLayers").intValue = LayerMask.GetMask("Ground");
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 

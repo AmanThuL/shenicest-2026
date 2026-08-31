@@ -4,6 +4,7 @@ using NUnit.Framework;
 using RootsDance.App;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -114,9 +115,20 @@ namespace RootsDance.Tests.EditMode.Environment
                         }
                     }
 
-                    MeshCollider collider = renderer.GetComponent<MeshCollider>();
-                    Assert.IsTrue(collider != null && collider.sharedMesh != null, renderer.name);
-                    Assert.IsFalse(collider.convex, renderer.name);
+                    MeshCollider meshCollider = renderer.GetComponent<MeshCollider>();
+
+                    if (meshCollider != null)
+                    {
+                        Assert.IsTrue(meshCollider.sharedMesh != null, renderer.name);
+                        Assert.IsFalse(meshCollider.convex, renderer.name);
+                    }
+                    else
+                    {
+                        // The door leaves rotate at runtime, so SeparateDoors gives them a
+                        // BoxCollider instead of a non-convex MeshCollider — same guarantee that
+                        // the piece can be collided with, cheaper to move every frame.
+                        Assert.IsTrue(renderer.GetComponent<BoxCollider>() != null, renderer.name);
+                    }
                 }
 
                 // Distinct surfaces, not one material smeared over the whole building.
@@ -132,6 +144,47 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsTrue(volume != null && volume.isGlobal && volume.sharedProfile != null);
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void EnvironmentScene_SeparatesFourHingedDoors()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform model = FindRoot(scene, "_Geometry").Find("ChapterHouseRoot/ChapterHouse");
+                SwingDoor[] doors = model.GetComponentsInChildren<SwingDoor>(true);
+
+                // One per physical door the merged mesh was split into — not the wall it used to
+                // be painted onto.
+                Assert.AreEqual(4, doors.Length);
+
+                for (int i = 0; i < doors.Length; i++)
+                {
+                    SwingDoor door = doors[i];
+                    Assert.IsFalse(door.gameObject.isStatic, door.name);
+
+                    BoxCollider trigger = door.GetComponent<BoxCollider>();
+                    Assert.IsTrue(trigger != null && trigger.isTrigger, door.name);
+
+                    // The probe only collides with TriggerVolume; on any other layer the door
+                    // never sees the player and never opens.
+                    Assert.AreEqual(LayerMask.NameToLayer("TriggerVolume"), door.gameObject.layer, door.name);
+
+                    MeshRenderer leafRenderer = door.GetComponentInChildren<MeshRenderer>(true);
+                    Assert.IsTrue(leafRenderer != null, door.name);
+                    Assert.AreEqual(0, leafRenderer.gameObject.layer, door.name);
+                }
+
+                Assert.IsNull(FindPartOrNull(model.gameObject, "ClothLandscape_CorridorShell.006"));
             }
             finally
             {
@@ -185,6 +238,59 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void GameplayScene_LeadsToTheGreenhouseBehindDoorD()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform model = FindRoot(environment, "_Geometry").Find("ChapterHouseRoot/ChapterHouse");
+                Bounds doorway = FindPart(
+                        model.gameObject, Editor.Environment.ChapterHouseGreenhousePortalBuilder.k_DoorName)
+                    .GetComponentInChildren<Renderer>(true).bounds;
+
+                Transform portal = FindRoot(gameplay, "_Triggers").Find("ChapterHouseGreenhousePortal");
+                Assert.IsTrue(portal != null, "Run RootsDance/Environment/Apply Chapter House Greenhouse Portal.");
+                Assert.AreEqual(LayerMask.NameToLayer("TriggerVolume"), portal.gameObject.layer);
+
+                BoxCollider trigger = portal.GetComponent<BoxCollider>();
+                Assert.IsTrue(trigger != null && trigger.isTrigger);
+
+                // The probe's 0.45 m radius must not let the load fire from the corridor side of
+                // the doorway plane — approaching the door has to open it, not leave the level.
+                Assert.Greater(trigger.bounds.min.z, doorway.center.z + 0.45f);
+
+                // And once through, the player cannot walk around the volume: it covers the
+                // doorway's full width and from below the sill to above head height.
+                Assert.LessOrEqual(trigger.bounds.min.x, doorway.min.x);
+                Assert.GreaterOrEqual(trigger.bounds.max.x, doorway.max.x);
+                Assert.LessOrEqual(trigger.bounds.min.y, doorway.min.y);
+                Assert.GreaterOrEqual(trigger.bounds.max.y, doorway.min.y + 2f);
+
+                LevelPortal levelPortal = portal.GetComponent<LevelPortal>();
+                Assert.IsTrue(levelPortal != null);
+                SerializedObject serialized = new SerializedObject(levelPortal);
+                Assert.AreSame(
+                    AssetDatabase.LoadAssetAtPath<LevelSO>("Assets/RootsDance/Data/Levels/GreenhouseInterior.asset"),
+                    serialized.FindProperty("m_level").objectReferenceValue);
+                Assert.IsTrue(serialized.FindProperty("m_loadLevelRequested").objectReferenceValue != null);
+
+                MeshRenderer surface = portal.GetComponentInChildren<MeshRenderer>(true);
+                Assert.IsTrue(surface != null && surface.sharedMaterial != null);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        [Test]
         public void Checkpoints_ReferenceLevelAndMatchAnchors()
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
@@ -228,6 +334,21 @@ namespace RootsDance.Tests.EditMode.Environment
             }
 
             Assert.Fail("The chapter house export has no piece named " + partName);
+            return null;
+        }
+
+        private static Transform FindPartOrNull(GameObject model, string partName)
+        {
+            Transform[] transforms = model.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                if (transforms[i].gameObject.name == partName)
+                {
+                    return transforms[i];
+                }
+            }
+
             return null;
         }
 

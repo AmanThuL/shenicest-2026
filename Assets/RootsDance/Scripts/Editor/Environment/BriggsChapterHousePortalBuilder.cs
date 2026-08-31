@@ -114,7 +114,7 @@ namespace RootsDance.Editor.Environment
             PrefabUtility.RecordPrefabInstancePropertyModifications(instance.transform);
         }
 
-        private static Material EnsureBlackMaterial()
+        internal static Material EnsureBlackMaterial()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(k_MaterialPath);
             if (material == null)

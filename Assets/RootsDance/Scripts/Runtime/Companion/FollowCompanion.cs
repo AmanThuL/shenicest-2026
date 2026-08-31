@@ -70,6 +70,12 @@ namespace RootsDance.Companion
         [Min(30f)]
         [SerializeField] private float m_turnDegreesPerSecond = 480f;
 
+        [Tooltip("What she stands on. Wherever the player's floor height and the ground under her "
+            + "feet disagree — behind them on a step, beside the catwalk over the drop — she "
+            + "plants on what a probe finds here, and hovers at the player's floor height only "
+            + "where there is nothing to stand on at all.")]
+        [SerializeField] private LayerMask m_groundLayers;
+
         [Tooltip("Yaw between the rig's +Z and where her face actually is on the model, in "
             + "degrees. The bud's mouth is not on the axis the rig calls forward, so facing the "
             + "player with +Z shows the player her leaves.")]
@@ -103,6 +109,11 @@ namespace RootsDance.Companion
             m_speedParameterId = string.IsNullOrEmpty(m_speedParameter)
                 ? 0
                 : Animator.StringToHash(m_speedParameter);
+
+            if (m_groundLayers.value == 0)
+            {
+                m_groundLayers = LayerMask.GetMask("Ground");
+            }
 
             SetVisible(false);
         }
@@ -180,7 +191,7 @@ namespace RootsDance.Companion
             {
                 Vector3 position = CompanionFollowStep.AppearPosition(
                     m_player.position, m_player.forward, m_appearStandoff);
-                position.y = m_player.position.y + m_playerFootOffset;
+                position.y = GroundedY(position, m_player.position.y + m_playerFootOffset);
                 transform.position = position;
                 FaceInstantly();
             }
@@ -281,16 +292,32 @@ namespace RootsDance.Companion
 
             Vector3 target = CompanionFollowStep.DesiredPosition(
                 m_player.position, transform.position, m_followDistance);
-
-            // She keeps the player's floor height. The chapter house hands her a catwalk and the
-            // greenhouse a flat slab, and neither needs a ground probe to stand on. The player's
-            // origin is mid-capsule, so the foot offset takes it down to where the floor really is.
-            target.y = m_player.position.y + m_playerFootOffset;
+            target.y = GroundedY(target, m_player.position.y + m_playerFootOffset);
 
             Vector3 before = transform.position;
             transform.position = Vector3.MoveTowards(before, target, m_moveSpeed * Time.deltaTime);
 
             return Vector3.Distance(before, transform.position);
+        }
+
+        /// <summary>
+        /// Where her feet belong at this spot. The player's floor height is only where the
+        /// <em>player</em> stands: trailing behind on a step, or beside the catwalk, that height
+        /// hangs her in the air, so the ground under the spot itself wins whenever there is any.
+        /// </summary>
+        private float GroundedY(Vector3 position, float playerFloorY)
+        {
+            // From above her head down past a storey: a step up is still caught, and the probe
+            // reaches the floor under a catwalk without falling out of the level.
+            Vector3 origin = new Vector3(position.x, playerFloorY + 1.5f, position.z);
+
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 4.5f,
+                m_groundLayers, QueryTriggerInteraction.Ignore))
+            {
+                return hit.point.y;
+            }
+
+            return playerFloorY;
         }
 
         private void FacePlayer()

@@ -8,7 +8,8 @@
 
 **这一关的剧情只有一处：桥上与小花的初次相遇（02-04）。** 它由
 `RootsDance > Content > Wire Narrative Runtime` 写进 `_Narrative`，本文件的生成器不碰它——
-关卡负责几何、锚点和 checkpoint，叙事挂在锚点上。`_Triggers` / `_Interactables` 仍是空的。
+关卡负责几何、锚点和 checkpoint，叙事挂在锚点上。`_Triggers` 只有一个去温室的
+portal（见第 5 节），`_Interactables` 仍是空的。
 相遇的三拍（现身 / 回头 / 台词）写在[对话与场景序列 2.3b](../../architecture/systems/对话与场景序列.md)。
 
 ---
@@ -119,7 +120,26 @@ Smoothness 压到 0.08：贴图是作者烘焙好的，上面再加一层高光�
 
 ---
 
-## 5. 尚未做的
+## 5. 从这里去温室
+
+四扇 chapel 门（`ChapterHouseDoor_A`–`D`）都是 `SwingDoor`：玩家探针进入门根节点上的
+触发盒就摆开，离开就摆回。**门根节点必须在 `TriggerVolume` 层**（原因同第 4 节的 portal），
+门叶留在 Default 层——它的碰撞体要挡玩家胶囊，不是和探针说话。
+
+只有 **`ChapterHouseDoor_D`** 通向下一章：门后站着
+`ChapterHouseInterior_Gameplay/_Triggers/ChapterHouseGreenhousePortal`，同一套黑面 +
+`LevelPortal` 的做法，请求加载 `GreenhouseInterior`（即 03-01 温室入口，落在温室自己的
+PlayerSpawn）。其余三扇门只开，不通。
+
+portal 的位置从门 D 自己的触发盒包围盒推出来，不写死：触发盒前沿离门平面超过一个探针半径，
+走到门前只开门、不换关；根节点退到门叶 100° 摆弧之外，黑面不会被门叶扫到。
+可用 `RootsDance/Environment/Apply Chapter House Greenhouse Portal` 单独重建；
+`RootsDance > Build Chapter House Interior` 重建整关时也会把它写回来，
+与叙事一样不会被清空的 `_Triggers` 静默吃掉。
+
+---
+
+## 6. 尚未做的
 
 - **金属桥的位置还是构图参考**：源文件 README 写明桥是「approximate composition reference」，
   实测桥面只比厅内地板高约 0.5 m（1.511 之后），是贴着地板放的，不是跨在布料地形上方。
