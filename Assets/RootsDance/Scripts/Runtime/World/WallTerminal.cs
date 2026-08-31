@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RootsDance.Core;
 using RootsDance.Interaction;
 using UnityEngine;
 using Unity.Cinemachine;
@@ -52,6 +53,8 @@ namespace RootsDance.World
 
         public CinemachineCamera InspectCamera => m_inspectCamera;
 
+        public ITerminalScreenView Screen { get; private set; }
+
         /// <summary>Where the hint measures from — the screen itself, not the housing's pivot.</summary>
         public Vector3 ScreenPosition =>
             m_screenAnchor == null ? transform.position : m_screenAnchor.position;
@@ -68,6 +71,14 @@ namespace RootsDance.World
         private void OnDisable()
         {
             s_active.Remove(this);
+        }
+
+        private void Start()
+        {
+            if (m_canvas != null)
+            {
+                Screen = m_canvas.GetComponent<ITerminalScreenView>();
+            }
         }
 
         /// <summary>

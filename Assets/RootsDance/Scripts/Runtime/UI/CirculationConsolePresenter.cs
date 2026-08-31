@@ -29,10 +29,10 @@ namespace RootsDance.UI
     /// would otherwise land in the middle of whatever frame the click happened in.
     /// </para>
     /// </summary>
-    public class CirculationConsolePresenter : MonoBehaviour
+    public class CirculationConsolePresenter : MonoBehaviour, ITerminalScreenView
     {
         [Header("Screen")]
-        [Tooltip("Switched off until the player opens the terminal.")]
+        [Tooltip("Hidden when closed on an overlay; physical panels keep their status visible.")]
         [SerializeField] private GameObject m_screen;
 
         [Header("Cycles")]
@@ -55,6 +55,7 @@ namespace RootsDance.UI
         [SerializeField] private float m_closeDelay = 2.5f;
 
         private bool m_isSpent;
+        private bool m_isWorldSpace;
         private float m_closeAt;
 
         /// <summary>Raised when the terminal closes, whether or not a cycle was chosen.</summary>
@@ -65,6 +66,9 @@ namespace RootsDance.UI
 
         private void Awake()
         {
+            Canvas canvas = GetComponent<Canvas>();
+            m_isWorldSpace = canvas != null && canvas.renderMode == RenderMode.WorldSpace;
+
             for (int i = 0; i < m_cycleButtons.Length; i++)
             {
                 if (m_cycleButtons[i] == null)
@@ -91,17 +95,19 @@ namespace RootsDance.UI
             }
 
             m_closeAt = 0f;
+            SetButtonsInteractable(!m_isSpent);
         }
 
-        /// <summary>Shuts the terminal without choosing anything.</summary>
+        /// <summary>Ends input. Physical panels keep their status visible after stepping away.</summary>
         public void Close()
         {
             if (m_screen != null)
             {
-                m_screen.SetActive(false);
+                m_screen.SetActive(m_isWorldSpace);
             }
 
             m_closeAt = 0f;
+            SetButtonsInteractable(false);
             Closed?.Invoke();
         }
 
@@ -135,13 +141,7 @@ namespace RootsDance.UI
 
             // Dead, not gone. A terminal whose buttons vanished would read as a UI that finished;
             // three cycles greyed out with one of them started reads as a decision that was made.
-            for (int i = 0; i < m_cycleButtons.Length; i++)
-            {
-                if (m_cycleButtons[i] != null)
-                {
-                    m_cycleButtons[i].interactable = false;
-                }
-            }
+            SetButtonsInteractable(false);
 
             WorldAccess.Enqueue(new RaiseFlagCommand(flag), this);
 
@@ -156,6 +156,17 @@ namespace RootsDance.UI
             }
 
             m_statusValue.Text = text;
+        }
+
+        private void SetButtonsInteractable(bool interactable)
+        {
+            for (int i = 0; i < m_cycleButtons.Length; i++)
+            {
+                if (m_cycleButtons[i] != null)
+                {
+                    m_cycleButtons[i].interactable = interactable;
+                }
+            }
         }
     }
 }

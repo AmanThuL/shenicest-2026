@@ -59,6 +59,7 @@ namespace RootsDance.World
 
         private ReadState m_state = ReadState.Idle;
         private WallTerminal m_terminal;
+        private ITerminalScreenView m_screen;
         private CinemachineBrain m_brain;
         private CinemachineBlendDefinition m_previousBlend;
         private bool m_hasStoredBlend;
@@ -83,6 +84,11 @@ namespace RootsDance.World
                 m_input = GetComponentInParent<PlayerInputReader>();
             }
 
+        }
+
+        private void OnDisable()
+        {
+            EndRead();
         }
 
         private void Update()
@@ -140,6 +146,14 @@ namespace RootsDance.World
             terminal.SetReadCamera(Camera.main);
 
             SuspendPlayer(true);
+            m_screen = terminal.Screen;
+
+            if (m_screen != null)
+            {
+                m_screen.Closed += EndRead;
+                m_screen.Open();
+            }
+
             ReadingStarted?.Invoke();
             return true;
         }
@@ -150,6 +164,14 @@ namespace RootsDance.World
             if (m_state == ReadState.Idle)
             {
                 return;
+            }
+
+            if (m_screen != null)
+            {
+                // Close also raises Closed. Unsubscribe first so manual exit cannot recurse.
+                m_screen.Closed -= EndRead;
+                m_screen.Close();
+                m_screen = null;
             }
 
             if (m_terminal != null && m_terminal.InspectCamera != null)
