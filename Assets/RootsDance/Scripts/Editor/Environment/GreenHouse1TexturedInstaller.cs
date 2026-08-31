@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using RootsDance.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
@@ -21,8 +23,9 @@ namespace RootsDance.Editor.Environment
     /// the main facility places the greenhouse at the origin of its parent, the greenhouse-interior
     /// level places it offset and scaled by 1.198.
     /// </para>
-    /// Idempotent, and nothing is deleted — the old dome objects are deactivated and the opaque
-    /// window shells overlapping the glass are disabled in the interior level only. Runs over every loaded scene.
+    /// Idempotent, and nothing is deleted — the old dome objects are deactivated. The interior
+    /// restores the authored window frames and uses double-sided materials to match Blender.
+    /// Runs over every loaded scene.
     /// Menu: RootsDance > Environment > Install Textured GreenHouse1.
     /// </summary>
     public static class GreenHouse1TexturedInstaller
@@ -48,7 +51,7 @@ namespace RootsDance.Editor.Environment
         private const string k_InteriorMaterialFolder =
             "Assets/RootsDance/Materials/Environment/GreenhouseInterior";
 
-        private const string k_OpaqueWindowMaterial = "GreenHouse1Window";
+        private const string k_WindowMaterial = "GreenHouse1Window";
 
         /// <summary>
         /// The SketchUp group the dome's objects sit under. Their names carry the whole group chain,
@@ -126,19 +129,23 @@ namespace RootsDance.Editor.Environment
             }
 
             int assigned = AssignMaterials(installed);
-            int hiddenWindowPanels = old.scene.name == "GreenhouseInterior_Environment"
-                ? HideOpaqueWindowPanels(installed)
+            int restoredWindowFrames = old.scene.name == "GreenhouseInterior_Environment"
+                ? RestoreWindowFrames(installed)
+                : 0;
+            int disabledGlassShadows = old.scene.name == "GreenhouseInterior_Environment"
+                ? DisableInteriorGlassShadows(installed)
                 : 0;
             int hiddenOldDomeObjects = HideOldDome(old);
 
-            if (hiddenWindowPanels > 0 || hiddenOldDomeObjects > 0)
+            if (restoredWindowFrames > 0 || disabledGlassShadows > 0 || hiddenOldDomeObjects > 0)
             {
                 EditorSceneManager.MarkSceneDirty(old.scene);
             }
 
-            Debug.Log($"GreenHouse1TexturedInstaller: [{old.scene.name}] replaced the dome of "
-                + $"'{old.name}'; {assigned} renderer material slots bound, {hiddenWindowPanels} "
-                + $"opaque window panels hidden, {hiddenOldDomeObjects} old dome objects deactivated. "
+            Log.Info($"GreenHouse1TexturedInstaller: [{old.scene.name}] replaced the dome of "
+                + $"'{old.name}'; {assigned} renderer material slots bound, {restoredWindowFrames} "
+                + $"window frames restored, {disabledGlassShadows} opaque glass shadows disabled, "
+                + $"{hiddenOldDomeObjects} old dome objects deactivated. "
                 + $"Placed at {installed.transform.localPosition:F3} scale "
                 + $"{installed.transform.localScale:F5}. The wings either side are untouched.",
                 installed);
@@ -270,12 +277,21 @@ namespace RootsDance.Editor.Environment
                 }
             }
 
-            // Keep the exterior's weathered glass while giving chapter 03 clearer glazing.
+            // Match the Blender material in chapter 03 without changing the exterior parents.
             if (root.scene.name == "GreenhouseInterior_Environment")
             {
-                AddInteriorGlassVariant(byName, "GreenHouse1GlassIntact", 0.28f, 0.75f);
-                AddInteriorGlassVariant(byName, "GreenHouse1GlassCracked", 0.40f, 0.65f);
-                AddInteriorGlassVariant(byName, "GreenHouse1GlassShattered", 0.34f, 0.60f);
+                ModelImporter importer = (ModelImporter)AssetImporter.GetAtPath(k_FbxPath);
+
+                // Blender repeats the maps every 2 m. The FBX's 100x centimetre conversion is
+                // cancelled by useFileScale; only globalScale and the scene placement scale remain.
+                // Use the uniformly scaled prefab root, not a child carrying FBX's 100x transform.
+                float worldScale = 0.5f / (importer.globalScale * Mathf.Abs(root.transform.lossyScale.x));
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassIntact", worldScale);
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassCracked", worldScale);
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassShattered", worldScale);
+                AddInteriorGlassVariant(byName, "GreenHouse1GlassStained", worldScale);
+                AddInteriorFrameVariant(byName, "GreenHouse1Wall");
+                AddInteriorFrameVariant(byName, k_WindowMaterial);
             }
 
             int bound = 0;
@@ -331,7 +347,7 @@ namespace RootsDance.Editor.Environment
         }
 
         private static void AddInteriorGlassVariant(Dictionary<string, Material> byName,
-            string sourceName, float opacity, float smoothnessMin)
+            string sourceName, float worldScale)
         {
             Material source = byName[sourceName];
             string name = sourceName + "_Interior";
@@ -342,14 +358,57 @@ namespace RootsDance.Editor.Environment
             {
                 variant = new Material(source);
                 variant.name = name;
-                variant.parent = source;
                 AssetDatabase.CreateAsset(variant, path);
             }
 
+            // Repair the inheritance as well as the values on repeated installs.
+            variant.parent = source;
             Color tint = source.GetColor("_BaseColor");
-            tint.a = opacity;
+            tint.a = 1f;
             variant.SetColor("_BaseColor", tint);
-            variant.SetFloat("_SmoothnessRemapMin", smoothnessMin);
+
+            // Blender uses BaseMap alpha on a Principled surface, not transmission. HDRP Thin
+            // replaces alpha blending with screen-space refraction and can become opaque when
+            // that camera feature is off. Keep the authored colour, haze and roughness maps intact.
+            variant.SetFloat("_RefractionModel", 0f);
+            variant.SetFloat("_BlendMode", 0f);
+            variant.SetFloat("_SmoothnessRemapMin", 0f);
+            variant.SetFloat("_SmoothnessRemapMax", 1f);
+            variant.SetFloat("_NormalScale", 0.5f);
+            variant.SetFloat("_TexWorldScale", worldScale);
+
+            // The source panes are sheets visible from either side; Flip faces the back normal
+            // toward the viewer without drawing a second, overlapping transparent backface pass.
+            variant.SetFloat("_DoubleSidedEnable", 1f);
+            variant.SetFloat("_DoubleSidedNormalMode", 0f);
+            variant.SetFloat("_TransparentBackfaceEnable", 0f);
+            HDMaterial.SetSurfaceType(variant, true);
+            HDMaterial.ValidateMaterial(variant);
+            EditorUtility.SetDirty(variant);
+            AssetDatabase.SaveAssetIfDirty(variant);
+            byName[sourceName] = variant;
+            byName[name] = variant;
+        }
+
+        private static void AddInteriorFrameVariant(Dictionary<string, Material> byName, string sourceName)
+        {
+            Material source = byName[sourceName];
+            string name = sourceName + "_Interior";
+            string path = k_InteriorMaterialFolder + "/" + name + ".mat";
+            Material variant = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (variant == null)
+            {
+                variant = new Material(source);
+                variant.name = name;
+                AssetDatabase.CreateAsset(variant, path);
+            }
+
+            // Blender shows the frame backs inside the greenhouse. Keep the opaque shader and
+            // all authored texture properties inherited; only the two-sided surface differs.
+            variant.parent = source;
+            variant.SetFloat("_DoubleSidedEnable", 1f);
+            variant.SetFloat("_DoubleSidedNormalMode", 0f);
             HDMaterial.ValidateMaterial(variant);
             EditorUtility.SetDirty(variant);
             AssetDatabase.SaveAssetIfDirty(variant);
@@ -358,25 +417,77 @@ namespace RootsDance.Editor.Environment
         }
 
         /// <summary>
-        /// Hides the opaque window shells that overlap the authored transparent glass meshes.
+        /// Restores the frames hidden by the earlier glass fix. The current imported window
+        /// surfaces match Preview_Whole; hiding the whole renderer removes valid frame geometry.
         /// </summary>
-        private static int HideOpaqueWindowPanels(GameObject root)
+        private static int RestoreWindowFrames(GameObject root)
         {
-            int hidden = 0;
+            int restored = 0;
 
             foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
             {
-                if (!renderer.enabled || !UsesMaterial(renderer, k_OpaqueWindowMaterial))
+                if (renderer.enabled
+                    || (!UsesMaterial(renderer, k_WindowMaterial)
+                        && !UsesMaterial(renderer, k_WindowMaterial + "_Interior")))
                 {
                     continue;
                 }
 
-                renderer.enabled = false;
+                renderer.enabled = true;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
-                hidden++;
+                restored++;
             }
 
-            return hidden;
+            return restored;
+        }
+
+        /// <summary>
+        /// Raster shadow maps treat this alpha-blended glazing as solid. Let sunlight through the
+        /// ordinary glass as an approximation; frames, mixed renderers and stained glass keep shadows.
+        /// </summary>
+        private static int DisableInteriorGlassShadows(GameObject root)
+        {
+            int disabled = 0;
+
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer.shadowCastingMode == ShadowCastingMode.Off || !UsesOnlyInteriorGlass(renderer))
+                {
+                    continue;
+                }
+
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+                disabled++;
+            }
+
+            return disabled;
+        }
+
+        private static bool UsesOnlyInteriorGlass(Renderer renderer)
+        {
+            bool hasGlass = false;
+
+            foreach (Material material in renderer.sharedMaterials)
+            {
+                if (material == null)
+                {
+                    continue;
+                }
+
+                string name = material.name;
+
+                if (name != "GreenHouse1GlassIntact_Interior"
+                    && name != "GreenHouse1GlassCracked_Interior"
+                    && name != "GreenHouse1GlassShattered_Interior")
+                {
+                    return false;
+                }
+
+                hasGlass = true;
+            }
+
+            return hasGlass;
         }
 
         private static bool UsesMaterial(Renderer renderer, string materialName)
