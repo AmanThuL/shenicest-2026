@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
 using RootsDance.Rendering;
@@ -191,6 +192,11 @@ namespace RootsDance.Scanner
                 return false;
             }
 
+            if (!WorldAccess.TryBeginExclusiveInteraction(this))
+            {
+                return false;
+            }
+
             m_target = target;
             m_state = ScannerState.Raising;
 
@@ -240,6 +246,7 @@ namespace RootsDance.Scanner
         public void ResetForRescue()
         {
             CancelScan();
+            WorldAccess.EndExclusiveInteraction(this);
             m_state = ScannerState.Idle;
             m_target = null;
             m_screen?.Close();
@@ -361,7 +368,14 @@ namespace RootsDance.Scanner
 
             m_state = ScannerState.Idle;
             m_target = null;
+            WorldAccess.EndExclusiveInteraction(this);
             ReadingEnded?.Invoke();
+        }
+
+        private void OnDestroy()
+        {
+            // Mid-read scene unload: the loop will never reach idle, so the gate is opened here.
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         private void SuspendPlayer(bool suspended)

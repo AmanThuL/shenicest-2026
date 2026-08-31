@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace RootsDance.Dialogue
@@ -56,6 +57,11 @@ namespace RootsDance.Dialogue
 
         /// <inheritdoc />
         public event Action<int> ChoiceSelected;
+
+        private bool m_cursorReleased;
+        private bool m_cursorWasVisible;
+        private CursorLockMode m_cursorWasLocked;
+        private InputActionMap m_suspendedMap;
 
         private void Awake()
         {
@@ -120,6 +126,8 @@ namespace RootsDance.Dialogue
                 return;
             }
 
+            ReleaseCursorForChoices();
+
             if (chinese.Length > m_choiceButtons.Length)
             {
                 Debug.LogWarning($"DialoguePresenter was offered {chinese.Length} options but has "
@@ -177,6 +185,62 @@ namespace RootsDance.Dialogue
                     m_choiceButtons[i].gameObject.SetActive(false);
                 }
             }
+
+            RestoreCursorAfterChoices();
+        }
+
+        /// <summary>
+        /// A choice is answered with the mouse, and gameplay keeps the cursor locked — without
+        /// this the buttons are on screen and nothing can press them. The Player action map goes
+        /// down with the lock so mousing to a button does not also swing the camera.
+        /// </summary>
+        private void ReleaseCursorForChoices()
+        {
+            if (m_cursorReleased)
+            {
+                return;
+            }
+
+            m_cursorReleased = true;
+            m_cursorWasVisible = Cursor.visible;
+            m_cursorWasLocked = Cursor.lockState;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            InputActionAsset actions = InputSystem.actions;
+            m_suspendedMap = actions == null ? null : actions.FindActionMap("Player");
+
+            if (m_suspendedMap != null && m_suspendedMap.enabled)
+            {
+                m_suspendedMap.Disable();
+            }
+            else
+            {
+                m_suspendedMap = null;
+            }
+        }
+
+        private void RestoreCursorAfterChoices()
+        {
+            if (!m_cursorReleased)
+            {
+                return;
+            }
+
+            m_cursorReleased = false;
+            Cursor.lockState = m_cursorWasLocked;
+            Cursor.visible = m_cursorWasVisible;
+
+            if (m_suspendedMap != null)
+            {
+                m_suspendedMap.Enable();
+                m_suspendedMap = null;
+            }
+        }
+
+        private void OnDisable()
+        {
+            RestoreCursorAfterChoices();
         }
 
         private void SetRootVisible(bool isVisible)

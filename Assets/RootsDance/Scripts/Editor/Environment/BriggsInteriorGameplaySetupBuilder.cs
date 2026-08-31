@@ -22,6 +22,12 @@ namespace RootsDance.Editor.Environment
         private const string k_LegacyEntranceAnchorName = "Checkpoint_LaboratoryEntrance";
         private const string k_LegacyEntranceAssetPath =
             k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset";
+        private const string k_LegacySampleStorageAnchorName = "Checkpoint_SampleStorage";
+        private const string k_LegacySampleStorageAssetPath =
+            k_CheckpointFolder + "/02-02_SampleStorage.asset";
+        private const string k_LegacyGreenhouseAnchorName = "Checkpoint_Greenhouse";
+        private const string k_LegacyGreenhouseAssetPath =
+            k_CheckpointFolder + "/02-03_Greenhouse.asset";
 
         private static readonly CheckpointPlacement[] k_Checkpoints =
         {
@@ -30,16 +36,6 @@ namespace RootsDance.Editor.Environment
                 k_CheckpointFolder + "/02-01_PlantResearchLab.asset",
                 new Vector3(3f, 1f, -5.5f),
                 0f),
-            new CheckpointPlacement(
-                "Checkpoint_SampleStorage",
-                k_CheckpointFolder + "/02-02_SampleStorage.asset",
-                new Vector3(-4.1f, 1f, -0.7f),
-                90f),
-            new CheckpointPlacement(
-                "Checkpoint_Greenhouse",
-                k_CheckpointFolder + "/02-03_Greenhouse.asset",
-                new Vector3(6.8f, 1f, -3.2f),
-                180f),
         };
 
         [MenuItem("RootsDance/Environment/Apply Briggs Interior Gameplay Setup")]
@@ -77,7 +73,7 @@ namespace RootsDance.Editor.Environment
                 }
             }
 
-            Debug.Log("BriggsInteriorGameplaySetupBuilder: aligned player, three checkpoints and Ground layers.");
+            Debug.Log("BriggsInteriorGameplaySetupBuilder: aligned player, checkpoint and Ground layers.");
         }
 
         private static void FixPlayerPrefab()
@@ -127,6 +123,8 @@ namespace RootsDance.Editor.Environment
             Transform spawns = EnsureRoot(scene, "_Spawns");
 
             RemoveDirectChild(anchors, k_LegacyEntranceAnchorName);
+            RemoveDirectChild(anchors, k_LegacySampleStorageAnchorName);
+            RemoveDirectChild(anchors, k_LegacyGreenhouseAnchorName);
 
             for (int i = 0; i < k_Checkpoints.Length; i++)
             {
@@ -159,7 +157,9 @@ namespace RootsDance.Editor.Environment
 
         private static void FixCheckpointAssets()
         {
-            DeleteLegacyCheckpointAsset();
+            DeleteLegacyCheckpointAsset(k_LegacyEntranceAssetPath);
+            DeleteLegacyCheckpointAsset(k_LegacySampleStorageAssetPath);
+            DeleteLegacyCheckpointAsset(k_LegacyGreenhouseAssetPath);
 
             for (int i = 0; i < k_Checkpoints.Length; i++)
             {
@@ -186,17 +186,17 @@ namespace RootsDance.Editor.Environment
             }
         }
 
-        private static void DeleteLegacyCheckpointAsset()
+        private static void DeleteLegacyCheckpointAsset(string assetPath)
         {
-            if (AssetDatabase.LoadMainAssetAtPath(k_LegacyEntranceAssetPath) == null)
+            if (AssetDatabase.LoadMainAssetAtPath(assetPath) == null)
             {
                 return;
             }
 
-            if (!AssetDatabase.DeleteAsset(k_LegacyEntranceAssetPath))
+            if (!AssetDatabase.DeleteAsset(assetPath))
             {
                 throw new System.IO.IOException(
-                    "Could not delete the legacy Briggs checkpoint: " + k_LegacyEntranceAssetPath);
+                    "Could not delete the legacy Briggs checkpoint: " + assetPath);
             }
         }
 

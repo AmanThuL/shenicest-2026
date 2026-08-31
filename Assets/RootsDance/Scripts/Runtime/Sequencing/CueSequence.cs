@@ -4,6 +4,7 @@ using RootsDance.App;
 using RootsDance.Audio;
 using RootsDance.Core;
 using RootsDance.Core.Commands;
+using RootsDance.Data;
 using RootsDance.Dialogue;
 using RootsDance.Events;
 using RootsDance.Player;
@@ -27,7 +28,7 @@ namespace RootsDance.Sequencing
     /// conversation raises a flag on completion and a second sequence starts on that flag.
     /// </para>
     /// </summary>
-    public class CueSequence : MonoBehaviour
+    public class CueSequence : MonoBehaviour, IRescueStateRestoredParticipant
     {
         /// <summary>What starts the sequence.</summary>
         public enum Moment
@@ -126,6 +127,30 @@ namespace RootsDance.Sequencing
             if (flagId == m_startOnFlag)
             {
                 Play();
+            }
+        }
+
+        /// <summary>
+        /// A checkpoint seed or a rescue lands its flags as one silent snapshot, so a sequence
+        /// keyed to one of them never hears the event. Its beat still belongs to the state being
+        /// restored — a wrong-cycle spawn owes the player its outburst, the good-cycle spawn its
+        /// water — so a seeded start flag plays the sequence the same as a raised one would.
+        /// </summary>
+        public void RestoreAfterRescue(RescueCheckpoint checkpoint)
+        {
+            if (m_playOn != Moment.OnFlagRaised || string.IsNullOrEmpty(m_startOnFlag)
+                || checkpoint == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                if (checkpoint.Flags[i] == m_startOnFlag)
+                {
+                    Play();
+                    return;
+                }
             }
         }
 

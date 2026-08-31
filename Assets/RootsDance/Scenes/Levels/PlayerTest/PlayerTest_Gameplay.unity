@@ -636,6 +636,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.HelmetHudView
   m_helmetViewBehaviour: {fileID: 2142566749}
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_visorRoot: {fileID: 16530718}
   m_liftDelay: 0.3
   m_liftDuration: 0.4

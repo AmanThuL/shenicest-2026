@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Core.Commands;
 using RootsDance.Events;
 using RootsDance.Player;
 using RootsDance.Player.Arms;
@@ -169,14 +171,29 @@ namespace RootsDance.Interaction
             TryPick();
         }
 
+        /// <summary>Whether the drop key has already been taught, so the standing hint can stop.</summary>
+        private static bool HasLearnedDrop
+        {
+            get
+            {
+                IWorldStateReader state = WorldAccess.State;
+
+                // No world state means a level-only Play session with no bootstrap: teach it, since
+                // nothing can remember that it was taught.
+                return state != null && state.HasFlag(WorldFlags.k_LearnedDrop);
+            }
+        }
+
         /// <summary>Puts the right hint on the channel for the state the hand is actually in.</summary>
         private void Offer()
         {
             if (m_throwTrigger != null && m_throwTrigger.HasOfferNow())
             {
                 // The rune wall is right there and the hand is full of the thing it wants. "[G]
-                // 放下" is true but useless next to it, and writing it would take the throw hint
-                // off screen for good.
+                // 放下" is true but useless next to it, so this one stands down. It must withdraw
+                // its request rather than just skip writing: a request left registered still counts
+                // as this trigger wanting the line, and the throw hint never gets it.
+                Broadcast(string.Empty);
                 return;
             }
 
@@ -190,14 +207,27 @@ namespace RootsDance.Interaction
 
             string holding = m_held != null ? m_held.DisplayName : m_socket.Carried.name;
 
-            Broadcast(m_inReach == null
-                ? string.Format(m_dropPromptFormat, holding)
-                : string.Format(m_swapPromptFormat, m_inReach.DisplayName, holding));
+            if (m_inReach != null)
+            {
+                // Still worth saying every time: this one is not teaching the key, it is explaining
+                // why the thing in front of the player cannot be picked up.
+                Broadcast(string.Format(m_swapPromptFormat, m_inReach.DisplayName, holding));
+                return;
+            }
+
+            // "[G] 放下" teaches a key, and a key only needs teaching once. Left up permanently it
+            // is on screen for most of the game saying nothing the player does not know, and it
+            // crowds out the hints that do carry the level forward.
+            Broadcast(HasLearnedDrop
+                ? string.Empty
+                : string.Format(m_dropPromptFormat, holding));
         }
 
         private void TryPick()
         {
-            if (m_inReach == null || m_input == null || !m_input.InteractPressedThisFrame)
+            // A press while an exclusive interaction is up belongs to that interaction, not here.
+            if (WorldAccess.IsInteractionLocked
+                || m_inReach == null || m_input == null || !m_input.InteractPressedThisFrame)
             {
                 return;
             }
@@ -294,6 +324,12 @@ namespace RootsDance.Interaction
                 return;
             }
 
+            // The key has now been used, so the standing hint has done its job.
+            if (!HasLearnedDrop)
+            {
+                WorldAccess.Enqueue(new RaiseFlagCommand(WorldFlags.k_LearnedDrop), this);
+            }
+
             if (m_held != null)
             {
                 m_held.ExitCarried();
@@ -322,7 +358,10 @@ namespace RootsDance.Interaction
 
             for (int i = 0; i < active.Count; i++)
             {
-                m_points.Add(active[i] == null ? Vector3Far() : active[i].GrabPosition);
+                // Off-screen counts as out of reach, the same rule every other offer uses.
+                bool offered = active[i] != null && InteractionVisibility.IsOnScreen(active[i]);
+
+                m_points.Add(offered ? active[i].GrabPosition : Vector3Far());
             }
 
             int index = NearestInRange.Index(m_points, origin.position, m_range);
@@ -339,13 +378,11 @@ namespace RootsDance.Interaction
         /// <summary>Only raises the channel when the text actually changes.</summary>
         private void Broadcast(string prompt)
         {
-            if (m_promptChanged == null || prompt == m_lastPrompt)
-            {
-                return;
-            }
-
+            // Through the arbiter, never straight at the channel: several triggers share it, and a
+            // private "only send on change" latch would let this one's empty frame wipe another's
+            // live hint for good. See <see cref="RootsDance.Interaction.InteractionPrompts"/>.
             m_lastPrompt = prompt;
-            m_promptChanged.RaiseEvent(prompt);
+            RootsDance.Interaction.InteractionPrompts.Set(this, m_promptChanged, prompt);
         }
 
         private void OnDrawGizmosSelected()

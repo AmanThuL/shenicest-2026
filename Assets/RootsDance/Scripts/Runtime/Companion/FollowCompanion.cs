@@ -30,7 +30,7 @@ namespace RootsDance.Companion
     /// <see cref="CompanionFollowStep"/>, which is where the behaviour is tested.
     /// </para>
     /// </summary>
-    public class FollowCompanion : MonoBehaviour
+    public class FollowCompanion : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Header("Listens to")]
         [Tooltip("The bootstrap's FlagRaised channel.")]
@@ -70,12 +70,19 @@ namespace RootsDance.Companion
         [Min(30f)]
         [SerializeField] private float m_turnDegreesPerSecond = 480f;
 
+        [Tooltip("Yaw between the rig's +Z and where her face actually is on the model, in "
+            + "degrees. The bud's mouth is not on the axis the rig calls forward, so facing the "
+            + "player with +Z shows the player her leaves.")]
+        [Range(0f, 360f)]
+        [SerializeField] private float m_modelYawOffset;
+
         [Header("Animation")]
         [Tooltip("Float parameter on her animator, set to how fast she is actually moving so the "
             + "walk cycle does not play while she stands still. Empty leaves the animator alone.")]
         [SerializeField] private string m_speedParameter = "Speed";
 
         private Transform m_player;
+        private float m_playerFootOffset;
         private Animator m_animator;
         private Renderer[] m_renderers;
         private int m_speedParameterId;
@@ -115,6 +122,16 @@ namespace RootsDance.Companion
             }
 
             m_player = probe.transform;
+
+            // The player's origin is the middle of the capsule, not the floor: the controller is
+            // 1.8 tall and centred on the transform, so position.y reads ~0.9 above the ground.
+            // Her pivot is at her feet, so everything below that plants her at the capsule's foot.
+            CharacterController controller = m_player.GetComponentInParent<CharacterController>();
+
+            if (controller != null)
+            {
+                m_playerFootOffset = controller.center.y - controller.height * 0.5f;
+            }
         }
 
         private void OnEnable()
@@ -161,8 +178,10 @@ namespace RootsDance.Companion
 
             if (m_player != null)
             {
-                transform.position = CompanionFollowStep.AppearPosition(
+                Vector3 position = CompanionFollowStep.AppearPosition(
                     m_player.position, m_player.forward, m_appearStandoff);
+                position.y = m_player.position.y + m_playerFootOffset;
+                transform.position = position;
                 FaceInstantly();
             }
 
@@ -212,6 +231,27 @@ namespace RootsDance.Companion
             }
         }
 
+        /// <summary>
+        /// A checkpoint seeds its flags silently after <see cref="CheckWorldStateOnce"/> has
+        /// already looked, and silent flags fire no event — the two halves she listens with both
+        /// miss a seed. Seeded history lands here, like every other catch-up.
+        /// </summary>
+        public void RestoreAfterRescue(Data.RescueCheckpoint checkpoint)
+        {
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(m_appearOnFlag) && checkpoint.Flags[i] == m_appearOnFlag)
+                {
+                    Appear();
+                }
+
+                if (!string.IsNullOrEmpty(m_followOnFlag) && checkpoint.Flags[i] == m_followOnFlag)
+                {
+                    StartFollowing();
+                }
+            }
+        }
+
         private void OnFlagRaised(string flagId)
         {
             if (!string.IsNullOrEmpty(m_appearOnFlag) && flagId == m_appearOnFlag)
@@ -243,8 +283,9 @@ namespace RootsDance.Companion
                 m_player.position, transform.position, m_followDistance);
 
             // She keeps the player's floor height. The chapter house hands her a catwalk and the
-            // greenhouse a flat slab, and neither needs a ground probe to stand on.
-            target.y = m_player.position.y;
+            // greenhouse a flat slab, and neither needs a ground probe to stand on. The player's
+            // origin is mid-capsule, so the foot offset takes it down to where the floor really is.
+            target.y = m_player.position.y + m_playerFootOffset;
 
             Vector3 before = transform.position;
             transform.position = Vector3.MoveTowards(before, target, m_moveSpeed * Time.deltaTime);
@@ -276,7 +317,7 @@ namespace RootsDance.Companion
             toPlayer.y = 0f;
 
             return toPlayer.sqrMagnitude > 0.0001f
-                ? Quaternion.LookRotation(toPlayer)
+                ? Quaternion.LookRotation(toPlayer) * Quaternion.Euler(0f, m_modelYawOffset, 0f)
                 : transform.rotation;
         }
 

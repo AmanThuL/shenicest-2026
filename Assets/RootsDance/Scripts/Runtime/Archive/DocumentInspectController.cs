@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
 using UnityEngine;
@@ -179,6 +180,9 @@ namespace RootsDance.Archive
         private void OnDestroy()
         {
             CancelRead();
+
+            // Mid-read scene unload: the loop will never reach idle, so the gate is opened here.
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         /// <summary>Returns the sheet to its outgoing scene without marking it read or raising story flags.</summary>
@@ -197,6 +201,7 @@ namespace RootsDance.Archive
             m_page = null;
             m_sheet = null;
             m_originParent = null;
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         /// <summary>
@@ -215,6 +220,11 @@ namespace RootsDance.Archive
             if (sheet == null || m_holdAnchor == null)
             {
                 Log.Error("DocumentInspectController needs a hold anchor and a sheet transform.", this);
+                return false;
+            }
+
+            if (!WorldAccess.TryBeginExclusiveInteraction(this))
+            {
                 return false;
             }
 
@@ -321,6 +331,7 @@ namespace RootsDance.Archive
                 m_originParent = null;
 
                 SuspendPlayer(false);
+                WorldAccess.EndExclusiveInteraction(this);
 
                 if (pickup != null)
                 {

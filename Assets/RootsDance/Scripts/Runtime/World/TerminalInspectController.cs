@@ -1,4 +1,5 @@
 using System;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
 using Unity.Cinemachine;
@@ -126,6 +127,11 @@ namespace RootsDance.World
                 return false;
             }
 
+            if (!WorldAccess.TryBeginExclusiveInteraction(this))
+            {
+                return false;
+            }
+
             m_terminal = terminal;
             m_state = ReadState.Reading;
             m_exitAllowedAt = Time.unscaledTime + m_exitLockoutSeconds;
@@ -184,6 +190,7 @@ namespace RootsDance.World
 
             m_terminal = null;
             m_state = ReadState.Idle;
+            WorldAccess.EndExclusiveInteraction(this);
             ReadingEnded?.Invoke();
         }
 

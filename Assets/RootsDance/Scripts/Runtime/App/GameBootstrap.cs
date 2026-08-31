@@ -45,18 +45,29 @@ namespace RootsDance.App
 
         private WorldState m_worldState;
         private CommandQueue m_commands;
+        private InteractionLock m_interactionLock;
 
         /// <summary>Read-only view of the session's ground truth. The mutable object stays private.</summary>
         public IWorldStateReader WorldState => m_worldState;
 
         /// <summary>The only sanctioned way to change the world.</summary>
         public CommandQueue Commands => m_commands;
+
+        /// <summary>
+        /// The one gate for exclusive player interactions. Reach it through
+        /// <see cref="WorldAccess"/> from content code; the bootstrap force-releases it whenever
+        /// the player object is about to be rebuilt.
+        /// </summary>
+        public InteractionLock InteractionLock => m_interactionLock;
         public ICheckpointRescueService RescueService => m_rescueService;
 
         /// <summary>Called only after outgoing scenes unload and before fresh gameplay initializes.</summary>
         public void RestoreCheckpointSnapshot(IReadOnlyList<string> flags, IReadOnlyList<ReportEntry> report,
             bool hasTimeOfDay, TimeOfDay timeOfDay)
         {
+            // The outgoing player and its half-finished interaction are gone; a lock still held by
+            // a destroyed owner would wedge every interaction in the restored session shut.
+            m_interactionLock.ForceRelease();
             m_worldState.RestoreSnapshot(flags, report, hasTimeOfDay, timeOfDay);
         }
 
@@ -76,6 +87,7 @@ namespace RootsDance.App
 
             m_worldState = new WorldState();
             m_commands = new CommandQueue();
+            m_interactionLock = new InteractionLock();
 
             // Bridge the ground truth onto channel assets. Assets always exist, so a content-scene
             // component can subscribe in OnEnable without knowing whether the bootstrap loaded yet.
@@ -211,6 +223,9 @@ namespace RootsDance.App
                 return;
             }
 
+            // Whatever interaction raised this request (the keypad's transition, a portal) is over:
+            // its scene is about to unload, and the fresh level must start with an open gate.
+            m_interactionLock.ForceRelease();
             m_sceneLoader.RequestLoad(level);
         }
 

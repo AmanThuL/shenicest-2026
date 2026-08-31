@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using RootsDance.Archive;
 using RootsDance.Data;
+using RootsDance.Interaction;
 using RootsDance.Player;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -160,23 +161,25 @@ namespace RootsDance.Tests.EditMode.Archive
                 Assert.IsTrue(reader.FindProperty("m_input").objectReferenceValue != null,
                     "The reader has no input reader.");
 
-                // While a sheet is up it owns the mouse, so look, move and the interaction ray all
-                // have to be in the suspend list or the player walks off while reading.
+                // While a sheet is up it owns the mouse, so look, move and the interaction offer
+                // all have to be in the suspend list or the player walks off while reading.
                 SerializedProperty suspended = reader.FindProperty("m_suspendedWhileReading");
                 Assert.AreEqual(3, suspended.arraySize, "The suspend list is incomplete.");
 
-                ArchiveProximityTrigger[] offers = FindAll<ArchiveProximityTrigger>(scene);
-                Assert.AreEqual(1, offers.Length, "Expected exactly one proximity offer.");
+                // One driver offers every interactable, sheets included — there is no per-type
+                // trigger and no aiming; the sheet is offered by being near it and on screen.
+                InteractionProximityTrigger[] offers = FindAll<InteractionProximityTrigger>(scene);
+                Assert.AreEqual(1, offers.Length, "Expected exactly one interaction driver.");
 
                 SerializedObject offer = new SerializedObject(offers[0]);
-                Assert.IsTrue(offer.FindProperty("m_controller").objectReferenceValue != null,
-                    "The offer is not wired to the reader.");
+                Assert.IsTrue(offer.FindProperty("m_config").objectReferenceValue != null,
+                    "The driver has no InteractionConfigSO, so it has no reach.");
                 Assert.IsTrue(offer.FindProperty("m_player").objectReferenceValue != null,
-                    "The offer has no player transform to measure from.");
+                    "The driver has no player transform to measure from.");
                 Assert.IsTrue(offer.FindProperty("m_input").objectReferenceValue != null,
-                    "The offer has no input reader.");
+                    "The driver has no input reader.");
                 Assert.IsTrue(offer.FindProperty("m_promptChanged").objectReferenceValue != null,
-                    "The offer has no prompt channel, so the hint never reaches the HUD.");
+                    "The driver has no prompt channel, so the hint never reaches the HUD.");
 
                 FirstPersonController[] players = FindAll<FirstPersonController>(scene);
                 Assert.AreEqual(1, players.Length, "Expected exactly one player.");

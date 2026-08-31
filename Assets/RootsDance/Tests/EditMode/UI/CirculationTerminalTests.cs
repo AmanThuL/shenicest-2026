@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using RootsDance.Interaction;
 using RootsDance.Player;
 using RootsDance.UI;
 using RootsDance.World;
@@ -218,8 +219,11 @@ namespace RootsDance.Tests.EditMode.UI
 
                 TerminalInspectController reader =
                     player.GetComponent<TerminalInspectController>();
-                TerminalProximityTrigger trigger =
-                    player.GetComponent<TerminalProximityTrigger>();
+
+                // The offer comes from the one interaction driver on the player prefab, which
+                // hangs off the head rather than the root.
+                InteractionProximityTrigger trigger =
+                    player.GetComponentInChildren<InteractionProximityTrigger>(true);
 
                 Assert.IsNotNull(reader, "the player cannot read a terminal.");
                 Assert.IsNotNull(trigger, "nothing offers the terminal when the player walks up.");
@@ -227,8 +231,8 @@ namespace RootsDance.Tests.EditMode.UI
                 SerializedObject so = new SerializedObject(trigger);
                 Assert.IsNotNull(so.FindProperty("m_promptChanged").objectReferenceValue,
                     "the approach hint has no channel, so it is never shown.");
-                Assert.AreEqual(reader, so.FindProperty("m_controller").objectReferenceValue,
-                    "the trigger and the reader are not the same pair.");
+                Assert.IsNotNull(so.FindProperty("m_config").objectReferenceValue,
+                    "the driver has no InteractionConfigSO, so it has no reach.");
 
                 // One owner per axis. Without these the eye fights the read camera for the mouse.
                 SerializedProperty suspended = new SerializedObject(reader)

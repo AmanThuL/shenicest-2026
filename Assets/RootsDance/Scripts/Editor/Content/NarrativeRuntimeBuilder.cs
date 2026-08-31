@@ -55,6 +55,7 @@ namespace RootsDance.Editor.Content
         private const string k_GreenhouseCheckpointFolder = "Assets/RootsDance/Data/DevPlay/GreenhouseInterior";
         private const string k_GreenhouseLevelPath = "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
         private const string k_ConsoleCheckpointAnchorName = "Checkpoint_CirculationConsole";
+        private const string k_RebirthCheckpointAnchorName = "Checkpoint_Rebirth";
 
         // The same ground the player has covered by 03-04_MonsterChase (see
         // MonsterChaseSetupBuilder), minus the console flags — this checkpoint's whole point is to
@@ -380,6 +381,10 @@ namespace RootsDance.Editor.Content
                     WorldFlags.k_FlowerSpriteAppeared;
                 serialized.FindProperty("m_followOnFlag").stringValue =
                     WorldFlags.k_MetFlowerSprite;
+
+                // Her face sits 225 degrees round from the rig's +Z; without the offset she
+                // greets the player with the back of her bud. Measured against the model.
+                serialized.FindProperty("m_modelYawOffset").floatValue = 225f;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -506,6 +511,7 @@ namespace RootsDance.Editor.Content
             // skip already exists for testing the wrong-cycle outburst directly; this one is for
             // testing the choice itself, so nothing about the three cycles can already be decided.
             EnsureConsoleCheckpoint(scene, console.position);
+            EnsureRebirthCheckpoint(scene, statue.position);
 
             // Either wrong cycle: the breath bed and the outburst start together, over the start of
             // the chase rather than before it — the dialogue step does not wait, and the chase flag
@@ -621,6 +627,55 @@ namespace RootsDance.Editor.Content
                 yaw: 0f,
                 CheckpointTimeOfDay.LevelDefault,
                 k_ConsoleCheckpointFlags,
+                new RootsDance.Investigation.InvestigationTargetSO[0],
+                snapToGround: false);
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(checkpoint, assetPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(checkpoint);
+            }
+
+            AssetDatabase.SaveAssetIfDirty(checkpoint);
+        }
+
+        /// <summary>
+        /// Dev Play checkpoint 03-06: the good choice, already made. Outer Boundary is raised on
+        /// top of the console flags, so <c>GrowthCue</c> catches up to the finished bloom and the
+        /// statue stands reborn — the state to inspect, without replaying the 45 s growth. Placed
+        /// on the approach side of the statue, facing it.
+        /// </summary>
+        private static void EnsureRebirthCheckpoint(Scene scene, Vector3 statuePosition)
+        {
+            Transform anchors = EnsureRoot(scene, "_Anchors");
+            Transform anchor = EnsureChild(anchors, k_RebirthCheckpointAnchorName);
+            anchor.SetPositionAndRotation(
+                statuePosition + new Vector3(0f, -0.35f, -3f), Quaternion.identity);
+
+            string assetPath = k_GreenhouseCheckpointFolder + "/03-06_Rebirth.asset";
+            DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(assetPath);
+            bool isNew = checkpoint == null;
+
+            if (isNew)
+            {
+                checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
+            }
+
+            string[] flags = new string[k_ConsoleCheckpointFlags.Length + 1];
+            k_ConsoleCheckpointFlags.CopyTo(flags, 0);
+            flags[flags.Length - 1] = WorldFlags.k_CirculationOuter;
+
+            checkpoint.Configure(
+                "03-06 Rebirth",
+                LoadRequired<LevelSO>(k_GreenhouseLevelPath),
+                k_RebirthCheckpointAnchorName,
+                anchor.position,
+                yaw: 0f,
+                CheckpointTimeOfDay.LevelDefault,
+                flags,
                 new RootsDance.Investigation.InvestigationTargetSO[0],
                 snapToGround: false);
 

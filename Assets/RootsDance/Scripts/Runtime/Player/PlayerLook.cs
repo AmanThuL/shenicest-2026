@@ -58,7 +58,7 @@ namespace RootsDance.Player
 
             transform.Rotate(0f, m_smoothedLook.x, 0f, Space.Self);
 
-            m_pitch = Mathf.Clamp(m_pitch - m_smoothedLook.y, -m_config.PitchLimit, m_config.PitchLimit);
+            m_pitch = Mathf.Clamp(m_pitch - m_smoothedLook.y, -m_config.PitchLimitUp, m_config.PitchLimitDown);
             m_head.localRotation = Quaternion.Euler(m_pitch, 0f, 0f);
         }
 

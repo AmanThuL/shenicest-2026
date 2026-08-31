@@ -31,29 +31,18 @@ namespace RootsDance.Editor.DevPlay
         {
             List<IWorldCommand> commands = new List<IWorldCommand>();
             TimeOfDay phase;
+            bool hasTimeOfDay = TryToRuntime(timeOfDay, out phase);
 
-            if (TryToRuntime(timeOfDay, out phase))
+            // One snapshot, not one event per flag: a checkpoint's flags are history, and history
+            // must not replay dialogue, stingers or cinematics on the way in (WorldState.
+            // RestoreSnapshot's own contract). Whatever needs the spawn to sound right catches up
+            // through IRescueStateRestoredParticipant, the same as after a rescue.
+            commands.Add(new RestoreSnapshotCommand(flags, reportEntries, hasTimeOfDay, phase));
+
+            // The snapshot sets the phase silently; lighting still wants the change event.
+            if (hasTimeOfDay)
             {
                 commands.Add(new SetTimeOfDayCommand(phase));
-            }
-
-            if (flags != null)
-            {
-                for (int i = 0; i < flags.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(flags[i]))
-                    {
-                        commands.Add(new RaiseFlagCommand(flags[i]));
-                    }
-                }
-            }
-
-            if (reportEntries != null)
-            {
-                for (int i = 0; i < reportEntries.Count; i++)
-                {
-                    commands.Add(new AddReportEntryCommand(reportEntries[i]));
-                }
             }
 
             return commands;

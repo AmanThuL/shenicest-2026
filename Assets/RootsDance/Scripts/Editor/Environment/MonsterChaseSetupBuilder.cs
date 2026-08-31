@@ -45,29 +45,33 @@ namespace RootsDance.Editor.Environment
             "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset";
 
         private const string k_CheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-03_MonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-04_MonsterChase.asset";
         private const string k_OutdoorCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/Main/03-04_OutdoorMonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/Main/03-05_OutdoorMonsterChase.asset";
 
         // Greenhouse leg. The chase gets its own anchor rather than borrowing 03-02's
         // Checkpoint_CentralGreenhouse: Dev Play ignores a checkpoint's Position entirely once its
-        // anchor resolves, so sharing an anchor meant 03-03 started the player in exactly the spot
-        // 03-02 does, with no room to run. The player stands at (0, 1.05, 2) facing -Z, while the
-        // boss tears out of the north beds behind them so the first shoulder check reveals it. The
-        // escape continues down -Z through the entrance they came in by, where the portal waits:
-        // a 14 m run rather than the old 12, and all of it inside the lit hall (z within +/-7).
+        // anchor resolves, so sharing an anchor meant the chase started the player in exactly the
+        // spot 03-02 does, with no room to run. The anchor stands a step in front of the
+        // circulation console — the chase begins where the wrong choice was made — facing -Z,
+        // while the boss tears out of the north beds behind them so the first shoulder check
+        // reveals it. The escape continues down -Z through the entrance they came in by, where the
+        // portal waits: a 14 m run rather than the old 12, and all of it inside the lit hall
+        // (z within +/-7). The offset below reproduces that spot from the console's own position,
+        // so a console that art has moved onto its stair landing carries the chase start with it.
         //
         // The birth distance is the number that decides whether a chase happens at all. The boss
         // holds a Desired Gap of 9 m and slows to a stop inside it, so a birth inside that gap
         // stands still through the whole reveal. At 12 m it advances on its own before the player
         // reacts, then holds a readable shoulder-check distance.
         private const string k_ChaseStartAnchorName = "Checkpoint_ChaseStart";
-        private static readonly Vector3 k_ChaseStartAnchor = new Vector3(0f, 1.05f, 2f);
+        private const string k_ConsoleObjectName = "CirculationConsole";
+        private static readonly Vector3 k_ChaseStartConsoleOffset = new Vector3(0f, -0.15f, -0.5f);
+        private static readonly Vector3 k_ChaseStartFallback = new Vector3(0f, 1.05f, 2f);
         private static readonly Vector3 k_GreenhouseMonsterSpawn = new Vector3(0f, 0f, 14f);
         private const float k_GreenhouseMonsterYaw = 180f;
         private static readonly Vector3 k_GreenhousePortal = new Vector3(0f, 1.6f, -12f);
         private static readonly Vector3 k_GreenhousePortalSize = new Vector3(6f, 3.2f, 1.2f);
-        private static readonly Vector3 k_ChaseCheckpointPosition = new Vector3(0f, 1.05f, 2f);
         private const float k_ChaseCheckpointYaw = 180f;
 
         // Shoulder checks, in seconds from the start of each leg. The greenhouse leg is over in
@@ -468,8 +472,12 @@ namespace RootsDance.Editor.Environment
         {
             Transform anchors = EnsureRoot(scene, "_Anchors");
             Transform anchor = EnsureChild(anchors, k_ChaseStartAnchorName);
+            Transform console = FindTransform(scene, k_ConsoleObjectName);
+            Vector3 position = console != null
+                ? console.position + k_ChaseStartConsoleOffset
+                : k_ChaseStartFallback;
             anchor.SetPositionAndRotation(
-                k_ChaseStartAnchor, Quaternion.Euler(0f, k_ChaseCheckpointYaw, 0f));
+                position, Quaternion.Euler(0f, k_ChaseCheckpointYaw, 0f));
         }
 
         /// <summary>The free-fall camera extension, wired to the scene's player controller.</summary>
@@ -515,7 +523,7 @@ namespace RootsDance.Editor.Environment
                 serialized.FindProperty("m_level").objectReferenceValue =
                     LoadRequired<UnityEngine.Object>(k_GreenhouseLevelPath);
                 serialized.FindProperty("m_anchorName").stringValue = k_ChaseStartAnchorName;
-                serialized.FindProperty("m_position").vector3Value = k_ChaseCheckpointPosition;
+                serialized.FindProperty("m_position").vector3Value = k_ChaseStartFallback;
                 serialized.FindProperty("m_yaw").floatValue = k_ChaseCheckpointYaw;
                 serialized.FindProperty("m_snapToGround").boolValue = false;
                 serialized.FindProperty("m_groundClearance").floatValue = 0f;
@@ -545,7 +553,7 @@ namespace RootsDance.Editor.Environment
             }
 
             outdoor.Configure(
-                "03-04 Outdoor Monster Chase",
+                "03-05 Outdoor Monster Chase",
                 LoadRequired<LevelSO>(k_MainLevelPath),
                 string.Empty,
                 k_MainResumeSpawn,

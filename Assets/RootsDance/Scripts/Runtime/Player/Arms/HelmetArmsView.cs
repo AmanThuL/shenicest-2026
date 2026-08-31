@@ -142,6 +142,13 @@ namespace RootsDance.Player.Arms
             {
                 m_riggedHelmet.enabled = false;
             }
+
+            // The prop waits inactive until this moment — there is no loose helmet in the world
+            // while one is still on the player's head.
+            if (m_helmetItem != null && !m_helmetItem.gameObject.activeSelf)
+            {
+                m_helmetItem.gameObject.SetActive(true);
+            }
         }
 
         private void OnActionFinished(string actionId)

@@ -712,8 +712,6 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [TestCase("02-01_PlantResearchLab.asset", 3f, 1f, -5.5f, 0f)]
-        [TestCase("02-02_SampleStorage.asset", -4.1f, 1f, -0.7f, 90f)]
-        [TestCase("02-03_Greenhouse.asset", 6.8f, 1f, -3.2f, 180f)]
         public void BriggsCheckpoint_UsesAuthoredInteriorPlacement(
             string fileName,
             float x,
@@ -728,11 +726,12 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(Mathf.Abs(Mathf.DeltaAngle(checkpoint.Yaw, yaw)), Is.LessThan(k_Tolerance));
         }
 
-        [Test]
-        public void BriggsLegacyEntranceCheckpoint_AfterSetup_DoesNotExist()
+        [TestCase("02-01_LaboratoryEntrance.asset")]
+        [TestCase("02-02_SampleStorage.asset")]
+        [TestCase("02-03_Greenhouse.asset")]
+        public void BriggsLegacyCheckpoint_AfterSetup_DoesNotExist(string fileName)
         {
-            const string path =
-                "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-01_LaboratoryEntrance.asset";
+            string path = "Assets/RootsDance/Data/DevPlay/BriggsInterior/" + fileName;
 
             Object asset = AssetDatabase.LoadMainAssetAtPath(path);
 
@@ -740,7 +739,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void BriggsGameplayScene_AfterSetup_UsesPlantLabSpawnAndThreeCheckpointAnchors()
+        public void BriggsGameplayScene_AfterSetup_UsesPlantLabSpawnAndOneCheckpointAnchor()
         {
             Scene scene = SceneManager.GetSceneByPath(k_GameplayPath);
             bool closeWhenDone = !scene.IsValid() || !scene.isLoaded;
@@ -760,11 +759,11 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(anchors, Is.Not.Null);
                 Assert.That(spawns, Is.Not.Null);
                 Assert.That(player, Is.Not.Null);
-                Assert.That(anchors.childCount, Is.EqualTo(3));
+                Assert.That(anchors.childCount, Is.EqualTo(1));
                 Assert.That(anchors.Find("Checkpoint_LaboratoryEntrance"), Is.Null);
                 Assert.That(anchors.Find("Checkpoint_PlantResearchLab"), Is.Not.Null);
-                Assert.That(anchors.Find("Checkpoint_SampleStorage"), Is.Not.Null);
-                Assert.That(anchors.Find("Checkpoint_Greenhouse"), Is.Not.Null);
+                Assert.That(anchors.Find("Checkpoint_SampleStorage"), Is.Null);
+                Assert.That(anchors.Find("Checkpoint_Greenhouse"), Is.Null);
                 Transform spawn = spawns.Find("PlayerSpawn");
                 Assert.That(spawn, Is.Not.Null);
                 Assert.That(Vector3.Distance(spawn.position, expectedPosition),

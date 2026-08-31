@@ -16,4 +16,4 @@ MonoBehaviour:
   m_interactableLayers:
     serializedVersion: 2
     m_Bits: 512
-  m_triggerInteraction: 1
+  m_triggerInteraction: 2

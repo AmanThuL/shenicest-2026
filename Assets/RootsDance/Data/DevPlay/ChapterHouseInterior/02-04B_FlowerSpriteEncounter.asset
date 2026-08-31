@@ -24,5 +24,12 @@ MonoBehaviour:
   m_groundClearance: 0
   m_useAnchorHeight: 1
   m_timeOfDay: 0
-  m_flags: []
+  m_flags:
+  - flow.left_start_area
+  - flow.radio_briefing_started
+  - flow.radio_briefing_finished
+  - flow.helmet_removable
+  - flow.helmet_removed
+  - flow.entered_grass_belt
+  - flow.first_investigation_done
   m_recordedTargets: []

@@ -1,5 +1,6 @@
 using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Data;
 using RootsDance.Events;
 using UnityEngine;
 
@@ -29,7 +30,7 @@ namespace RootsDance.Environment
     /// </para>
     /// </summary>
     [RequireComponent(typeof(GrowthDriver))]
-    public class GrowthCue : MonoBehaviour
+    public class GrowthCue : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Tooltip("The bootstrap's FlagRaised channel. Data/Events/FlagRaised.")]
         [SerializeField] private StringEventChannelSO m_flagRaised;
@@ -98,6 +99,31 @@ namespace RootsDance.Environment
             // The catch-up check has nothing left to do: this is the beat, live.
             m_caughtUp = true;
             m_driver.Play();
+        }
+
+        /// <summary>
+        /// A checkpoint seed or a rescue lands its flags silently, so the bloom flag never arrives
+        /// as an event. Unlike a scene loading mid-ending — where the growth already happened and
+        /// jumping to grown is right — a seed that carries the flag is asking for the beat: the
+        /// spawn exists to show the ecology coming back, so it grows from bare stone.
+        /// </summary>
+        public void RestoreAfterRescue(RescueCheckpoint checkpoint)
+        {
+            if (checkpoint == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                if (checkpoint.Flags[i] == m_flagId)
+                {
+                    m_caughtUp = true;
+                    m_driver.SetGrowth(0f);
+                    m_driver.Play();
+                    return;
+                }
+            }
         }
     }
 }

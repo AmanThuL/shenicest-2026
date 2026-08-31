@@ -127,6 +127,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4281936329804335788, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.25355864
+      objectReference: {fileID: 0}
     - target: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_Name
       value: Player
@@ -170,6 +174,14 @@ PrefabInstance:
     - target: {fileID: 6772109266663148318, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.9975927
+      objectReference: {fileID: 0}
+    - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.25355875
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -245,6 +257,95 @@ Transform:
   m_Children: []
   m_Father: {fileID: 575738654}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &709815389
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 709815390}
+  - component: {fileID: 709815392}
+  - component: {fileID: 709815391}
+  m_Layer: 10
+  m_Name: FirstMeeting
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &709815390
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 709815389}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1188959211}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &709815391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 709815389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e566afdf2a04344c5b3b573513bee54d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Sequencing.CueSequence
+  m_playOn: 3
+  m_startOnFlag: 
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_playsOnce: 1
+  m_audioChannel: {fileID: 0}
+  m_dialogueChannel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
+  m_steps:
+  - m_kind: 1
+    m_delay: 0
+    m_flagId: flow.flower_sprite_appeared
+    m_target: {fileID: 0}
+    m_isActive: 0
+    m_cue: {fileID: 0}
+    m_cueSource: {fileID: 0}
+    m_conversation: {fileID: 0}
+  - m_kind: 4
+    m_delay: 0.25
+    m_flagId: 
+    m_target: {fileID: 0}
+    m_isActive: 0
+    m_cue: {fileID: 0}
+    m_cueSource: {fileID: 0}
+    m_conversation: {fileID: 11400000, guid: 9c431b70a2a6747fbb8b2cbdaaec0af0, type: 2}
+--- !u!65 &709815392
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 709815389}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 3, z: 2.5}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1146255516
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,7 +437,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1945490692}
+  - {fileID: 709815390}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1782408869
@@ -382,6 +485,7 @@ GameObject:
   - component: {fileID: 1797401553}
   - component: {fileID: 1797401552}
   - component: {fileID: 1797401551}
+  - component: {fileID: 1797401554}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -447,7 +551,7 @@ MonoBehaviour:
     m_Value: 0
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 439799616}
@@ -473,6 +577,40 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1797401554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1797401549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f2940d88eed845568008f5de9fa0146, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Cameras.PanicViewShake
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_panicOnFlag: 
+  m_calmOnFlag: 
+  m_lookBackOnFlag: flow.flower_sprite_appeared
+  m_controller: {fileID: 0}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
+  m_stepsPerSecond: 2.9
+  m_verticalMeters: 0.025
+  m_lateralMeters: 0.018
+  m_rollDegrees: 1.8
+  m_pitchDegrees: 1
+  m_jitterDegrees: 0.9
+  m_jitterHz: 7
+  m_riseSeconds: 0.35
+  m_fallSeconds: 1.2
+  m_lookBackDegrees: 150
+  m_overLeftShoulder: 1
+  m_turnOutSeconds: 0.5
+  m_holdSeconds: 0.45
+  m_returnSeconds: 0.4
+  m_shakeWhileLookingBack: 0.45
 --- !u!1 &1815951831
 GameObject:
   m_ObjectHideFlags: 0
@@ -535,6 +673,98 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1146255517}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1945490691
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1188959211}
+    m_Modifications:
+    - target: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_Name
+      value: FlowerSprite
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.13872959
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.104431
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.9086666
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000004371139
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1945490694}
+  m_SourcePrefab: {fileID: 100100000, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+--- !u!4 &1945490692 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1945490691}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1945490693 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8529291328957856074, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
+  m_PrefabInstance: {fileID: 1945490691}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1945490694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945490693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243b13a9bd8364055970a21ecc651bad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Companion.FollowCompanion
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_appearOnFlag: flow.flower_sprite_appeared
+  m_followOnFlag: flow.met_flower_sprite
+  m_appearStandoff: 2.6
+  m_followDistance: 2.2
+  m_moveSpeed: 3.1
+  m_cutDistance: 18
+  m_turnDegreesPerSecond: 480
+  m_modelYawOffset: 225
+  m_speedParameter: Speed
 --- !u!1 &2010320557
 GameObject:
   m_ObjectHideFlags: 0

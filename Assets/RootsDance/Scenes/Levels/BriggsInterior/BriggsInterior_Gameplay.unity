@@ -407,9 +407,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1039937252}
-    - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1039937251}
   m_SourcePrefab: {fileID: 100100000, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
 --- !u!4 &1039937245 stripped
 Transform:
@@ -421,17 +418,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 1039937244}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1039937247 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6295360982917947931, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-  m_PrefabInstance: {fileID: 1039937244}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a407ebae978d9466aafbe6874f5dfe19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.InteractionRaycaster
 --- !u!114 &1039937248 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3067282954758705644, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
@@ -465,24 +451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7446a6f54c8184e09b06a88622412e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerInputReader
---- !u!114 &1039937251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1039937246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a41d6352e49bd464d972bba0d4d5bd9c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Archive.ArchiveProximityTrigger
-  m_controller: {fileID: 1039937252}
-  m_player: {fileID: 1039937245}
-  m_input: {fileID: 1039937250}
-  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_range: 2.5
-  m_promptFormat: "[E] \u67E5\u770B {0}"
 --- !u!114 &1039937252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -500,7 +468,7 @@ MonoBehaviour:
   m_suspendedWhileReading:
   - {fileID: 1039937248}
   - {fileID: 1039937249}
-  - {fileID: 1039937247}
+  - {fileID: 0}
   m_restFill: 0.55
   m_zoomedFill: 0.92
   m_zoomMetresPerSecond: 0.35

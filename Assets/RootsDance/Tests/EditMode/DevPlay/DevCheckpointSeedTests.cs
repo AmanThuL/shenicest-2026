@@ -41,15 +41,36 @@ namespace RootsDance.Tests.EditMode.DevPlay
         }
 
         [Test]
-        public void BuildCommands_FlagsFirst_ThenEntries()
+        public void BuildCommands_Seed_IsOneSnapshotNotPerFlagEvents()
         {
             List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
                 new[] { WorldFlags.k_LeftStartArea },
                 new[] { k_Soil });
 
-            Assert.AreEqual(2, commands.Count);
-            Assert.IsInstanceOf<RaiseFlagCommand>(commands[0]);
-            Assert.IsInstanceOf<AddReportEntryCommand>(commands[1]);
+            Assert.AreEqual(1, commands.Count);
+            Assert.IsInstanceOf<RestoreSnapshotCommand>(commands[0]);
+        }
+
+        [Test]
+        public void BuildCommands_Seed_RaisesNoFlagEvents()
+        {
+            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
+                new[] { WorldFlags.k_LeftStartArea, WorldFlags.k_EnteredGreenhouse },
+                new ReportEntry[0]);
+            WorldState state = new WorldState();
+            CommandQueue queue = new CommandQueue();
+            int eventCount = 0;
+            state.FlagRaised += _ => eventCount++;
+
+            foreach (IWorldCommand command in commands)
+            {
+                queue.Enqueue(command);
+            }
+
+            queue.Drain(state);
+
+            Assert.IsTrue(state.HasFlag(WorldFlags.k_EnteredGreenhouse));
+            Assert.AreEqual(0, eventCount);
         }
 
         [Test]
@@ -58,18 +79,31 @@ namespace RootsDance.Tests.EditMode.DevPlay
             List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
                 new[] { "", null, WorldFlags.k_HelmetRemoved },
                 new ReportEntry[0]);
+            WorldState state = new WorldState();
+            CommandQueue queue = new CommandQueue();
+
+            foreach (IWorldCommand command in commands)
+            {
+                queue.Enqueue(command);
+            }
+
+            queue.Drain(state);
+
+            Assert.IsTrue(state.HasFlag(WorldFlags.k_HelmetRemoved));
+            Assert.IsFalse(state.HasFlag(""));
+        }
+
+        [Test]
+        public void BuildCommands_NullInputs_StillSnapshotToEmptyState()
+        {
+            List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(null, null);
 
             Assert.AreEqual(1, commands.Count);
+            Assert.IsInstanceOf<RestoreSnapshotCommand>(commands[0]);
         }
 
         [Test]
-        public void BuildCommands_NullInputs_GiveEmptyList()
-        {
-            Assert.AreEqual(0, DevCheckpointSeed.BuildCommands(null, null).Count);
-        }
-
-        [Test]
-        public void BuildCommands_NightCheckpoint_SetsTimeOfDayFirst()
+        public void BuildCommands_NightCheckpoint_SetsTimeOfDayAfterSnapshot()
         {
             List<IWorldCommand> commands = DevCheckpointSeed.BuildCommands(
                 new[] { WorldFlags.k_LeftStartArea },
@@ -85,7 +119,8 @@ namespace RootsDance.Tests.EditMode.DevPlay
 
             queue.Drain(state);
 
-            Assert.IsInstanceOf<SetTimeOfDayCommand>(commands[0]);
+            Assert.IsInstanceOf<RestoreSnapshotCommand>(commands[0]);
+            Assert.IsInstanceOf<SetTimeOfDayCommand>(commands[1]);
             Assert.AreEqual(TimeOfDay.Night, state.TimeOfDay);
         }
 
@@ -98,7 +133,7 @@ namespace RootsDance.Tests.EditMode.DevPlay
                 CheckpointTimeOfDay.LevelDefault);
 
             Assert.AreEqual(1, commands.Count);
-            Assert.IsInstanceOf<RaiseFlagCommand>(commands[0]);
+            Assert.IsInstanceOf<RestoreSnapshotCommand>(commands[0]);
         }
 
         [Test]

@@ -1,6 +1,5 @@
 using RootsDance.Archive;
 using RootsDance.Data;
-using RootsDance.Events;
 using RootsDance.Interaction;
 using RootsDance.Player;
 using UnityEditor;
@@ -53,7 +52,6 @@ namespace RootsDance.Editor.Archive
             }
 
             DocumentInspectController reader = SetUpReader(player);
-            SetUpOffer(player, reader);
             int placed = PlaceSheets(prefab, player.transform);
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -94,13 +92,13 @@ namespace RootsDance.Editor.Archive
                 root.GetComponentInChildren<PlayerInputReader>(true);
 
             // One owner per axis: while a sheet is up it owns the mouse, so look, move and the
-            // interaction ray all stand down.
+            // interaction offer all stand down.
             SerializedProperty suspended = serialized.FindProperty("m_suspendedWhileReading");
             Behaviour[] toSuspend =
             {
                 root.GetComponentInChildren<PlayerLook>(true),
                 player,
-                root.GetComponentInChildren<InteractionRaycaster>(true)
+                root.GetComponentInChildren<InteractionProximityTrigger>(true)
             };
 
             suspended.arraySize = 0;
@@ -120,37 +118,6 @@ namespace RootsDance.Editor.Archive
             serialized.ApplyModifiedProperties();
 
             return reader;
-        }
-
-        /// <summary>
-        /// Puts the proximity offer on the player, so a sheet is offered by walking near it rather
-        /// than by aiming at it. Aiming does not work for a document: it lies flat, and the
-        /// centre-screen ray goes over the top of it.
-        /// </summary>
-        internal static void SetUpOffer(FirstPersonController player, DocumentInspectController reader)
-        {
-            GameObject root = player.gameObject;
-            ArchiveProximityTrigger trigger = root.GetComponent<ArchiveProximityTrigger>();
-
-            if (trigger == null)
-            {
-                trigger = root.AddComponent<ArchiveProximityTrigger>();
-            }
-
-            SerializedObject serialized = new SerializedObject(trigger);
-            serialized.FindProperty("m_controller").objectReferenceValue = reader;
-            serialized.FindProperty("m_player").objectReferenceValue = FindHead(root.transform);
-            serialized.FindProperty("m_input").objectReferenceValue =
-                root.GetComponentInChildren<PlayerInputReader>(true);
-            serialized.FindProperty("m_promptChanged").objectReferenceValue = FindPromptChannel();
-            serialized.ApplyModifiedProperties();
-        }
-
-        /// <summary>The channel the HUD listens on for interaction hints.</summary>
-        private static StringEventChannelSO FindPromptChannel()
-        {
-            return AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(
-                "Assets/RootsDance/Data/Events/InteractionPrompt.asset");
         }
 
         /// <summary>The transform the camera follows, or the player itself when there is no head.</summary>

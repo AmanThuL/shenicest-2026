@@ -128,7 +128,8 @@ namespace RootsDance.Tests.PlayMode.Player
         {
             PlayerConfigSO config = ScriptableObject.CreateInstance<PlayerConfigSO>();
             SetPrivateField(config, "m_lookSensitivity", lookSensitivity);
-            SetPrivateField(config, "m_pitchLimit", 85f);
+            SetPrivateField(config, "m_pitchLimitDown", 85f);
+            SetPrivateField(config, "m_pitchLimitUp", 85f);
             SetPrivateField(config, "m_lookSmoothTime", lookSmoothTime);
 
             playerObject = new GameObject("Player", typeof(PlayerInputReader), typeof(PlayerLook));

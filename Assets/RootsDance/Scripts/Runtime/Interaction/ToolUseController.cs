@@ -1,4 +1,5 @@
 using System;
+using RootsDance.App;
 using RootsDance.Core;
 using UnityEngine;
 
@@ -43,13 +44,14 @@ namespace RootsDance.Interaction
         /// </summary>
         public bool TryUse(IToolView view, Action onFinished)
         {
-            if (IsBusy)
+            if (IsBusy || !WorldAccess.TryBeginExclusiveInteraction(this))
             {
                 return false;
             }
 
             if (view == null)
             {
+                WorldAccess.EndExclusiveInteraction(this);
                 onFinished?.Invoke();
                 return true;
             }
@@ -68,6 +70,19 @@ namespace RootsDance.Interaction
             Finish();
         }
 
+        private void OnDestroy()
+        {
+            // No callback on the way out — the scene is going down. Only the gate must not leak.
+            if (m_activeView != null)
+            {
+                m_activeView.UseFinished -= OnUseFinished;
+                m_activeView = null;
+                m_onFinished = null;
+            }
+
+            WorldAccess.EndExclusiveInteraction(this);
+        }
+
         private void Finish()
         {
             IToolView view = m_activeView;
@@ -81,6 +96,7 @@ namespace RootsDance.Interaction
                 view.UseFinished -= OnUseFinished;
             }
 
+            WorldAccess.EndExclusiveInteraction(this);
             callback?.Invoke();
         }
     }

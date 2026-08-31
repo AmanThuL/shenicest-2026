@@ -245,7 +245,6 @@ namespace RootsDance.Editor.Archive
             }
 
             DocumentInspectController reader = ArchivePlaytestBuilder.SetUpReader(player);
-            ArchivePlaytestBuilder.SetUpOffer(player, reader);
 
             // Read off what the log needs before closing: closing the scene destroys the objects,
             // and touching one afterwards throws.

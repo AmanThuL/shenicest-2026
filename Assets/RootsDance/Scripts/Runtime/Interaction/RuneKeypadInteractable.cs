@@ -1,29 +1,27 @@
 using System;
 using System.Threading;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Events;
-using RootsDance.Player;
-using RootsDance.Player.Arms;
 using Unity.Cinemachine;
 using UnityEngine;
 
 namespace RootsDance.Interaction
 {
     /// <summary>
-    /// The wall-mounted rune lock and its close-up interaction. A keypad-owned Cinemachine camera
-    /// flies the player's view squarely onto the fixed model, while the pointer selects its real
-    /// key colliders.
+    /// The wall-mounted rune lock's state machine. What the close-up is made of lives in three
+    /// collaborators, each with one job: <see cref="RuneKeypadCameraRig"/> flies the fixed camera,
+    /// <see cref="RuneKeypadPanelView"/> shows the panel, <see cref="RuneKeypadPlayerRig"/> holds
+    /// the player (input, cursor, suspended components, torch, arms actions). This facade owns the
+    /// serialized wiring, the sequence, the prompts and the order things happen in — nothing else.
     /// </summary>
     [DisallowMultipleComponent]
     public class RuneKeypadInteractable : MonoBehaviour, IInteractable, IRescueResetParticipant
     {
-        private const string k_DropActionId = "drop";
-        private const string k_HoldActionId = "hold";
         private const string k_KeypadPokeActionId = "keypadPoke";
         private const float k_ConfirmContactSeconds = 0.84f;
-        private const float k_ActionTimeoutPaddingSeconds = 0.75f;
-        private const float k_MinActionTimeoutSeconds = 1.5f;
+        private const string k_ReadingPrompt = "[鼠标] 选择符文  [左键] 输入  [E] 退出";
 
         private static readonly RuneSymbol[] k_Password =
         {
@@ -100,24 +98,10 @@ namespace RootsDance.Interaction
 
         private RuneKeypadSequence m_sequence;
         private InspectState m_state;
-        private PlayerInputReader m_input;
-        private Camera m_camera;
-        private ArmsDirector m_armsDirector;
-        private HandSocket m_rightSocket;
-        private CarriedItem m_stowedItem;
-        private RuneKeypadButton m_hoveredButton;
-        private Behaviour[] m_suspendedBehaviours = new Behaviour[0];
-        private bool[] m_suspendedEnabledStates = new bool[0];
-        private CinemachineBrain m_brain;
-        private CinemachineBlendDefinition m_previousBlend;
-        private bool m_hasStoredBlend;
-        private Vector3 m_inspectCameraPosition;
-        private Quaternion m_inspectCameraRotation;
-        private CursorLockMode m_originCursorLock;
-        private bool m_originCursorVisible;
+        private RuneKeypadCameraRig m_cameraRig;
+        private RuneKeypadPanelView m_panel;
+        private RuneKeypadPlayerRig m_playerRig;
         private bool m_isButtonAnimating;
-        private string m_waitingActionId;
-        private bool m_didActionFinish;
         private CancellationTokenSource m_inspectionCancellation;
 
         public string PromptText => m_promptText;
@@ -126,58 +110,70 @@ namespace RootsDance.Interaction
 
         private void Awake()
         {
-            ResetSequence();
-            SetEntryIndicators(0);
-            SetSolvedRunes(false);
+            m_cameraRig = new RuneKeypadCameraRig(m_inspectCamera, m_activeCameraPriority);
+            m_panel = new RuneKeypadPanelView(m_entryIndicators, m_solvedRunes,
+                m_clearButton, m_confirmButton, m_buttonLayers);
+            m_playerRig = new RuneKeypadPlayerRig(this);
 
-            if (m_inspectCamera != null)
-            {
-                m_inspectCameraPosition = m_inspectCamera.transform.localPosition;
-                m_inspectCameraRotation = m_inspectCamera.transform.localRotation;
-            }
+            ResetSequence();
+            m_panel.SetEntryIndicators(0);
+            m_panel.SetSolvedRunes(false);
         }
 
         private void Update()
         {
-            if (m_state != InspectState.Reading || m_input == null || m_camera == null)
+            if (m_state != InspectState.Reading || m_playerRig.Input == null)
             {
                 return;
             }
 
-            UpdateHoveredButton();
+            RuneKeypadButton hovered = m_panel.UpdateHover(
+                m_playerRig.Camera, m_playerRig.Input.PointerPosition);
 
-            if (m_input.InteractPressedThisFrame)
+            if (m_playerRig.Input.InteractPressedThisFrame)
             {
                 LowerEntryAsync(m_inspectionCancellation.Token);
                 return;
             }
 
-            if (!m_isButtonAnimating && m_input.ClickPressedThisFrame && m_hoveredButton != null)
+            if (!m_isButtonAnimating && m_playerRig.Input.ClickPressedThisFrame && hovered != null)
             {
-                PressButtonEntryAsync(m_hoveredButton, m_inspectionCancellation.Token);
+                PressButtonEntryAsync(hovered, m_inspectionCancellation.Token);
             }
         }
 
         private void OnDisable()
         {
-            UnsubscribeFromArms();
-            StopInspectCamera();
-
-            if (m_hoveredButton != null)
+            if (m_playerRig != null)
             {
-                m_hoveredButton.SetHovered(false);
-                m_hoveredButton = null;
+                m_playerRig.UnsubscribeFromArms();
+            }
+
+            if (m_cameraRig != null)
+            {
+                m_cameraRig.Stop();
+            }
+
+            if (m_panel != null)
+            {
+                m_panel.ClearHover();
             }
         }
 
         private void OnDestroy()
         {
             CancelInspection();
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         public void Interact(GameObject interactor)
         {
             if (m_state != InspectState.Idle || interactor == null)
+            {
+                return;
+            }
+
+            if (!WorldAccess.TryBeginExclusiveInteraction(this))
             {
                 return;
             }
@@ -196,15 +192,16 @@ namespace RootsDance.Interaction
                 return;
             }
 
-            UnsubscribeFromArms();
-            ClearHover();
-            StopInspectCamera();
+            m_playerRig?.UnsubscribeFromArms();
+            m_panel?.ClearHover();
+            m_cameraRig?.Stop();
 
             // The outgoing player will be unloaded. Do not play a return animation or change the
             // cursor here: the rescue modal owns input and the camera until loading finishes.
-            m_stowedItem = null;
+            m_playerRig?.ForgetStowedItem();
             m_isButtonAnimating = false;
             m_state = InspectState.Idle;
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         private void CancelInspection()
@@ -249,35 +246,55 @@ namespace RootsDance.Interaction
             {
                 m_state = InspectState.Preparing;
 
-                if (!ResolvePlayer(interactor))
+                if (m_inspectCamera == null)
                 {
+                    Log.Error("Rune keypad has no fixed inspect camera.", this);
                     m_state = InspectState.Idle;
+                    WorldAccess.EndExclusiveInteraction(this);
                     return;
                 }
 
-                SuspendPlayer(true);
-                SaveCursor();
-                SetCursorForInspect(false);
+                if (!m_playerRig.TryResolve(interactor))
+                {
+                    m_state = InspectState.Idle;
+                    WorldAccess.EndExclusiveInteraction(this);
+                    return;
+                }
+
+                m_playerRig.Suspend(true);
+                m_playerRig.SaveCursor();
+                RuneKeypadPlayerRig.SetCursorForInspect(false);
                 SetWorldCollider(false);
 
                 // Start putting the torch away before the close-up, but do not leave the player
                 // waiting on an unmoving view while the arms action runs. The camera blend gives
                 // immediate feedback and overlaps the first part of the stow animation.
-                Awaitable<bool> stowOperation = StowTorchAsync(cancellationToken);
+                Awaitable<RuneKeypadPlayerRig.StowResult> stowOperation =
+                    m_playerRig.StowTorchAsync(cancellationToken);
 
                 m_state = InspectState.Raising;
-                ActivateInspectCamera(m_raiseSeconds);
+                m_cameraRig.Activate(m_raiseSeconds);
                 await WaitUnscaledAsync(m_raiseSeconds, cancellationToken);
 
-                if (!await stowOperation)
+                RuneKeypadPlayerRig.StowResult stowed = await stowOperation;
+
+                if (stowed != RuneKeypadPlayerRig.StowResult.Stowed
+                    && stowed != RuneKeypadPlayerRig.StowResult.HandsFree)
                 {
                     AbortInspect();
+
+                    // After the abort, or its empty-prompt publish would wipe the explanation.
+                    if (stowed == RuneKeypadPlayerRig.StowResult.Blocked)
+                    {
+                        PublishPrompt("请先放下手中的物品");
+                    }
+
                     return;
                 }
 
                 m_state = InspectState.Reading;
-                SetCursorForInspect(true);
-                PublishPrompt("[鼠标] 选择符文  [左键] 输入  [E] 退出");
+                RuneKeypadPlayerRig.SetCursorForInspect(true);
+                PublishPrompt(k_ReadingPrompt);
             }
             catch (OperationCanceledException)
             {
@@ -300,21 +317,22 @@ namespace RootsDance.Interaction
             try
             {
                 m_state = InspectState.Lowering;
-                SetCursorForInspect(false);
-                ClearHover();
+                RuneKeypadPlayerRig.SetCursorForInspect(false);
+                m_panel.ClearHover();
                 PublishPrompt(string.Empty);
-                DeactivateInspectCamera(m_lowerSeconds);
+                m_cameraRig.Deactivate(m_lowerSeconds);
                 await WaitUnscaledAsync(m_lowerSeconds, cancellationToken);
 
-                FinishInspectCamera();
-                RestoreStowedItem();
-                RestoreCursor();
-                SuspendPlayer(false);
+                m_cameraRig.Finish();
+                m_playerRig.RestoreStowedItem();
+                m_playerRig.RestoreCursor();
+                m_playerRig.Suspend(false);
                 SetWorldCollider(true);
                 ResetSequence();
-                SetEntryIndicators(0);
-                SetSolvedRunes(false);
+                m_panel.SetEntryIndicators(0);
+                m_panel.SetSolvedRunes(false);
                 m_state = InspectState.Idle;
+                WorldAccess.EndExclusiveInteraction(this);
             }
             catch (OperationCanceledException)
             {
@@ -338,7 +356,7 @@ namespace RootsDance.Interaction
                 if (button.Kind == RuneKeypadButton.ButtonKind.Clear)
                 {
                     m_sequence.Clear();
-                    SetEntryIndicators(0);
+                    m_panel.SetEntryIndicators(0);
                     m_isButtonAnimating = false;
                     return;
                 }
@@ -346,7 +364,7 @@ namespace RootsDance.Interaction
                 if (button.Kind == RuneKeypadButton.ButtonKind.Confirm)
                 {
                     m_sequence.Clear();
-                    SetEntryIndicators(0);
+                    m_panel.SetEntryIndicators(0);
                     m_state = InspectState.ShowingError;
                     await ShowErrorAsync(cancellationToken);
                     m_state = InspectState.Reading;
@@ -355,7 +373,7 @@ namespace RootsDance.Interaction
                 }
 
                 RuneKeypadInputResult result = m_sequence.Enter(button.Symbol);
-                SetEntryIndicators(m_sequence.EnteredCount);
+                m_panel.SetEntryIndicators(m_sequence.EnteredCount);
 
                 if (result == RuneKeypadInputResult.Incorrect)
                 {
@@ -367,9 +385,9 @@ namespace RootsDance.Interaction
                 else if (result == RuneKeypadInputResult.Solved)
                 {
                     m_state = InspectState.Confirming;
-                    SetSolvedRunes(true);
-                    ClearHover();
-                    SetCursorForInspect(false);
+                    m_panel.SetSolvedRunes(true);
+                    m_panel.ClearHover();
+                    RuneKeypadPlayerRig.SetCursorForInspect(false);
                     await ConfirmAndTransitionAsync(cancellationToken);
                 }
 
@@ -387,124 +405,36 @@ namespace RootsDance.Interaction
             }
         }
 
-        private bool ResolvePlayer(GameObject interactor)
-        {
-            m_input = interactor.GetComponentInParent<PlayerInputReader>();
-            m_camera = Camera.main;
-
-            Transform playerRoot = m_input == null ? null : m_input.transform;
-
-            if (m_input == null || m_camera == null || playerRoot == null
-                || m_inspectCamera == null)
-            {
-                Log.Error("Rune keypad could not resolve the player's input, main camera or "
-                    + "fixed inspect camera.", this);
-                return false;
-            }
-
-            ArmsDirector director = playerRoot.GetComponentInChildren<ArmsDirector>(true);
-            m_armsDirector = director;
-
-            HandSocket[] sockets = playerRoot.GetComponentsInChildren<HandSocket>(true);
-            m_rightSocket = null;
-
-            for (int i = 0; i < sockets.Length; i++)
-            {
-                if (sockets[i].Hand == HandSide.Right)
-                {
-                    m_rightSocket = sockets[i];
-                    break;
-                }
-            }
-
-            m_suspendedBehaviours = new Behaviour[]
-            {
-                playerRoot.GetComponentInChildren<PlayerLook>(true),
-                playerRoot.GetComponentInChildren<FirstPersonController>(true),
-                playerRoot.GetComponentInChildren<InteractionRaycaster>(true)
-            };
-            m_suspendedEnabledStates = new bool[m_suspendedBehaviours.Length];
-
-            return true;
-        }
-
-        private async Awaitable<bool> StowTorchAsync(CancellationToken cancellationToken)
-        {
-            if (m_armsDirector == null)
-            {
-                Log.Error("Rune keypad requires the player's ArmsDirector.", this);
-                return false;
-            }
-
-            if (m_rightSocket == null || m_rightSocket.Carried == null)
-            {
-                return true;
-            }
-
-            CarriedItem carried = m_rightSocket.Carried;
-
-            if (carried.Kind != CarriedKind.Torch)
-            {
-                PublishPrompt("请先放下手中的物品");
-                return false;
-            }
-
-            m_stowedItem = carried;
-            m_stowedItem.gameObject.SetActive(false);
-
-            // The torch stays hidden for the close-up either way; RestoreStowedItem puts it back
-            // when it ends.
-            await PlayArmsActionAsync(k_DropActionId, cancellationToken, false);
-
-            return true;
-        }
-
-        private void RestoreStowedItem()
-        {
-            if (m_stowedItem == null || m_rightSocket == null)
-            {
-                return;
-            }
-
-            m_stowedItem.gameObject.SetActive(true);
-
-            if (m_rightSocket.Carried != m_stowedItem)
-            {
-                m_rightSocket.Attach(m_stowedItem);
-
-                if (m_armsDirector != null)
-                {
-                    m_armsDirector.TryPlay(k_HoldActionId);
-                }
-            }
-
-            m_stowedItem = null;
-        }
-
         private async Awaitable ConfirmAndTransitionAsync(CancellationToken cancellationToken)
         {
             PublishPrompt("密码正确");
-            await TweenInspectCameraAsync(
+            await m_cameraRig.TweenToAsync(
                 m_confirmCameraPosition,
                 Quaternion.Euler(m_confirmCameraEuler),
                 m_buttonPressSeconds * 2f,
                 cancellationToken);
 
-            bool didPlay = await PlayArmsActionAsync(k_KeypadPokeActionId,
-                cancellationToken, true);
+            bool didPlay;
+
+            try
+            {
+                didPlay = await m_playerRig.PlayActionAsync(k_KeypadPokeActionId,
+                    cancellationToken, k_ConfirmContactSeconds,
+                    () => m_panel.SetConfirmContact(true));
+            }
+            finally
+            {
+                m_panel.SetConfirmContact(false);
+            }
 
             if (!didPlay)
             {
                 PublishPrompt("手臂动作暂时不可用，请重试");
-                await TweenInspectCameraAsync(
-                    m_inspectCameraPosition,
-                    m_inspectCameraRotation,
-                    m_buttonPressSeconds * 2f,
-                    cancellationToken);
+                await m_cameraRig.TweenHomeAsync(m_buttonPressSeconds * 2f, cancellationToken);
                 ResetSequence();
-                SetEntryIndicators(0);
-                SetSolvedRunes(false);
-                SetCursorForInspect(true);
+                m_panel.SetEntryIndicators(0);
+                m_panel.SetSolvedRunes(false);
+                RuneKeypadPlayerRig.SetCursorForInspect(true);
                 m_state = InspectState.Reading;
                 return;
             }
@@ -527,130 +457,11 @@ namespace RootsDance.Interaction
 
         private void PrepareForSceneUnload()
         {
-            ClearHover();
-            SetCursorForInspect(false);
-            StopInspectCamera();
+            m_panel.ClearHover();
+            RuneKeypadPlayerRig.SetCursorForInspect(false);
+            m_cameraRig.Stop();
             SetWorldCollider(false);
             gameObject.SetActive(false);
-        }
-
-        private async Awaitable<bool> PlayArmsActionAsync(string actionId,
-            CancellationToken cancellationToken, bool showConfirmContact)
-        {
-            if (m_armsDirector == null)
-            {
-                return false;
-            }
-
-            m_waitingActionId = actionId;
-            m_didActionFinish = false;
-            m_armsDirector.ActionFinished += OnArmsActionFinished;
-
-            try
-            {
-                if (!m_armsDirector.TryPlay(actionId))
-                {
-                    return false;
-                }
-
-                ArmsActionSO action = m_armsDirector.FindAction(actionId);
-                float authoredDuration = action == null ? 0f : action.Duration;
-                float timeoutSeconds = Mathf.Max(
-                    k_MinActionTimeoutSeconds,
-                    authoredDuration + k_ActionTimeoutPaddingSeconds);
-                float elapsed = 0f;
-                bool didShowContact = false;
-
-                while (!m_didActionFinish)
-                {
-                    elapsed += Time.unscaledDeltaTime;
-
-                    if (elapsed >= timeoutSeconds)
-                    {
-                        Log.Warning($"Rune keypad arms action '{actionId}' timed out after "
-                            + $"{timeoutSeconds:F2} seconds; restoring interaction control.", this);
-                        return false;
-                    }
-
-                    if (showConfirmContact && !didShowContact
-                        && elapsed >= k_ConfirmContactSeconds)
-                    {
-                        didShowContact = true;
-
-                        if (m_confirmButton != null)
-                        {
-                            m_confirmButton.SetPressed(true);
-                            m_confirmButton.SetFeedback(true);
-                        }
-                    }
-
-                    await Awaitable.NextFrameAsync(cancellationToken);
-                }
-
-                return true;
-            }
-            finally
-            {
-                if (m_confirmButton != null)
-                {
-                    m_confirmButton.SetPressed(false);
-                    m_confirmButton.SetFeedback(false);
-                }
-
-                UnsubscribeFromArms();
-            }
-        }
-
-        private void OnArmsActionFinished(string actionId)
-        {
-            if (actionId == m_waitingActionId)
-            {
-                m_didActionFinish = true;
-            }
-        }
-
-        private void UnsubscribeFromArms()
-        {
-            if (m_armsDirector != null)
-            {
-                m_armsDirector.ActionFinished -= OnArmsActionFinished;
-            }
-
-            m_waitingActionId = string.Empty;
-        }
-
-        private void UpdateHoveredButton()
-        {
-            Ray ray = m_camera.ScreenPointToRay(m_input.PointerPosition);
-            RuneKeypadButton button = null;
-
-            if (Physics.Raycast(ray, out RaycastHit hit, 2f, m_buttonLayers,
-                QueryTriggerInteraction.Collide))
-            {
-                button = hit.collider.GetComponentInParent<RuneKeypadButton>();
-            }
-
-            if (button == m_hoveredButton)
-            {
-                return;
-            }
-
-            ClearHover();
-            m_hoveredButton = button;
-
-            if (m_hoveredButton != null)
-            {
-                m_hoveredButton.SetHovered(true);
-            }
-        }
-
-        private void ClearHover()
-        {
-            if (m_hoveredButton != null)
-            {
-                m_hoveredButton.SetHovered(false);
-                m_hoveredButton = null;
-            }
         }
 
         private async Awaitable PulseButtonAsync(RuneKeypadButton button,
@@ -664,119 +475,12 @@ namespace RootsDance.Interaction
 
         private async Awaitable ShowErrorAsync(CancellationToken cancellationToken)
         {
-            SetEntryIndicators(0);
+            m_panel.SetEntryIndicators(0);
             PublishPrompt("密码错误");
-
-            if (m_clearButton != null)
-            {
-                m_clearButton.SetFeedback(true);
-                m_clearButton.SetPressed(true);
-            }
-
+            m_panel.SetErrorFeedback(true);
             await WaitUnscaledAsync(m_errorSeconds, cancellationToken);
-
-            if (m_clearButton != null)
-            {
-                m_clearButton.SetPressed(false);
-                m_clearButton.SetFeedback(false);
-            }
-
-            PublishPrompt("[鼠标] 选择符文  [左键] 输入  [E] 退出");
-        }
-
-        private async Awaitable TweenInspectCameraAsync(
-            Vector3 targetPosition,
-            Quaternion targetRotation,
-            float seconds,
-            CancellationToken cancellationToken)
-        {
-            if (m_inspectCamera == null)
-            {
-                return;
-            }
-
-            Transform cameraTransform = m_inspectCamera.transform;
-            Vector3 fromPosition = cameraTransform.localPosition;
-            Quaternion fromRotation = cameraTransform.localRotation;
-
-            for (float elapsed = 0f; elapsed < seconds; elapsed += Time.unscaledDeltaTime)
-            {
-                float t = Smooth(elapsed / seconds);
-                cameraTransform.localPosition = Vector3.Lerp(fromPosition, targetPosition, t);
-                cameraTransform.localRotation = Quaternion.Slerp(fromRotation, targetRotation, t);
-                await Awaitable.NextFrameAsync(cancellationToken);
-            }
-
-            cameraTransform.localPosition = targetPosition;
-            cameraTransform.localRotation = targetRotation;
-        }
-
-        private void ActivateInspectCamera(float blendSeconds)
-        {
-            if (m_inspectCamera == null)
-            {
-                return;
-            }
-
-            m_brain = CinemachineCore.FindPotentialTargetBrain(m_inspectCamera);
-            SetBlendDuration(blendSeconds);
-            m_inspectCamera.Priority = m_activeCameraPriority;
-            m_inspectCamera.gameObject.SetActive(true);
-        }
-
-        private void DeactivateInspectCamera(float blendSeconds)
-        {
-            if (m_inspectCamera == null)
-            {
-                return;
-            }
-
-            SetBlendDuration(blendSeconds);
-            m_inspectCamera.gameObject.SetActive(false);
-        }
-
-        private void SetBlendDuration(float seconds)
-        {
-            if (m_brain == null)
-            {
-                return;
-            }
-
-            if (!m_hasStoredBlend)
-            {
-                m_previousBlend = m_brain.DefaultBlend;
-                m_hasStoredBlend = true;
-            }
-
-            m_brain.DefaultBlend = new CinemachineBlendDefinition(
-                CinemachineBlendDefinition.Styles.EaseInOut, seconds);
-        }
-
-        private void FinishInspectCamera()
-        {
-            if (m_inspectCamera != null)
-            {
-                m_inspectCamera.transform.localPosition = m_inspectCameraPosition;
-                m_inspectCamera.transform.localRotation = m_inspectCameraRotation;
-            }
-
-            if (m_brain != null && m_hasStoredBlend)
-            {
-                m_brain.DefaultBlend = m_previousBlend;
-            }
-
-            m_hasStoredBlend = false;
-            m_brain = null;
-        }
-
-        private void StopInspectCamera()
-        {
-            if (m_inspectCamera != null)
-            {
-                m_inspectCamera.gameObject.SetActive(false);
-            }
-
-            FinishInspectCamera();
+            m_panel.SetErrorFeedback(false);
+            PublishPrompt(k_ReadingPrompt);
         }
 
         private static async Awaitable WaitUnscaledAsync(float seconds,
@@ -786,69 +490,6 @@ namespace RootsDance.Interaction
             {
                 await Awaitable.NextFrameAsync(cancellationToken);
             }
-        }
-
-        private void SuspendPlayer(bool isSuspended)
-        {
-            for (int i = 0; i < m_suspendedBehaviours.Length; i++)
-            {
-                Behaviour behaviour = m_suspendedBehaviours[i];
-
-                if (behaviour == null)
-                {
-                    continue;
-                }
-
-                if (isSuspended)
-                {
-                    m_suspendedEnabledStates[i] = behaviour.enabled;
-                    behaviour.enabled = false;
-                }
-                else
-                {
-                    behaviour.enabled = m_suspendedEnabledStates[i];
-                }
-            }
-        }
-
-        private void SetEntryIndicators(int count)
-        {
-            for (int i = 0; i < m_entryIndicators.Length; i++)
-            {
-                if (m_entryIndicators[i] != null)
-                {
-                    m_entryIndicators[i].SetActive(i < count);
-                }
-            }
-        }
-
-        private void SetSolvedRunes(bool isVisible)
-        {
-            for (int i = 0; i < m_solvedRunes.Length; i++)
-            {
-                if (m_solvedRunes[i] != null)
-                {
-                    m_solvedRunes[i].SetActive(isVisible);
-                }
-            }
-        }
-
-        private void SaveCursor()
-        {
-            m_originCursorLock = Cursor.lockState;
-            m_originCursorVisible = Cursor.visible;
-        }
-
-        private static void SetCursorForInspect(bool isInteractive)
-        {
-            Cursor.lockState = isInteractive ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = isInteractive;
-        }
-
-        private void RestoreCursor()
-        {
-            Cursor.lockState = m_originCursorLock;
-            Cursor.visible = m_originCursorVisible;
         }
 
         private void SetWorldCollider(bool isEnabled)
@@ -869,28 +510,22 @@ namespace RootsDance.Interaction
 
         private void AbortInspect()
         {
-            StopInspectCamera();
-            RestoreStowedItem();
-            RestoreCursor();
-            SuspendPlayer(false);
+            m_cameraRig.Stop();
+            m_playerRig.RestoreStowedItem();
+            m_playerRig.RestoreCursor();
+            m_playerRig.Suspend(false);
             SetWorldCollider(true);
             ResetSequence();
-            SetEntryIndicators(0);
-            SetSolvedRunes(false);
+            m_panel.SetEntryIndicators(0);
+            m_panel.SetSolvedRunes(false);
             PublishPrompt(string.Empty);
             m_state = InspectState.Idle;
+            WorldAccess.EndExclusiveInteraction(this);
         }
 
         private void ResetSequence()
         {
             m_sequence = new RuneKeypadSequence(k_Password);
-        }
-
-        private static float Smooth(float t)
-        {
-            float clamped = Mathf.Clamp01(t);
-
-            return clamped * clamped * (3f - 2f * clamped);
         }
     }
 }

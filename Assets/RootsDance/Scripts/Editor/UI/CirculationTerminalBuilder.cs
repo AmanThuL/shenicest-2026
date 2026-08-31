@@ -259,14 +259,14 @@ namespace RootsDance.EditorTools
                 root2.GetComponentInChildren<PlayerInputReader>(true);
 
             // One owner per axis: while the terminal is up its camera owns the view, so the look,
-            // the move and the interaction ray all stand down. Same three as the archive's.
+            // the move and the interaction offer all stand down. Same three as the archive's.
             SerializedProperty suspended =
                 serializedReader.FindProperty("m_suspendedWhileReading");
             Behaviour[] toSuspend =
             {
                 root2.GetComponentInChildren<PlayerLook>(true),
                 player,
-                root2.GetComponentInChildren<InteractionRaycaster>(true),
+                root2.GetComponentInChildren<InteractionProximityTrigger>(true),
             };
 
             suspended.arraySize = 0;
@@ -285,24 +285,9 @@ namespace RootsDance.EditorTools
 
             serializedReader.ApplyModifiedPropertiesWithoutUndo();
 
-            TerminalProximityTrigger trigger = root2.GetComponent<TerminalProximityTrigger>();
-
-            if (trigger == null)
-            {
-                trigger = root2.AddComponent<TerminalProximityTrigger>();
-            }
-
-            Transform head = root2.transform.Find("Head");
-            SerializedObject serializedTrigger = new SerializedObject(trigger);
-            serializedTrigger.FindProperty("m_controller").objectReferenceValue = reader;
-            serializedTrigger.FindProperty("m_player").objectReferenceValue =
-                head == null ? root2.transform : head;
-            serializedTrigger.FindProperty("m_input").objectReferenceValue =
-                root2.GetComponentInChildren<PlayerInputReader>(true);
-            serializedTrigger.FindProperty("m_promptChanged").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(k_PromptChannel);
-            serializedTrigger.ApplyModifiedPropertiesWithoutUndo();
-
+            // The approach hint needs no wiring of its own: the terminal is an IInteractable, and
+            // the one InteractionProximityTrigger on the player prefab already offers every one of
+            // them by the same near-and-on-screen rule.
             string playerName = player.name;
 
             EditorSceneManager.MarkSceneDirty(scene);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
 using RootsDance.Interaction;
@@ -79,7 +80,11 @@ namespace RootsDance.Scanner
 
         private void Update()
         {
-            m_inReach = m_controller.IsBusy ? null : FindNearestInRange();
+            // Nothing is offered while any exclusive interaction is up — not just this scanner's
+            // own read, but a document, a terminal or the keypad holding the player elsewhere.
+            m_inReach = m_controller.IsBusy || WorldAccess.IsInteractionLocked
+                ? null
+                : FindNearestInRange();
 
             Broadcast(m_inReach == null
                 ? string.Empty
@@ -120,10 +125,14 @@ namespace RootsDance.Scanner
                 ScannableTarget target = active[i];
 
                 // Out of reach by construction rather than filtered out, so the index the shared
-                // rule returns still lines up with the live list.
-                m_points.Add(target == null || !target.CanScan
-                    ? new Vector3(float.MaxValue, float.MaxValue, float.MaxValue)
-                    : target.AimPosition);
+                // rule returns still lines up with the live list. Off-screen counts as out of
+                // reach: the same near-and-on-screen rule every other offer in the game uses.
+                bool offered = target != null && target.CanScan
+                    && RootsDance.Interaction.InteractionVisibility.IsOnScreen(target);
+
+                m_points.Add(offered
+                    ? target.AimPosition
+                    : new Vector3(float.MaxValue, float.MaxValue, float.MaxValue));
             }
 
             int index = NearestInRange.Index(m_points, origin.position, m_range);
@@ -134,13 +143,11 @@ namespace RootsDance.Scanner
         /// <summary>Only raises the channel when the text actually changes.</summary>
         private void Broadcast(string prompt)
         {
-            if (m_promptChanged == null || prompt == m_lastPrompt)
-            {
-                return;
-            }
-
+            // Through the arbiter, never straight at the channel: several triggers share it, and a
+            // private "only send on change" latch would let this one's empty frame wipe another's
+            // live hint for good. See <see cref="RootsDance.Interaction.InteractionPrompts"/>.
             m_lastPrompt = prompt;
-            m_promptChanged.RaiseEvent(prompt);
+            RootsDance.Interaction.InteractionPrompts.Set(this, m_promptChanged, prompt);
         }
 
         private void OnDrawGizmosSelected()
