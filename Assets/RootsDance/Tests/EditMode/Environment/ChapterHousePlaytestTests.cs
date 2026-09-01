@@ -29,7 +29,7 @@ namespace RootsDance.Tests.EditMode.Environment
     /// </summary>
     public sealed class ChapterHousePlaytestTests
     {
-        private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/ChapterHouseInterior.asset";
+        private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
         private const string k_CorridorEntranceCheckpointPath =
             "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
         private const string k_FirstMeetingPath = "Assets/RootsDance/Data/Dialogue/DLG-001_FirstMeeting.asset";
@@ -51,7 +51,7 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsTrue(corridorEntrance != null,
                 "02-04A is missing from the Dev Play window: " + k_CorridorEntranceCheckpointPath);
             Assert.AreSame(level, corridorEntrance.Level,
-                "02-04A does not point at the chapter house level.");
+                "02-04A does not point at the combined Briggs/Chapter House level.");
         }
 
         [Test]

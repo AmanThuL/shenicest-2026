@@ -100,11 +100,9 @@ namespace RootsDance.Editor.Environment
             }
 
             Bounds doorway = leaf.bounds;
-            // The placement stands the black surface 1.5 m behind the closed plane; a leaf whose
-            // 100° arc reaches further than 1 m would sweep through it.
-            if (doorway.size.x + 0.5f > 1.45f)
+            if (doorway.size.x > 2.5f)
             {
-                throw new InvalidOperationException(k_DoorName + "'s leaf is too wide for the portal placement.");
+                throw new InvalidOperationException(k_DoorName + "'s leaf is wider than the supported exit bay.");
             }
 
             return doorway;
@@ -112,6 +110,7 @@ namespace RootsDance.Editor.Environment
 
         private static void PlaceInScene(Scene gameplay, Bounds doorway)
         {
+            float surfaceClearance = doorway.size.x + 0.5f;
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(
                 "Assets/RootsDance/Data/Levels/GreenhouseInterior.asset");
             LevelEventChannelSO channel = AssetDatabase.LoadAssetAtPath<LevelEventChannelSO>(
@@ -131,12 +130,9 @@ namespace RootsDance.Editor.Environment
                 SceneManager.MoveGameObjectToScene(root, preview);
                 root.layer = triggerLayer;
                 BoxCollider trigger = root.AddComponent<BoxCollider>();
-                // With the root 1.45 m behind the door plane (see the placement below), this
-                // volume's front face sits 0.5 m past the plane — beyond the probe's 0.45 m
-                // radius, so it cannot fire from the corridor side of the doorway, only once the
-                // player has stepped through. It reaches a metre below the sill so the load still
-                // fires if the chapel side has no floor to stand on yet.
-                trigger.center = new Vector3(0f, 1f, -0.7f);
+                // Keep the volume's front face 0.5 m past the closed plane regardless of the
+                // authored leaf width. The black surface itself stays beyond the complete swing.
+                trigger.center = new Vector3(0f, 1f, 0.75f - surfaceClearance);
                 trigger.size = new Vector3(2.8f, 4f, 0.5f);
                 trigger.isTrigger = true;
                 root.AddComponent<LevelPortal>().Configure(channel, level);
@@ -167,13 +163,12 @@ namespace RootsDance.Editor.Environment
             }
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, gameplay);
             instance.transform.SetParent(triggers, false);
-            // The leaf swings 100° around a hinge at the doorway's edge, so its sweep can reach at
-            // most the leaf's width past the closed plane — MeasureDoorway guarantees that width
-            // leaves the black surface (at local Z 0.05) out of the arc.
+            // The leaf swings 100° around a hinge at the doorway's edge, so placing the surface
+            // one leaf width plus 0.5 m behind the plane keeps it outside the complete arc.
             instance.transform.position = new Vector3(
                 doorway.center.x,
                 doorway.min.y,
-                doorway.center.z + 1.45f);
+                doorway.center.z + surfaceClearance);
             PrefabUtility.RecordPrefabInstancePropertyModifications(instance.transform);
         }
     }

@@ -98,6 +98,12 @@ namespace RootsDance.Editor.Environment
         /// <summary>Every physical door in the building, flattened into one static mesh by the same
         /// blockout pass that renamed the pieces. <see cref="SeparateDoors"/> pulls it back apart.</summary>
         private const string k_DoorsPart = "ClothLandscape_CorridorShell.006";
+        private const string k_EmissionPart = "ClothLandscape_CorridorShell.004";
+        private const string k_EmissionSurface = "emission";
+        private const float k_UnderglowEmissionNits = 60000f;
+        private const float k_UnderglowLightLumens = 14000f;
+
+        private static readonly Color k_UnderglowColour = new Color(0.055f, 0.42f, 1f);
 
         /// <summary>How close two loose islands of <see cref="k_DoorsPart"/> have to be, in world
         /// metres, to count as the same door — a leaf and its handle sit centimetres apart; two
@@ -127,6 +133,8 @@ namespace RootsDance.Editor.Environment
         /// shrank the chapel by. Held here so the build fails loudly if the profile drifts from it.
         /// </summary>
         private const float k_ImportScale = 1.511f;
+        private const float k_LayoutScale = 2f;
+        private const float k_LayoutYOffset = -3.5f;
 
         /// <summary>
         /// Every material the chapel declares, and the texture set each one wears. Base and normal
@@ -191,7 +199,7 @@ namespace RootsDance.Editor.Environment
             ("ClothLandscape_CorridorShell.001", "Window_fourclo"),      // glass_fourclo — the round opening
             ("ClothLandscape_CorridorShell.002", "Windwo_test"),         // glass_largearch
             ("ClothLandscape_CorridorShell.003", "Window_small"),        // glass_threearches
-            ("ClothLandscape_CorridorShell.004", "emission"),            // ImSPOECIAL
+            (k_EmissionPart, k_EmissionSurface),                          // ImSPOECIAL
             ("ClothLandscape_CorridorShell.005", "lower_columns"),
             ("ClothLandscape_CorridorShell.006", "lower_doors"),
             (k_FloorPart, "lower_floor"),
@@ -217,6 +225,7 @@ namespace RootsDance.Editor.Environment
         /// is explicitly a layout the level artist is still moving around.
         /// </summary>
         private static CheckpointPlacement[] s_checkpointPlacements;
+        private static ChapterHouseRoundEntranceBuilder.Placement s_roundEntrancePlacement;
 
         [MenuItem("RootsDance/Build Chapter House Interior")]
         public static void Build()
@@ -250,6 +259,7 @@ namespace RootsDance.Editor.Environment
                 // Same reason: the rebuilt gameplay scene starts with an empty _Triggers, which
                 // would silently sever the level's only way onward.
                 ChapterHouseGreenhousePortalBuilder.ApplyToScenes();
+                ChapterHouseConnectedLevelBuilder.Build(s_roundEntrancePlacement);
 
                 AssetDatabase.SaveAssets();
 
@@ -469,6 +479,25 @@ namespace RootsDance.Editor.Environment
             material.SetFloat("_Smoothness", surface.Smoothness);
             material.SetFloat("_Metallic", surface.Metallic);
 
+            if (surface.MaterialName == k_EmissionSurface)
+            {
+                Texture emissionTexture = LoadTexture(surface.BaseTexture);
+                material.SetTexture("_EmissiveColorMap", emissionTexture);
+                HDMaterial.SetUseEmissiveIntensity(material, true);
+                HDMaterial.SetEmissiveColor(material, k_UnderglowColour);
+                HDMaterial.SetEmissiveIntensity(
+                    material,
+                    k_UnderglowEmissionNits,
+                    EmissiveIntensityUnit.Nits);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+            else
+            {
+                material.SetTexture("_EmissiveColorMap", null);
+                HDMaterial.SetUseEmissiveIntensity(material, false);
+                HDMaterial.SetEmissiveColor(material, Color.black);
+            }
+
             if (!string.IsNullOrEmpty(surface.NormalTexture))
             {
                 material.SetTexture("_NormalMap", LoadTexture(surface.NormalTexture));
@@ -523,25 +552,106 @@ namespace RootsDance.Editor.Environment
             Transform lighting = CreateRoot("_Lighting");
             Transform geometry = CreateRoot("_Geometry");
             Transform buildingRoot = CreateChild("ChapterHouseRoot", geometry);
+            buildingRoot.localScale = Vector3.one * k_LayoutScale;
             Transform props = CreateRoot("_Props");
             CreateRoot("_NavMesh");
 
             GameObject building = InstantiateModel(k_ModelPath, "ChapterHouse", buildingRoot, scene);
             Bounds bounds = GroundModel(building);
+            buildingRoot.position = new Vector3(0f, k_LayoutYOffset, 0f);
+            bounds = GetRendererBounds(building);
             ApplyMaterials(building, materials);
-            CreateCollision(building);
             SetStatic(building);
-            SeparateDoors(building, materials);
+            Bounds legacyDoorway = SeparateDoors(building, materials);
+            Bounds floor = PartBounds(building, k_FloorPart);
+            Bounds emission = PartBounds(building, k_EmissionPart);
+            s_roundEntrancePlacement = ChapterHouseRoundEntranceBuilder.Replace(
+                building, geometry, scene, floor, legacyDoorway);
+            CreateCollision(building);
             CreateMycelium(building, scene);
             ChapterHouseBridgeRailingBuilder.Place(building);
+            CreateUndercroftSeals(geometry, floor, PartBounds(building, k_BridgePart), emission);
 
-            Bounds floor = PartBounds(building, k_FloorPart);
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
-            CreateLighting(lighting, bounds, floor);
+            CreateLighting(lighting, bounds, floor, emission);
             CreateScaleReference(props, floor);
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_ChapterHouseInteriorEnvironment);
             return bounds;
+        }
+
+        /// <summary>
+        /// Closes the two planted pits behind the mycelium without replacing the authored catwalk layout.
+        /// The original floor deliberately stops beside the bridge; these low, matte liners prevent the
+        /// sparse procedural strands from exposing the exterior world through that opening.
+        /// </summary>
+        private static void CreateUndercroftSeals(
+            Transform geometry,
+            Bounds floor,
+            Bounds bridge,
+            Bounds emission)
+        {
+            Transform existing = geometry.Find("ChapterHouseUndercroftSeals");
+
+            if (existing != null)
+            {
+                UnityEngine.Object.DestroyImmediate(existing.gameObject);
+            }
+
+            Transform root = CreateChild("ChapterHouseUndercroftSeals", geometry);
+            Material material = ChapterHouseRoundEntranceBuilder.EnsureUndercroftMaterial();
+            float minimumZ = bridge.min.z + 0.2f;
+            float maximumZ = bridge.max.z - 0.08f;
+            float topY = Mathf.Min(floor.max.y - 1.15f, emission.min.y - 0.12f);
+            const float thickness = 0.18f;
+
+            CreateUndercroftSeal(
+                "UndercroftSeal_West",
+                root,
+                floor.min.x + 0.25f,
+                bridge.min.x + 0.05f,
+                minimumZ,
+                maximumZ,
+                topY,
+                thickness,
+                material);
+            CreateUndercroftSeal(
+                "UndercroftSeal_East",
+                root,
+                bridge.max.x - 0.05f,
+                floor.max.x - 0.25f,
+                minimumZ,
+                maximumZ,
+                topY,
+                thickness,
+                material);
+        }
+
+        private static void CreateUndercroftSeal(
+            string name,
+            Transform parent,
+            float minimumX,
+            float maximumX,
+            float minimumZ,
+            float maximumZ,
+            float topY,
+            float thickness,
+            Material material)
+        {
+            GameObject seal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            seal.name = name;
+            seal.transform.SetParent(parent, false);
+            seal.transform.localPosition = new Vector3(
+                (minimumX + maximumX) * 0.5f,
+                topY - thickness * 0.5f,
+                (minimumZ + maximumZ) * 0.5f);
+            seal.transform.localScale = new Vector3(
+                maximumX - minimumX,
+                thickness,
+                maximumZ - minimumZ);
+            seal.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(seal.GetComponent<BoxCollider>());
+            seal.isStatic = true;
         }
 
         /// <summary>
@@ -790,7 +900,11 @@ namespace RootsDance.Editor.Environment
         /// Daylight through the glazing plus a low interior fill. A chapter house is read by its
         /// height, and height only reads when the upper walls catch light the floor does not.
         /// </summary>
-        private static void CreateLighting(Transform parent, Bounds bounds, Bounds floor)
+        private static void CreateLighting(
+            Transform parent,
+            Bounds bounds,
+            Bounds floor,
+            Bounds emission)
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_VolumeProfilePath);
 
@@ -835,6 +949,8 @@ namespace RootsDance.Editor.Environment
                 new Vector3(x, lower, floor.center.z - depth * 0.34f));
             CreateFillLight(parent, "ChapterHouseFill_CrossingLow",
                 new Vector3(x, lower, floor.center.z + depth * 0.34f));
+
+            CreateUnderglowLights(parent, emission);
         }
 
         private static void CreateFillLight(Transform parent, string name, Vector3 position)
@@ -850,6 +966,39 @@ namespace RootsDance.Editor.Environment
             light.intensity = 22000f;
             light.range = 14f;
             light.color = new Color(0.86f, 0.84f, 0.78f);
+            light.shadows = LightShadows.None;
+        }
+
+        private static void CreateUnderglowLights(Transform parent, Bounds emission)
+        {
+            Transform root = CreateChild("ChapterHouseUnderglowLights", parent);
+            float xOffset = emission.extents.x * 0.48f;
+            float zOffset = emission.extents.z * 0.28f;
+            // The authored emissive card sits above the folded landscape. Place the practical
+            // lights underneath it so they illuminate the folds, rather than spending their
+            // energy on the chapel floor above the card.
+            float y = emission.min.y - 0.75f;
+
+            CreateUnderglowLight(root, "ChapterHouseUnderglow_SouthWest",
+                new Vector3(emission.center.x - xOffset, y, emission.center.z - zOffset));
+            CreateUnderglowLight(root, "ChapterHouseUnderglow_SouthEast",
+                new Vector3(emission.center.x + xOffset, y, emission.center.z - zOffset));
+            CreateUnderglowLight(root, "ChapterHouseUnderglow_NorthWest",
+                new Vector3(emission.center.x - xOffset, y, emission.center.z + zOffset));
+            CreateUnderglowLight(root, "ChapterHouseUnderglow_NorthEast",
+                new Vector3(emission.center.x + xOffset, y, emission.center.z + zOffset));
+        }
+
+        private static void CreateUnderglowLight(Transform parent, string name, Vector3 position)
+        {
+            GameObject lightObject = new GameObject(name);
+            lightObject.transform.SetParent(parent, false);
+            lightObject.transform.localPosition = position;
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.intensity = k_UnderglowLightLumens;
+            light.range = 8.5f;
+            light.color = k_UnderglowColour;
             light.shadows = LightShadows.None;
         }
 
@@ -915,7 +1064,7 @@ namespace RootsDance.Editor.Environment
         /// has to know or guess the mesh's axis convention or the importer's 1.511 scale.
         /// </para>
         /// </summary>
-        private static void SeparateDoors(GameObject building, Dictionary<string, Material> materials)
+        private static Bounds SeparateDoors(GameObject building, Dictionary<string, Material> materials)
         {
             MeshFilter mergedFilter = building.GetComponentsInChildren<MeshFilter>(true)
                 .FirstOrDefault(filter => filter.gameObject.name == k_DoorsPart);
@@ -960,7 +1109,19 @@ namespace RootsDance.Editor.Environment
 
             Transform parent = mergedTransform.parent;
 
-            for (int i = 0; i < doorGroups.Count; i++)
+            if (doorGroups.Count != 4)
+            {
+                throw new InvalidOperationException(
+                    "The chapter house entrance replacement expects four authored door groups, found "
+                    + doorGroups.Count + ".");
+            }
+
+            Bounds legacyDoorway = TriangleGroupWorldBounds(doorGroups[0], triangles, worldVertices);
+
+            // Door A was the offset rectangular entrance. It is deliberately not rebuilt: the
+            // round-entrance wall covers and erases that entire bay. Keep the original B/C/D
+            // letters stable so the greenhouse exit remains ChapterHouseDoor_D.
+            for (int i = 1; i < doorGroups.Count; i++)
             {
                 string name = "ChapterHouseDoor_" + (char)('A' + i);
                 BuildDoor(name, doorGroups[i], mergedMesh, triangles, worldVertices, mergedTransform,
@@ -968,6 +1129,7 @@ namespace RootsDance.Editor.Environment
             }
 
             UnityEngine.Object.DestroyImmediate(mergedFilter.gameObject);
+            return legacyDoorway;
         }
 
         /// <summary>Groups triangles by shared-vertex connectivity. The importer welds coincident

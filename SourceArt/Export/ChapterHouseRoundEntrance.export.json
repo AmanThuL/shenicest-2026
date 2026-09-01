@@ -1,0 +1,29 @@
+{
+  "m_fbx": "Assets/RootsDance/Meshes/Environment/ChapterHouse/ChapterHouseRoundEntrance.fbx",
+  "m_blend": "SourceArt/Blender/ChapterHouseRoundEntrance/ChapterHouseRoundEntrance.blend",
+  "m_blendModifiedUtc": "2026-09-01T20:10:08+00:00",
+  "m_action": "",
+  "m_armature": "",
+  "m_frameStart": 1,
+  "m_frameEnd": 250,
+  "m_fps": 24,
+  "m_exportedCollection": "ChapterHouseRoundEntrance_Export",
+  "m_exportedObjects": [
+    "RoundEntrance_LegacyDoorPatch",
+    "RoundEntrance_LegacyDoorPatchPanel_01",
+    "RoundEntrance_LegacyDoorPatchPanel_02",
+    "RoundEntrance_LegacyDoorPatchPanel_03",
+    "RoundEntrance_FirstStoreySurround_Left",
+    "RoundEntrance_FirstStoreySurround_Right",
+    "RoundEntrance_FirstStoreySurround_Upper",
+    "RoundEntrance_ArchFrame",
+    "RoundEntrance_TunnelShell",
+    "RoundEntrance_Door_Left",
+    "RoundEntrance_Door_Right",
+    "RoundEntrance_Floor"
+  ],
+  "m_excludedObjects": [],
+  "m_blenderVersion": "5.2.1 LTS",
+  "m_profile": "Tools/blender/profiles/static_prop.json",
+  "m_exportedUtc": "2026-09-01T20:10:09+00:00"
+}
