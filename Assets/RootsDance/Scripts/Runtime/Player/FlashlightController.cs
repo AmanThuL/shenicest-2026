@@ -91,7 +91,6 @@ namespace RootsDance.Player
         private float m_fullIntensity;
         private bool m_hasLight;
         private bool m_isSeeded;
-        private bool m_hasTaughtSwitch;
 
         /// <summary>
         /// How far the beam has faded up, 0 while it is off and 1 at the authored intensity.
@@ -226,8 +225,9 @@ namespace RootsDance.Player
 
         /// <summary>
         /// The one hint this component owns: a torch in the hand whose switch is off says which
-        /// key turns it on. It stands down forever the first time the switch works — the key is
-        /// learned — and never competes with a contextual offer thanks to its low priority.
+        /// key turns it on — every time, for as long as that is true. It hides while the beam is
+        /// lit (nothing left to say) and comes back when the switch goes off again; its low
+        /// priority means any contextual offer speaks over it.
         /// </summary>
         private void OfferSwitchHint()
         {
@@ -236,12 +236,7 @@ namespace RootsDance.Player
                 return;
             }
 
-            if (m_state.IsOn)
-            {
-                m_hasTaughtSwitch = true;
-            }
-
-            bool wanted = !m_hasTaughtSwitch && IsHeld && m_state.HasPower && !m_state.IsOn;
+            bool wanted = IsHeld && m_state.HasPower && !m_state.IsOn;
 
             InteractionPrompts.Set(this, m_promptChanged,
                 wanted ? m_switchHint : string.Empty, k_SwitchHintPriority);
