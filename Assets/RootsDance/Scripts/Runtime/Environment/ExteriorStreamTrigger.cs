@@ -1,3 +1,4 @@
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
 using RootsDance.Player;
@@ -11,6 +12,13 @@ namespace RootsDance.Environment
     /// the real exterior geometry (Main_Environment) replaces the baked-sky backdrop seen through the
     /// windows before the player reaches it, instead of the whole hub loading the moment the level
     /// opens.
+    /// <para>
+    /// Walking out is a branch, not standing behavior, so the trigger asks world state for
+    /// <see cref="m_requiredFlag"/> before it fires. That check lives here rather than only in
+    /// <see cref="GreenhouseExitArmer"/>, which switches the object off: an object left active by a
+    /// stale scene, a prefab revert or a teammate's save would otherwise stream the exterior into
+    /// a level that has no business showing it. Ground truth decides, not the scene file.
+    /// </para>
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider))]
@@ -21,6 +29,13 @@ namespace RootsDance.Environment
 
         [Tooltip("Full asset path of the scene to stream in (see RootsDance.App.ScenePaths).")]
         [SerializeField] private string m_scenePath;
+
+        [Tooltip("World flag that must be up before this may fire. flow.chase_started is raised by "
+            + "the circulation console's cue sequence only after the doomed choice, the deck "
+            + "collapse, the fall and the dialogue that follows are all over — which is exactly "
+            + "when leaving the greenhouse becomes a thing the player is allowed to do. Empty "
+            + "means ungated.")]
+        [SerializeField] private string m_requiredFlag = WorldFlags.k_ChaseStarted;
 
         private bool m_hasFired;
 
@@ -36,6 +51,13 @@ namespace RootsDance.Environment
                 return;
             }
 
+            // Not latched: the player may walk this corridor long before the branch opens, and the
+            // trigger has to still work when they come back through it during the chase.
+            if (!IsArmed())
+            {
+                return;
+            }
+
             if (m_streamSceneRequested == null || string.IsNullOrEmpty(m_scenePath))
             {
                 Log.Warning("ExteriorStreamTrigger is missing its channel or scene path.", this);
@@ -44,6 +66,19 @@ namespace RootsDance.Environment
 
             m_hasFired = true;
             m_streamSceneRequested.RaiseEvent(m_scenePath);
+        }
+
+        private bool IsArmed()
+        {
+            if (string.IsNullOrEmpty(m_requiredFlag))
+            {
+                return true;
+            }
+
+            IWorldStateReader state = WorldAccess.State;
+
+            // No bootstrap yet means no branch has been taken yet; stay shut rather than guess.
+            return state != null && state.HasFlag(m_requiredFlag);
         }
 
         private void Reset()
