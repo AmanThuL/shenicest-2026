@@ -186,8 +186,38 @@ namespace RootsDance.Environment
                 return;
             }
 
-            Vector3 at = m_collapseRig != null ? m_collapseRig.transform.position : transform.position;
-            m_audioChannel.RaiseEvent(new AudioCueRequest(cue, at));
+            m_audioChannel.RaiseEvent(new AudioCueRequest(cue, SoundPosition()));
+        }
+
+        /// <summary>
+        /// Where the collapse sounds from: the middle of the rig's geometry, not its pivot. An
+        /// imported rig's pivot is wherever the exporter left it, and these cues are 3D with a
+        /// 30-45 m linear rolloff — a pivot parked at the scene origin puts the whole collapse far
+        /// enough away to be inaudible while the player falls through it. Renderer bounds are in
+        /// world space and cannot be wrong about where the deck actually is.
+        /// </summary>
+        private Vector3 SoundPosition()
+        {
+            if (m_collapseRig == null)
+            {
+                return transform.position;
+            }
+
+            Renderer[] renderers = m_collapseRig.GetComponentsInChildren<Renderer>(true);
+
+            if (renderers.Length == 0)
+            {
+                return m_collapseRig.transform.position;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds.center;
         }
 
         private void PlayDebris()
