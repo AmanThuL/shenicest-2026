@@ -2369,7 +2369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 222469280}
   m_rightLeaf: {fileID: 2093623818}
   m_openDistance: 0.008820023
@@ -7520,7 +7520,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 1857174227}
   m_rightLeaf: {fileID: 1540940380}
   m_openDistance: 0.008820023
@@ -28612,7 +28612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 348743944}
   m_rightLeaf: {fileID: 1273677637}
   m_openDistance: 0.008820023
@@ -37651,7 +37651,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 138356960}
   m_rightLeaf: {fileID: 989479486}
   m_openDistance: 0.008820023
@@ -44532,7 +44532,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 890362593}
   m_rightLeaf: {fileID: 80102243}
   m_openDistance: 0.008820023
@@ -70995,7 +70995,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 2069448694}
   m_rightLeaf: {fileID: 1659275603}
   m_openDistance: 0.008820023
@@ -71270,7 +71270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 1379724399}
   m_rightLeaf: {fileID: 384768257}
   m_openDistance: 0.008820023
@@ -86286,7 +86286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689edd164926041da939db5291cbf25d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.AutomaticSlidingDoor
-  m_opensOnApproach: 1
+  m_opensOnApproach: 0
   m_leftLeaf: {fileID: 1339123908}
   m_rightLeaf: {fileID: 269462165}
   m_openDistance: 0.008819999
