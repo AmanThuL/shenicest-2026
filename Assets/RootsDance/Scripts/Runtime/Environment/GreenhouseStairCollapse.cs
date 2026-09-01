@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using RootsDance.App;
+using RootsDance.Audio;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Events;
@@ -48,6 +49,35 @@ namespace RootsDance.Environment
         [Tooltip("Child of the rig that stays in one piece and only needs a static collider.")]
         [SerializeField] private string m_lowerPartName = "SpiralStair_Lower";
 
+        [Header("Sound")]
+        [Tooltip("Data/Events/AudioCueRequested — the channel the director listens on. Leave the "
+            + "cues empty and the collapse simply stays silent.")]
+        [SerializeField] private AudioCueEventChannelSO m_audioChannel;
+
+        [Tooltip("The sub-bass groan that says the deck is going, played before anything moves.")]
+        [SerializeField] private AudioCueSO m_warningCue;
+
+        [Tooltip("Seconds between the warning and the deck actually letting go. This is the whole "
+            + "point of the warning: the player has to hear it before the floor is gone. A rescue "
+            + "restore skips the wait, because there is nothing to warn about after the fact.")]
+        [Min(0f)]
+        [SerializeField] private float m_warningLeadSeconds = 0.9f;
+
+        [Tooltip("The structure coming apart, played the instant the chunks are released.")]
+        [SerializeField] private AudioCueSO m_collapseCue;
+
+        [Tooltip("First debris hit, after the chunks have had time to reach anything.")]
+        [SerializeField] private AudioCueSO m_debrisCue;
+
+        [Min(0f)]
+        [SerializeField] private float m_debrisDelaySeconds = 2.2f;
+
+        [Tooltip("The long tail of rubble still finding its place.")]
+        [SerializeField] private AudioCueSO m_debrisSettleCue;
+
+        [Min(0f)]
+        [SerializeField] private float m_debrisSettleDelaySeconds = 3.3f;
+
         [Header("Debris")]
         [Tooltip("Outward-and-down shove per chunk, in newton-seconds per kilogram — an initial "
             + "velocity, so the break reads as a snap rather than a slump.")]
@@ -66,6 +96,7 @@ namespace RootsDance.Environment
         private readonly List<Rigidbody> m_debris = new List<Rigidbody>();
         private PhysicsMaterial m_slickMaterial;
         private bool m_hasCollapsed;
+        private bool m_collapsePending;
 
         private void OnEnable()
         {
@@ -112,10 +143,61 @@ namespace RootsDance.Environment
             {
                 if (flag == m_collapseFlags[i])
                 {
-                    Collapse();
+                    BeginCollapse();
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// The played beat: the deck groans, and only then goes. Everything the collapse itself
+        /// does is unchanged — this only buys the warning the seconds it needs to be a warning.
+        /// <see cref="Collapse"/> stays callable on its own for the rescue restore and the context
+        /// menu, where there is no one to warn.
+        /// </summary>
+        public void BeginCollapse()
+        {
+            if (m_hasCollapsed || m_collapsePending)
+            {
+                return;
+            }
+
+            Play(m_warningCue);
+
+            if (m_warningLeadSeconds <= 0f)
+            {
+                Collapse();
+                return;
+            }
+
+            m_collapsePending = true;
+            Invoke(nameof(Collapse), m_warningLeadSeconds);
+        }
+
+        /// <summary>
+        /// Positional, at the deck: the collapse is a place in the room, and the player is falling
+        /// through it. A null cue or channel is silence, not an error — the beat works without
+        /// sound and the wiring is allowed to be half done.
+        /// </summary>
+        private void Play(AudioCueSO cue)
+        {
+            if (cue == null || m_audioChannel == null)
+            {
+                return;
+            }
+
+            Vector3 at = m_collapseRig != null ? m_collapseRig.transform.position : transform.position;
+            m_audioChannel.RaiseEvent(new AudioCueRequest(cue, at));
+        }
+
+        private void PlayDebris()
+        {
+            Play(m_debrisCue);
+        }
+
+        private void PlayDebrisSettle()
+        {
+            Play(m_debrisSettleCue);
         }
 
         [ContextMenu("Collapse")]
@@ -127,7 +209,20 @@ namespace RootsDance.Environment
             }
 
             m_hasCollapsed = true;
+            m_collapsePending = false;
             Log.Info("[collapse] begin", this);
+
+            Play(m_collapseCue);
+
+            if (m_debrisCue != null)
+            {
+                Invoke(nameof(PlayDebris), m_debrisDelaySeconds);
+            }
+
+            if (m_debrisSettleCue != null)
+            {
+                Invoke(nameof(PlayDebrisSettle), m_debrisSettleDelaySeconds);
+            }
 
             GameObject intact = FindIntactStair();
 

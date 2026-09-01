@@ -274,4 +274,13 @@ the only derived data lives under `Assets/RootsDance/`.
   头盔呼吸两条与污染区三条 2026-08-29 合成；其余九张床与水声 2026-08-30 由仓库内的
   `Tools/audio/generate_beds.py` 在频域生成（循环点按定义连续，见音频管线 §9.2）。
   **压缩导入后仍需在 Unity 里复听循环接缝**（见音频管线 §4：Ambience 走 Vorbis 0.6 流式）。
+- **Freesound —— CC0 1.0**：`Collapse_Body.wav`（BuildingCollapse，作者 craigsmith，
+  <https://freesound.org/s/845932/>）与 `Collapse_DebrisSettle.wav`（Foley Stones Falls Debris，
+  作者 Nox_Sound，<https://freesound.org/s/550342/>），用于 03 章观景台坍塌。无需署名。
+  **这两条目前是从 Freesound 的 192kbps mp3 *预览* 转码来的占位文件**：原始档要登录 Freesound
+  才能下载。提交构建之前必须换成原始档重新导入 —— 预览转码不能当最终素材。
+  另外两层 `Collapse_Warning.ogg`（Kenney SciFi，lowFrequency_explosion_000）与
+  `Collapse_Debris.ogg`（OpenGameArt `80 CC0 RPG SFX`，rubberduck，stones_02）是原始档，无此问题。
+- **OpenGameArt `75 CC0 Breaking / Falling / Hit SFX`（作者 rubberduck）—— CC0 1.0**：
+  `SFX/Glass_Shatter_Flask.ogg`，蓝烧瓶砸符文的碎裂声。无需署名。
 - **两条 CC BY 是"必须做的事"，不只是仓库备注**：制作人员表还没有这些行之前，构建不满足授权条件。

@@ -525,6 +525,14 @@ MonoBehaviour:
   m_collapseRig: {fileID: 1762824897}
   m_intactStairName: GreenhouseSpiralStair
   m_lowerPartName: SpiralStair_Lower
+  m_audioChannel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
+  m_warningCue: {fileID: 11400000, guid: fd6ead602b2d4f9cb4f43d93a6caec8b, type: 2}
+  m_warningLeadSeconds: 0.9
+  m_collapseCue: {fileID: 11400000, guid: 596d56087502454796f77b0bcdb81791, type: 2}
+  m_debrisCue: {fileID: 11400000, guid: b9e7629ea86d4a88af2910027d04c720, type: 2}
+  m_debrisDelaySeconds: 2.2
+  m_debrisSettleCue: {fileID: 11400000, guid: a89195d653b3456a9c2fe31ba3747720, type: 2}
+  m_debrisSettleDelaySeconds: 3.3
   m_impulse: 1.5
   m_maxSpin: 3
   m_settleSeconds: 10
