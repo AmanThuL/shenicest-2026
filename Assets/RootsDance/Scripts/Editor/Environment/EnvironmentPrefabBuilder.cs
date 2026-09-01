@@ -541,6 +541,27 @@ namespace RootsDance.Editor.Environment
             }
 
             float cullDistance = CullDistanceFor(entry.RenderClass);
+            float size = Mathf.Max(local.size.x, Mathf.Max(local.size.y, local.size.z));
+
+            float largestScale = Mathf.Max(Mathf.Abs(instance.transform.lossyScale.x),
+                Mathf.Max(Mathf.Abs(instance.transform.lossyScale.y), Mathf.Abs(instance.transform.lossyScale.z)));
+            float worldSize = size * largestScale;
+            float halfFovRadians = k_AssumedVerticalFieldOfView * Mathf.Deg2Rad * 0.5f;
+            float cullHeight = worldSize / (2f * cullDistance * Mathf.Tan(halfFovRadians));
+            cullHeight = Mathf.Clamp(cullHeight, 0.001f, 0.99f);
+
+            LODGroup nested = NestedLodGroup(instance);
+
+            if (nested != null)
+            {
+                // The vendor model ships its own LOD chain. A group on the wrapper as well would register
+                // the same renderers with two LODGroups — which Unity warns about and which makes LOD
+                // selection and culling non-deterministic — so the model's group stays authoritative and
+                // only takes the cull distance on its last LOD.
+                RaiseCullHeight(nested, cullHeight);
+                return;
+            }
+
             LODGroup group = instance.GetComponent<LODGroup>();
 
             if (group == null)
@@ -549,22 +570,11 @@ namespace RootsDance.Editor.Environment
             }
 
             group.localReferencePoint = local.center;
-            group.size = Mathf.Max(local.size.x, Mathf.Max(local.size.y, local.size.z));
-
-            float largestScale = Mathf.Max(Mathf.Abs(instance.transform.lossyScale.x),
-                Mathf.Max(Mathf.Abs(instance.transform.lossyScale.y), Mathf.Abs(instance.transform.lossyScale.z)));
-            float worldSize = group.size * largestScale;
-            float halfFovRadians = k_AssumedVerticalFieldOfView * Mathf.Deg2Rad * 0.5f;
-            float cullHeight = worldSize / (2f * cullDistance * Mathf.Tan(halfFovRadians));
-            cullHeight = Mathf.Clamp(cullHeight, 0.001f, 0.99f);
+            group.size = size;
 
             if (HasLods(entry))
             {
-                LOD[] lods = group.GetLODs();
-                int finalIndex = lods.Length - 1;
-                lods[finalIndex].screenRelativeTransitionHeight =
-                    Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
-                group.SetLODs(lods);
+                RaiseCullHeight(group, cullHeight);
             }
             else
             {
@@ -572,6 +582,39 @@ namespace RootsDance.Editor.Environment
                 group.animateCrossFading = false;
                 group.SetLODs(new[] { new LOD(cullHeight, renderers) });
             }
+        }
+
+        /// <summary>
+        /// The first <see cref="LODGroup"/> below <paramref name="instance"/>'s own root — the one the vendor
+        /// model prefab brings with it. Null when the model has no LODs of its own.
+        /// </summary>
+        private static LODGroup NestedLodGroup(GameObject instance)
+        {
+            foreach (LODGroup candidate in instance.GetComponentsInChildren<LODGroup>(true))
+            {
+                if (candidate.gameObject != instance)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Pushes <paramref name="group"/>'s last LOD out to <paramref name="cullHeight"/>.</summary>
+        private static void RaiseCullHeight(LODGroup group, float cullHeight)
+        {
+            LOD[] lods = group.GetLODs();
+
+            if (lods.Length == 0)
+            {
+                return;
+            }
+
+            int finalIndex = lods.Length - 1;
+            lods[finalIndex].screenRelativeTransitionHeight =
+                Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
+            group.SetLODs(lods);
         }
 
         private static float CullDistanceFor(EnvironmentRenderClass renderClass)
