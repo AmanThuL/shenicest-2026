@@ -185,6 +185,77 @@ Transform:
   m_Children: []
   m_Father: {fileID: 464706809}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &161246030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 161246033}
+  - component: {fileID: 161246032}
+  - component: {fileID: 161246031}
+  m_Layer: 9
+  m_Name: ResidualWaterSample
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &161246031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161246030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df9a419311f5481da7013a1d4fc0462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Investigation.InvestigatableTarget
+  m_target: {fileID: 11400000, guid: fb8e795acc5746fdb611c9943dd687e5, type: 2}
+  m_isInvestigable: 1
+  m_refusalText: "\u4E0D\u53EF\u91C7\u6837"
+  m_viewBehaviour: {fileID: 0}
+  m_toolViewBehaviour: {fileID: 0}
+--- !u!65 &161246032
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161246030}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.5649704, y: 0.5, z: 1.4824829}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &161246033
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161246030}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.273041, y: 12.408316, z: 124.60172}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &181191452
 GameObject:
   m_ObjectHideFlags: 0
@@ -896,21 +967,13 @@ MonoBehaviour:
     m_cueSource: {fileID: 0}
     m_conversation: {fileID: 11400000, guid: f1c1477e2fb6545228b279ac3bd28348, type: 2}
   - m_kind: 4
-    m_delay: 1.5
-    m_flagId: flow.chase_started
+    m_delay: 0
+    m_flagId: 
     m_target: {fileID: 0}
     m_isActive: 0
     m_cue: {fileID: 0}
     m_cueSource: {fileID: 0}
     m_conversation: {fileID: 11400000, guid: f1c1477e2fb6545228b279ac3bd28348, type: 2}
-  - m_kind: 1
-    m_delay: 0
-    m_flagId: flow.chase_started
-    m_target: {fileID: 0}
-    m_isActive: 0
-    m_cue: {fileID: 0}
-    m_cueSource: {fileID: 0}
-    m_conversation: {fileID: 0}
 --- !u!1 &966730027
 GameObject:
   m_ObjectHideFlags: 0
@@ -1603,21 +1666,13 @@ MonoBehaviour:
     m_cueSource: {fileID: 0}
     m_conversation: {fileID: 11400000, guid: f1c1477e2fb6545228b279ac3bd28348, type: 2}
   - m_kind: 4
-    m_delay: 1.5
-    m_flagId: flow.chase_started
+    m_delay: 0
+    m_flagId: 
     m_target: {fileID: 0}
     m_isActive: 0
     m_cue: {fileID: 0}
     m_cueSource: {fileID: 0}
     m_conversation: {fileID: 11400000, guid: f1c1477e2fb6545228b279ac3bd28348, type: 2}
-  - m_kind: 1
-    m_delay: 0
-    m_flagId: flow.chase_started
-    m_target: {fileID: 0}
-    m_isActive: 0
-    m_cue: {fileID: 0}
-    m_cueSource: {fileID: 0}
-    m_conversation: {fileID: 0}
 --- !u!1 &1437064352
 GameObject:
   m_ObjectHideFlags: 0
@@ -2516,3 +2571,4 @@ SceneRoots:
   - {fileID: 16111672}
   - {fileID: 1373928231}
   - {fileID: 980959132}
+  - {fileID: 161246033}
