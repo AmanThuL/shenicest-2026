@@ -512,15 +512,16 @@ namespace RootsDance.Editor.Content
             // re-running this generator must not silently snap it back down to the grey-box guess.
             Transform statue = EnsureChildAt(root, "GaiaStatue", new Vector3(0f, 1.4f, 6f));
             ConfigureInteractTrigger(statue.gameObject, "DLG-006_SheUsedToMove",
-                new Vector3(1.4f, 2.4f, 1.4f), "端详雕像");
+                new Vector3(1.4f, 2.4f, 1.4f), "[E] 端详雕像");
 
             Transform photo = EnsureChildAt(root, "StaffPhotograph", new Vector3(4f, 1.5f, 6.5f));
             ConfigureInteractTrigger(photo.gameObject, "DLG-007_StaffPhotograph",
-                new Vector3(1.6f, 1.1f, 0.4f), "查看合照");
+                new Vector3(1.6f, 1.1f, 0.4f), "[E] 查看合照");
 
+            // 规范：终端一个 UI 两个入口——地面盒子按 E 直接打开同一块循环屏（不再走字幕
+            // 对话），观景台的实体 WallTerminal 保持原样。
             Transform console = EnsureChildAt(root, "CirculationConsole", new Vector3(0f, 1.2f, 2.5f));
-            ConfigureInteractTrigger(console.gameObject, "DLG-008_CirculationConsole",
-                new Vector3(1.4f, 1.4f, 0.9f), "查看终端");
+            ConfigureTerminalRemote(console.gameObject, new Vector3(1.4f, 1.4f, 0.9f));
 
             // Standing room a step short of the console's own position, facing it — 03-04's chase
             // skip already exists for testing the wrong-cycle outburst directly; this one is for
@@ -744,6 +745,24 @@ namespace RootsDance.Editor.Content
                     LoadRequired<StringEventChannelSO>(k_EventsFolder + "/FlagRaised.asset");
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
+        }
+
+        private static void ConfigureTerminalRemote(GameObject host, Vector3 size)
+        {
+            SetLayer(host, "Interactable");
+            BoxCollider box = EnsureComponent<BoxCollider>(host);
+            box.isTrigger = false;
+            box.size = size;
+
+            // The dialogue-choice era of this box: gone, or it would offer a second prompt.
+            DialogueTrigger stale = host.GetComponent<DialogueTrigger>();
+
+            if (stale != null)
+            {
+                UnityEngine.Object.DestroyImmediate(stale);
+            }
+
+            EnsureComponent<RootsDance.World.WallTerminalRemote>(host);
         }
 
         private static void ConfigureInteractTrigger(GameObject host, string dialogueFile,

@@ -100,7 +100,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8370822820529575808}
   - component: {fileID: 8133008154076503184}
-  - component: {fileID: 8506120849749052558}
   m_Layer: 9
   m_Name: MainEntranceSign
   m_TagString: Untagged
@@ -150,21 +149,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.2, y: 1.2, z: 0.3}
   m_Center: {x: 0, y: 1.35, z: 0}
---- !u!114 &8506120849749052558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5075594089870570949}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a39ebbd4d49e34e72aa312350e1c02ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.WorldFlagInteractable
-  m_promptText: "\u67E5\u770B\u892A\u8272\u7684\u68C0\u4FEE\u6307\u793A\u724C"
-  m_flagId: flow.main_entrance_sign_read
-  m_isRepeatable: 0
 --- !u!1 &6341219401501313031
 GameObject:
   m_ObjectHideFlags: 0

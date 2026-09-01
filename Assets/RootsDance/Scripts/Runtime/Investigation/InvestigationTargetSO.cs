@@ -36,7 +36,7 @@ namespace RootsDance.Investigation
         // ---- Interaction ------------------------------------------------------------------------
         [SerializeField, TitleGroup("Interaction")]
         [Tooltip("Prompt shown while the object is focused, for example 采样 or 识别.")]
-        private string m_promptText = "调查";
+        private string m_promptText = string.Empty;
 
         // ---- Result -----------------------------------------------------------------------------
         [SerializeField, TitleGroup("Result"), TextArea(3, 10)]
