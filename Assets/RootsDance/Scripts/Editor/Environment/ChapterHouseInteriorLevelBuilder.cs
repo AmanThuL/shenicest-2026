@@ -84,8 +84,11 @@ namespace RootsDance.Editor.Environment
         private const string k_CorridorEntranceAnchor = "Checkpoint_CorridorEntrance";
         private const string k_FlowerSpriteEncounterAnchor = "Checkpoint_FlowerSpriteEncounter";
 
-        /// <summary>The catwalk. The one piece that is not a part of the chapel.</summary>
-        private const string k_BridgePart = "Bridge_Metal_Center.001";
+        /// <summary>
+        /// The catwalk. The one piece that is not a part of the chapel. Public because
+        /// <see cref="ChapterHouseBridgeRailingBuilder"/> rails the same piece off the same name.
+        /// </summary>
+        public const string k_BridgePart = "Bridge_Metal_Center.001";
         private const string k_BridgeSurface = "Bridge_Metal";
 
         /// <summary>The chapel floor the hall is walked on, and the landscape under it.</summary>
@@ -530,6 +533,7 @@ namespace RootsDance.Editor.Environment
             SetStatic(building);
             SeparateDoors(building, materials);
             CreateMycelium(building, scene);
+            ChapterHouseBridgeRailingBuilder.Place(building);
 
             Bounds floor = PartBounds(building, k_FloorPart);
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
