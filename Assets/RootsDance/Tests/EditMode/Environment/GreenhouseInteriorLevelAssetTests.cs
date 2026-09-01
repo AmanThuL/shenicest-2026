@@ -5,10 +5,12 @@ using RootsDance.App;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Environment;
+using RootsDance.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Tests.EditMode.Environment
@@ -23,6 +25,12 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-02_CentralGreenhouse.asset";
         private const string k_ModelPath =
             "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx";
+        private const string k_BaseAtmosphereProfilePath =
+            "Assets/RootsDance/Settings/VolumeProfiles/GreenhouseInteriorProfile.asset";
+        private const string k_BloomAtmosphereProfilePath =
+            "Assets/RootsDance/Settings/VolumeProfiles/GreenhouseInteriorBloomProfile.asset";
+        private const string k_FantasySkyPath =
+            "Assets/RootsDance/Textures/Environment/GreenhouseFantasySunsetCubemap.png";
 
         [Test]
         public void LevelAsset_RegistersEnvironmentThenGameplayInBuildSettings()
@@ -164,6 +172,46 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void EnvironmentScene_UsesExteriorSunAndBloomingFantasySky()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform lighting = FindRoot(scene, "_Lighting");
+                Light[] lights = lighting.GetComponentsInChildren<Light>(true);
+                Assert.IsFalse(lights.Any(light => light.type == LightType.Spot),
+                    "The environment must not fake window light with authored spotlights.");
+                Assert.IsTrue(lights.Any(light => light.type == LightType.Directional && light.name == "Sun"));
+
+                LocalVolumetricFog[] exteriorFog = lighting.GetComponentsInChildren<LocalVolumetricFog>(true)
+                    .Where(fog => fog.name.StartsWith("ExteriorFog_"))
+                    .ToArray();
+                Assert.AreEqual(4, exteriorFog.Length);
+                Assert.IsTrue(exteriorFog.All(fog => fog.parameters.blendingMode
+                    == LocalVolumetricFogBlendingMode.Max));
+
+                GreenhouseBloomAtmosphere atmosphere =
+                    lighting.GetComponentInChildren<GreenhouseBloomAtmosphere>(true);
+                Assert.IsTrue(atmosphere != null);
+                Volume bloomVolume = atmosphere.GetComponent<Volume>();
+                Assert.IsTrue(bloomVolume != null && bloomVolume.isGlobal);
+                Assert.AreEqual(0f, bloomVolume.weight);
+                Assert.AreEqual(k_BloomAtmosphereProfilePath,
+                    AssetDatabase.GetAssetPath(bloomVolume.sharedProfile));
+
+                AssertFantasySky(k_BaseAtmosphereProfilePath);
+                AssertFantasySky(k_BloomAtmosphereProfilePath);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
         public void EnvironmentScene_SpiralStairRisesFitPlayerStepOffset()
         {
             Scene environment = EditorSceneManager.OpenScene(
@@ -250,6 +298,15 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);
             Assert.IsFalse(checkpoint.SnapToGround);
+        }
+
+        private static void AssertFantasySky(string profilePath)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+            Assert.IsTrue(profile != null, profilePath);
+            Assert.IsTrue(profile.TryGet(out HDRISky sky));
+            Assert.IsTrue(sky.hdriSky.value != null, profilePath);
+            Assert.AreEqual(k_FantasySkyPath, AssetDatabase.GetAssetPath(sky.hdriSky.value));
         }
 
         private static Transform FindRoot(Scene scene, string name)
