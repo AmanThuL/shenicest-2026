@@ -173,7 +173,7 @@ MonoBehaviour:
   m_blockedPrompt: 
   m_flagOnShattered: flow.briggs_exit_rune_broken
   m_repeatable: 0
-  m_shatterCue: {fileID: 0}
+  m_shatterCue: {fileID: 11400000, guid: 906693b0db4d40cd883abf9c60385797, type: 2}
   m_audioChannel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
   m_shatterEffect: {fileID: 8151851006878585952, guid: a5b1df03e18ac449f8e148a72f8e86bf, type: 3}
   m_effectLifetimeSeconds: 4
