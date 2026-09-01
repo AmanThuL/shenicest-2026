@@ -73,11 +73,13 @@ namespace RootsDance.App
 
         protected override void Awake()
         {
+            Scene arrivedIn = gameObject.scene;
             base.Awake();
 
             // A duplicate destroys itself in base.Awake; do not build services for it.
             if (Instance != this)
             {
+                UnloadDuplicateScene(arrivedIn);
                 return;
             }
 
@@ -94,6 +96,31 @@ namespace RootsDance.App
             m_worldState.FlagRaised += OnFlagRaised;
             m_worldState.ReportEntryAdded += OnReportEntryAdded;
             m_worldState.TimeOfDayChanged += OnTimeOfDayChanged;
+        }
+
+        /// <summary>
+        /// A second GameBootstrap only ever means Bootstrap.unity was loaded twice, and destroying
+        /// the one object leaves the rest of that copy standing: a second Main Camera drawing over
+        /// the first with a default sky, a second EventSystem, a second AudioListener, a second
+        /// set of UI canvases. The copy goes as a whole. Deferred a frame because a scene cannot
+        /// be unloaded while it is still being activated, which is exactly when Awake runs.
+        /// </summary>
+        private static async void UnloadDuplicateScene(Scene duplicate)
+        {
+            if (!duplicate.IsValid() || duplicate == HomeScene)
+            {
+                return;
+            }
+
+            await Awaitable.NextFrameAsync();
+
+            if (!duplicate.isLoaded || SceneManager.sceneCount <= 1)
+            {
+                return;
+            }
+
+            Log.Warning($"Unloading the second copy of scene '{duplicate.name}'.", null);
+            SceneManager.UnloadSceneAsync(duplicate);
         }
 
         private void OnEnable()
