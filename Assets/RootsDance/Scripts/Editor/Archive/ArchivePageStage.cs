@@ -303,6 +303,12 @@ namespace RootsDance.Editor.Archive
             serialized.FindProperty("m_keyLight").objectReferenceValue = light;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
+            // Outside play mode the component is inert, because tinting a sheet writes material
+            // instances and text colours into the scene the sheet belongs to. This instance belongs
+            // to nobody — it is created here and destroyed at the end of the render — so it is one
+            // of the few that may run.
+            lighting.PreviewOutsidePlayMode = true;
+
             // The component samples on a throttle; a still has one frame, so ask for it now.
             lighting.enabled = false;
             lighting.enabled = true;

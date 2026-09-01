@@ -27,9 +27,15 @@ namespace RootsDance.Archive
     /// </para>
     /// </summary>
     /// <remarks>
-    /// Runs in the Editor as well as in play, so a sheet looks the same in the Scene view, in a
-    /// preview capture and in the game. That matters for more than convenience: an Editor render
-    /// that skipped this would be testing a configuration that never ships.
+    /// Both routes write to state Unity serialises — a <c>Graphic</c>'s material reference and a
+    /// <c>TextMeshProUGUI</c>'s colour are inspector fields, not render-time overrides. Outside
+    /// play mode that would be written into whatever scene the sheet is sitting in, and a scene
+    /// that stores a material instance hands the next open one more material to copy: the copy
+    /// becomes what the next copy is made from, so the scene grows one dead
+    /// <c>ArchivePaper (sheet) (sheet)…</c> per open-and-save. So this stays inert outside play
+    /// mode unless an Editor tool that owns the instance and destroys it again turns
+    /// <see cref="PreviewOutsidePlayMode"/> on — <c>ArchivePageStage</c> does, so a preview render
+    /// still exercises the same path the game does.
     /// </remarks>
     [ExecuteAlways]
     [DisallowMultipleComponent]
@@ -68,26 +74,39 @@ namespace RootsDance.Archive
         private readonly Vector3[] m_sampleDirections = new Vector3[1];
         private readonly Color[] m_sampleResults = new Color[1];
         private readonly List<Material> m_ownedMaterials = new List<Material>();
+        private Material[] m_authoredMaterials;
         private Color[] m_authoredTextColors;
         private float m_nextSampleTime;
+        private bool m_previewOutsidePlayMode;
 
-        private void Awake()
+        /// <summary>
+        /// Lets this run outside play mode. Only for an Editor tool rendering an instance it
+        /// created and destroys again: on a sheet that belongs to a saved scene this writes
+        /// material instances and tinted text colours into that scene (see the class remarks).
+        /// Takes effect the next time the component is enabled.
+        /// </summary>
+        public bool PreviewOutsidePlayMode
         {
-            m_authoredTextColors = new Color[m_texts.Length];
+            get { return m_previewOutsidePlayMode; }
+            set { m_previewOutsidePlayMode = value; }
+        }
 
-            for (int i = 0; i < m_texts.Length; i++)
-            {
-                if (m_texts[i] != null)
-                {
-                    m_authoredTextColors[i] = m_texts[i].color;
-                }
-            }
-
-            ShareMaterials();
+        /// <summary>Whether the sheet may be tinted at all right now; see the class remarks.</summary>
+        private bool CanTint
+        {
+            get { return Application.isPlaying || m_previewOutsidePlayMode; }
         }
 
         private void OnEnable()
         {
+            if (!CanTint)
+            {
+                return;
+            }
+
+            CaptureAuthoredState();
+            ShareMaterials();
+
             // Apply once immediately: waiting for the first interval would show one frame of the
             // authored colours, which is a visible flash on a page that opens in a dark room.
             m_nextSampleTime = 0f;
@@ -96,6 +115,11 @@ namespace RootsDance.Archive
 
         private void Update()
         {
+            if (!CanTint)
+            {
+                return;
+            }
+
             // realtimeSinceStartup rather than time: the latter does not advance in the Editor,
             // and this component runs there too.
             if (Time.realtimeSinceStartup < m_nextSampleTime)
@@ -235,30 +259,63 @@ namespace RootsDance.Archive
         }
 
         /// <summary>
+        /// The materials and text colours the sheet was authored with, read once before anything
+        /// here has replaced them. Every later pass works from these, so re-enabling the component
+        /// copies the authored material again rather than a copy of a copy.
+        /// </summary>
+        private void CaptureAuthoredState()
+        {
+            if (m_authoredMaterials != null)
+            {
+                return;
+            }
+
+            m_authoredMaterials = new Material[m_inkGraphics.Length];
+
+            for (int i = 0; i < m_inkGraphics.Length; i++)
+            {
+                if (m_inkGraphics[i] != null)
+                {
+                    m_authoredMaterials[i] = m_inkGraphics[i].material;
+                }
+            }
+
+            m_authoredTextColors = new Color[m_texts.Length];
+
+            for (int i = 0; i < m_texts.Length; i++)
+            {
+                if (m_texts[i] != null)
+                {
+                    m_authoredTextColors[i] = m_texts[i].color;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gives this sheet its own copy of each material its graphics use — one for the paper, one
         /// for the ink — and points the graphics at the copies. Writing the light into the material
         /// assets themselves would change them on disk for every other sheet in the project.
         /// </summary>
         private void ShareMaterials()
         {
-            m_ownedMaterials.Clear();
+            ReleaseOwnedMaterials();
 
             for (int i = 0; i < m_inkGraphics.Length; i++)
             {
                 Graphic graphic = m_inkGraphics[i];
+                Material authored = m_authoredMaterials[i];
 
-                if (graphic == null || graphic.material == null)
+                if (graphic == null || authored == null)
                 {
                     continue;
                 }
 
-                Material shared = graphic.material;
-                Material owned = FindOwnedCopyOf(shared);
+                Material owned = FindOwnedCopyOf(authored);
 
                 if (owned == null)
                 {
-                    owned = new Material(shared);
-                    owned.name = shared.name + " (sheet)";
+                    owned = new Material(authored);
+                    owned.name = authored.name + " (sheet)";
                     m_ownedMaterials.Add(owned);
                 }
 
@@ -283,6 +340,12 @@ namespace RootsDance.Archive
         }
 
         private void OnDestroy()
+        {
+            ReleaseOwnedMaterials();
+        }
+
+        /// <summary>Destroys the copies this sheet made. Nothing else can — they are not assets.</summary>
+        private void ReleaseOwnedMaterials()
         {
             for (int i = 0; i < m_ownedMaterials.Count; i++)
             {
