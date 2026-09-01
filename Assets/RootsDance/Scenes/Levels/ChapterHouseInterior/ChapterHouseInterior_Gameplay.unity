@@ -304,7 +304,7 @@ Transform:
   m_GameObject: {fileID: 1154435227}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+  m_LocalPosition: {x: 0.303, y: 7.914, z: 1.321}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -411,15 +411,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.13872959
+      value: 0.303
       objectReference: {fileID: 0}
     - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.104431
+      value: 6.8640003
       objectReference: {fileID: 0}
     - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.9086666
+      value: 1.321
       objectReference: {fileID: 0}
     - target: {fileID: 9013376219041391600, guid: ce33d3d19fab842ff9ec5d238d51dabf, type: 3}
       propertyPath: m_LocalRotation.w
@@ -487,6 +487,9 @@ MonoBehaviour:
   m_moveSpeed: 3.1
   m_cutDistance: 18
   m_turnDegreesPerSecond: 480
+  m_groundLayers:
+    serializedVersion: 2
+    m_Bits: 256
   m_modelYawOffset: 225
   m_speedParameter: Speed
 --- !u!1001 &1348370389
