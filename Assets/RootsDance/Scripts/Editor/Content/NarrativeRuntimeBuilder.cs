@@ -471,10 +471,10 @@ namespace RootsDance.Editor.Content
             Transform sprite = EnsureFlowerSprite(scene, root);
             sprite.SetPositionAndRotation(new Vector3(0f, 0f, -9f), Quaternion.identity);
 
-            // Crossing the west doorway raises the flag DLG-004 hangs on. Anchored to the
-            // entrance checkpoint so the gate follows the door if the entrance ever moves — the
-            // old grey-box guess (0, 1.5, -8) sat at the spiral stair, which made the arrival
-            // beat fire mid-greenhouse with no doorway in sight.
+            // Crossing the west doorway raises the arrival flag — read by the music switch and
+            // the later checkpoints, and by nothing that speaks. Anchored to the entrance
+            // checkpoint so the gate follows the door if the entrance ever moves — the old
+            // grey-box guess (0, 1.5, -8) sat at the spiral stair, mid-greenhouse.
             Transform entered = EnsureChild(root, "EnteredGreenhouse");
             Transform doorAnchor = FindTransform(scene, "Checkpoint_GreenhouseEntrance");
             entered.position = doorAnchor != null
@@ -493,10 +493,17 @@ namespace RootsDance.Editor.Content
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            // The sprite reacts to arrival without a place: the flag is the trigger.
-            Transform neat = EnsureChild(root, "GreenhouseNeat");
-            ConfigureFlagTrigger(neat.gameObject, "DLG-004_ItUsedToBeNeat",
-                WorldFlags.k_EnteredGreenhouse);
+            // No voice on arrival — cut, and kept out. The DLG-004 line hung here kept firing
+            // around (and before) the doorway, and its agitated second take reads as the
+            // wrong-choice outburst; only the ending sequences may sound like the ending. The
+            // conversation asset survives for wherever the writers rehang it; the trigger from
+            // any earlier run of this generator is removed so it cannot come back.
+            Transform neat = root.Find("GreenhouseNeat");
+
+            if (neat != null)
+            {
+                UnityEngine.Object.DestroyImmediate(neat.gameObject);
+            }
 
             // Grey-box interactables: statue at the north centre, photograph east of the statue,
             // console south of it — all placeholders for props. The default position is only ever

@@ -185,57 +185,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 464706809}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &131261716
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 131261717}
-  - component: {fileID: 131261718}
-  m_Layer: 0
-  m_Name: GreenhouseNeat
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &131261717
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 131261716}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1373928231}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &131261718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 131261716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65d434461f726426fb0d04e78b00fe2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Dialogue.DialogueTrigger
-  m_conversation: {fileID: 11400000, guid: a08ae22f6fdf24ee896a19af33e6d7cb, type: 2}
-  m_channel: {fileID: 11400000, guid: da9ee5c6571d34c9caf4ecd4f2924c14, type: 2}
-  m_playOn: 2
-  m_flagId: flow.entered_greenhouse
-  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
-  m_fireOnce: 1
 --- !u!1 &181191452
 GameObject:
   m_ObjectHideFlags: 0
@@ -1474,7 +1423,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1376188970}
-  - {fileID: 131261717}
   - {fileID: 1531887882}
   - {fileID: 1233466541}
   - {fileID: 1328764506}
