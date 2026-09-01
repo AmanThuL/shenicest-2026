@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
+using RootsDance.Player.Arms;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -58,6 +60,12 @@ namespace RootsDance.World
         [Range(0f, 1f)]
         [SerializeField] private float m_exitLockoutSeconds = 0.25f;
 
+        [Header("Arms")]
+        [Tooltip("The first-person arms rig. Its renderers — and with them anything in the hands — "
+            + "are hidden while the panel is up. Found under the player root when left empty.")]
+        [SerializeField] private ArmsDirector m_arms;
+
+        private readonly List<Renderer> m_hiddenArmRenderers = new List<Renderer>();
         private ReadState m_state = ReadState.Idle;
         private WallTerminal m_terminal;
         private ITerminalScreenView m_screen;
@@ -85,6 +93,10 @@ namespace RootsDance.World
                 m_input = GetComponentInParent<PlayerInputReader>();
             }
 
+            if (m_arms == null)
+            {
+                m_arms = transform.root.GetComponentInChildren<ArmsDirector>(true);
+            }
         }
 
         private void OnDisable()
@@ -152,6 +164,7 @@ namespace RootsDance.World
             terminal.SetReadCamera(Camera.main);
 
             SuspendPlayer(true);
+            HideArms(true);
             m_screen = terminal.Screen;
 
             if (m_screen != null)
@@ -185,6 +198,7 @@ namespace RootsDance.World
                 m_terminal.InspectCamera.gameObject.SetActive(false);
             }
 
+            HideArms(false);
             SuspendPlayer(false);
             RestoreBlend();
 
@@ -198,6 +212,46 @@ namespace RootsDance.World
         public void ResetForRescue()
         {
             EndRead();
+        }
+
+        /// <summary>
+        /// Takes the arms out of the shot. The terminal camera flies onto the panel while the arms
+        /// rig stays parented in front of the eye, so a forearm — and whatever is in the hand —
+        /// ends up lying across the screen the player is trying to read. Renderers are switched
+        /// rather than the object, so the Animator keeps its state and the hands are back exactly
+        /// as they were when the panel closes.
+        /// </summary>
+        private void HideArms(bool hidden)
+        {
+            if (!hidden)
+            {
+                for (int i = 0; i < m_hiddenArmRenderers.Count; i++)
+                {
+                    if (m_hiddenArmRenderers[i] != null)
+                    {
+                        m_hiddenArmRenderers[i].enabled = true;
+                    }
+                }
+
+                m_hiddenArmRenderers.Clear();
+                return;
+            }
+
+            if (m_arms == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = m_arms.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i].enabled)
+                {
+                    renderers[i].enabled = false;
+                    m_hiddenArmRenderers.Add(renderers[i]);
+                }
+            }
         }
 
         private void SuspendPlayer(bool suspended)
