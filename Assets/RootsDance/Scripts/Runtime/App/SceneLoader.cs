@@ -136,6 +136,10 @@ namespace RootsDance.App
         /// </summary>
         public void RequestStreamAdditiveContent(string scenePath)
         {
+            // Named, with the caller: an additive stream is content appearing behind a playable
+            // level, so when the wrong one arrives there is nothing on screen that says who asked.
+            Log.Warning($"Additive content stream requested: {scenePath}\n"
+                + StackTraceUtility.ExtractStackTrace(), this);
             StreamAdditiveContentEntryAsync(scenePath, destroyCancellationToken);
         }
 
