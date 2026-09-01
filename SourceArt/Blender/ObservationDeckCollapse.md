@@ -27,3 +27,14 @@
   `GreenHouse1_Textured` 顶替的旧圆厅，带上就会多出一份重复的圆厅。
 - 重建后逐物体和场景对拍数量、顶点数、世界包围盒，差值应在 1e-5 m 量级；对不上就不
   是镜像，不要拿去做坍塌。
+
+## 坍塌资产
+
+- `GH_collapse_work`：`SpiralStair_Lower`（z<13.60 的完整下半）和 `ObservationDeck_Source`
+  （被破碎的上半原件）。切割面 z=13.60（温室本地系）；下半的切口只封 ≤24 边的小截面，
+  观景台座圈保持开放——封上它就等于在断口处造了块隐形平台。
+- `ObservationDeck_Chunks`：Cell Fracture 产物 `DeckChunk_00..17`，原点在各自几何中心。
+- 导出目标：`Assets/RootsDance/Meshes/Environment/GreenHouse1SpiralStairCollapse.fbx`，
+  内容 = SpiralStair_Lower + 全部 DeckChunk，FBX 默认轴（-Z forward / Y up），不烘动画。
+- Unity 侧摆放在 `GreenhouseInterior_Environment_2` 的 `_StairCollapse` 根下，运行时逻辑
+  见 `GreenhouseStairCollapse.cs`；重导出后无需重摆。
