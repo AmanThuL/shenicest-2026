@@ -134,7 +134,6 @@ MonoBehaviour:
     - flow.first_investigation_done
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: aa6fa0b2ba14d49319f3f22e42ac9d0e
     m_label: 00-09 Blocked main entrance
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -159,7 +158,6 @@ MonoBehaviour:
     - flow.first_investigation_done
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: f099f43fbde53464ca99d575da4d379f
     m_label: 00-10 Main entrance sign
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -185,7 +183,6 @@ MonoBehaviour:
     - flow.main_entrance_blocked
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: 7dfd6881f3f994093b767acbca62698d
     m_label: 00-11 Research facility poster
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -212,7 +209,6 @@ MonoBehaviour:
     - flow.main_entrance_sign_read
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: dd519febe6c9c4b95aa6f5fa7cbdc202
     m_label: 02-01 Plant research lab
     m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}

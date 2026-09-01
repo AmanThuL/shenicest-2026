@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RootsDance.Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -54,7 +55,8 @@ namespace RootsDance.Archive
         [SerializeField] private TextMeshProUGUI[] m_texts = Array.Empty<TextMeshProUGUI>();
 
         [Tooltip("The light the sheet is normally read by — in this game, the flashlight. Empty "
-            + "leaves only the ambient probe.")]
+            + "adopts the player's torch at runtime; only the ambient probe is left when there "
+            + "is none.")]
         [SerializeField] private Light m_keyLight;
 
         [Tooltip("Darkest the page is ever allowed to get. Without a floor a sheet read in the "
@@ -77,6 +79,7 @@ namespace RootsDance.Archive
         private Material[] m_authoredMaterials;
         private Color[] m_authoredTextColors;
         private float m_nextSampleTime;
+        private float m_litLuminance = 1f;
         private bool m_previewOutsidePlayMode;
 
         /// <summary>
@@ -90,6 +93,12 @@ namespace RootsDance.Archive
             get { return m_previewOutsidePlayMode; }
             set { m_previewOutsidePlayMode = value; }
         }
+
+        /// <summary>
+        /// Relative luminance the page is currently lit to, refreshed at the sample rate. What
+        /// the reading loop asks to decide whether the sheet is too dark to read.
+        /// </summary>
+        public float Luminance => m_litLuminance;
 
         /// <summary>Whether the sheet may be tinted at all right now; see the class remarks.</summary>
         private bool CanTint
@@ -137,6 +146,13 @@ namespace RootsDance.Archive
         /// </summary>
         private Color Sample()
         {
+            // The torch lives on the persistent player prefab, so a sheet saved in a level scene
+            // cannot reference it; an unwired key light adopts it the first sample both exist.
+            if (m_keyLight == null && Application.isPlaying && FlashlightController.Active != null)
+            {
+                m_keyLight = FlashlightController.Active.BeamLight;
+            }
+
             // The readable face looks back along the sheet's forward axis (see the read pose).
             Vector3 normal = -transform.forward;
 
@@ -154,11 +170,15 @@ namespace RootsDance.Archive
 
             float floor = m_minimumLight;
 
-            return new Color(
+            Color lit = new Color(
                 Mathf.Clamp(light.r, floor, m_maximumLight),
                 Mathf.Clamp(light.g, floor, m_maximumLight),
                 Mathf.Clamp(light.b, floor, m_maximumLight),
                 1f);
+
+            m_litLuminance = lit.r * 0.2126f + lit.g * 0.7152f + lit.b * 0.0722f;
+
+            return lit;
         }
 
         private Color DirectContribution(Vector3 normal)

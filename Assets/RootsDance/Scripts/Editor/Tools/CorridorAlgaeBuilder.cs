@@ -107,7 +107,7 @@ namespace RootsDance.EditorTools
             so.FindProperty("m_kind").enumValueIndex = (int)InvestigationKind.Identify;
             so.FindProperty("m_category").enumValueIndex = (int)ReportCategory.BiologicalRecord;
             so.FindProperty("m_title").stringValue = "荧光藻";
-            so.FindProperty("m_promptText").stringValue = "识别";
+            so.FindProperty("m_promptText").stringValue = "[E] 识别植物";
             so.FindProperty("m_resultBody").stringValue =
                 "薄片状半透明青蓝色藻类，附着于硬质表面，表层为湿润胶质薄膜，褶皱细碎。"
                 + "无外部光源时仍持续发光，光强随环境湿度上升。孢子为细小微粒，随气流扩散。";

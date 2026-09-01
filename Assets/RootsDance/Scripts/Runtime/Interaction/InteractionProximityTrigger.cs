@@ -103,8 +103,8 @@ namespace RootsDance.Interaction
 
             m_inReach = blocked ? null : FindNearestInRange();
 
-            // The interactable's own line, verbatim — no key prefix wrapped around it. What the
-            // sign says is what the player reads.
+            // 按键参考写在每条资产文案里（[E]/[J]/[F]…各用自己真实的键），这里原样广播，
+            // 不加工——管线猜不出每个交互真正的键，也不该猜。
             Broadcast(m_inReach == null ? string.Empty : m_inReach.PromptText);
 
             if (m_inReach == null || m_input == null || !m_input.InteractPressedThisFrame)

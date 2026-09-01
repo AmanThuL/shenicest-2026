@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Interaction;
 using RootsDance.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -98,8 +99,21 @@ namespace RootsDance.Archive
         [Range(0.05f, 3f)]
         [SerializeField] private float m_lowerSeconds = 0.35f;
 
+        [Header("Reading light")]
+        [Tooltip("Shown while the raised sheet is too dark to read and no torch is in hand. With "
+            + "a torch in hand the torch's own [F] teaching line speaks instead.")]
+        [SerializeField] private string m_tooDarkHint = "太暗了，看不清……";
+
+        [Tooltip("Page luminance below which the raised sheet counts as unreadable.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float m_darkReadLuminance = 0.25f;
+
+        /// <summary>Above the torch's standing [F] teacher, below every contextual offer.</summary>
+        private const int k_DarkHintPriority = -4;
+
         private Camera m_camera;
         private ReadState m_state = ReadState.Idle;
+        private ArchivePaperLighting m_paperLighting;
         private ArchiveDocumentPickup m_pickup;
         private IArchiveDocumentPageView m_page;
         private Transform m_sheet;
@@ -174,12 +188,14 @@ namespace RootsDance.Archive
             m_flipAngle = Mathf.MoveTowards(m_flipAngle, m_flipTarget,
                 m_flipDegreesPerSecond * Time.deltaTime);
 
+            OfferDarkHint();
             ApplyReadPose();
         }
 
         private void OnDestroy()
         {
             CancelRead();
+            ClearDarkHint();
 
             // Mid-read scene unload: the loop will never reach idle, so the gate is opened here.
             WorldAccess.EndExclusiveInteraction(this);
@@ -196,10 +212,12 @@ namespace RootsDance.Archive
 
             m_page?.EndReading();
             RestoreSheetOrigin();
+            ClearDarkHint();
             m_state = ReadState.Idle;
             m_pickup = null;
             m_page = null;
             m_sheet = null;
+            m_paperLighting = null;
             m_originParent = null;
             WorldAccess.EndExclusiveInteraction(this);
         }
@@ -231,6 +249,7 @@ namespace RootsDance.Archive
             m_pickup = pickup;
             m_page = pickup.PageView;
             m_sheet = sheet;
+            m_paperLighting = sheet.GetComponentInChildren<ArchivePaperLighting>(true);
             m_originParent = sheet.parent;
             m_originScene = sheet.gameObject.scene;
             m_originLocalScale = sheet.localScale;
@@ -265,6 +284,7 @@ namespace RootsDance.Archive
             }
 
             m_state = ReadState.Lowering;
+            ClearDarkHint();
 
             if (m_page != null)
             {
@@ -328,6 +348,7 @@ namespace RootsDance.Archive
                 m_pickup = null;
                 m_page = null;
                 m_sheet = null;
+                m_paperLighting = null;
                 m_originParent = null;
 
                 SuspendPlayer(false);
@@ -451,6 +472,39 @@ namespace RootsDance.Archive
 
             m_nearDistance = DocumentInspectMath.HoldDistance(size, fov, aspect, m_zoomedFill);
             m_farDistance = DocumentInspectMath.HoldDistance(size, fov, aspect, m_restFill);
+        }
+
+        /// <summary>
+        /// A sheet held up in the dark says so. The line rides the torch's own hint channel — the
+        /// torch already owns the channel asset, and this controller is saved once per level
+        /// scene, where a cross-scene reference to it cannot be (guideline 03). With a torch in
+        /// hand this stands down and the torch's own [F] teacher speaks; with none there is
+        /// nothing to press, so the line just names the problem.
+        /// </summary>
+        private void OfferDarkHint()
+        {
+            FlashlightController torch = FlashlightController.Active;
+
+            if (torch == null || torch.PromptChannel == null)
+            {
+                return;
+            }
+
+            bool dark = m_paperLighting != null && m_paperLighting.Luminance < m_darkReadLuminance;
+            bool wanted = m_state == ReadState.Reading && dark && !torch.IsHeld;
+
+            InteractionPrompts.Set(this, torch.PromptChannel,
+                wanted ? m_tooDarkHint : string.Empty, k_DarkHintPriority);
+        }
+
+        private void ClearDarkHint()
+        {
+            FlashlightController torch = FlashlightController.Active;
+
+            if (torch != null && torch.PromptChannel != null)
+            {
+                InteractionPrompts.Clear(this, torch.PromptChannel);
+            }
         }
 
         private void SuspendPlayer(bool suspended)

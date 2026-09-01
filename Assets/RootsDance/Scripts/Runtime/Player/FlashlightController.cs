@@ -121,6 +121,23 @@ namespace RootsDance.Player
             }
         }
 
+        /// <summary>
+        /// The player's torch, or null while no player rig is enabled. Props that react to the
+        /// carried light — the archive sheets above all — resolve it here at runtime: the torch
+        /// lives on the persistent player prefab, so nothing saved in a level scene can hold a
+        /// serialized reference to it (guideline 03).
+        /// </summary>
+        public static FlashlightController Active { get; private set; }
+
+        /// <summary>The Light the torch shines with. Disabled whenever the beam is dark.</summary>
+        public Light BeamLight => m_light;
+
+        /// <summary>
+        /// The hint channel the torch teaches on. Shared with the sheet-reading hint so the two
+        /// lines about light can never talk over each other.
+        /// </summary>
+        public StringEventChannelSO PromptChannel => m_promptChanged;
+
         private void Awake()
         {
             m_input = GetComponent<PlayerInputReader>();
@@ -141,6 +158,8 @@ namespace RootsDance.Player
 
         private void OnEnable()
         {
+            Active = this;
+
             if (m_timeOfDayChanged != null)
             {
                 m_timeOfDayChanged.EventRaised += OnTimeOfDayChanged;
@@ -190,9 +209,22 @@ namespace RootsDance.Player
                 return;
             }
 
-            Vector3 forward = m_aimDistance > 0f
-                ? cameraTransform.position + cameraTransform.forward * m_aimDistance - origin
-                : m_beamAnchor.forward;
+            // Converge on the surface actually being looked at, not on a fixed point out along
+            // the ray. The hand is a metre below the eye, so a fixed far convergence leaves the
+            // pool that far below the look point on any close surface — at poster distance the
+            // bright cone lands at knee height, off the bottom of the view, and an eye-level mark
+            // sits outside the cone entirely. The fixed distance remains the aim when nothing is
+            // within it.
+            Vector3 aim = cameraTransform.position + cameraTransform.forward * m_aimDistance;
+
+            if (m_aimDistance > 0f && Physics.Raycast(cameraTransform.position,
+                    cameraTransform.forward, out RaycastHit lookHit, m_aimDistance,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                aim = lookHit.point;
+            }
+
+            Vector3 forward = m_aimDistance > 0f ? aim - origin : m_beamAnchor.forward;
 
             if (forward.sqrMagnitude < 1e-6f)
             {
@@ -244,6 +276,11 @@ namespace RootsDance.Player
 
         private void OnDisable()
         {
+            if (Active == this)
+            {
+                Active = null;
+            }
+
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
 
             if (m_timeOfDayChanged != null)
