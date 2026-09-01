@@ -125,7 +125,7 @@ A `.meta` is ignored only when its asset is ignored too (the template does this 
 | Path | Commit? | Reason |
 |---|---|---|
 | `Assets/**` (+ every `.meta`) | **yes** | The project content. |
-| `Assets/Plugins/Sirenix/**` (Odin Inspector) | **yes, unmodified** | The vendor tree incl. `Config/Editor/*.asset`, `link.xml`, `.pdb`/`.xml` docs and every `.meta`; DLLs and `.bytes` go through LFS by extension. Changes only in a `chore(odin):` import/upgrade commit ([12](./12-odin-inspector.md)). The `ODIN_INSPECTOR*` defines Odin writes into `ProjectSettings.asset` are committed with the import or platform switch that caused them. |
+| `Assets/Plugins/Sirenix/**` (Odin Inspector) | **yes, unmodified** | The vendor tree incl. `Config/Editor/*.asset`, `link.xml`, `.pdb`/`.xml` docs and every `.meta`; DLLs and `.bytes` go through LFS by extension. Changes only in a `chore(odin):` import/upgrade **or restore** commit ([12](./12-odin-inspector.md)) — a `.dll.meta` under `Assemblies/` that has lost its `PluginImporter` block is restored, never re-stubbed ([12 rule 16](./12-odin-inspector.md#tldr--rules-at-a-glance)). The `ODIN_INSPECTOR*` defines Odin writes into `ProjectSettings.asset` are committed with the import or platform switch that caused them. |
 | `Packages/manifest.json` | **yes** | Declares the package set. |
 | `Packages/packages-lock.json` | **yes** | Reproduces the exact resolved package versions on every machine. Never hand-edit; delete it only to force re-resolution, and commit the regenerated file. |
 | `ProjectSettings/**` (incl. `ProjectVersion.txt`) | **yes** | Project-wide settings; `ProjectVersion.txt` pins the Editor version (6000.3.22f1) the Hub opens the project with. |
