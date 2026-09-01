@@ -358,10 +358,16 @@ namespace RootsDance.Tests.EditMode.Environment
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BloomAtmosphereProfilePath);
             Assert.IsTrue(profile.TryGet(out Exposure exposure));
             Assert.IsTrue(profile.TryGet(out HDRISky sky));
+            Assert.IsTrue(profile.TryGet(out Fog fog));
             Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
-            Assert.LessOrEqual(exposure.fixedExposure.value, 10.5f);
+            Assert.LessOrEqual(exposure.fixedExposure.value, 9.8f);
             Assert.GreaterOrEqual(sky.exposure.value, 12.8f);
-            Assert.GreaterOrEqual(color.postExposure.value, 0.35f);
+            Assert.GreaterOrEqual(color.postExposure.value, 0.45f);
+            Assert.That(fog.albedo.value.r, Is.EqualTo(fog.albedo.value.b).Within(0.03f));
+            Assert.LessOrEqual(color.colorFilter.value.r, 0.7f);
+            Assert.GreaterOrEqual(color.colorFilter.value.g, 0.95f);
+            Assert.GreaterOrEqual(color.colorFilter.value.b, 1f);
+            Assert.LessOrEqual(color.saturation.value, -20f);
         }
 
         private static Transform FindRoot(Scene scene, string name)
