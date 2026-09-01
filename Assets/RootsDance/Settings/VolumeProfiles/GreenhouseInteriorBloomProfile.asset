@@ -24,7 +24,7 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: 12.5
+    m_Value: 10.5
   compensation:
     m_OverrideState: 1
     m_Value: 0
@@ -405,13 +405,13 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.35
   contrast:
     m_OverrideState: 1
     m_Value: 3
   colorFilter:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 0.97, b: 0.91, a: 1}
+    m_Value: {r: 1, g: 0.98, b: 0.94, a: 1}
   hueShift:
     m_OverrideState: 0
     m_Value: 0
@@ -637,7 +637,7 @@ MonoBehaviour:
     m_Value: 42
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 90
+    m_Value: 110
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -701,7 +701,7 @@ MonoBehaviour:
     m_Value: 0
   exposure:
     m_OverrideState: 1
-    m_Value: 12.4
+    m_Value: 12.8
   multiplier:
     m_OverrideState: 1
     m_Value: 1

@@ -204,6 +204,7 @@ namespace RootsDance.Tests.EditMode.Environment
 
                 AssertFantasySky(k_BaseAtmosphereProfilePath);
                 AssertFantasySky(k_BloomAtmosphereProfilePath);
+                AssertBloomBrightnessTarget();
             }
             finally
             {
@@ -287,17 +288,60 @@ namespace RootsDance.Tests.EditMode.Environment
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
             AssertCheckpoint(k_EntranceCheckpointPath, level, "Checkpoint_GreenhouseEntrance");
-            AssertCheckpoint(k_CentralCheckpointPath, level, "Checkpoint_CentralGreenhouse");
+
+            DevCheckpointSO central = AssertCheckpoint(
+                k_CentralCheckpointPath,
+                level,
+                "Checkpoint_CentralGreenhouse");
+            Assert.That(central.Position, Is.EqualTo(new Vector3(0f, 2.19f, -8f)));
+            Assert.That(central.Yaw, Is.EqualTo(0f).Within(0.01f));
+            Assert.IsTrue(central.SnapToGround);
+            Assert.That(central.GroundClearance, Is.EqualTo(1f).Within(0.01f));
+            Assert.IsFalse(central.UseAnchorHeight);
         }
 
-        private static void AssertCheckpoint(string path, LevelSO level, string anchorName)
+        [Test]
+        public void CentralCheckpoint_PlayerCapsuleHasMovementClearance()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform central = FindRoot(gameplay, "_Anchors").Find("Checkpoint_CentralGreenhouse");
+                Assert.That(central.position, Is.EqualTo(new Vector3(0f, 2.19f, -8f)));
+                Assert.That(central.eulerAngles.y, Is.EqualTo(0f).Within(0.01f));
+                Physics.SyncTransforms();
+                Vector3 bottom = central.position + Vector3.down * 0.4f;
+                Vector3 top = central.position + Vector3.up * 0.4f;
+                Collider[] overlaps = Physics.OverlapCapsule(
+                    bottom,
+                    top,
+                    0.48f,
+                    ~0,
+                    QueryTriggerInteraction.Ignore);
+                Assert.AreEqual(0, overlaps.Length,
+                    "The 03-02 checkpoint still overlaps a blocking collider.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        private static DevCheckpointSO AssertCheckpoint(string path, LevelSO level, string anchorName)
         {
             DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
             Assert.IsTrue(checkpoint != null, path);
             Assert.AreSame(level, checkpoint.Level);
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);
-            Assert.IsFalse(checkpoint.SnapToGround);
+            return checkpoint;
         }
 
         private static void AssertFantasySky(string profilePath)
@@ -307,6 +351,17 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.IsTrue(profile.TryGet(out HDRISky sky));
             Assert.IsTrue(sky.hdriSky.value != null, profilePath);
             Assert.AreEqual(k_FantasySkyPath, AssetDatabase.GetAssetPath(sky.hdriSky.value));
+        }
+
+        private static void AssertBloomBrightnessTarget()
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BloomAtmosphereProfilePath);
+            Assert.IsTrue(profile.TryGet(out Exposure exposure));
+            Assert.IsTrue(profile.TryGet(out HDRISky sky));
+            Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
+            Assert.LessOrEqual(exposure.fixedExposure.value, 10.5f);
+            Assert.GreaterOrEqual(sky.exposure.value, 12.8f);
+            Assert.GreaterOrEqual(color.postExposure.value, 0.35f);
         }
 
         private static Transform FindRoot(Scene scene, string name)

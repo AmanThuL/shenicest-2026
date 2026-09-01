@@ -40,8 +40,20 @@ namespace RootsDance.Editor.Environment
 
         private static readonly CheckpointPlacement[] k_CheckpointPlacements =
         {
-            new CheckpointPlacement(k_EntranceAnchor, new Vector3(0f, 1.05f, -10f), 0f),
-            new CheckpointPlacement(k_CentralAnchor, new Vector3(0f, 1f, 0f), 180f),
+            new CheckpointPlacement(
+                k_EntranceAnchor,
+                new Vector3(-41.8f, 1.0619f, 1.19509f),
+                90f,
+                true,
+                1f,
+                true),
+            new CheckpointPlacement(
+                k_CentralAnchor,
+                new Vector3(0f, 2.19f, -8f),
+                0f,
+                true,
+                1f,
+                false),
         };
 
         private static readonly PlantPlacement[] k_PlantPlacements =
@@ -624,12 +636,11 @@ namespace RootsDance.Editor.Environment
                 placement.Yaw,
                 CheckpointTimeOfDay.LevelDefault,
                 flags,
-                new InvestigationTargetSO[0]);
-
-            SerializedObject serialized = new SerializedObject(checkpoint);
-            serialized.FindProperty("m_snapToGround").boolValue = false;
-            serialized.FindProperty("m_groundClearance").floatValue = 0f;
-            serialized.ApplyModifiedProperties();
+                new InvestigationTargetSO[0],
+                placement.SnapToGround,
+                1 << 8,
+                placement.GroundClearance,
+                placement.UseAnchorHeight);
 
             if (isNew)
             {
@@ -694,16 +705,28 @@ namespace RootsDance.Editor.Environment
 
         private struct CheckpointPlacement
         {
-            public CheckpointPlacement(string anchorName, Vector3 position, float yaw)
+            public CheckpointPlacement(
+                string anchorName,
+                Vector3 position,
+                float yaw,
+                bool snapToGround,
+                float groundClearance,
+                bool useAnchorHeight)
             {
                 AnchorName = anchorName;
                 Position = position;
                 Yaw = yaw;
+                SnapToGround = snapToGround;
+                GroundClearance = groundClearance;
+                UseAnchorHeight = useAnchorHeight;
             }
 
             public string AnchorName;
             public Vector3 Position;
             public float Yaw;
+            public bool SnapToGround;
+            public float GroundClearance;
+            public bool UseAnchorHeight;
         }
 
         private struct PlantPlacement

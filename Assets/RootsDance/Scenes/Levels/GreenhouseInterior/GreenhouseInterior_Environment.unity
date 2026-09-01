@@ -27976,7 +27976,7 @@ MonoBehaviour:
   m_bloomVolume: {fileID: 687624645}
   m_sun: {fileID: 2061226823}
   m_initialSunLux: 65000
-  m_bloomSunLux: 100000
+  m_bloomSunLux: 125000
 --- !u!114 &687624645
 MonoBehaviour:
   m_ObjectHideFlags: 0
