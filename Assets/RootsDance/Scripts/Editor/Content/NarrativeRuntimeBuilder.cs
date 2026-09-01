@@ -471,13 +471,20 @@ namespace RootsDance.Editor.Content
             Transform sprite = EnsureFlowerSprite(scene, root);
             sprite.SetPositionAndRotation(new Vector3(0f, 0f, -9f), Quaternion.identity);
 
-            // Crossing the south entrance raises the flag DLG-004 hangs on.
+            // Crossing the west doorway raises the flag DLG-004 hangs on. Anchored to the
+            // entrance checkpoint so the gate follows the door if the entrance ever moves — the
+            // old grey-box guess (0, 1.5, -8) sat at the spiral stair, which made the arrival
+            // beat fire mid-greenhouse with no doorway in sight.
             Transform entered = EnsureChild(root, "EnteredGreenhouse");
-            entered.position = new Vector3(0f, 1.5f, -8f);
+            Transform doorAnchor = FindTransform(scene, "Checkpoint_GreenhouseEntrance");
+            entered.position = doorAnchor != null
+                ? doorAnchor.position + new Vector3(3f, 0.5f, 0f)
+                : new Vector3(-38f, 1.5f, 1.2f);
             SetLayer(entered.gameObject, "TriggerVolume");
             BoxCollider enteredBox = EnsureComponent<BoxCollider>(entered.gameObject);
             enteredBox.isTrigger = true;
-            enteredBox.size = new Vector3(7f, 3f, 2f);
+            // Thin along the direction of travel (+x through the west door), wide across it.
+            enteredBox.size = new Vector3(2f, 3f, 7f);
             TriggerVolume volume = EnsureComponent<TriggerVolume>(entered.gameObject);
 
             using (SerializedObject serialized = new SerializedObject(volume))

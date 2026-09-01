@@ -15,7 +15,7 @@ MonoBehaviour:
   m_label: 03-03 Circulation console
   m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
   m_anchorName: Checkpoint_CirculationConsole
-  m_position: {x: 0, y: 1.0500001, z: 1}
+  m_position: {x: -4.530938, y: 10.268323, z: 132.00891}
   m_yaw: 0
   m_snapToGround: 0
   m_groundLayers:
