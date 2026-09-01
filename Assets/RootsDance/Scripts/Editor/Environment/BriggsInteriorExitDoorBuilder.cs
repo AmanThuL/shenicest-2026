@@ -92,7 +92,7 @@ namespace RootsDance.Editor.Environment
 
             Transform interactables = FindRoot(gameplay, "_Interactables");
             PlaceDoor(doorPrefab, interactables, gameplay);
-            BriggsChapterHousePortalBuilder.PlaceInScene(gameplay);
+            ChapterHouseConnectedLevelBuilder.RemoveLegacyPortal(gameplay);
 
             EditorSceneManager.MarkSceneDirty(environment);
             EditorSceneManager.MarkSceneDirty(gameplay);

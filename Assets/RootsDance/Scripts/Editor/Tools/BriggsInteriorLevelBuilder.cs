@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
@@ -665,9 +666,13 @@ namespace RootsDance.Editor.Tools
 
             SerializedObject serialized = new SerializedObject(level);
             SerializedProperty scenePaths = serialized.FindProperty("m_scenePaths");
-            scenePaths.arraySize = 2;
+            scenePaths.arraySize = 5;
             scenePaths.GetArrayElementAtIndex(0).stringValue = k_EnvironmentPath;
             scenePaths.GetArrayElementAtIndex(1).stringValue = k_GameplayPath;
+            scenePaths.GetArrayElementAtIndex(2).stringValue =
+                "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
+            scenePaths.GetArrayElementAtIndex(3).stringValue = ScenePaths.k_ChapterHouseConnectedEnvironment;
+            scenePaths.GetArrayElementAtIndex(4).stringValue = ScenePaths.k_ChapterHouseConnectedGameplay;
             serialized.ApplyModifiedProperties();
 
             if (isNew)

@@ -480,68 +480,6 @@ MonoBehaviour:
   m_readEulerOffset: {x: 0, y: 0, z: 0}
   m_raiseSeconds: 0.45
   m_lowerSeconds: 0.35
---- !u!1001 &1210379853
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1355721245}
-    m_Modifications:
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 7.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3017551097707230205, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-      propertyPath: m_Name
-      value: BriggsChapterHousePortal
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
---- !u!4 &1210379854 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 571976574671808283, guid: 736a2637236fe41ee8e92094e32b9ebe, type: 3}
-  m_PrefabInstance: {fileID: 1210379853}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1340303024
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,6 +493,7 @@ GameObject:
   - component: {fileID: 1340303027}
   - component: {fileID: 1340303026}
   - component: {fileID: 1340303029}
+  - component: {fileID: 1340303030}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -662,6 +601,40 @@ MonoBehaviour:
   m_fallDuration: 0.2
   m_amplitudePixels: 7
   m_frequency: 18
+--- !u!114 &1340303030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340303024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f2940d88eed845568008f5de9fa0146, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Cameras.PanicViewShake
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_panicOnFlag: 
+  m_calmOnFlag: 
+  m_lookBackOnFlag: flow.flower_sprite_appeared
+  m_controller: {fileID: 0}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
+  m_stepsPerSecond: 2.9
+  m_verticalMeters: 0.025
+  m_lateralMeters: 0.018
+  m_rollDegrees: 1.8
+  m_pitchDegrees: 1
+  m_jitterDegrees: 0.9
+  m_jitterHz: 7
+  m_riseSeconds: 0.35
+  m_fallSeconds: 1.2
+  m_lookBackDegrees: 150
+  m_overLeftShoulder: 1
+  m_turnOutSeconds: 0.5
+  m_holdSeconds: 0.45
+  m_returnSeconds: 0.4
+  m_shakeWhileLookingBack: 0.45
 --- !u!1 &1355721244
 GameObject:
   m_ObjectHideFlags: 0
@@ -690,8 +663,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1210379854}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1378224010

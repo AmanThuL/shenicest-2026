@@ -24,6 +24,7 @@ namespace RootsDance.Tests.EditMode.Environment
     public sealed class ChapterHouseInteriorLevelAssetTests
     {
         private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/ChapterHouseInterior.asset";
+        private const string k_ConnectedLevelAssetPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
         private const string k_CorridorEntranceCheckpointPath =
             "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
         private const string k_FlowerSpriteEncounterCheckpointPath =
@@ -69,7 +70,9 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(model.localScale, Is.EqualTo(Vector3.one));
 
                 Bounds bounds = GetRendererBounds(model.gameObject);
-                Assert.That(bounds.min.y, Is.EqualTo(0f).Within(0.01f));
+                Transform layoutRoot = model.parent;
+                Assert.That(layoutRoot.localScale, Is.EqualTo(Vector3.one * 2f));
+                Assert.That(bounds.min.y, Is.EqualTo(-3.5f).Within(0.01f));
                 Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.01f));
                 Assert.That(bounds.center.z, Is.EqualTo(0f).Within(0.01f));
 
@@ -142,6 +145,11 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform lighting = FindRoot(scene, "_Lighting");
                 Volume volume = lighting.GetComponentInChildren<Volume>(true);
                 Assert.IsTrue(volume != null && volume.isGlobal && volume.sharedProfile != null);
+                Light[] underglow = lighting.GetComponentsInChildren<Light>(true)
+                    .Where(light => light.name.StartsWith("ChapterHouseUnderglow_"))
+                    .ToArray();
+                Assert.AreEqual(4, underglow.Length);
+                Assert.IsTrue(underglow.All(light => light.color.b > light.color.r));
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
             }
@@ -152,7 +160,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void EnvironmentScene_SeparatesFourHingedDoors()
+        public void EnvironmentScene_ReplacesDoorAAndKeepsDoorsBThroughD()
         {
             Scene scene = EditorSceneManager.OpenScene(
                 ScenePaths.k_ChapterHouseInteriorEnvironment,
@@ -163,9 +171,11 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform model = FindRoot(scene, "_Geometry").Find("ChapterHouseRoot/ChapterHouse");
                 SwingDoor[] doors = model.GetComponentsInChildren<SwingDoor>(true);
 
-                // One per physical door the merged mesh was split into — not the wall it used to
-                // be painted onto.
-                Assert.AreEqual(4, doors.Length);
+                Assert.AreEqual(3, doors.Length);
+                Assert.IsNull(model.Find("ChapterHouseDoor_A"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_B"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_C"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_D"));
 
                 for (int i = 0; i < doors.Length; i++)
                 {
@@ -293,20 +303,33 @@ namespace RootsDance.Tests.EditMode.Environment
         [Test]
         public void Checkpoints_ReferenceLevelAndMatchAnchors()
         {
-            LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
-            AssertCheckpoint(
-                k_CorridorEntranceCheckpointPath,
-                "02-04A Corridor entrance",
-                level,
-                "Checkpoint_CorridorEntrance");
-            AssertCheckpoint(
-                k_FlowerSpriteEncounterCheckpointPath,
-                "02-04B Flower sprite encounter",
-                level,
-                "Checkpoint_FlowerSpriteEncounter");
+            LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_ConnectedLevelAssetPath);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseConnectedGameplay, OpenSceneMode.Additive);
+
+            try
+            {
+                AssertCheckpoint(
+                    gameplay,
+                    k_CorridorEntranceCheckpointPath,
+                    "02-04A Corridor entrance",
+                    level,
+                    "Checkpoint_CorridorEntrance");
+                AssertCheckpoint(
+                    gameplay,
+                    k_FlowerSpriteEncounterCheckpointPath,
+                    "02-04B Flower sprite encounter",
+                    level,
+                    "Checkpoint_FlowerSpriteEncounter");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+            }
         }
 
         private static void AssertCheckpoint(
+            Scene gameplay,
             string path,
             string label,
             LevelSO level,
@@ -319,6 +342,13 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);
             Assert.IsFalse(checkpoint.SnapToGround);
+
+            Transform anchor = gameplay.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                .FirstOrDefault(transform => transform.name == anchorName);
+            Assert.IsNotNull(anchor, anchorName);
+            Assert.That(Vector3.Distance(checkpoint.Position, anchor.position), Is.LessThan(0.01f));
+            Assert.That(Mathf.DeltaAngle(checkpoint.Yaw, anchor.eulerAngles.y), Is.EqualTo(0f).Within(0.01f));
         }
 
         private static Transform FindPart(GameObject model, string partName)

@@ -238,9 +238,9 @@ MonoBehaviour:
     m_recordedTargets: []
   - m_id: e86f8cd5964b8449795e0c128b1c97cf
     m_label: 02-04A Corridor entrance
-    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
     m_anchorName: Checkpoint_CorridorEntrance
-    m_position: {x: 0.13872959, y: 6.1544313, z: -2.023664}
+    m_position: {x: 0.31388, y: 1.8908081, z: 18.397137}
     m_yaw: 0
     m_snapToGround: 0
     m_groundLayers:
@@ -250,35 +250,26 @@ MonoBehaviour:
     m_useAnchorHeight: 1
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
-    m_flags: []
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
     m_recordedTargets: []
   - m_id: 4b6fc46e702124e4cbd9e7545ace5d88
     m_label: 02-04B Flower sprite encounter
-    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
     m_anchorName: Checkpoint_FlowerSpriteEncounter
-    m_position: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+    m_position: {x: 0.31388, y: 1.8908081, z: 24.761797}
     m_yaw: 180
     m_snapToGround: 0
     m_groundLayers:
       serializedVersion: 2
       m_Bits: 256
     m_groundClearance: 0
-    m_useAnchorHeight: 1
-    m_overrideTimeOfDay: 0
-    m_timeOfDay: 0
-    m_flags: []
-    m_recordedTargets: []
-  - m_id: 34802efc2b1b54ee8bf6a32a3ff19d60
-    m_label: 03-01 Greenhouse entrance
-    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
-    m_anchorName: Checkpoint_GreenhouseEntrance
-    m_position: {x: -41.8, y: 1.0619, z: 1.19509}
-    m_yaw: 90
-    m_snapToGround: 1
-    m_groundLayers:
-      serializedVersion: 2
-      m_Bits: 256
-    m_groundClearance: 1
     m_useAnchorHeight: 1
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
@@ -341,7 +332,7 @@ MonoBehaviour:
     m_label: 03-03 Circulation console
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_CirculationConsole
-    m_position: {x: 0, y: 1.0500001, z: 1}
+    m_position: {x: -4.530938, y: 10.268323, z: 132.00891}
     m_yaw: 0
     m_snapToGround: 0
     m_groundLayers:
@@ -426,7 +417,7 @@ MonoBehaviour:
     m_label: 03-06 Rebirth
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_Rebirth
-    m_position: {x: 0, y: 1.05, z: 3}
+    m_position: {x: -5.741475, y: 10.235285, z: 133.16821}
     m_yaw: 0
     m_snapToGround: 0
     m_groundLayers:
