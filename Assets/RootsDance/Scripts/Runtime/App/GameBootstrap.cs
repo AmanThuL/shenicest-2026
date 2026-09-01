@@ -156,6 +156,13 @@ namespace RootsDance.App
 
         private void LateUpdate()
         {
+            // A duplicate's Awake returns before the services exist, and Destroy only lands at the
+            // end of the frame — so this can run on an instance that owns nothing.
+            if (m_commands == null)
+            {
+                return;
+            }
+
             m_commands.Drain(m_worldState);
         }
 

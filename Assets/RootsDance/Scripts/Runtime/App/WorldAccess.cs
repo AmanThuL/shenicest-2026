@@ -33,7 +33,8 @@ namespace RootsDance.App
             get
             {
                 GameBootstrap bootstrap = GameBootstrap.Instance;
-                return bootstrap != null && bootstrap.InteractionLock.IsLocked;
+                return bootstrap != null && bootstrap.InteractionLock != null
+                    && bootstrap.InteractionLock.IsLocked;
             }
         }
 
@@ -45,7 +46,8 @@ namespace RootsDance.App
         public static bool TryBeginExclusiveInteraction(object owner)
         {
             GameBootstrap bootstrap = GameBootstrap.Instance;
-            return bootstrap == null || bootstrap.InteractionLock.TryAcquire(owner);
+            return bootstrap == null || bootstrap.InteractionLock == null
+                || bootstrap.InteractionLock.TryAcquire(owner);
         }
 
         /// <summary>
@@ -56,7 +58,7 @@ namespace RootsDance.App
         {
             GameBootstrap bootstrap = GameBootstrap.Instance;
 
-            if (bootstrap != null)
+            if (bootstrap != null && bootstrap.InteractionLock != null)
             {
                 bootstrap.InteractionLock.Release(owner);
             }
@@ -70,7 +72,7 @@ namespace RootsDance.App
         {
             GameBootstrap bootstrap = GameBootstrap.Instance;
 
-            if (bootstrap == null)
+            if (bootstrap == null || bootstrap.Commands == null)
             {
                 Log.Warning("No GameBootstrap yet; command dropped.", context);
                 return false;
