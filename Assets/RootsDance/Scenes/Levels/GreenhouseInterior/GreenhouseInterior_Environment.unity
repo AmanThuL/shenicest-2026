@@ -21249,8 +21249,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 605806951}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4913552, y: 0, z: 0.00020000296}
+  m_LocalRotation: {x: 0, y: -0.21196896, z: 0, w: 0.97727644}
+  m_LocalPosition: {x: -3.6662683, y: 9.416544, z: 131.60942}
   m_LocalScale: {x: 0.8348154, y: 0.8348154, z: 0.8348154}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -29495,8 +29495,6 @@ MonoBehaviour:
   m_sun: {fileID: 2061226823}
   m_initialSunLux: 65000
   m_bloomSunLux: 125000
-  m_initialSunColor: {r: 1, g: 1, b: 1, a: 1}
-  m_bloomSunColor: {r: 1, g: 0.72, b: 0.52, a: 1}
 --- !u!114 &687624645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38343,8 +38341,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 955452793}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4913552, y: 0, z: 0.00020000296}
+  m_LocalRotation: {x: 0, y: -0.21196896, z: 0, w: 0.97727644}
+  m_LocalPosition: {x: -3.6662683, y: 9.416544, z: 131.60942}
   m_LocalScale: {x: 0.8348154, y: 0.8348154, z: 0.8348154}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -48002,8 +48000,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1248143042}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4913552, y: 0, z: 0.00020000296}
+  m_LocalRotation: {x: 0, y: -0.21196896, z: 0, w: 0.97727644}
+  m_LocalPosition: {x: -3.6662683, y: 9.416544, z: 131.60942}
   m_LocalScale: {x: 0.8348154, y: 0.8348154, z: 0.8348154}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -59675,8 +59673,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1639985817}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4913552, y: 0, z: 0.00020000296}
+  m_LocalRotation: {x: 0, y: -0.21196896, z: 0, w: 0.97727644}
+  m_LocalPosition: {x: -3.6662683, y: 9.416544, z: 131.60942}
   m_LocalScale: {x: 0.8348154, y: 0.8348154, z: 0.8348154}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -61795,8 +61793,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1664606116}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4913552, y: 0, z: 0.00020000296}
+  m_LocalRotation: {x: 0, y: -0.21196896, z: 0, w: 0.97727644}
+  m_LocalPosition: {x: -3.6662683, y: 9.416544, z: 131.60942}
   m_LocalScale: {x: 0.8348154, y: 0.8348154, z: 0.8348154}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -84190,6 +84188,7 @@ GameObject:
   - component: {fileID: 2061226822}
   - component: {fileID: 2061226823}
   - component: {fileID: 2061226824}
+  - component: {fileID: 2061226825}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -84419,6 +84418,23 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
+--- !u!114 &2061226825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2061226821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf4289750763e41dda52c09bdadaa1b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.StreamedSceneSunMuter
+  m_additiveContentStreamed: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_awaitedScenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_overlappingObjectPaths:
+  - _Geometry/ResearchFacility_GaiaV7/GreenHouse1_Textured
+  - _Geometry/ResearchFacility_GaiaV7/GreenhouseSpiralStair
 --- !u!1001 &2065606862
 PrefabInstance:
   m_ObjectHideFlags: 0
