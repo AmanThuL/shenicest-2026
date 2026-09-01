@@ -204,7 +204,7 @@ namespace RootsDance.Tests.EditMode.Environment
 
                 AssertFantasySky(k_BaseAtmosphereProfilePath);
                 AssertFantasySky(k_BloomAtmosphereProfilePath);
-                AssertBloomBrightnessTarget();
+                AssertBloomSunsetTarget();
             }
             finally
             {
@@ -353,21 +353,42 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.AreEqual(k_FantasySkyPath, AssetDatabase.GetAssetPath(sky.hdriSky.value));
         }
 
-        private static void AssertBloomBrightnessTarget()
+        /// <summary>
+        /// The ending fades to sunset, not to glare. What is worth locking is the relationship
+        /// between the two profiles, not absolute EV numbers the look keeps being tuned against, so
+        /// every brightness assertion here is written against the base profile it fades from.
+        /// </summary>
+        private static void AssertBloomSunsetTarget()
         {
-            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BloomAtmosphereProfilePath);
-            Assert.IsTrue(profile.TryGet(out Exposure exposure));
-            Assert.IsTrue(profile.TryGet(out HDRISky sky));
-            Assert.IsTrue(profile.TryGet(out Fog fog));
-            Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
-            Assert.LessOrEqual(exposure.fixedExposure.value, 9.8f);
-            Assert.GreaterOrEqual(sky.exposure.value, 12.8f);
-            Assert.GreaterOrEqual(color.postExposure.value, 0.45f);
-            Assert.That(fog.albedo.value.r, Is.EqualTo(fog.albedo.value.b).Within(0.03f));
-            Assert.LessOrEqual(color.colorFilter.value.r, 0.7f);
-            Assert.GreaterOrEqual(color.colorFilter.value.g, 0.95f);
-            Assert.GreaterOrEqual(color.colorFilter.value.b, 1f);
-            Assert.LessOrEqual(color.saturation.value, -20f);
+            VolumeProfile bloom = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BloomAtmosphereProfilePath);
+            VolumeProfile baseProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BaseAtmosphereProfilePath);
+            Assert.IsTrue(bloom.TryGet(out Exposure bloomExposure));
+            Assert.IsTrue(bloom.TryGet(out HDRISky bloomSky));
+            Assert.IsTrue(bloom.TryGet(out Fog fog));
+            Assert.IsTrue(bloom.TryGet(out ColorAdjustments color));
+            Assert.IsTrue(baseProfile.TryGet(out Exposure baseExposure));
+            Assert.IsTrue(baseProfile.TryGet(out HDRISky baseSky));
+
+            // The glass brightens as the statue flowers: the sky gains on the camera.
+            float baseHeadroom = baseSky.exposure.value - baseExposure.fixedExposure.value;
+            float bloomHeadroom = bloomSky.exposure.value - bloomExposure.fixedExposure.value;
+            Assert.Greater(bloomHeadroom, baseHeadroom);
+
+            // ...but only so far. Past roughly +2 EV of headroom the sunset clips to white paper and
+            // the ending reads as an overexposure bug rather than as evening light.
+            Assert.LessOrEqual(bloomHeadroom, 2f);
+
+            // Warm, and warm in that order: the colour filter must not fight the sunset it sits over.
+            Assert.GreaterOrEqual(color.colorFilter.value.r, color.colorFilter.value.g);
+            Assert.GreaterOrEqual(color.colorFilter.value.g, color.colorFilter.value.b);
+
+            // The filter carries only a hint of it. The warmth belongs to the sun, which lifts the
+            // faces it reaches and leaves the rest cool; a filter strong enough to read as sunset on
+            // its own would warm the shadows too and flatten that split.
+            Assert.GreaterOrEqual(color.colorFilter.value.b, 0.85f);
+
+            // Fog holds the cool side of the split.
+            Assert.GreaterOrEqual(fog.albedo.value.g, fog.albedo.value.r);
         }
 
         private static Transform FindRoot(Scene scene, string name)
