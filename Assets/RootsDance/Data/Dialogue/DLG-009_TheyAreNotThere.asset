@@ -105,4 +105,4 @@ MonoBehaviour:
     m_english: They didn't do anything wrong.
     m_holdSeconds: 0
     m_voice: {fileID: 8300000, guid: bcf4619e0e087473da344c2f240cd530, type: 3}
-  m_flagOnComplete: 
+  m_flagOnComplete: flow.wrong_cycle_outburst_done

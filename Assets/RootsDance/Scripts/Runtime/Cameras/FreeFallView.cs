@@ -10,7 +10,10 @@ namespace RootsDance.Cameras
     /// scripted: leave the ground fast enough and the view plays weightlessness (a brief upward
     /// float and a pitch toward where the body is going), a wind that grows with fall speed
     /// (jitter, slow roll, a touch of FOV), and on touchdown a dip whose depth follows the impact
-    /// speed. Curve shapes live in <see cref="FreeFallResponse"/>, EditMode-tested.
+    /// speed. Curve shapes live in <see cref="FreeFallResponse"/>, EditMode-tested. It also
+    /// carries the tremor that precedes a fall — the floor going — as an input
+    /// (<see cref="SetTremor"/>) for whatever is shaking it, because the camera has one owner
+    /// per axis and this extension already owns the fall's.
     /// <para>
     /// Same contract as <see cref="PanicViewShake"/>: a <see cref="CinemachineExtension"/> adding
     /// offsets in the pipeline's Finalize stage, because every transform already has an owner.
@@ -90,6 +93,26 @@ namespace RootsDance.Cameras
         [Range(0.05f, 0.8f)]
         [SerializeField] private float m_windSmoothSeconds = 0.25f;
 
+        [Header("Tremor")]
+        [Tooltip("Rotational jitter at full tremor, degrees. Driven by whatever is shaking the floor "
+            + "(the deck collapse) through SetTremor; sits at zero otherwise. Kept well under the "
+            + "wind — a tremor is felt through the feet, not seen.")]
+        [Min(0f)]
+        [SerializeField] private float m_tremorDegrees = 0.45f;
+
+        [Tooltip("Vertical jitter at full tremor, metres.")]
+        [Min(0f)]
+        [SerializeField] private float m_tremorMeters = 0.012f;
+
+        [Tooltip("Tremor noise rate, Hz. Higher than the wind: a structure buzzes before it goes.")]
+        [Min(0.1f)]
+        [SerializeField] private float m_tremorHz = 13f;
+
+        [Tooltip("Seconds for the tremor to follow a new level. Long enough that a stage change "
+            + "swells rather than steps.")]
+        [Min(0f)]
+        [SerializeField] private float m_tremorSmoothSeconds = 0.5f;
+
         [Header("Landing")]
         [Tooltip("How deep the view dips on a full-strength landing, in metres.")]
         [Range(0f, 0.3f)]
@@ -120,8 +143,23 @@ namespace RootsDance.Cameras
         private float m_lastStateTime = float.NegativeInfinity;
         private float m_seed;
 
+        private float m_tremorTarget;
+        private float m_tremorSmoothed;
+
         /// <summary>0..1 — how hard the fall currently reads. Read by tests and tools.</summary>
         public float WindStrength => m_windSmoothed;
+
+        /// <summary>0..1 — the smoothed tremor level currently applied.</summary>
+        public float Tremor => m_tremorSmoothed;
+
+        /// <summary>
+        /// Sets how hard the floor is shaking, 0..1. The view eases toward it over
+        /// <see cref="m_tremorSmoothSeconds"/>; call again with 0 when the shaking is over.
+        /// </summary>
+        public void SetTremor(float amount01)
+        {
+            m_tremorTarget = Mathf.Clamp01(amount01);
+        }
 
         protected override void Awake()
         {
@@ -185,13 +223,24 @@ namespace RootsDance.Cameras
             float dip = FreeFallResponse.LandingDip01(now - m_landingTime, m_landSeconds)
                 * m_landingStrength;
 
-            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f)
+            float tremorLift = 0f;
+
+            if (m_tremorSmoothed > 0.0001f)
+            {
+                float tremorTime = now * m_tremorHz;
+                yaw += (Mathf.PerlinNoise(tremorTime, m_seed + 7f) - 0.5f) * 2f * m_tremorDegrees * m_tremorSmoothed;
+                pitch += (Mathf.PerlinNoise(m_seed + 7f, tremorTime) - 0.5f) * 2f * m_tremorDegrees * m_tremorSmoothed;
+                roll += (Mathf.PerlinNoise(tremorTime, m_seed + 13f) - 0.5f) * m_tremorDegrees * m_tremorSmoothed;
+                tremorLift = (Mathf.PerlinNoise(m_seed + 13f, tremorTime) - 0.5f) * 2f * m_tremorMeters * m_tremorSmoothed;
+            }
+
+            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f && m_tremorSmoothed <= 0.0001f)
             {
                 return;
             }
 
             pitch += dip * m_landPitchDegrees;
-            Vector3 offset = new Vector3(0f, lift - dip * m_landDipMeters, 0f);
+            Vector3 offset = new Vector3(0f, lift - dip * m_landDipMeters + tremorLift, 0f);
 
             state.PositionCorrection += state.RawOrientation * offset;
             state.OrientationCorrection = state.OrientationCorrection * Quaternion.Euler(pitch, yaw, roll);
@@ -235,6 +284,9 @@ namespace RootsDance.Cameras
 
             float step = m_windSmoothSeconds <= 0f ? 1f : elapsed / m_windSmoothSeconds;
             m_windSmoothed = Mathf.MoveTowards(m_windSmoothed, windTarget, step);
+
+            float tremorStep = m_tremorSmoothSeconds <= 0f ? 1f : elapsed / m_tremorSmoothSeconds;
+            m_tremorSmoothed = Mathf.MoveTowards(m_tremorSmoothed, m_tremorTarget, tremorStep);
         }
     }
 }

@@ -529,9 +529,10 @@ namespace RootsDance.Editor.Content
             EnsureConsoleCheckpoint(scene, console.position);
             EnsureRebirthCheckpoint(scene, statue.position);
 
-            // Either wrong cycle: the breath bed and the outburst start together, over the start of
-            // the chase rather than before it — the dialogue step does not wait, and the chase flag
-            // follows one breath later.
+            // Either wrong cycle: the breath bed and the outburst start together, over the deck's
+            // warning tremor. Nothing here raises the chase flag — the outburst's completion flag
+            // lets the deck go, and GreenhouseStairCollapse raises the chase only once the player
+            // has landed, because that flag unlocks the exits and arms the exterior stream.
             Transform player = FindTransform(scene, "Player");
 
             if (player == null)
@@ -591,7 +592,7 @@ namespace RootsDance.Editor.Content
                     EnsureDialogueChannel();
 
                 SerializedProperty steps = serialized.FindProperty("m_steps");
-                steps.arraySize = 3;
+                steps.arraySize = 2;
 
                 SerializedProperty breath = steps.GetArrayElementAtIndex(0);
                 breath.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.SetActive;
@@ -601,14 +602,10 @@ namespace RootsDance.Editor.Content
 
                 SerializedProperty outburst = steps.GetArrayElementAtIndex(1);
                 outburst.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.PlayDialogue;
-                outburst.FindPropertyRelative("m_delay").floatValue = 1.5f;
+                outburst.FindPropertyRelative("m_delay").floatValue = 0f;
+                outburst.FindPropertyRelative("m_flagId").stringValue = string.Empty;
                 outburst.FindPropertyRelative("m_conversation").objectReferenceValue =
                     LoadDialogue("DLG-009_TheyAreNotThere");
-
-                SerializedProperty chase = steps.GetArrayElementAtIndex(2);
-                chase.FindPropertyRelative("m_kind").enumValueIndex = (int)CueStepKind.RaiseFlag;
-                chase.FindPropertyRelative("m_delay").floatValue = 0f;
-                chase.FindPropertyRelative("m_flagId").stringValue = WorldFlags.k_ChaseStarted;
 
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }

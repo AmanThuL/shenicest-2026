@@ -255,7 +255,12 @@ namespace RootsDance.Editor.Content
                 false, string.Empty, string.Empty);
         }
 
-        /// <summary>The sprite's reaction to either wrong cycle. Played by a CueSequence on the flag.</summary>
+        /// <summary>
+        /// The sprite's reaction to either wrong cycle. Played by a CueSequence on the flag, over
+        /// the deck's warning tremor; its completion flag is what lets the deck go
+        /// (<see cref="RootsDance.Environment.GreenhouseStairCollapse"/>), so the collapse can
+        /// never cut her off.
+        /// </summary>
         private static bool BuildWrongChoiceOutburst()
         {
             return Conversation("DLG-009_TheyAreNotThere", "DLG-009", "错误循环：它们已经不在那里了",
@@ -286,7 +291,7 @@ namespace RootsDance.Editor.Content
                     F("它们没有出错。", "They didn't do anything wrong.",
                         "VO_C3_Verity_40_TheyDidntDoAn")
                 },
-                null, true, string.Empty, string.Empty);
+                null, true, string.Empty, WorldFlags.k_WrongCycleOutburstDone);
         }
 
         private static Line P(string chinese, string english, string voiceFile = null)
