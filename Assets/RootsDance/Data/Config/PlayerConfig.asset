@@ -17,7 +17,7 @@ MonoBehaviour:
   m_acceleration: 18
   m_deceleration: 24
   m_gravity: -12
-  m_maxFallSpeed: 11
+  m_maxFallSpeed: 6.5
   m_groundedStickVelocity: -0.2
   m_groundCheckRadiusScale: 0.9
   m_groundCheckDistance: 0.15
