@@ -72,6 +72,9 @@ namespace RootsDance.Editor.Environment
         private const float k_TreeCullDistance = 180f;
         private const float k_AssumedVerticalFieldOfView = 60f;
 
+        /// <summary>Fraction of the previous LOD's height the raised last step may reach.</summary>
+        private const float k_CullHeightHeadroom = 0.95f;
+
         private static readonly HashSet<string> k_RootScanLodKeys = new HashSet<string>
         {
             "pine_roots", "root_cluster_01", "root_cluster_02"
@@ -601,7 +604,13 @@ namespace RootsDance.Editor.Environment
             return null;
         }
 
-        /// <summary>Pushes <paramref name="group"/>'s last LOD out to <paramref name="cullHeight"/>.</summary>
+        /// <summary>
+        /// Pushes <paramref name="group"/>'s last LOD out to <paramref name="cullHeight"/>, never past the
+        /// step before it: a LOD chain must stay strictly descending, and <see cref="LODGroup.SetLODs"/>
+        /// rejects the whole array otherwise — which would silently drop the cull distance instead of
+        /// tightening it. A model whose last two steps already sit close together therefore culls a little
+        /// later than <see cref="CullDistanceFor"/> asks for.
+        /// </summary>
         private static void RaiseCullHeight(LODGroup group, float cullHeight)
         {
             LOD[] lods = group.GetLODs();
@@ -612,8 +621,15 @@ namespace RootsDance.Editor.Environment
             }
 
             int finalIndex = lods.Length - 1;
-            lods[finalIndex].screenRelativeTransitionHeight =
-                Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
+            float raised = Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
+
+            if (finalIndex > 0)
+            {
+                raised = Mathf.Min(raised,
+                    lods[finalIndex - 1].screenRelativeTransitionHeight * k_CullHeightHeadroom);
+            }
+
+            lods[finalIndex].screenRelativeTransitionHeight = raised;
             group.SetLODs(lods);
         }
 
