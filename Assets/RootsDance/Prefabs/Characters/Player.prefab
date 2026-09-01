@@ -2303,7 +2303,7 @@ MonoBehaviour:
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 3
   m_key: 24
-  m_promptFormat: "[J] \u626B\u63CF {0}"
+  m_promptFormat: "[J] \u626B\u63CF{0}"
 --- !u!4 &4043055216516714021 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6887100039838813985, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}

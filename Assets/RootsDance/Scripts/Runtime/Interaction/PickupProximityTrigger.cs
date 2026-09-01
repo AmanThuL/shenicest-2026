@@ -193,6 +193,15 @@ namespace RootsDance.Interaction
 
             if (m_inReach != null)
             {
+                // A pickup can forbid the swap suggestion outright: a prop the player must keep
+                // (the flask headed for the rune wall) is never something the game tells them to
+                // put down. Silence, not a blocked line — the offer itself is the mistake.
+                if (m_held != null && m_held.SuppressSwapHint)
+                {
+                    Broadcast(string.Empty);
+                    return;
+                }
+
                 // Still worth saying every time: this one is not teaching the key, it is explaining
                 // why the thing in front of the player cannot be picked up.
                 Broadcast(string.Format(m_swapPromptFormat, m_inReach.DisplayName, holding));

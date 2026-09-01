@@ -55,7 +55,7 @@ namespace RootsDance.Interaction
         [SerializeField] private string m_actionId = "grabGround";
 
         [Tooltip("Hint while a point is in reach and the hand holds the right thing. {0} is its name.")]
-        [SerializeField] private string m_promptFormat = "[E] 采集 {0}";
+        [SerializeField] private string m_promptFormat = "[E] 采集{0}";
 
         private readonly List<Vector3> m_points = new List<Vector3>();
         private HarvestPoint m_inReach;

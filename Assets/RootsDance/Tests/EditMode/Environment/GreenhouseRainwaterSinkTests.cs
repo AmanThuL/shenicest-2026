@@ -30,11 +30,16 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(stream.GetComponent<WaterFlow>(), Is.Not.Null);
             Assert.That(Vector3.Dot(stream.up, Vector3.up), Is.GreaterThan(0.9999f));
 
+            // The sink is a stopped one. The stream stays authored and switched off so it can be
+            // turned back on with a checkbox, which is why every check below reads its geometry off
+            // the mesh rather than off a Renderer an inactive object does not report bounds for.
+            Assert.That(stream.gameObject.activeSelf, Is.False);
+
             // The water runs out of the faucet, so the top of the stream sits inside the spout.
             Transform faucet = FindDescendant(sink, k_FaucetName);
             Assert.That(faucet, Is.Not.Null);
             Bounds faucetBounds = faucet.GetComponent<Renderer>().bounds;
-            Bounds streamBounds = stream.GetComponent<Renderer>().bounds;
+            Bounds streamBounds = MeshWorldBounds(stream);
             Assert.That(streamBounds.max.y, Is.GreaterThan(faucetBounds.min.y));
             Assert.That(streamBounds.max.y, Is.LessThan(faucetBounds.max.y));
             Assert.That(faucetBounds.Contains(new Vector3(
@@ -65,6 +70,42 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(basinBounds.Contains(waterBounds.min), Is.True);
             Assert.That(basinBounds.Contains(waterBounds.max), Is.True);
             Assert.That(streamBounds.min.y, Is.LessThanOrEqualTo(waterBounds.max.y + 0.05f));
+
+            // Dead leaves are what make the basin read as stopped rather than merely switched off,
+            // so they are part of the authored state: on the water, inside the basin, all of them.
+            Transform leaves = root.Find(GreenhouseRainwaterSinkBuilder.k_FallenLeavesName);
+            Assert.That(leaves, Is.Not.Null);
+            Assert.That(leaves.childCount, Is.GreaterThan(0));
+
+            for (int i = 0; i < leaves.childCount; i++)
+            {
+                Bounds leafBounds = leaves.GetChild(i).GetComponent<Renderer>().bounds;
+                Assert.That(basinBounds.Contains(
+                    new Vector3(leafBounds.center.x, basinBounds.center.y, leafBounds.center.z)),
+                    Is.True);
+                Assert.That(leafBounds.center.y, Is.GreaterThan(waterBounds.max.y - 0.02f));
+                Assert.That(leafBounds.center.y, Is.LessThan(waterBounds.max.y + 0.05f));
+            }
+        }
+
+        /// <summary>
+        /// World-space bounds taken from the mesh, which an inactive object still answers for.
+        /// </summary>
+        private static Bounds MeshWorldBounds(Transform target)
+        {
+            Bounds local = target.GetComponent<MeshFilter>().sharedMesh.bounds;
+            Bounds world = new Bounds(target.TransformPoint(local.center), Vector3.zero);
+
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 corner = new Vector3(
+                    (i & 1) == 0 ? local.min.x : local.max.x,
+                    (i & 2) == 0 ? local.min.y : local.max.y,
+                    (i & 4) == 0 ? local.min.z : local.max.z);
+                world.Encapsulate(target.TransformPoint(corner));
+            }
+
+            return world;
         }
 
         private static Transform FindDescendant(Transform parent, string name)

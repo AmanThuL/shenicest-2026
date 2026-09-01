@@ -358,6 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.GroundPickup
   m_displayName: "\u84DD\u8272\u70E7\u74F6"
+  m_suppressSwapHint: 1
   m_grabPoint: {fileID: 0}
   m_pickupActionId: grabGroundTube
 --- !u!114 &7052435421230465614

@@ -69,6 +69,9 @@ namespace RootsDance.Core
         /// <summary>The staff photograph on the observation deck has been read (02-10).</summary>
         public const string k_SawStaffPhotograph = "flow.saw_staff_photograph";
 
+        /// <summary>The standing water left in the greenhouse sink has been sampled (02-11).</summary>
+        public const string k_ResidualWaterSampled = "flow.residual_water_sampled";
+
         /// <summary>Core Cultivation was started — a wrong answer (02-12).</summary>
         public const string k_CirculationCore = "flow.circulation_core";
 

@@ -54397,7 +54397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9350bb5ec10f141a1b51a92e46408c96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannableTarget
-  m_displayName: "\u53D8\u5F02\u6BEF\u8305"
+  m_displayName: "\u690D\u7269"
   m_aimPoint: {fileID: 1896101498364655881}
   m_revealedSection: {fileID: 0}
   m_repeatable: 0

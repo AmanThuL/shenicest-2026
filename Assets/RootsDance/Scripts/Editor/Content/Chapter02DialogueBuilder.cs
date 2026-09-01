@@ -126,7 +126,21 @@ namespace RootsDance.Editor.Content
                 },
                 null, true, string.Empty, string.Empty) ? 1 : 0;
 
-            created += Conversation("DLG-004_ItUsedToBeNeat", "DLG-004", "温室：以前很整齐",
+            // Both of DLG-004's takes now open the statue speech in DLG-006. They are one
+            // sentence split across two recordings — "Nobody likes being THAT" only resolves
+            // against the "neat" in the line before it — so they cannot be placed separately.
+            // What was wrong before was the trigger, not the pairing: nothing plays them on
+            // arrival, which is what used to make the doorway sound like the ending.
+            created += Conversation("DLG-004_ItUsedToBeNeat", "DLG-004", "小花：她不管我们了",
+                new[]
+                {
+                    F("后来！她才不会管我们呢！没有谁喜欢那么长啊！",
+                        "But then! She stopped keeping us in line! Nobody likes being that!",
+                        "VO_C3_Verity_18_ButThenSheStop")
+                },
+                null, true, string.Empty, string.Empty) ? 1 : 0;
+
+            created += Conversation("DLG-006_SheUsedToMove", "DLG-006", "盖娅雕像",
                 new[]
                 {
                     F("这里以前很整齐。真的，真的，非常，非常整齐。",
@@ -134,13 +148,7 @@ namespace RootsDance.Editor.Content
                         "VO_C3_Verity_17_ItUsedToBe"),
                     F("后来！她才不会管我们呢！没有谁喜欢那么长啊！",
                         "But then! She stopped keeping us in line! Nobody likes being that!",
-                        "VO_C3_Verity_18_ButThenSheStop")
-                },
-                null, true, WorldFlags.k_EnteredGreenhouse, string.Empty) ? 1 : 0;
-
-            created += Conversation("DLG-006_SheUsedToMove", "DLG-006", "盖娅雕像",
-                new[]
-                {
+                        "VO_C3_Verity_18_ButThenSheStop"),
                     F("她以前会流动。", "She used to move.", "VO_C3_Verity_20_SheUsedToMove"),
                     F("很漂亮。", "She was beautiful.", "VO_C3_Verity_21_SheWasBeau"),
                     F("然后有一天，她就停下来了。", "Then one day, she stopped.",
