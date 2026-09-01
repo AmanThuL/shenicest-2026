@@ -1,6 +1,7 @@
 using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
+using RootsDance.Interaction;
 using RootsDance.Player.Arms;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -68,14 +69,29 @@ namespace RootsDance.Player
         [Tooltip("Time-of-day channel raised by GameBootstrap when the world phase changes.")]
         [SerializeField] private TimeOfDayEventChannelSO m_timeOfDayChanged;
 
+        [Header("Teaching")]
+        [Tooltip("Interaction hint channel (Data/Events/InteractionPrompt). While the torch is "
+            + "held with its switch off, offers the line below until the player first turns it on.")]
+        [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [Tooltip("The flashlight key's one-time teaching line.")]
+        [SerializeField] private string m_switchHint = "[F] 打开手电";
+
         /// <summary>Metres past which a "hand" anchor cannot be a hand, so the eye is used.</summary>
         private const float k_MaxHandReach = 1.5f;
+
+        /// <summary>
+        /// Below every other offer: any contextual line — a pickup, the throw, a swap — outranks
+        /// the standing teacher, which is only there while nothing better is being said.
+        /// </summary>
+        private const int k_SwitchHintPriority = -5;
 
         private PlayerInputReader m_input;
         private FlashlightState m_state;
         private float m_fullIntensity;
         private bool m_hasLight;
         private bool m_isSeeded;
+        private bool m_hasTaughtSwitch;
 
         /// <summary>
         /// How far the beam has faded up, 0 while it is off and 1 at the authored intensity.
@@ -204,7 +220,31 @@ namespace RootsDance.Player
                 m_state.Toggle();
             }
 
+            OfferSwitchHint();
             Fade();
+        }
+
+        /// <summary>
+        /// The one hint this component owns: a torch in the hand whose switch is off says which
+        /// key turns it on. It stands down forever the first time the switch works — the key is
+        /// learned — and never competes with a contextual offer thanks to its low priority.
+        /// </summary>
+        private void OfferSwitchHint()
+        {
+            if (m_promptChanged == null)
+            {
+                return;
+            }
+
+            if (m_state.IsOn)
+            {
+                m_hasTaughtSwitch = true;
+            }
+
+            bool wanted = !m_hasTaughtSwitch && IsHeld && m_state.HasPower && !m_state.IsOn;
+
+            InteractionPrompts.Set(this, m_promptChanged,
+                wanted ? m_switchHint : string.Empty, k_SwitchHintPriority);
         }
 
         private void OnDisable()
@@ -215,6 +255,8 @@ namespace RootsDance.Player
             {
                 m_timeOfDayChanged.EventRaised -= OnTimeOfDayChanged;
             }
+
+            InteractionPrompts.Clear(this, m_promptChanged);
         }
 
         private void OnTimeOfDayChanged(TimeOfDay phase)

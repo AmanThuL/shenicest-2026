@@ -286,7 +286,7 @@ namespace RootsDance.Interaction
                     // After the abort, or its empty-prompt publish would wipe the explanation.
                     if (stowed == RuneKeypadPlayerRig.StowResult.Blocked)
                     {
-                        PublishPrompt("请先放下手中的物品");
+                        PublishPrompt("[G] 先放下手中的物品");
                     }
 
                     return;

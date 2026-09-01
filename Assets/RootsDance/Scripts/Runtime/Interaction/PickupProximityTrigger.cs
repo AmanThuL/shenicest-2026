@@ -71,9 +71,6 @@ namespace RootsDance.Interaction
         [Tooltip("Hint while something is in reach and the hand is empty. {0} is its name.")]
         [SerializeField] private string m_pickPromptFormat = "[E] 拾取 {0}";
 
-        [Tooltip("Hint while the hand is full and nothing else is in reach. {0} is what it holds.")]
-        [SerializeField] private string m_dropPromptFormat = "[G] 放下 {0}";
-
         [Tooltip("Hint while the hand is full and something else is in reach. {0} is the thing "
             + "in reach, {1} is what the hand already holds.")]
         [SerializeField] private string m_swapPromptFormat = "[G] 先放下 {1} 才能拾取 {0}";
@@ -171,19 +168,6 @@ namespace RootsDance.Interaction
             TryPick();
         }
 
-        /// <summary>Whether the drop key has already been taught, so the standing hint can stop.</summary>
-        private static bool HasLearnedDrop
-        {
-            get
-            {
-                IWorldStateReader state = WorldAccess.State;
-
-                // No world state means a level-only Play session with no bootstrap: teach it, since
-                // nothing can remember that it was taught.
-                return state != null && state.HasFlag(WorldFlags.k_LearnedDrop);
-            }
-        }
-
         /// <summary>Puts the right hint on the channel for the state the hand is actually in.</summary>
         private void Offer()
         {
@@ -215,12 +199,13 @@ namespace RootsDance.Interaction
                 return;
             }
 
-            // "[G] 放下" teaches a key, and a key only needs teaching once. Left up permanently it
-            // is on screen for most of the game saying nothing the player does not know, and it
-            // crowds out the hints that do carry the level forward.
-            Broadcast(HasLearnedDrop
-                ? string.Empty
-                : string.Format(m_dropPromptFormat, holding));
+            // A full hand with nothing else in reach says nothing. A standing "[G] 放下" teacher
+            // used to live here and it taught the wrong lesson: the first thing the game said
+            // after picking something up was how to get rid of it, and it crowded out the hints
+            // that actually carry the level forward (the torch's own [F], the throw offer). The
+            // drop key is taught where empty hands are really needed — the swap line above and
+            // the keypad's blocked prompt.
+            Broadcast(string.Empty);
         }
 
         private void TryPick()
@@ -322,12 +307,6 @@ namespace RootsDance.Interaction
             if (dropped == null)
             {
                 return;
-            }
-
-            // The key has now been used, so the standing hint has done its job.
-            if (!HasLearnedDrop)
-            {
-                WorldAccess.Enqueue(new RaiseFlagCommand(WorldFlags.k_LearnedDrop), this);
             }
 
             if (m_held != null)
