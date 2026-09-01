@@ -185,7 +185,11 @@ namespace RootsDance.UI
                     .DOAnchorPosY(m_wornPosition.y + lift, m_liftDuration).SetEase(m_ease))
                 .Join(m_visorRoot.DOScale(m_liftScale, m_liftDuration).SetEase(m_ease))
                 .Join(m_visorRoot
-                    .DOLocalRotate(new Vector3(m_liftTilt, 0f, 0f), m_liftDuration).SetEase(m_ease));
+                    .DOLocalRotate(new Vector3(m_liftTilt, 0f, 0f), m_liftDuration).SetEase(m_ease))
+                // Lifted is not gone: whatever of the glass — above all its stain — still reaches
+                // into the frame after the rise stays there forever. Every other path to "helmet
+                // off" deactivates the chrome; the live performance must land in the same state.
+                .OnComplete(() => m_visorRoot.gameObject.SetActive(false));
         }
     }
 }
