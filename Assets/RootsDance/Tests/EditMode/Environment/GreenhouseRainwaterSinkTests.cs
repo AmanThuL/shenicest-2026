@@ -10,6 +10,8 @@ namespace RootsDance.Tests.EditMode.Environment
 {
     public class GreenhouseRainwaterSinkTests
     {
+        private const string k_FaucetName = "counter_counter_sink_faucet.001";
+
         [Test]
         public void RainwaterSink_AuthoredScene_ContainsCollectionSequence()
         {
@@ -27,11 +29,18 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(stream, Is.Not.Null);
             Assert.That(stream.GetComponent<WaterFlow>(), Is.Not.Null);
             Assert.That(Vector3.Dot(stream.up, Vector3.up), Is.GreaterThan(0.9999f));
-            Assert.That(stream.position.x, Is.EqualTo(sink.position.x).Within(0.001f));
-            Assert.That(stream.position.z, Is.EqualTo(sink.position.z).Within(0.001f));
 
+            // The water runs out of the faucet, so the top of the stream sits inside the spout.
+            Transform faucet = FindDescendant(sink, k_FaucetName);
+            Assert.That(faucet, Is.Not.Null);
+            Bounds faucetBounds = faucet.GetComponent<Renderer>().bounds;
             Bounds streamBounds = stream.GetComponent<Renderer>().bounds;
-            Assert.That(streamBounds.max.y, Is.GreaterThan(28f));
+            Assert.That(streamBounds.max.y, Is.GreaterThan(faucetBounds.min.y));
+            Assert.That(streamBounds.max.y, Is.LessThan(faucetBounds.max.y));
+            Assert.That(faucetBounds.Contains(new Vector3(
+                streamBounds.center.x,
+                streamBounds.max.y,
+                streamBounds.center.z)), Is.True);
 
             Transform basin = root.Find(GreenhouseRainwaterSinkBuilder.k_BasinVolumeName);
             Assert.That(basin, Is.Not.Null);
@@ -49,10 +58,28 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.That(storedWater, Is.Not.Null);
             Assert.That(storedWater.GetComponent<Renderer>().sharedMaterial, Is.Not.Null);
 
+            // The basin is rectangular, so the pool is a box rather than a disc.
+            Assert.That(storedWater.GetComponent<MeshFilter>().sharedMesh.name, Is.EqualTo("Cube"));
+
             Bounds waterBounds = storedWater.GetComponent<Renderer>().bounds;
             Assert.That(basinBounds.Contains(waterBounds.min), Is.True);
             Assert.That(basinBounds.Contains(waterBounds.max), Is.True);
             Assert.That(streamBounds.min.y, Is.LessThanOrEqualTo(waterBounds.max.y + 0.05f));
+        }
+
+        private static Transform FindDescendant(Transform parent, string name)
+        {
+            Transform[] all = parent.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i].name == name)
+                {
+                    return all[i];
+                }
+            }
+
+            return null;
         }
 
         private static Transform FindRoot(Scene scene, string name)
