@@ -88,11 +88,11 @@ namespace RootsDance.Environment
 
         [Tooltip("Camera tremor (0..1) as the warning begins.")]
         [Range(0f, 1f)]
-        [SerializeField] private float m_tremorAtWarningStart = 0.12f;
+        [SerializeField] private float m_tremorAtWarningStart = 0.25f;
 
         [Tooltip("Camera tremor (0..1) by the time the outburst is over.")]
         [Range(0f, 1f)]
-        [SerializeField] private float m_tremorAtWarningEnd = 0.55f;
+        [SerializeField] private float m_tremorAtWarningEnd = 0.75f;
 
         [Tooltip("Camera tremor (0..1) while the deck is going.")]
         [Range(0f, 1f)]
@@ -209,6 +209,8 @@ namespace RootsDance.Environment
         private bool m_hasCollapsed;
         private bool m_isPlaying;
         private bool m_releaseRequested;
+        private bool m_hasSoundPosition;
+        private Vector3 m_soundPosition;
 
         private void OnEnable()
         {
@@ -335,7 +337,9 @@ namespace RootsDance.Environment
             await Awaitable.WaitForSecondsAsync(m_releaseDelaySeconds, cancellationToken);
 
             m_hasCollapsed = true;
-            Log.Info("[collapse] the deck goes", this);
+            Log.Info("[collapse] the deck goes. " + (m_player == null
+                ? "No player found."
+                : DescribeGround(m_player.transform.position)), this);
 
             List<Rigidbody> chunks = PrepareRig();
             await ReleaseStagedAsync(chunks, cancellationToken);
@@ -466,7 +470,8 @@ namespace RootsDance.Environment
 
                 if (m_player.IsGrounded)
                 {
-                    Log.Warning("[collapse] the player never left the ground; carrying on", this);
+                    Log.Warning("[collapse] the player never left the ground; carrying on. "
+                        + DescribeGround(m_player.transform.position), this);
                 }
                 else
                 {
@@ -683,9 +688,11 @@ namespace RootsDance.Environment
         /// <summary>
         /// Where the collapse sounds from: the middle of the rig's geometry, not its pivot. An
         /// imported rig's pivot is wherever the exporter left it, and these cues are 3D with a
-        /// 30-45 m linear rolloff — a pivot parked at the scene origin puts the whole collapse far
-        /// enough away to be inaudible while the player falls through it. Renderer bounds are in
-        /// world space and cannot be wrong about where the deck actually is.
+        /// 25-45 m linear rolloff — a pivot parked at the scene origin puts the whole collapse far
+        /// enough away to be inaudible while the player falls through it. Computed from the mesh
+        /// bounds through each transform rather than from <see cref="Renderer.bounds"/>: the
+        /// warning plays while the rig is still inactive, and an inactive renderer has no bounds
+        /// to give — that is a collapse groaning from the origin, 130 m away, in silence.
         /// </summary>
         private Vector3 SoundPosition()
         {
@@ -694,21 +701,37 @@ namespace RootsDance.Environment
                 return transform.position;
             }
 
-            Renderer[] renderers = m_collapseRig.GetComponentsInChildren<Renderer>(true);
-
-            if (renderers.Length == 0)
+            if (!m_hasSoundPosition)
             {
-                return m_collapseRig.transform.position;
+                MeshFilter[] filters = m_collapseRig.GetComponentsInChildren<MeshFilter>(true);
+                bool any = false;
+                Bounds bounds = default;
+
+                for (int i = 0; i < filters.Length; i++)
+                {
+                    if (filters[i].sharedMesh == null)
+                    {
+                        continue;
+                    }
+
+                    Vector3 centre = filters[i].transform.TransformPoint(filters[i].sharedMesh.bounds.center);
+
+                    if (!any)
+                    {
+                        bounds = new Bounds(centre, Vector3.zero);
+                        any = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(centre);
+                    }
+                }
+
+                m_soundPosition = any ? bounds.center : m_collapseRig.transform.position;
+                m_hasSoundPosition = true;
             }
 
-            Bounds bounds = renderers[0].bounds;
-
-            for (int i = 1; i < renderers.Length; i++)
-            {
-                bounds.Encapsulate(renderers[i].bounds);
-            }
-
-            return bounds.center;
+            return m_soundPosition;
         }
 
         private void SetTremor(float amount01)
@@ -787,6 +810,27 @@ namespace RootsDance.Environment
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Names whatever is holding the player up, for the one warning that needs it: a player
+        /// who did not fall is standing on something, and the fix depends entirely on what.
+        /// </summary>
+        private static string DescribeGround(Vector3 playerPosition)
+        {
+            RaycastHit hit;
+
+            if (!Physics.Raycast(playerPosition + Vector3.up * 0.5f, Vector3.down, out hit, 6f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                return $"Player at {playerPosition:F2}; nothing within 6 m below.";
+            }
+
+            Transform ground = hit.collider.transform;
+            Rigidbody body = hit.rigidbody;
+            return $"Player at {playerPosition:F2}; standing on '{ground.name}' (scene '{ground.gameObject.scene.name}', "
+                + $"layer {LayerMask.LayerToName(ground.gameObject.layer)}, {hit.distance - 0.5f:F2} m below, "
+                + (body == null ? "static" : body.isKinematic ? "kinematic body" : "dynamic body") + ").";
         }
 
         private void CollectPlayerColliders()

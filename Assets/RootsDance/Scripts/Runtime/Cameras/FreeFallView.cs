@@ -95,14 +95,14 @@ namespace RootsDance.Cameras
 
         [Header("Tremor")]
         [Tooltip("Rotational jitter at full tremor, degrees. Driven by whatever is shaking the floor "
-            + "(the deck collapse) through SetTremor; sits at zero otherwise. Kept well under the "
-            + "wind — a tremor is felt through the feet, not seen.")]
+            + "(the deck collapse) through SetTremor; sits at zero otherwise. Past the panic jitter "
+            + "(0.9°): a structure about to go has to be unmistakable, not felt.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorDegrees = 0.45f;
+        [SerializeField] private float m_tremorDegrees = 1.4f;
 
         [Tooltip("Vertical jitter at full tremor, metres.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorMeters = 0.012f;
+        [SerializeField] private float m_tremorMeters = 0.035f;
 
         [Tooltip("Tremor noise rate, Hz. Higher than the wind: a structure buzzes before it goes.")]
         [Min(0.1f)]
