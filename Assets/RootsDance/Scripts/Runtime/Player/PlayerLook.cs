@@ -5,10 +5,9 @@ namespace RootsDance.Player
 {
     /// <summary>
     /// Yaw on the player root, pitch on the head transform. The Cinemachine camera follows the head
-    /// and must not drive the same axes — one owner per axis, or the view fights itself. Rotation
-    /// only applies while the look-hold input is pressed, so an ordinary click (e.g. Attack) never
-    /// drags the view through whatever incidental mouse delta happened on the same frame. Raw mouse
-    /// delta is exponentially smoothed before use — see LookSmoothTime on PlayerConfigSO.
+    /// and must not drive the same axes — one owner per axis, or the view fights itself. Pointer
+    /// delta directly rotates the view, while stick input represents a rotation rate in degrees per
+    /// second. Pointer delta can optionally be exponentially smoothed via PlayerConfigSO.
     /// </summary>
     [RequireComponent(typeof(PlayerInputReader))]
     public class PlayerLook : MonoBehaviour
@@ -17,6 +16,9 @@ namespace RootsDance.Player
         [SerializeField] private Transform m_head;
 
         [SerializeField] private PlayerConfigSO m_config;
+
+        [Tooltip("The player's persisted mouse sensitivity and Y-axis preference.")]
+        [SerializeField] private ControlSettingsSO m_controlSettings;
 
         [Tooltip("Lock and hide the cursor while this component is enabled.")]
         [SerializeField] private bool m_lockCursor = true;
@@ -41,24 +43,18 @@ namespace RootsDance.Player
 
         private void Update()
         {
-            if (m_config == null || m_head == null || !m_input.IsLookHeld)
+            if (m_config == null || m_head == null)
             {
                 return;
             }
 
-            Vector2 rawLook = m_input.LookInput * m_config.LookSensitivity;
+            bool isDelta;
+            Vector2 lookInput = m_input.ReadLookInput(out isDelta);
+            Vector2 lookRotation = GetLookRotation(lookInput, isDelta);
 
-            // A mouse reports movement at its own polling rate, not the render frame rate, so the
-            // raw per-frame delta arrives in an uneven stair-step (some frames get none, the next
-            // gets a double share). An exponential moving average removes that without adding
-            // perceptible input lag; the dt-based factor keeps the smoothing framerate independent.
-            float smoothTime = m_config.LookSmoothTime;
-            float t = smoothTime <= 0f ? 1f : 1f - Mathf.Exp(-Time.deltaTime / smoothTime);
-            m_smoothedLook = Vector2.Lerp(m_smoothedLook, rawLook, t);
+            transform.Rotate(0f, lookRotation.x, 0f, Space.Self);
 
-            transform.Rotate(0f, m_smoothedLook.x, 0f, Space.Self);
-
-            m_pitch = Mathf.Clamp(m_pitch - m_smoothedLook.y, -m_config.PitchLimitUp, m_config.PitchLimitDown);
+            m_pitch = Mathf.Clamp(m_pitch - lookRotation.y, -m_config.PitchLimitUp, m_config.PitchLimitDown);
             m_head.localRotation = Quaternion.Euler(m_pitch, 0f, 0f);
         }
 
@@ -69,6 +65,35 @@ namespace RootsDance.Player
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
+        }
+
+        private Vector2 GetLookRotation(Vector2 lookInput, bool isDelta)
+        {
+            if (m_controlSettings != null && m_controlSettings.IsYAxisInverted)
+            {
+                lookInput.y = -lookInput.y;
+            }
+
+            if (isDelta)
+            {
+                float multiplier = m_controlSettings == null
+                    ? ControlSettingsSO.k_DefaultMouseSensitivityMultiplier
+                    : m_controlSettings.MouseSensitivityMultiplier;
+                return SmoothPointerLook(lookInput * (m_config.LookSensitivity * multiplier));
+            }
+
+            m_smoothedLook = Vector2.zero;
+            return lookInput * (m_config.GamepadLookSpeed * Time.deltaTime);
+        }
+
+        private Vector2 SmoothPointerLook(Vector2 rawLook)
+        {
+            // Pointer delta arrives in uneven per-frame steps when its polling cadence differs from
+            // the render rate. The optional exponential average is framerate independent.
+            float smoothTime = m_config.LookSmoothTime;
+            float t = smoothTime <= 0f ? 1f : 1f - Mathf.Exp(-Time.deltaTime / smoothTime);
+            m_smoothedLook = Vector2.Lerp(m_smoothedLook, rawLook, t);
+            return m_smoothedLook;
         }
     }
 }
