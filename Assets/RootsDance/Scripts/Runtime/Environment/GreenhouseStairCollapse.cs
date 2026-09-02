@@ -198,6 +198,11 @@ namespace RootsDance.Environment
         [Min(1f)]
         [SerializeField] private float m_settleSeconds = 10f;
 
+        [Header("Roof")]
+        [Tooltip("What the roof lets go of while the deck comes down — the hanging moss. Empty "
+            + "and the roof keeps everything.")]
+        [SerializeField] private GreenhouseRoofShedding m_roofShedding;
+
         [Header("After the fall")]
         [Tooltip("Raised once the player is back on the ground after the fall. This is what wakes "
             + "the boss, unlocks the exits and arms the exterior stream — nothing before this "
@@ -331,6 +336,11 @@ namespace RootsDance.Environment
                 Release(chunks[i]);
             }
 
+            if (m_roofShedding != null)
+            {
+                m_roofShedding.ShedInstantly();
+            }
+
             FinishAsync(destroyCancellationToken);
         }
 
@@ -458,6 +468,12 @@ namespace RootsDance.Environment
 
             SetActive(m_collapseEffects, true);
             SetTremor(m_tremorDuringCollapse);
+
+            // The roof sheds through the same window as the deck, and a little past it.
+            if (m_roofShedding != null)
+            {
+                m_roofShedding.Shed(times.Length > 0 ? times[times.Length - 1] : 0f, m_playerColliders);
+            }
 
             float start = Time.time;
             int released = 0;

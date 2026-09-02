@@ -562,6 +562,7 @@ GameObject:
   m_Component:
   - component: {fileID: 979356575}
   - component: {fileID: 979356576}
+  - component: {fileID: 979356577}
   m_Layer: 0
   m_Name: _StairCollapse
   m_TagString: Untagged
@@ -638,10 +639,33 @@ MonoBehaviour:
   m_impulse: 1.5
   m_maxSpin: 3
   m_settleSeconds: 10
+  m_roofShedding: {fileID: 979356577}
   m_flagOnLanded: flow.chase_started
   m_landedFlagDelaySeconds: 1
   m_leaveGroundTimeoutSeconds: 3
   m_landingTimeoutSeconds: 8
+--- !u!114 &979356577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979356574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ae1788a66544b1692cc3e1b46767265, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.GreenhouseRoofShedding
+  m_rootName: HangingMoss_RoofAdditions
+  m_fraction: 1
+  m_earliestSeconds: 0.4
+  m_trailingSeconds: 2
+  m_mass: 3
+  m_drag: 1.1
+  m_angularDrag: 1.5
+  m_maxSpin: 1.2
+  m_maxDrift: 0.6
+  m_settleSeconds: 12
 --- !u!1001 &1390809479
 PrefabInstance:
   m_ObjectHideFlags: 0
