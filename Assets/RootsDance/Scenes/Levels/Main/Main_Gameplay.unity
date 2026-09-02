@@ -1560,15 +1560,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &532922591 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8287130015030841660, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6408187968081166693, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 532922589}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 532922594}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c7dc3637573a43fca4e146eb1aecdcc, type: 3}
+  m_Script: {fileID: 11500000, guid: cc899942443b54b5eb13ac69120a3234, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetAnimatorView
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HelmetArmsView
 --- !u!4 &532922592 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5715784304254550286, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
@@ -4290,6 +4290,9 @@ MonoBehaviour:
   m_turnOutSeconds: 0.5
   m_holdSeconds: 0.45
   m_returnSeconds: 0.4
+  m_lookBackTargetName: FlowerSprite
+  m_maxTargetDegrees: 170
+  m_targetPitchLimit: 35
   m_shakeWhileLookingBack: 0.45
 --- !u!114 &1834691133
 MonoBehaviour:
@@ -4317,6 +4320,14 @@ MonoBehaviour:
   m_rollHz: 0.7
   m_fovBoostDegrees: 5
   m_windSmoothSeconds: 0.25
+  m_tremorDegrees: 8
+  m_tremorMeters: 0.16
+  m_tremorHz: 9
+  m_tremorSmoothSeconds: 0.5
+  m_swayDegrees: 6.5
+  m_swayHz: 0.55
+  m_tremorFovDegrees: 4
+  m_kickSeconds: 0.35
   m_landDipMeters: 0.13
   m_landPitchDegrees: 5
   m_landSeconds: 0.5

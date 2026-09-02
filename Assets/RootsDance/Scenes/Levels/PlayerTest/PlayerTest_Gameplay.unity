@@ -635,8 +635,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14c9273173d7e4263acb8249d983e7f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.HelmetHudView
-  m_helmetViewBehaviour: {fileID: 2142566749}
-  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_helmetViewBehaviour: {fileID: 719944782}
   m_visorRoot: {fileID: 16530718}
   m_liftDelay: 0.3
   m_liftDuration: 0.4
@@ -1173,17 +1172,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7446a6f54c8184e09b06a88622412e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerInputReader
---- !u!114 &532922596 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6295360982917947931, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-  m_PrefabInstance: {fileID: 532922589}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a407ebae978d9466aafbe6874f5dfe19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.InteractionRaycaster
 --- !u!1 &532922597 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
@@ -1206,7 +1194,7 @@ MonoBehaviour:
   m_suspendedWhileReading:
   - {fileID: 532922594}
   - {fileID: 532922593}
-  - {fileID: 532922596}
+  - {fileID: 0}
   m_restFill: 0.55
   m_zoomedFill: 0.92
   m_zoomMetresPerSecond: 0.35
@@ -1218,6 +1206,19 @@ MonoBehaviour:
   m_readEulerOffset: {x: 0, y: 0, z: 0}
   m_raiseSeconds: 0.45
   m_lowerSeconds: 0.35
+  m_tooDarkHint: "\u592A\u6697\u4E86\uFF0C\u770B\u4E0D\u6E05\u2026\u2026"
+  m_darkReadLuminance: 0.25
+--- !u!114 &719944782 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6408187968081166693, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_PrefabInstance: {fileID: 532922589}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 532922592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc899942443b54b5eb13ac69120a3234, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HelmetArmsView
 --- !u!1 &1052218109
 GameObject:
   m_ObjectHideFlags: 0
@@ -1943,17 +1944,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 300}
   m_SizeDelta: {x: 1240, y: 120}
   m_Pivot: {x: 0.5, y: 0}
---- !u!114 &2142566749 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8287130015030841660, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-  m_PrefabInstance: {fileID: 532922589}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 532922592}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c7dc3637573a43fca4e146eb1aecdcc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetAnimatorView
 --- !u!114 &2142566750
 MonoBehaviour:
   m_ObjectHideFlags: 0
