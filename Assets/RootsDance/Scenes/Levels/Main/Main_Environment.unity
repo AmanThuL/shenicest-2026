@@ -85837,6 +85837,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ResearchPosterStand
       objectReference: {fileID: 0}
+    - target: {fileID: 8095971655394804723, guid: 5589ee1dbc7de47d5b2cac3df0adb80f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
