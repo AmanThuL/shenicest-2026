@@ -98,11 +98,11 @@ namespace RootsDance.Cameras
             + "(the deck collapse) through SetTremor; sits at zero otherwise. Past the panic jitter "
             + "(0.9°): a structure about to go has to be unmistakable, not felt.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorDegrees = 1.4f;
+        [SerializeField] private float m_tremorDegrees = 2.6f;
 
         [Tooltip("Vertical jitter at full tremor, metres.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorMeters = 0.035f;
+        [SerializeField] private float m_tremorMeters = 0.07f;
 
         [Tooltip("Tremor noise rate, Hz. Higher than the wind: a structure buzzes before it goes.")]
         [Min(0.1f)]
@@ -112,6 +112,20 @@ namespace RootsDance.Cameras
             + "swells rather than steps.")]
         [Min(0f)]
         [SerializeField] private float m_tremorSmoothSeconds = 0.5f;
+
+        [Tooltip("Slow roll under the jitter at full tremor, degrees: the whole structure swaying, "
+            + "not just the floor buzzing.")]
+        [Min(0f)]
+        [SerializeField] private float m_swayDegrees = 1.6f;
+
+        [Tooltip("Sway rate, Hz.")]
+        [Min(0.05f)]
+        [SerializeField] private float m_swayHz = 0.8f;
+
+        [Tooltip("Longest a debris kick lasts, seconds. The dip and pitch of a landing, scaled by "
+            + "how hard and how near the hit was.")]
+        [Min(0.05f)]
+        [SerializeField] private float m_kickSeconds = 0.35f;
 
         [Header("Landing")]
         [Tooltip("How deep the view dips on a full-strength landing, in metres.")]
@@ -145,6 +159,8 @@ namespace RootsDance.Cameras
 
         private float m_tremorTarget;
         private float m_tremorSmoothed;
+        private float m_kickTime = float.NegativeInfinity;
+        private float m_kickStrength;
 
         /// <summary>0..1 — how hard the fall currently reads. Read by tests and tools.</summary>
         public float WindStrength => m_windSmoothed;
@@ -159,6 +175,26 @@ namespace RootsDance.Cameras
         public void SetTremor(float amount01)
         {
             m_tremorTarget = Mathf.Clamp01(amount01);
+        }
+
+        /// <summary>
+        /// Something heavy just hit the ground near the player: a short dip and nod, the landing's
+        /// own shape at <paramref name="strength01"/> of its depth. A harder kick replaces a softer
+        /// one still playing; a softer one waits its turn.
+        /// </summary>
+        public void Kick(float strength01)
+        {
+            strength01 = Mathf.Clamp01(strength01);
+            float now = Time.time;
+            bool playing = now - m_kickTime < m_kickSeconds;
+
+            if (playing && strength01 <= m_kickStrength)
+            {
+                return;
+            }
+
+            m_kickTime = now;
+            m_kickStrength = strength01;
         }
 
         protected override void Awake()
@@ -224,23 +260,33 @@ namespace RootsDance.Cameras
                 * m_landingStrength;
 
             float tremorLift = 0f;
+            float tremorSide = 0f;
 
             if (m_tremorSmoothed > 0.0001f)
             {
+                // Perlin sits in roughly 0.3..0.7, so the jitter is scaled up to reach its
+                // authored degrees rather than a third of them.
                 float tremorTime = now * m_tremorHz;
-                yaw += (Mathf.PerlinNoise(tremorTime, m_seed + 7f) - 0.5f) * 2f * m_tremorDegrees * m_tremorSmoothed;
-                pitch += (Mathf.PerlinNoise(m_seed + 7f, tremorTime) - 0.5f) * 2f * m_tremorDegrees * m_tremorSmoothed;
-                roll += (Mathf.PerlinNoise(tremorTime, m_seed + 13f) - 0.5f) * m_tremorDegrees * m_tremorSmoothed;
-                tremorLift = (Mathf.PerlinNoise(m_seed + 13f, tremorTime) - 0.5f) * 2f * m_tremorMeters * m_tremorSmoothed;
+                float gain = 4f * m_tremorDegrees * m_tremorSmoothed;
+                yaw += (Mathf.PerlinNoise(tremorTime, m_seed + 7f) - 0.5f) * gain;
+                pitch += (Mathf.PerlinNoise(m_seed + 7f, tremorTime) - 0.5f) * gain;
+                roll += (Mathf.PerlinNoise(tremorTime, m_seed + 13f) - 0.5f) * gain * 0.6f;
+                roll += Mathf.Sin(now * m_swayHz * 2f * Mathf.PI) * m_swayDegrees * m_tremorSmoothed;
+                pitch += Mathf.Sin(now * m_swayHz * 2f * Mathf.PI * 0.5f + 1.3f) * m_swayDegrees * 0.5f * m_tremorSmoothed;
+                tremorLift = (Mathf.PerlinNoise(m_seed + 13f, tremorTime) - 0.5f) * 4f * m_tremorMeters * m_tremorSmoothed;
+                tremorSide = (Mathf.PerlinNoise(m_seed + 19f, tremorTime) - 0.5f) * 2f * m_tremorMeters * m_tremorSmoothed;
             }
 
-            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f && m_tremorSmoothed <= 0.0001f)
+            float kick = FreeFallResponse.LandingDip01(now - m_kickTime, m_kickSeconds) * m_kickStrength;
+
+            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f && m_tremorSmoothed <= 0.0001f
+                && kick <= 0.0001f)
             {
                 return;
             }
 
-            pitch += dip * m_landPitchDegrees;
-            Vector3 offset = new Vector3(0f, lift - dip * m_landDipMeters + tremorLift, 0f);
+            pitch += (dip + kick) * m_landPitchDegrees;
+            Vector3 offset = new Vector3(tremorSide, lift - (dip + kick) * m_landDipMeters + tremorLift, 0f);
 
             state.PositionCorrection += state.RawOrientation * offset;
             state.OrientationCorrection = state.OrientationCorrection * Quaternion.Euler(pitch, yaw, roll);

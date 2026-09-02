@@ -120,7 +120,8 @@ namespace RootsDance.App
             }
 
             Log.Warning($"Unloading the second copy of scene '{duplicate.name}'.", null);
-            SceneManager.UnloadSceneAsync(duplicate);
+            AsyncOperation unload = SceneManager.UnloadSceneAsync(duplicate);
+            unload.allowSceneActivation = true;
         }
 
         private void OnEnable()

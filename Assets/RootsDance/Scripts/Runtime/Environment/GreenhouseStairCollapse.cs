@@ -18,13 +18,14 @@ namespace RootsDance.Environment
     /// The observation deck's collapse, played as a beat rather than dropped as a physics event.
     /// <para>
     /// The doomed circulation choice starts it. First the <b>warning</b>: the floor trembles
-    /// through the camera, the sub-bass groan and the metal creaks come and go, dust falls — and
+    /// through the camera, the sub-bass groan comes and goes, dust falls — and
     /// nothing moves, for as long as the sprite's outburst (DLG-009) takes to finish. Only when
     /// that conversation raises <see cref="WorldFlags.k_WrongCycleOutburstDone"/> does the deck
     /// start to <b>go</b>: one chunk on the far side, a pause, a second, then faster and faster
     /// until the rest of the ring lets go as one avalanche that ends under the player's feet. The
     /// player falls with the last of it; <see cref="FreeFallView"/> owns what the camera does about
-    /// that. Once they are on the floor again — and only then — <see cref="m_flagOnLanded"/> goes
+    /// that, and every chunk that lands near the player kicks it — so a player who was on the
+    /// floor below, not on the deck, still stands inside the collapse. Once they are on the floor again — and only then — <see cref="m_flagOnLanded"/> goes
     /// up, which is the flag that wakes the boss, unlocks the exits and arms the exterior stream.
     /// </para>
     /// <para>
@@ -133,14 +134,6 @@ namespace RootsDance.Environment
         [Min(1f)]
         [SerializeField] private float m_warningRepeatSeconds = 6.5f;
 
-        [Tooltip("A metal creak, scattered through the warning and used as the snap of the first "
-            + "few breaks.")]
-        [SerializeField] private AudioCueSO m_creakCue;
-
-        [Tooltip("Mean seconds between creaks during the warning; each gap is randomised around it.")]
-        [Min(0.2f)]
-        [SerializeField] private float m_creakIntervalSeconds = 2.2f;
-
         [Tooltip("The structure coming apart — the long body of the collapse.")]
         [SerializeField] private AudioCueSO m_collapseCue;
 
@@ -149,11 +142,19 @@ namespace RootsDance.Environment
         [Min(0)]
         [SerializeField] private int m_collapseCueRelease = 1;
 
-        [Tooltip("First debris hit, after the first chunk has had time to reach anything.")]
+        [Tooltip("A chunk hitting something. Played at the contact point of every chunk's first "
+            + "impact, throttled by the cue's own cooldown — the sound lands where and when the "
+            + "rubble does.")]
         [SerializeField] private AudioCueSO m_debrisCue;
 
-        [Min(0f)]
-        [SerializeField] private float m_debrisDelaySeconds = 2.2f;
+        [Tooltip("Impacts closer than this to the player kick the camera; the kick scales with "
+            + "closeness and closing speed.")]
+        [Min(1f)]
+        [SerializeField] private float m_impactKickRadius = 14f;
+
+        [Tooltip("Closing speed, m/s, at which an impact right beside the player is a full kick.")]
+        [Min(1f)]
+        [SerializeField] private float m_fullKickSpeed = 9f;
 
         [Tooltip("The long tail of rubble still finding its place, after the last chunk goes.")]
         [SerializeField] private AudioCueSO m_debrisSettleCue;
@@ -357,7 +358,6 @@ namespace RootsDance.Environment
 
             float start = Time.time;
             float nextWarning = start;
-            float nextCreak = start + UnityEngine.Random.Range(0.4f, 1.2f);
 
             while (true)
             {
@@ -377,12 +377,6 @@ namespace RootsDance.Environment
                 {
                     Play(m_warningCue);
                     nextWarning = Time.time + m_warningRepeatSeconds;
-                }
-
-                if (Time.time >= nextCreak)
-                {
-                    Play(m_creakCue);
-                    nextCreak = Time.time + m_creakIntervalSeconds * UnityEngine.Random.Range(0.55f, 1.45f);
                 }
 
                 await Awaitable.NextFrameAsync(cancellationToken);
@@ -410,7 +404,6 @@ namespace RootsDance.Environment
 
             SetActive(m_collapseEffects, true);
             SetTremor(m_tremorDuringCollapse);
-            PlayLaterAsync(m_debrisCue, m_debrisDelaySeconds, cancellationToken);
 
             float start = Time.time;
             int released = 0;
@@ -428,11 +421,6 @@ namespace RootsDance.Environment
                     if (released == m_collapseCueRelease)
                     {
                         Play(m_collapseCue);
-                    }
-
-                    if (released < 3)
-                    {
-                        Play(m_creakCue);
                     }
 
                     released++;
@@ -604,7 +592,36 @@ namespace RootsDance.Environment
             body.linearVelocity = (inward * 1.0f + jitter + Vector3.up * 0.3f + Vector3.down * 0.7f) * m_impulse;
             body.angularVelocity = UnityEngine.Random.insideUnitSphere * m_maxSpin;
 
+            body.gameObject.AddComponent<DebrisImpactReporter>().Impacted += OnDebrisImpact;
             RestoreFrictionLaterAsync(collider, destroyCancellationToken);
+        }
+
+        /// <summary>
+        /// A chunk has landed: the hit sounds from where it hit, and if it was near the player the
+        /// camera takes the blow — the closer and the faster, the harder.
+        /// </summary>
+        private void OnDebrisImpact(Vector3 point, float speed)
+        {
+            if (m_debrisCue != null && m_audioChannel != null)
+            {
+                m_audioChannel.RaiseEvent(new AudioCueRequest(m_debrisCue, point));
+            }
+
+            if (m_view == null || m_player == null)
+            {
+                return;
+            }
+
+            float distance = Vector3.Distance(point, m_player.transform.position);
+
+            if (distance >= m_impactKickRadius)
+            {
+                return;
+            }
+
+            float closeness = 1f - distance / m_impactKickRadius;
+            float hardness = Mathf.Clamp01(speed / m_fullKickSpeed);
+            m_view.Kick(closeness * hardness);
         }
 
         /// <summary>

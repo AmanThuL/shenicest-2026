@@ -6,9 +6,11 @@
   Credit is optional; the pack may be used in commercial projects.
 - **Downloaded:** 2026-08-27, directly from the vendor URL above.
 - **Source root:** the zip's `PNG (Transparent)/` folder (512 × 512 sprites with alpha) — paths below are relative to it.
-- **Copied files** (2 of 80):
+- **Copied files** (7 of 80):
   - `circle_05.png` — soft round blob; the 污染光点 (contamination motes) sprite.
   - `light_01.png` — soft glow with faint concentric rings; the 孢子 (spores) sprite.
+  - `smoke_01.png`, `smoke_03.png`, `smoke_05.png` — soft smoke wisps; the deck-collapse dust (`DeckCollapseVfxBuilder`).
+  - `dirt_01.png`, `dirt_02.png` — small dark grit; the grit shed by the deck under strain.
 
 Copied verbatim; no local edits. The `PNG (Black background)`, `Rotated` and `Unity samples` folders were not copied.
 
