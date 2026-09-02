@@ -21,7 +21,7 @@ MonoBehaviour:
   m_groundLayers:
     serializedVersion: 2
     m_Bits: 256
-  m_groundClearance: 1
+  m_groundClearance: 0.05
   m_useAnchorHeight: 1
   m_timeOfDay: 0
   m_flags: []

@@ -1597,7 +1597,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.ArmsHeightRig
   m_standingLocalY: 0
-  m_playerHeight: 1.75
+  m_playerHeight: 1.62
   m_groundOffset: 0.35
   m_riseCurve:
     serializedVersion: 2

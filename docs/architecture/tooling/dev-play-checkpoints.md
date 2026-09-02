@@ -22,7 +22,7 @@ which only adds the missing defaults and never overwrites a tuned one).
 | Where | Anchor Name | A direct child of `_Anchors` in any loaded part of the checkpoint's level. Main uses the orange spheres placed by `TerrainGreyboxBuilder`; Briggs Interior keeps its four anchors in `BriggsInterior_Gameplay`. Preferred: move the anchor, then update the asset fallback position to match. |
 | Where | Position | Used when Anchor Name is empty or the anchor is missing from the scene. |
 | Where | Yaw | Facing in degrees around Y; 0 looks down +Z (the route direction). |
-| Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 1 m (the capsule is 1.5 m tall, centred on the root). |
+| Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 0.05 m: the Player root is the feet (capsule 1.7 m tall, centre y 0.85), so the root stands just above the ground. |
 | World State | Time of day | `Level Default` (emit nothing — the level's `TimeOfDayController` decides), `Day` or `Night`. Applied *before* the flags, as a `SetTimeOfDayCommand`, so the lighting is already right on the first frame you control. |
 | World State | Flags | `WorldFlags` ids raised before you take control, applied in order. Dropdown lists every constant in `WorldFlags.cs`. |
 | World State | Recorded Targets | `InvestigationTargetSO`s already in the official report (`AddReportEntryCommand`). |

@@ -146,7 +146,8 @@ namespace RootsDance.Companion
                     ? toSprite.normalized
                     : m_player.forward;
 
-                return m_player.position + direction * m_returnStandoff + Vector3.up * 1.2f;
+                // The player root is the feet; 2.1 m up is just over her head.
+                return m_player.position + direction * m_returnStandoff + Vector3.up * 2.1f;
             }
 
             if (stop == null || stop.m_point == null)
