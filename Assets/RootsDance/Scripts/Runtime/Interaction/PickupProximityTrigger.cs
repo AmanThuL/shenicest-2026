@@ -61,9 +61,15 @@ namespace RootsDance.Interaction
         [SerializeField] private StringEventChannelSO m_promptChanged;
 
         [Header("Tuning")]
-        [Tooltip("Metres. The player must be at least this close for a pick-up to be offered.")]
+        [Tooltip("Metres. The player must be at least this close for a pick-up to be offered. "
+            + "Arm's reach, not sight range: the grab clip's hand has to plausibly touch the prop.")]
         [Range(0.5f, 20f)]
-        [SerializeField] private float m_range = 3f;
+        [SerializeField] private float m_range = 1.5f;
+
+        [Tooltip("Seconds for the reached-for prop to glide the last stretch to the hand while "
+            + "the grab clip plays, so the Attach frame closes on something it is touching.")]
+        [Range(0.05f, 1.5f)]
+        [SerializeField] private float m_takeGlideSeconds = 0.45f;
 
         [Tooltip("Key that puts down what the hand is holding.")]
         [SerializeField] private Key m_dropKey = Key.G;
@@ -76,9 +82,11 @@ namespace RootsDance.Interaction
         [SerializeField] private string m_swapPromptFormat = "[G] 先放下 {1} 才能拾取 {0}";
 
         private readonly List<Vector3> m_points = new List<Vector3>();
+        private Transform m_reachHand;
         private GroundPickup m_inReach;
         private GroundPickup m_held;
         private GroundPickup m_taking;
+        private bool m_dropping;
         private string m_lastPrompt = string.Empty;
 
         /// <summary>What the pick button would take right now, or null.</summary>
@@ -131,6 +139,7 @@ namespace RootsDance.Interaction
             if (m_director != null)
             {
                 m_director.ActionFinished += OnActionFinished;
+                m_director.HandEventRaised += OnHandEvent;
             }
         }
 
@@ -138,6 +147,7 @@ namespace RootsDance.Interaction
         {
             if (m_director != null)
             {
+                m_director.HandEventRaised -= OnHandEvent;
                 m_director.ActionFinished -= OnActionFinished;
             }
 
@@ -155,6 +165,8 @@ namespace RootsDance.Interaction
 
             // Found even while the hand is full: the hint has to be able to say what you would be
             // picking up if you put down what you are holding.
+            GlideTakenItem();
+
             m_inReach = FindNearestInRange();
 
             Offer();
@@ -277,8 +289,58 @@ namespace RootsDance.Interaction
             Broadcast(string.Empty);
         }
 
+        /// <summary>
+        /// While the grab clip reaches down, the prop closes the gap toward the animated hand —
+        /// the socket is the hold pose, but the hand mid-clip is at the floor, and contact is
+        /// what sells the grab. Falls back to the socket when the rig has no hand.R to find.
+        /// </summary>
+        private void GlideTakenItem()
+        {
+            if (m_taking == null || m_socket == null || m_socket.IsCarrying)
+            {
+                return;
+            }
+
+            CarriedItem item = m_taking.Item;
+
+            if (item == null)
+            {
+                return;
+            }
+
+            if (m_reachHand == null && m_director != null)
+            {
+                foreach (Transform child in m_director.GetComponentsInChildren<Transform>(true))
+                {
+                    if (child.name == "hand.R")
+                    {
+                        m_reachHand = child;
+                        break;
+                    }
+                }
+            }
+
+            Vector3 goal = m_reachHand != null
+                ? m_reachHand.position
+                : m_socket.transform.TransformPoint(item.GripPosition);
+
+            float k = 3f / Mathf.Max(0.05f, m_takeGlideSeconds);
+            float t = 1f - Mathf.Exp(-k * Time.deltaTime);
+            item.transform.position = Vector3.Lerp(item.transform.position, goal, t);
+        }
+
         private void OnActionFinished(string actionId)
         {
+            if (m_dropping && actionId == "drop")
+            {
+                // The clip ran out without its Detach frame. Let go now rather than leaving the
+                // prop welded to the hand.
+                Log.Warning("'drop' finished without a Detach event; releasing now.", this);
+                m_dropping = false;
+                ReleaseCarried();
+                return;
+            }
+
             if (m_taking == null || actionId != m_taking.PickupActionId)
             {
                 return;
@@ -311,6 +373,36 @@ namespace RootsDance.Interaction
                 return;
             }
 
+            if (!m_socket.IsCarrying || m_dropping || m_taking != null)
+            {
+                return;
+            }
+
+            // The authored drop: the clip lowers the hand and its Detach frame lets go with the
+            // hand's own velocity. Instant release is only the fallback for a rig with no arms.
+            if (m_director != null && m_director.TryPlay("drop"))
+            {
+                m_dropping = true;
+                return;
+            }
+
+            ReleaseCarried();
+        }
+
+        /// <summary>The drop clip's own let-go frame; ignored while no drop is running.</summary>
+        private void OnHandEvent(HandSide hand, HandEventKind kind)
+        {
+            if (!m_dropping || hand != HandSide.Right || kind != HandEventKind.Detach)
+            {
+                return;
+            }
+
+            m_dropping = false;
+            ReleaseCarried();
+        }
+
+        private void ReleaseCarried()
+        {
             CarriedItem dropped = m_socket.Detach();
 
             if (dropped == null)

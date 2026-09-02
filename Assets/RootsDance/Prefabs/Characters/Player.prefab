@@ -323,7 +323,7 @@ MonoBehaviour:
   m_director: {fileID: 6881924305928856330}
   m_throwTrigger: {fileID: 1267723497874549201}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_range: 3
+  m_range: 1.5
   m_dropKey: 21
   m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
   m_swapPromptFormat: "[G] \u5148\u653E\u4E0B {1} \u624D\u80FD\u62FE\u53D6 {0}"
@@ -601,7 +601,7 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 7153.9834
+  m_Intensity: 16000
   m_Range: 30
   m_SpotAngle: 36
   m_InnerSpotAngle: 20
