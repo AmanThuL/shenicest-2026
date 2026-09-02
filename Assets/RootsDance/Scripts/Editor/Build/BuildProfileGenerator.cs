@@ -173,6 +173,9 @@ namespace RootsDance.Editor.Build
             // code (Odin, the Input System). Never use Low: it is marked for deprecation.
             PlayerSettings.SetManagedStrippingLevel(standalone, ManagedStrippingLevel.Minimal);
 
+            // Strips vertex streams no material reads (guideline 05 §7.2). Meshes are 71 % of the build.
+            PlayerSettings.stripUnusedMeshComponents = true;
+
             // Metal only — avoids generating excessive shader variants.
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneOSX, false);
             PlayerSettings.SetGraphicsAPIs(

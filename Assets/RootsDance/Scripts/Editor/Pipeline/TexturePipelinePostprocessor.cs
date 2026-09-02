@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using RootsDance.Editor.Build;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +22,13 @@ namespace RootsDance.Editor.Pipeline
     /// Only files whose names follow <c>&lt;Asset&gt;_&lt;Map&gt;</c> are touched. Anything
     /// else is left exactly as the artist configured it and reported once, so this cannot
     /// quietly stomp a deliberate manual setting.
+    /// </para>
+    /// <para>
+    /// Two more rules come from <see cref="AssetSizePolicy"/>, the shared definition the
+    /// build-size audit also checks against: Non Power of 2 is set to ToNearest whenever the
+    /// source size is not a multiple of 4 (block compression needs it, otherwise the texture
+    /// ships uncompressed at 3x the size), and textures under a capped root get a Standalone
+    /// platform override at <see cref="AssetSizePolicy.k_StandaloneMaxSize"/>.
     /// </para>
     /// </remarks>
     public sealed class TexturePipelinePostprocessor : AssetPostprocessor
@@ -62,12 +71,33 @@ namespace RootsDance.Editor.Pipeline
 
             importer.mipmapEnabled = true;
             importer.isReadable = false;
-            importer.npotScale = TextureImporterNPOTScale.None;
             importer.wrapMode = TextureWrapMode.Repeat;
             importer.filterMode = FilterMode.Bilinear;
             importer.textureCompression = TextureImporterCompression.Compressed;
             importer.compressionQuality = (int)TextureCompressionQuality.Normal;
             importer.maxTextureSize = ResolveMaxSize(path);
+
+            int sourceWidth;
+            int sourceHeight;
+            if (!TryReadSourceSize(path, out sourceWidth, out sourceHeight))
+            {
+                importer.GetSourceTextureWidthAndHeight(out sourceWidth, out sourceHeight);
+            }
+
+            // Block compression needs multiples of 4; anything else ships as raw RGBA32 (3x the size).
+            importer.npotScale = AssetSizePolicy.IsMultipleOfFour(sourceWidth, sourceHeight)
+                ? TextureImporterNPOTScale.None
+                : TextureImporterNPOTScale.ToNearest;
+
+            int standaloneCap;
+            if (AssetSizePolicy.TryGetStandaloneMaxSize(path, out standaloneCap))
+            {
+                TextureImporterPlatformSettings standalone = importer.GetPlatformTextureSettings("Standalone");
+                standalone.overridden = true;
+                standalone.maxTextureSize = Mathf.Min(standaloneCap, importer.maxTextureSize);
+                standalone.format = TextureImporterFormat.Automatic;
+                importer.SetPlatformTextureSettings(standalone);
+            }
 
             m_AppliedTo = $"{textureSet}_{kind}";
         }
@@ -104,8 +134,9 @@ namespace RootsDance.Editor.Pipeline
         /// </summary>
         private static int ResolveMaxSize(string path)
         {
-            int width = ReadPngWidth(path);
-            if (width <= 0)
+            int width;
+            int height;
+            if (!TryReadSourceSize(path, out width, out height) || width <= 0)
             {
                 return k_MaxSizeCeiling;
             }
@@ -114,12 +145,16 @@ namespace RootsDance.Editor.Pipeline
         }
 
         /// <summary>
-        /// Reads the width out of a PNG IHDR chunk. The importer does not know the source
-        /// dimensions during OnPreprocessTexture, and Max Size has to be set there.
-        /// Returns 0 for anything that is not a readable PNG.
+        /// Reads the width and height out of the source file's own header. The importer does
+        /// not know the source dimensions during OnPreprocessTexture, and both Max Size and
+        /// the NPOT-4 rule have to be decided there. Handles PNG (IHDR chunk) and JPEG (SOF0/
+        /// SOF2 marker segment); returns false for anything else, or on a read failure.
         /// </summary>
-        private static int ReadPngWidth(string path)
+        private static bool TryReadSourceSize(string path, out int width, out int height)
         {
+            width = 0;
+            height = 0;
+
             try
             {
                 using (FileStream stream = File.OpenRead(path))
@@ -127,22 +162,85 @@ namespace RootsDance.Editor.Pipeline
                     byte[] header = new byte[24];
                     if (stream.Read(header, 0, header.Length) != header.Length)
                     {
-                        return 0;
+                        return false;
                     }
 
-                    if (header[0] != 0x89 || header[1] != 'P' || header[2] != 'N' || header[3] != 'G')
+                    if (header[0] == 0x89 && header[1] == 'P' && header[2] == 'N' && header[3] == 'G')
                     {
-                        return 0;
+                        // Bytes 16..19 are the IHDR width, 20..23 the height, both big-endian.
+                        width = (header[16] << 24) | (header[17] << 16) | (header[18] << 8) | header[19];
+                        height = (header[20] << 24) | (header[21] << 16) | (header[22] << 8) | header[23];
+                        return width > 0 && height > 0;
                     }
 
-                    // Bytes 16..19 are the IHDR width, big-endian.
-                    return (header[16] << 24) | (header[17] << 16) | (header[18] << 8) | header[19];
+                    if (header[0] == 0xFF && header[1] == 0xD8)
+                    {
+                        return TryReadJpegSize(stream, out width, out height);
+                    }
+
+                    return false;
                 }
             }
             catch (IOException)
             {
-                return 0;
+                return false;
             }
+            catch (UnauthorizedAccessException)
+            {
+                // A read-only or permission-denied source file must not abort the import;
+                // the caller falls back to the importer's own reported size.
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Scans JPEG marker segments for the SOF0/SOF1/SOF2 frame header, which carries the
+        /// image's own height and width (big-endian, height first) at offsets 5..8 of the
+        /// segment. Assumes the stream is already known to start with the JPEG SOI marker.
+        /// </summary>
+        private static bool TryReadJpegSize(FileStream stream, out int width, out int height)
+        {
+            width = 0;
+            height = 0;
+            if (stream.Length < 2)
+            {
+                // Seeking past the end of a truncated file would throw out of the caller's guard.
+                return false;
+            }
+
+            stream.Seek(2, SeekOrigin.Begin);
+            var segment = new byte[9];
+            while (stream.Read(segment, 0, 4) == 4)
+            {
+                if (segment[0] != 0xFF)
+                {
+                    return false;
+                }
+
+                byte marker = segment[1];
+                int length = (segment[2] << 8) | segment[3];
+                if (length < 2)
+                {
+                    // A malformed segment length would seek backwards and never progress.
+                    return false;
+                }
+
+                if (marker == 0xC0 || marker == 0xC1 || marker == 0xC2)
+                {
+                    if (stream.Read(segment, 0, 5) != 5)
+                    {
+                        return false;
+                    }
+
+                    height = (segment[1] << 8) | segment[2];
+                    width = (segment[3] << 8) | segment[4];
+                    return width > 0 && height > 0;
+                }
+
+                stream.Seek(length - 2, SeekOrigin.Current);
+            }
+
+            return false;
         }
     }
 }
