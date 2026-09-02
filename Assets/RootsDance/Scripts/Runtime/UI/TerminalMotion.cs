@@ -26,6 +26,9 @@ namespace RootsDance.UI
         /// <summary>Visibility the signal steps through while it locks on. Ends fully lit.</summary>
         private static readonly float[] k_FlickerPattern = { 1f, 0f, 0.75f, 0f, 0.4f, 1f };
 
+        /// <summary>The same ladder walked the other way: lit, unstable, gone. Ends dark.</summary>
+        private static readonly float[] k_LossPattern = { 1f, 0.4f, 1f, 0f, 0.6f, 0f };
+
         /// <summary>Upper bound for the meaningless digits a readout shows before it settles.</summary>
         private const int k_JitterMaxValue = 100;
 
@@ -78,6 +81,50 @@ namespace RootsDance.UI
                 if (group != null)
                 {
                     group.alpha = 1f;
+                }
+            });
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// Signal loss: the element holds, drops out, catches once more and is gone — the same
+        /// unstable ladder <see cref="FlickerLock"/> arrives on, walked the other way. What a
+        /// notice leaves on when it has said its piece and the carrier goes with it.
+        /// <para>
+        /// Ends at zero alpha and leaves the GameObject alone: the caller deactivates it, and must
+        /// wait for the sequence rather than doing it on the same frame, or the flicker is cut off
+        /// at its first step. <c>OnComplete</c> on the returned sequence is the place for that.
+        /// </para>
+        /// </summary>
+        public static Sequence FlickerLoss(CanvasGroup group, TerminalMotionProfile profile)
+        {
+            if (group == null || profile == null)
+            {
+                return null;
+            }
+
+            Kill(group);
+            group.alpha = 1f;
+
+            Sequence sequence = DOTween.Sequence().SetTarget(group);
+
+            for (int i = 0; i < k_LossPattern.Length; i++)
+            {
+                float alpha = k_LossPattern[i];
+                sequence.AppendCallback(() => group.alpha = alpha);
+                sequence.AppendInterval(profile.StepSeconds);
+            }
+
+            sequence.AppendCallback(() => group.alpha = 0f);
+
+            // Interrupting a signal that is on its way out leaves it out, not half lit — the
+            // opposite completed state to FlickerLock's, and the same rule: a killed verb lands.
+            sequence.OnKill(() =>
+            {
+                if (group != null)
+                {
+                    group.alpha = 0f;
                 }
             });
 
