@@ -57,7 +57,10 @@ namespace RootsDance.Player
         [SerializeField] private PlayerInputReader m_input;
 
         [Tooltip("World helmet left behind by the removal — a pickup the hand can take again. "
-            + "Empty keeps the helmet vanishing with the performance.")]
+            + "Leave EMPTY whenever the view hands the helmet over itself: HelmetArmsView puts the "
+            + "real prop in the right hand at the clip's Attach frame, and a prefab here would put "
+            + "a second one on the floor at the player's feet. Only a view that makes the helmet "
+            + "vanish wants this filled.")]
         [SerializeField] private GameObject m_droppedHelmetPrefab;
 
         [Tooltip("Art component implementing IHelmetView. Empty = instant removal (placeholder).")]

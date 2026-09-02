@@ -263,7 +263,7 @@ MonoBehaviour:
   m_warningRequested: {fileID: 11400000, guid: b76d7caf91cd943deb49d3d348c6f10a, type: 2}
   m_warningText: "[ ! ]  \u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u9AD8\u4E8E\u9632\u62A4\u9608\u503C\u3002\u73AF\u5883\u9694\u79BB\u5DF2\u9501\u5B9A\u3002"
   m_input: {fileID: 2523268967826309828}
-  m_droppedHelmetPrefab: {fileID: 4626662453665536754, guid: c54af90fa98e64d058c2216522259d42, type: 3}
+  m_droppedHelmetPrefab: {fileID: 0}
   m_viewBehaviour: {fileID: 6408187968081166693}
 --- !u!114 &8163118375396427749
 MonoBehaviour:
