@@ -123,6 +123,7 @@ GameObject:
   - component: {fileID: 6841962975302966709}
   - component: {fileID: 5093586072011387537}
   - component: {fileID: 1267723497874549201}
+  - component: {fileID: 7249467957965653413}
   - component: {fileID: 9011859582228339412}
   m_Layer: 0
   m_Name: Player
@@ -364,6 +365,26 @@ MonoBehaviour:
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 6.5
   m_actionId: throw
+--- !u!114 &7249467957965653413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b83c4e5e6eef4152a70edf9a15425ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.HarvestProximityTrigger
+  m_socket: {fileID: 7863462782624755283}
+  m_player: {fileID: 6772109266663148318}
+  m_input: {fileID: 2523268967826309828}
+  m_director: {fileID: 6881924305928856330}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 2.5
+  m_actionId: grabGround
+  m_promptFormat: "[E] \u91C7\u96C6{0}"
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
