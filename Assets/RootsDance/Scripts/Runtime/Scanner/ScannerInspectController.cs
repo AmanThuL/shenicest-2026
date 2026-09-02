@@ -161,6 +161,11 @@ namespace RootsDance.Scanner
 
         private void Update()
         {
+            if (m_state != ScannerState.Idle)
+            {
+                Rendering.CloseUpFocus.HoldThisFrame();
+            }
+
             if (m_state != ScannerState.Reading || m_input == null)
             {
                 return;

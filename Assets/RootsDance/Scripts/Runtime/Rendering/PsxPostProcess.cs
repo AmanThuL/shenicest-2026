@@ -84,6 +84,13 @@ namespace RootsDance.Rendering
                 return false;
             }
 
+            // Reading something held to the eye: the coarse grid would eat the writing, so the
+            // whole treatment stands down until the close-up is over (see CloseUpFocus).
+            if (CloseUpFocus.IsHeld)
+            {
+                return false;
+            }
+
             return GateFullscreenShake.Strength > 0f
                 || (grainMode.value ? grainIntensity.value > 0f : intensity.value > 0f);
         }

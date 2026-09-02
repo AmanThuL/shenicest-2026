@@ -122,6 +122,11 @@ namespace RootsDance.Interaction
 
         private void Update()
         {
+            if (m_state != InspectState.Idle)
+            {
+                RootsDance.Rendering.CloseUpFocus.HoldThisFrame();
+            }
+
             if (m_state != InspectState.Reading || m_playerRig.Input == null)
             {
                 return;

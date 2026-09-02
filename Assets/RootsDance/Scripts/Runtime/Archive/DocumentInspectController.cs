@@ -160,6 +160,11 @@ namespace RootsDance.Archive
 
         private void Update()
         {
+            if (m_state != ReadState.Idle)
+            {
+                Rendering.CloseUpFocus.HoldThisFrame();
+            }
+
             if (m_state != ReadState.Reading || m_sheet == null)
             {
                 return;
