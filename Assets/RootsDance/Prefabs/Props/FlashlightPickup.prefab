@@ -136,7 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.CarriedItem
   m_hand: 1
   m_kind: 1
-  m_gripPosition: {x: 0, y: 0, z: 0}
+  m_gripPosition: {x: 0, y: -0.36, z: 0}
   m_gripRotation: {x: 0, y: 0, z: 0, w: 1}
   m_body: {fileID: 2935948881700224080}
   m_colliders:
