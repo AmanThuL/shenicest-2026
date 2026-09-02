@@ -4287,7 +4287,7 @@ MonoBehaviour:
   m_fallSeconds: 1.2
   m_lookBackDegrees: 150
   m_overLeftShoulder: 1
-  m_turnOutSeconds: 0.5
+  m_turnOutSeconds: 0.4
   m_holdSeconds: 0.45
   m_returnSeconds: 0.4
   m_lookBackTargetName: FlowerSprite
