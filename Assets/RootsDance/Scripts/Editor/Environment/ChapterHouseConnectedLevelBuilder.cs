@@ -141,15 +141,12 @@ namespace RootsDance.Editor.Environment
             Light[] lights = lighting.GetComponentsInChildren<Light>(true);
             Light[] fills = lights.Where(light =>
                 light.name.StartsWith("ChapterHouseFill_", StringComparison.Ordinal)).ToArray();
-            Light[] underglow = lights.Where(light =>
-                light.name.StartsWith("ChapterHouseUnderglow_", StringComparison.Ordinal)).ToArray();
 
             if (fills.Length != 4 || fills.Any(light => light.type != LightType.Point)
-                || underglow.Length != 4 || underglow.Any(light => light.type != LightType.Point)
-                || lights.Length != fills.Length + underglow.Length)
+                || lights.Length != fills.Length)
             {
                 throw new InvalidOperationException(
-                    "Connected Chapter House lighting must keep four fill and four underglow lights only.");
+                    "Connected Chapter House lighting must keep its four interior fill lights only.");
             }
 
             Transform volumeTransform = FindTransform(connected, "Global Volume");

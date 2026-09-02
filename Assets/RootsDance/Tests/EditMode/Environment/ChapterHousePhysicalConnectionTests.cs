@@ -64,17 +64,10 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsNotNull(lighting);
                 Light[] lights = lighting.GetComponentsInChildren<Light>(true);
                 Light[] fills = lights.Where(light => light.name.StartsWith("ChapterHouseFill_")).ToArray();
-                Light[] underglow = lights.Where(light =>
-                    light.name.StartsWith("ChapterHouseUnderglow_")).ToArray();
                 Assert.AreEqual(4, fills.Length);
                 Assert.IsTrue(fills.All(light =>
                     light.type == LightType.Point && light.name.StartsWith("ChapterHouseFill_")));
-                Assert.AreEqual(4, underglow.Length);
-                Assert.IsTrue(underglow.All(light =>
-                    light.type == LightType.Point
-                    && light.color.b > light.color.r
-                    && light.intensity > 0f));
-                Assert.AreEqual(8, lights.Length);
+                Assert.AreEqual(4, lights.Length);
                 UnityEngine.Rendering.Volume[] volumes =
                     lighting.GetComponentsInChildren<UnityEngine.Rendering.Volume>(true);
                 Assert.AreEqual(1, volumes.Length);
@@ -204,6 +197,7 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform mycelium = FindTransform(environment, "MyceliumUndercroft");
                 Assert.IsNotNull(mycelium);
                 Assert.Greater(mycelium.GetComponentsInChildren<Renderer>(true).Length, 0);
+                Assert.IsFalse(mycelium.gameObject.activeSelf);
                 Animator animator = mycelium.GetComponent<Animator>();
                 Assert.IsNotNull(animator);
                 Assert.IsNotNull(animator.runtimeAnimatorController);
@@ -226,18 +220,7 @@ namespace RootsDance.Tests.EditMode.Environment
                     }
                 }
 
-                Transform seals = FindTransform(environment, "ChapterHouseUndercroftSeals");
-                Assert.IsNotNull(seals);
-                Renderer[] sealRenderers = seals.GetComponentsInChildren<Renderer>(true);
-                Assert.AreEqual(2, sealRenderers.Length);
-
-                for (int i = 0; i < sealRenderers.Length; i++)
-                {
-                    Assert.That(
-                        AssetDatabase.GetAssetPath(sealRenderers[i].sharedMaterial),
-                        Does.EndWith("ChapterHouseUndercroft_Liner.mat"));
-                    Assert.Less(sealRenderers[i].bounds.max.y, -1f);
-                }
+                Assert.IsNull(FindTransform(environment, "ChapterHouseUndercroftSeals"));
             }
             finally
             {
@@ -246,7 +229,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void ChapterHouseUnderglow_RestoresTheAuthoredEmissionMap()
+        public void ChapterHouseCloth_UsesTheAuthoredBakeInsteadOfTheEdgeGradient()
         {
             SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
 
@@ -258,17 +241,22 @@ namespace RootsDance.Tests.EditMode.Environment
                 Renderer emission = FindTransform(environment, "ClothLandscape_CorridorShell.004")
                     .GetComponent<Renderer>();
                 Assert.IsNotNull(emission);
+                Assert.AreEqual("gradalpha", emission.sharedMaterial.GetTexture("_BaseColorMap").name);
                 Assert.AreEqual("gradbake", emission.sharedMaterial.GetTexture("_EmissiveColorMap").name);
                 Assert.Greater(emission.sharedMaterial.GetFloat("_EmissiveIntensity"), 1000f);
-                Assert.Greater(emission.sharedMaterial.GetColor("_EmissiveColor").b, 0f);
-
-                Transform seals = FindTransform(environment, "ChapterHouseUndercroftSeals");
-                Renderer[] sealRenderers = seals.GetComponentsInChildren<Renderer>(true);
-
-                for (int i = 0; i < sealRenderers.Length; i++)
-                {
-                    Assert.Less(sealRenderers[i].bounds.max.y, emission.bounds.min.y);
-                }
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_SurfaceType"));
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_BlendMode"));
+                Assert.AreEqual(0f, emission.sharedMaterial.GetFloat("_TransparentZWrite"));
+                Renderer cloth = FindTransform(environment, "ClothLandscape_CorridorShell.011")
+                    .GetComponent<Renderer>();
+                Assert.IsNotNull(cloth);
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_BaseColorMap").name);
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(0f, cloth.sharedMaterial.GetFloat("_SurfaceType"));
+                Assert.Greater(cloth.sharedMaterial.GetFloat("_EmissiveIntensity"),
+                    emission.sharedMaterial.GetFloat("_EmissiveIntensity"));
+                Assert.AreEqual(0.3f, cloth.sharedMaterial.GetFloat("_Smoothness"), 0.001f);
+                Assert.IsNull(FindTransform(environment, "ChapterHouseUnderglowLights"));
             }
             finally
             {

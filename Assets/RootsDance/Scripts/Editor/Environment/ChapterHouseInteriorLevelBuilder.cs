@@ -100,10 +100,10 @@ namespace RootsDance.Editor.Environment
         private const string k_DoorsPart = "ClothLandscape_CorridorShell.006";
         private const string k_EmissionPart = "ClothLandscape_CorridorShell.004";
         private const string k_EmissionSurface = "emission";
-        private const float k_UnderglowEmissionNits = 60000f;
-        private const float k_UnderglowLightLumens = 14000f;
-
-        private static readonly Color k_UnderglowColour = new Color(0.055f, 0.42f, 1f);
+        private const string k_ClothSurface = "Material.001";
+        private const string k_EdgeEmissionTexture = "gradbake";
+        private const float k_EdgeEmissionNits = 1500f;
+        private const float k_ClothEmissionNits = 30000f;
 
         /// <summary>How close two loose islands of <see cref="k_DoorsPart"/> have to be, in world
         /// metres, to count as the same door — a leaf and its handle sit centimetres apart; two
@@ -173,9 +173,9 @@ namespace RootsDance.Editor.Environment
 
             // The three bakes with no surface of their own: a gradient wash the author used for
             // ambient tint, and two odds and ends.
-            new SurfaceMapping("Material.001", "gradbake", null),
-            new SurfaceMapping("emission", "gradbake", null),
-            new SurfaceMapping("bacl", "plane", null),
+            new SurfaceMapping(k_ClothSurface, "plane", null, Color.white, 0f, 0.3f),
+            new SurfaceMapping("emission", "gradalpha", null),
+            new SurfaceMapping("bacl", null, null, new Color(0.015f, 0.02f, 0.03f), 0f, 0.08f),
 
             // The catwalk is not part of the chapel and carries no bake, so it is the one surface
             // that has to be a described material rather than a photographed one.
@@ -479,15 +479,46 @@ namespace RootsDance.Editor.Environment
             material.SetFloat("_Smoothness", surface.Smoothness);
             material.SetFloat("_Metallic", surface.Metallic);
 
+            // Start from the deterministic opaque state used by every authored surface. The
+            // emission card below is the sole transparent exception.
+            HDMaterial.SetSurfaceType(material, false);
+            HDMaterial.SetAlphaClipping(material, false);
+
             if (surface.MaterialName == k_EmissionSurface)
             {
-                Texture emissionTexture = LoadTexture(surface.BaseTexture);
+                Texture emissionTexture = LoadTexture(k_EdgeEmissionTexture);
+
+                // ImSPOECIAL is the thin gradient card between the floor and the cloth. In the
+                // source it contributes light without hiding the landscape behind it. Additive
+                // transparency reproduces that compositing: the black part of gradbake vanishes
+                // and only its blue ramp remains. Treating it as opaque produced the black band
+                // that cut across the Unity version.
+                material.SetColor("_BaseColor", Color.black);
                 material.SetTexture("_EmissiveColorMap", emissionTexture);
                 HDMaterial.SetUseEmissiveIntensity(material, true);
-                HDMaterial.SetEmissiveColor(material, k_UnderglowColour);
+                HDMaterial.SetEmissiveColor(material, Color.white);
                 HDMaterial.SetEmissiveIntensity(
                     material,
-                    k_UnderglowEmissionNits,
+                    k_EdgeEmissionNits,
+                    EmissiveIntensityUnit.Nits);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                HDMaterial.SetSurfaceType(material, true);
+                material.SetFloat("_BlendMode", 1f);
+                material.SetFloat("_TransparentZWrite", 0f);
+                material.SetFloat("_EnableFogOnTransparent", 0f);
+            }
+            else if (surface.MaterialName == k_ClothSurface)
+            {
+                // Sketchfab's cloth appearance is baked into plane.png. The original OBJ's MTL
+                // omits that assignment, which previously left the cloth wearing gradbake.png —
+                // the small perimeter card's texture — and made every fold nearly black.
+                Texture clothTexture = LoadTexture(surface.BaseTexture);
+                material.SetTexture("_EmissiveColorMap", clothTexture);
+                HDMaterial.SetUseEmissiveIntensity(material, true);
+                HDMaterial.SetEmissiveColor(material, Color.white);
+                HDMaterial.SetEmissiveIntensity(
+                    material,
+                    k_ClothEmissionNits,
                     EmissiveIntensityUnit.Nits);
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             }
@@ -564,94 +595,18 @@ namespace RootsDance.Editor.Environment
             SetStatic(building);
             Bounds legacyDoorway = SeparateDoors(building, materials);
             Bounds floor = PartBounds(building, k_FloorPart);
-            Bounds emission = PartBounds(building, k_EmissionPart);
             s_roundEntrancePlacement = ChapterHouseRoundEntranceBuilder.Replace(
                 building, geometry, scene, floor, legacyDoorway);
             CreateCollision(building);
             CreateMycelium(building, scene);
             ChapterHouseBridgeRailingBuilder.Place(building);
-            CreateUndercroftSeals(geometry, floor, PartBounds(building, k_BridgePart), emission);
 
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
-            CreateLighting(lighting, bounds, floor, emission);
+            CreateLighting(lighting, bounds, floor);
             CreateScaleReference(props, floor);
 
             EditorSceneManager.SaveScene(scene, ScenePaths.k_ChapterHouseInteriorEnvironment);
             return bounds;
-        }
-
-        /// <summary>
-        /// Closes the two planted pits behind the mycelium without replacing the authored catwalk layout.
-        /// The original floor deliberately stops beside the bridge; these low, matte liners prevent the
-        /// sparse procedural strands from exposing the exterior world through that opening.
-        /// </summary>
-        private static void CreateUndercroftSeals(
-            Transform geometry,
-            Bounds floor,
-            Bounds bridge,
-            Bounds emission)
-        {
-            Transform existing = geometry.Find("ChapterHouseUndercroftSeals");
-
-            if (existing != null)
-            {
-                UnityEngine.Object.DestroyImmediate(existing.gameObject);
-            }
-
-            Transform root = CreateChild("ChapterHouseUndercroftSeals", geometry);
-            Material material = ChapterHouseRoundEntranceBuilder.EnsureUndercroftMaterial();
-            float minimumZ = bridge.min.z + 0.2f;
-            float maximumZ = bridge.max.z - 0.08f;
-            float topY = Mathf.Min(floor.max.y - 1.15f, emission.min.y - 0.12f);
-            const float thickness = 0.18f;
-
-            CreateUndercroftSeal(
-                "UndercroftSeal_West",
-                root,
-                floor.min.x + 0.25f,
-                bridge.min.x + 0.05f,
-                minimumZ,
-                maximumZ,
-                topY,
-                thickness,
-                material);
-            CreateUndercroftSeal(
-                "UndercroftSeal_East",
-                root,
-                bridge.max.x - 0.05f,
-                floor.max.x - 0.25f,
-                minimumZ,
-                maximumZ,
-                topY,
-                thickness,
-                material);
-        }
-
-        private static void CreateUndercroftSeal(
-            string name,
-            Transform parent,
-            float minimumX,
-            float maximumX,
-            float minimumZ,
-            float maximumZ,
-            float topY,
-            float thickness,
-            Material material)
-        {
-            GameObject seal = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            seal.name = name;
-            seal.transform.SetParent(parent, false);
-            seal.transform.localPosition = new Vector3(
-                (minimumX + maximumX) * 0.5f,
-                topY - thickness * 0.5f,
-                (minimumZ + maximumZ) * 0.5f);
-            seal.transform.localScale = new Vector3(
-                maximumX - minimumX,
-                thickness,
-                maximumZ - minimumZ);
-            seal.GetComponent<Renderer>().sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(seal.GetComponent<BoxCollider>());
-            seal.isStatic = true;
         }
 
         /// <summary>
@@ -703,6 +658,9 @@ namespace RootsDance.Editor.Environment
             }
 
             EnsureMyceliumAnimator(mycelium);
+            // Park the procedural pass while the authored cloth landscape is the visual target.
+            // Keeping the object and animator in the scene makes the experiment reversible.
+            mycelium.SetActive(false);
         }
 
         /// <summary>
@@ -903,8 +861,7 @@ namespace RootsDance.Editor.Environment
         private static void CreateLighting(
             Transform parent,
             Bounds bounds,
-            Bounds floor,
-            Bounds emission)
+            Bounds floor)
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_VolumeProfilePath);
 
@@ -950,7 +907,6 @@ namespace RootsDance.Editor.Environment
             CreateFillLight(parent, "ChapterHouseFill_CrossingLow",
                 new Vector3(x, lower, floor.center.z + depth * 0.34f));
 
-            CreateUnderglowLights(parent, emission);
         }
 
         private static void CreateFillLight(Transform parent, string name, Vector3 position)
@@ -966,39 +922,6 @@ namespace RootsDance.Editor.Environment
             light.intensity = 22000f;
             light.range = 14f;
             light.color = new Color(0.86f, 0.84f, 0.78f);
-            light.shadows = LightShadows.None;
-        }
-
-        private static void CreateUnderglowLights(Transform parent, Bounds emission)
-        {
-            Transform root = CreateChild("ChapterHouseUnderglowLights", parent);
-            float xOffset = emission.extents.x * 0.48f;
-            float zOffset = emission.extents.z * 0.28f;
-            // The authored emissive card sits above the folded landscape. Place the practical
-            // lights underneath it so they illuminate the folds, rather than spending their
-            // energy on the chapel floor above the card.
-            float y = emission.min.y - 0.75f;
-
-            CreateUnderglowLight(root, "ChapterHouseUnderglow_SouthWest",
-                new Vector3(emission.center.x - xOffset, y, emission.center.z - zOffset));
-            CreateUnderglowLight(root, "ChapterHouseUnderglow_SouthEast",
-                new Vector3(emission.center.x + xOffset, y, emission.center.z - zOffset));
-            CreateUnderglowLight(root, "ChapterHouseUnderglow_NorthWest",
-                new Vector3(emission.center.x - xOffset, y, emission.center.z + zOffset));
-            CreateUnderglowLight(root, "ChapterHouseUnderglow_NorthEast",
-                new Vector3(emission.center.x + xOffset, y, emission.center.z + zOffset));
-        }
-
-        private static void CreateUnderglowLight(Transform parent, string name, Vector3 position)
-        {
-            GameObject lightObject = new GameObject(name);
-            lightObject.transform.SetParent(parent, false);
-            lightObject.transform.localPosition = position;
-            Light light = lightObject.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.intensity = k_UnderglowLightLumens;
-            light.range = 8.5f;
-            light.color = k_UnderglowColour;
             light.shadows = LightShadows.None;
         }
 

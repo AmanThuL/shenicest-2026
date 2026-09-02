@@ -91,11 +91,14 @@ blockout 把 21 个面的材质压成了三个 Blender 材质，但 UV 原封未
 Smoothness 压到 0.08：贴图是作者烘焙好的，上面再加一层高光会读成第二个、错误的光源。
 金属桥不带烘焙，是唯一一个靠参数描述的材质（深灰、metallic 0.9、smoothness 0.35）。
 
-原下载包内层 `chapterhouseblue6.mtl` 明确把 `gradbake.png` 同时接到 `map_Kd` 和 `map_Ke`；Unity
-现在也让 `.004 / emission` 同时使用这张贴图作为 Base Map 与 HDRP Emissive Color Map，并以
-60,000 nits 恢复底部由黑到蓝的渐变发光。四盏无阴影蓝色点光位于发光卡片与折叠布料之间，只负责把
-发光反馈到布料褶皱和菌丝上；它们不照亮大厅上层。两块防漏底板的最高面低于发光卡片 12 cm，避免
-遮挡发光面或产生共面闪烁。
+原下载包把两个完全不同的面分开保存：`.004 / ImSPOECIAL` 是围在坑边、只有 10 个面的渐变发光卡片，
+使用 `gradbake.png`；`.011 / the_warbler` 才是 11,264 个面的折叠布料。原 OBJ 的 MTL 漏写了后者的
+贴图关联，但同一下载包里的 `plane.png` 正是 Sketchfab 预览所见的蓝色衣料烘焙——衣片、缝线、白色
+高光与深褶阴影全部在这张图中。Unity 因此把 `plane.png` 作为布料的 Base Map 与 Emissive Color Map，
+Smoothness 设为 0.3、发光按关卡 12.5 EV 的固定曝光校准为 30,000 nits。边缘卡片使用 `gradalpha.png`
+控制透明度、`gradbake.png` 控制 1,500 nits 的渐变发光，并以透明加法方式合成，因此不会再遮成黑带。
+场景不再用四盏点光把一圈蓝边误当成布料光泽。程序化菌丝暂时保留在场景中但禁用，两块防漏底板也
+移除，让当前 look-dev 直接比较原作者的布料本体。
 
 **全部双面**：墙、窗、栏杆都是单面片，不开双面整座建筑从室内看会消失，而室内是这一关唯一会被看到的一侧。
 
@@ -145,10 +148,10 @@ Smoothness 压到 0.08：贴图是作者烘焙好的，上面再加一层高光�
 blend distance 渐变进入。派生 profile 还会把 Briggs 的低间接光、偏色与暗角恢复为 MainProfile 的
 中性值。四盏 `ChapterHouseFill_*` 局部补光也随建筑一起平移保留，因此进入室内后恢复独立场景的
 环境光和补光效果，又不会改变实验室其余空间。
-Player、摄像机和 Spawn 只保留 Briggs 的一套；白色布料地形与程序化 `MyceliumUndercroft` 在连接版
-继续保留，只有原本的 Deathbox mesh 被删除。原地板中段本来就是中央桥加左右菌丝坑，不是圆拱切坏的
-两块地板；两个坑在菌丝下方各补了一块低位、深蓝无反光封底，阻止稀疏枝条之间直接漏出外景，但不会
-把菌丝盖住，也不会变成可行走地板。
+Player、摄像机和 Spawn 只保留 Briggs 的一套；原本的 Deathbox mesh 被删除。程序化
+`MyceliumUndercroft` 仍随连接版复制，但当前保持 inactive，方便以后恢复而不干扰布料 look-dev。
+原地板中段本来就是中央桥加左右布料坑，不是圆拱切坏的两块地板；早期加的两块深蓝防漏底板已经移除，
+玩家现在直接看到作者的 `the_warbler` 布料表面。
 02-04 两个 checkpoint 记录连接版锚点，并指向这个五场景组合。
 
 ---

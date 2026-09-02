@@ -145,11 +145,19 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform lighting = FindRoot(scene, "_Lighting");
                 Volume volume = lighting.GetComponentInChildren<Volume>(true);
                 Assert.IsTrue(volume != null && volume.isGlobal && volume.sharedProfile != null);
-                Light[] underglow = lighting.GetComponentsInChildren<Light>(true)
-                    .Where(light => light.name.StartsWith("ChapterHouseUnderglow_"))
-                    .ToArray();
-                Assert.AreEqual(4, underglow.Length);
-                Assert.IsTrue(underglow.All(light => light.color.b > light.color.r));
+                Assert.IsFalse(lighting.GetComponentsInChildren<Light>(true)
+                    .Any(light => light.name.StartsWith("ChapterHouseUnderglow_")));
+                Renderer cloth = FindPart(model.gameObject, k_ClothPart).GetComponent<Renderer>();
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_BaseColorMap").name);
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(0f, cloth.sharedMaterial.GetFloat("_SurfaceType"));
+                Renderer emission = FindPart(model.gameObject, "ClothLandscape_CorridorShell.004")
+                    .GetComponent<Renderer>();
+                Assert.AreEqual("gradalpha", emission.sharedMaterial.GetTexture("_BaseColorMap").name);
+                Assert.AreEqual("gradbake", emission.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_SurfaceType"));
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_BlendMode"));
+                Assert.AreEqual(0f, emission.sharedMaterial.GetFloat("_TransparentZWrite"));
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
             }
