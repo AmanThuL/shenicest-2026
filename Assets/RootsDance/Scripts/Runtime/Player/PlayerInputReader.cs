@@ -17,6 +17,7 @@ namespace RootsDance.Player
         private const string k_SprintAction = "Player/Sprint";
         private const string k_InteractAction = "Player/Interact";
         private const string k_FlashlightAction = "Player/Flashlight";
+        private const string k_LookBackAction = "Player/LookBack";
         private const string k_FlipAction = "Player/Attack";
         private const string k_PointAction = "UI/Point";
         private const string k_ClickAction = "UI/Click";
@@ -27,6 +28,7 @@ namespace RootsDance.Player
         private InputAction m_sprint;
         private InputAction m_interact;
         private InputAction m_flashlight;
+        private InputAction m_lookBack;
         private InputAction m_flip;
         private InputAction m_point;
         private InputAction m_click;
@@ -53,6 +55,10 @@ namespace RootsDance.Player
         public bool FlashlightPressedThisFrame => !IsBlocked && m_flashlight != null
             && m_flashlight.WasPressedThisFrame();
 
+        /// <summary>True on the frame the look-back button went down. Read from Update only.</summary>
+        public bool LookBackPressedThisFrame => !IsBlocked && m_lookBack != null
+            && m_lookBack.WasPressedThisFrame();
+
         /// <summary>
         /// True on the frame the primary button went down. Read from Update only. Named for what it
         /// does rather than for the action it comes from: the project-wide asset ships an "Attack"
@@ -71,6 +77,7 @@ namespace RootsDance.Player
             m_sprint = Resolve(k_SprintAction);
             m_interact = Resolve(k_InteractAction);
             m_flashlight = Resolve(k_FlashlightAction);
+            m_lookBack = Resolve(k_LookBackAction);
             m_flip = Resolve(k_FlipAction);
             m_point = Resolve(k_PointAction);
             m_click = Resolve(k_ClickAction);
@@ -86,6 +93,7 @@ namespace RootsDance.Player
             Enable(m_sprint);
             Enable(m_interact);
             Enable(m_flashlight);
+            Enable(m_lookBack);
             Enable(m_flip);
             Enable(m_point);
             Enable(m_click);

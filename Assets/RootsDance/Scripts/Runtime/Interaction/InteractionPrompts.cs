@@ -29,6 +29,12 @@ namespace RootsDance.Interaction
         /// <summary>Ranks a throw offer above a pickup offer, which is the one real conflict.</summary>
         public const int k_ThrowPriority = 10;
 
+        /// <summary>
+        /// The chase's look-back hint. Above everything: it stays up for the whole run, because it
+        /// is the one control that shows the player where the pursuer is.
+        /// </summary>
+        public const int k_ChaseHintPriority = 20;
+
         /// <summary>Every other offer. Ties resolve to whoever registered first, which is stable.</summary>
         public const int k_DefaultPriority = 0;
 

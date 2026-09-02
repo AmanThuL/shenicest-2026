@@ -123,6 +123,7 @@ GameObject:
   - component: {fileID: 6841962975302966709}
   - component: {fileID: 5093586072011387537}
   - component: {fileID: 1267723497874549201}
+  - component: {fileID: 9011859582228339412}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -288,6 +289,21 @@ MonoBehaviour:
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_switchHint: "[F] \u6253\u5F00\u624B\u7535"
+--- !u!114 &9011859582228339412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5480e59bcea44613b11e23138b4e085c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Chase.ChaseLookBackTrigger
+  m_input: {fileID: 2523268967826309828}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_hint: "[Q] \u56DE\u5934\u770B"
 --- !u!114 &6841962975302966709
 MonoBehaviour:
   m_ObjectHideFlags: 0

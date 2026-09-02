@@ -116,8 +116,9 @@ namespace RootsDance.Cameras
             + "same side every time or the two checks read as two different events.")]
         [SerializeField] private bool m_overLeftShoulder = true;
 
-        [Tooltip("Seconds to turn out. At 150 degrees this peaks near 600 deg/s, which is about as "
-            + "fast as a person actually turns their head when something is behind them.")]
+        [Tooltip("Seconds to turn out. The turn starts at full speed and settles: at 150 degrees "
+            + "over 0.5 s it leaves near 900 deg/s, which is how a head actually moves when "
+            + "something is behind it.")]
         [Range(0.15f, 1.2f)]
         [SerializeField] private float m_turnOutSeconds = 0.5f;
 

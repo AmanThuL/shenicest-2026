@@ -40,10 +40,23 @@ namespace RootsDance.Tests.EditMode.Cameras
         }
 
         [Test]
+        public void Evaluate_TurningOut_StartsAtFullSpeed()
+        {
+            // A head turn leaves at full speed. An eased-in start — the first stretch slower than
+            // the middle — is what reads as a camera lerp rather than a person looking round.
+            float firstQuarter = ShoulderCheckCurve.Evaluate(k_Out * 0.25f, k_Out, k_Hold, k_Back);
+            float middleQuarter = ShoulderCheckCurve.Evaluate(k_Out * 0.5f, k_Out, k_Hold, k_Back)
+                - firstQuarter;
+
+            Assert.Greater(firstQuarter, middleQuarter,
+                "the turn must leave at full speed, not ease into it");
+        }
+
+        [Test]
         public void Evaluate_DeceleratesIntoTheHold()
         {
-            // The point of the smoothstep: the last stretch of the turn is the slowest, so the
-            // image has settled before the hold begins. A linear turn arrives at full speed.
+            // The last stretch of the turn is the slowest, so the image has settled before the
+            // hold begins. A linear turn arrives at full speed.
             float lastQuarter = ShoulderCheckCurve.Evaluate(k_Out, k_Out, k_Hold, k_Back)
                 - ShoulderCheckCurve.Evaluate(k_Out * 0.75f, k_Out, k_Hold, k_Back);
             float middleQuarter = ShoulderCheckCurve.Evaluate(k_Out * 0.5f, k_Out, k_Hold, k_Back)
