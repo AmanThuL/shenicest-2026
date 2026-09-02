@@ -503,6 +503,7 @@ namespace RootsDance.Environment
                     + "overlap it.", this);
             }
 
+            AlignRigToIntactStair(intact);
             m_collapseRig.SetActive(true);
             CollectPlayerColliders();
 
@@ -800,6 +801,53 @@ namespace RootsDance.Environment
             }
 
             return m_grippyMaterial;
+        }
+
+        /// <summary>
+        /// Snaps the fractured rig onto the intact stair it replaces, so the swap does not pop.
+        /// The rig is authored in the same scene as the deck but a teammate owns that scene, and a
+        /// hand's width of drift between the two — enough to read as the stair jumping the instant
+        /// it breaks — is exactly the kind of thing an edit to either object introduces. Measured
+        /// from bounds centres (mesh bounds for the rig, whose renderers are still inactive), on the
+        /// flat only: the fall is vertical, and matching height would fight whatever the rig's own
+        /// pivot height is. A drift beyond a metre is left alone — that is not drift, it is two
+        /// different placements, and silently teleporting the rig across the room would be worse.
+        /// </summary>
+        private void AlignRigToIntactStair(GameObject intact)
+        {
+            if (intact == null)
+            {
+                return;
+            }
+
+            Renderer[] intactRenderers = intact.GetComponentsInChildren<Renderer>(true);
+
+            if (intactRenderers.Length == 0)
+            {
+                return;
+            }
+
+            Bounds intactBounds = intactRenderers[0].bounds;
+
+            for (int i = 1; i < intactRenderers.Length; i++)
+            {
+                intactBounds.Encapsulate(intactRenderers[i].bounds);
+            }
+
+            m_hasSoundPosition = false;
+            Vector3 rigCentre = SoundPosition();
+            Vector3 delta = intactBounds.center - rigCentre;
+            delta.y = 0f;
+
+            if (delta.sqrMagnitude > 1f)
+            {
+                Log.Warning($"Collapse rig is {delta.magnitude:F1} m from '{m_intactStairName}'; "
+                    + "leaving it where it is rather than teleporting it.", this);
+                return;
+            }
+
+            m_collapseRig.transform.position += delta;
+            m_hasSoundPosition = false;
         }
 
         private GameObject FindIntactStair()
