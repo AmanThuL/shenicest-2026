@@ -281,7 +281,7 @@ MonoBehaviour:
   m_holdSocket: {fileID: 7863462782624755283}
   m_beamAnchor: {fileID: 8979133815423464653}
   m_autoOnAtNight: 0
-  m_needsPowerSource: 0
+  m_needsPowerSource: 1
   m_powerFlag: flow.flashlight_powered
   m_fadeSeconds: 0.15
   m_aimDistance: 7
@@ -324,6 +324,7 @@ MonoBehaviour:
   m_throwTrigger: {fileID: 1267723497874549201}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 1.5
+  m_takeGlideSeconds: 0.45
   m_dropKey: 21
   m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
   m_swapPromptFormat: "[G] \u5148\u653E\u4E0B {1} \u624D\u80FD\u62FE\u53D6 {0}"
