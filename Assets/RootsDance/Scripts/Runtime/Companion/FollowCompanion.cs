@@ -32,6 +32,12 @@ namespace RootsDance.Companion
     /// </summary>
     public class FollowCompanion : MonoBehaviour, IRescueStateRestoredParticipant
     {
+        /// <summary>
+        /// Root yaw that aligns the imported flower model's mouth with the rig's +Z. Derived from
+        /// the head and jaw anchors in the prefab rather than from a rotated scene instance.
+        /// </summary>
+        public const float k_ModelYawOffset = 20f;
+
         [Header("Listens to")]
         [Tooltip("The bootstrap's FlagRaised channel.")]
         [SerializeField] private StringEventChannelSO m_flagRaised;
@@ -80,7 +86,7 @@ namespace RootsDance.Companion
             + "degrees. The bud's mouth is not on the axis the rig calls forward, so facing the "
             + "player with +Z shows the player her leaves.")]
         [Range(0f, 360f)]
-        [SerializeField] private float m_modelYawOffset;
+        [SerializeField] private float m_modelYawOffset = k_ModelYawOffset;
 
         [Header("Animation")]
         [Tooltip("Float parameter on her animator, set to how fast she is actually moving so the "

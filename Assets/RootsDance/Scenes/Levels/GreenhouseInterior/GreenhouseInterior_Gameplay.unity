@@ -232,6 +232,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &181191455
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -447,6 +448,7 @@ MonoBehaviour:
   m_zoomSeconds: 0.4
   m_releaseCursorWhileReading: 1
   m_exitLockoutSeconds: 0.25
+  m_arms: {fileID: 0}
 --- !u!114 &223790029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -956,6 +958,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &966730030
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1068,6 +1071,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &990513780
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1418,6 +1422,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &1344504687
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1667,6 +1672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &1437064355
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1735,6 +1741,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &1446117408
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1861,7 +1868,7 @@ MonoBehaviour:
   m_groundLayers:
     serializedVersion: 2
     m_Bits: 256
-  m_modelYawOffset: 225
+  m_modelYawOffset: 20
   m_speedParameter: Speed
 --- !u!1 &1531887881
 GameObject:
@@ -2103,6 +2110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &1627698240
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2549,6 +2557,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+  m_requiredFlag: flow.chase_started
 --- !u!65 &2146168048
 BoxCollider:
   m_ObjectHideFlags: 0

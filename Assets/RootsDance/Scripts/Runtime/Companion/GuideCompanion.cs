@@ -67,7 +67,7 @@ namespace RootsDance.Companion
         [Tooltip("Yaw between the rig's +Z and where her face actually is on the model, in "
             + "degrees. Matches FollowCompanion's offset for the same model.")]
         [Range(0f, 360f)]
-        [SerializeField] private float m_modelYawOffset;
+        [SerializeField] private float m_modelYawOffset = FollowCompanion.k_ModelYawOffset;
 
         [Header("Broadcasts on")]
         [SerializeField] private DialogueEventChannelSO m_dialogueChannel;

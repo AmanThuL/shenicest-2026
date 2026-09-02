@@ -2,6 +2,7 @@ using System.Reflection;
 using NUnit.Framework;
 using RootsDance.Companion;
 using RootsDance.Player;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools.Utils;
 
@@ -14,6 +15,9 @@ namespace RootsDance.Tests.EditMode.Companion
     /// </summary>
     public class CompanionFollowStepTests
     {
+        private const string k_FlowerPrefabPath =
+            "Assets/RootsDance/Prefabs/Characters/FlowerSprite.prefab";
+
         [Test]
         public void AppearPosition_PlayerFacingForward_PutsHerBehindThem()
         {
@@ -66,6 +70,27 @@ namespace RootsDance.Tests.EditMode.Companion
                 Object.DestroyImmediate(companionObject);
                 Object.DestroyImmediate(player);
             }
+        }
+
+        [Test]
+        public void ModelYawOffset_ImportedFlowerFace_AlignsWithRigForward()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(k_FlowerPrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            Transform head = FindRequired(prefab.transform, "ORG-spine.007");
+            Transform jaw = FindRequired(prefab.transform, "ORG-jaw.master");
+            Vector3 modelFace = Vector3.ProjectOnPlane(
+                prefab.transform.InverseTransformPoint(jaw.position)
+                    - prefab.transform.InverseTransformPoint(head.position),
+                Vector3.up).normalized;
+
+            Vector3 correctedFace = Quaternion.Euler(
+                0f, FollowCompanion.k_ModelYawOffset, 0f) * modelFace;
+
+            Assert.That(Vector3.Dot(correctedFace, Vector3.forward), Is.GreaterThan(0.995f),
+                "The shared yaw offset must put the imported flower's mouth on the rig's +Z, "
+                + "otherwise following shows the player her back.");
         }
 
         [Test]
@@ -151,6 +176,22 @@ namespace RootsDance.Tests.EditMode.Companion
         private static Vector3EqualityComparer Vector3Comparer()
         {
             return new Vector3EqualityComparer(0.001f);
+        }
+
+        private static Transform FindRequired(Transform root, string name)
+        {
+            Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (children[i].name == name)
+                {
+                    return children[i];
+                }
+            }
+
+            Assert.Fail($"Flower prefab is missing orientation anchor '{name}'.");
+            return null;
         }
 
         private static void InvokeStart(FollowCompanion companion)

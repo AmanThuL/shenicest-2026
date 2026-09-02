@@ -212,7 +212,7 @@ MonoBehaviour:
   m_groundLayers:
     serializedVersion: 2
     m_Bits: 256
-  m_modelYawOffset: 225
+  m_modelYawOffset: 20
   m_speedParameter: Speed
 --- !u!1 &146961864
 GameObject:
