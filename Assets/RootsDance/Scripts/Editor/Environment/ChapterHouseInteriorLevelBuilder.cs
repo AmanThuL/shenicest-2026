@@ -78,6 +78,7 @@ namespace RootsDance.Editor.Environment
         private const string k_MyceliumName = "MyceliumUndercroft";
         private const string k_MyceliumGuttationPart = "Mycelium_Guttation";
         private const string k_AnimationFolder = "Assets/RootsDance/Animations/Environment";
+        private const string k_MyceliumClipPath = k_AnimationFolder + "/Mycelium_Breathe.anim";
         private const string k_MyceliumControllerPath =
             k_AnimationFolder + "/MyceliumUndercroft.controller";
 
@@ -763,8 +764,8 @@ namespace RootsDance.Editor.Environment
         /// </summary>
         private static void EnsureMyceliumAnimator(GameObject mycelium)
         {
-            AnimationClip clip = LoadMyceliumClip();
             EnsureFolder(k_AnimationFolder);
+            AnimationClip clip = EnsureMyceliumBreathClip();
 
             AnimatorController controller =
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(k_MyceliumControllerPath);
@@ -801,7 +802,44 @@ namespace RootsDance.Editor.Environment
             animator.cullingMode = AnimatorCullingMode.CullCompletely;
         }
 
-        private static AnimationClip LoadMyceliumClip()
+        private static AnimationClip EnsureMyceliumBreathClip()
+        {
+            AnimationClip importedClip = LoadImportedMyceliumClip();
+            AnimationClip cleanClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(k_MyceliumClipPath);
+            bool isNew = cleanClip == null;
+
+            if (isNew)
+            {
+                cleanClip = new AnimationClip();
+            }
+
+            EditorUtility.CopySerialized(importedClip, cleanClip);
+            cleanClip.name = importedClip.name;
+            cleanClip.hideFlags = HideFlags.None;
+
+            EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(cleanClip);
+
+            for (int i = 0; i < bindings.Length; i++)
+            {
+                if (bindings[i].type == typeof(Transform))
+                {
+                    AnimationUtility.SetEditorCurve(cleanClip, bindings[i], null);
+                }
+            }
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(cleanClip, k_MyceliumClipPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(cleanClip);
+            }
+
+            return cleanClip;
+        }
+
+        private static AnimationClip LoadImportedMyceliumClip()
         {
             UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(k_MyceliumModelPath);
 

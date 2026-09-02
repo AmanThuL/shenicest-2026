@@ -219,6 +219,16 @@ namespace RootsDance.Tests.EditMode.Environment
                 Animator animator = mycelium.GetComponent<Animator>();
                 Assert.IsNotNull(animator);
                 Assert.IsNotNull(animator.runtimeAnimatorController);
+                AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+                Assert.That(clips, Has.Length.EqualTo(1));
+                EditorCurveBinding[] curveBindings = AnimationUtility.GetCurveBindings(clips[0]);
+                Assert.IsFalse(
+                    curveBindings.Any(binding => binding.type == typeof(Transform)),
+                    "Mycelium animation must not rotate or move its mesh children.");
+                Assert.That(curveBindings, Has.Length.EqualTo(4));
+                Assert.IsTrue(curveBindings.All(binding =>
+                    binding.type == typeof(SkinnedMeshRenderer)
+                    && binding.propertyName.StartsWith("blendShape.")));
 
                 Transform entrance = FindTransform(environment, "ChapterHouseRoundEntrance");
                 Assert.IsNotNull(entrance);
