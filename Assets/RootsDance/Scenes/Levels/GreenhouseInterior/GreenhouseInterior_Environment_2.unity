@@ -603,8 +603,12 @@ MonoBehaviour:
   m_collapseFlags:
   - flow.circulation_core
   - flow.circulation_ring
+  m_warningOnFlag: flow.wrong_cycle_outburst_peak
+  m_maxHoldSeconds: 60
   m_releaseOnFlag: flow.wrong_cycle_outburst_done
-  m_maxWarningSeconds: 45
+  m_warningRampSeconds: 8
+  m_minWarningSeconds: 3
+  m_maxWarningSeconds: 20
   m_releaseDelaySeconds: 0.8
   m_collapseRig: {fileID: 1762824897}
   m_intactStairName: GreenhouseSpiralStair

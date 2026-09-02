@@ -100,6 +100,7 @@ MonoBehaviour:
       that's already dead?
     m_holdSeconds: 0
     m_voice: {fileID: 8300000, guid: 8360700b675894a6abe78f244501f089, type: 3}
+    m_flagOnShown: flow.wrong_cycle_outburst_peak
   - m_speaker: 1
     m_chinese: "\u5B83\u4EEC\u6CA1\u6709\u51FA\u9519\u3002"
     m_english: They didn't do anything wrong.

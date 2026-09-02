@@ -276,6 +276,11 @@ namespace RootsDance.Dialogue
                     m_view.ShowLine(line.Speaker, line.Chinese, line.English);
                 }
 
+                if (!string.IsNullOrEmpty(line.FlagOnShown))
+                {
+                    WorldAccess.Enqueue(new RaiseFlagCommand(line.FlagOnShown), this);
+                }
+
                 AudioClip voice = line.Voice;
 
                 if (voice != null && m_voiceCue != null && m_audioChannel != null)

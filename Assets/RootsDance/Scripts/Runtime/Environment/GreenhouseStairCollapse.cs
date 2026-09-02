@@ -17,11 +17,13 @@ namespace RootsDance.Environment
     /// <summary>
     /// The observation deck's collapse, played as a beat rather than dropped as a physics event.
     /// <para>
-    /// The doomed circulation choice starts it. First the <b>warning</b>: the floor trembles
-    /// through the camera, the sub-bass groan comes and goes, dust falls — and
-    /// nothing moves, for as long as the sprite's outburst (DLG-009) takes to finish. Only when
-    /// that conversation raises <see cref="WorldFlags.k_WrongCycleOutburstDone"/> does the deck
-    /// start to <b>go</b>: one chunk on the far side, a pause, a second, then faster and faster
+    /// The doomed circulation choice starts it. The deck <b>holds</b>, still and silent, while
+    /// the sprite's outburst (DLG-009) runs — the speech is long, and a floor that shakes through
+    /// all of it has nothing left to say by the end. Only when her last lines raise
+    /// <see cref="WorldFlags.k_WrongCycleOutburstPeak"/> does the <b>warning</b> begin: the floor
+    /// trembles through the camera, the sub-bass groan comes, dust falls, the tremor climbs — and
+    /// nothing moves yet. When the conversation raises
+    /// <see cref="WorldFlags.k_WrongCycleOutburstDone"/> the deck starts to <b>go</b>: one chunk on the far side, a pause, a second, then faster and faster
     /// until the rest of the ring lets go as one avalanche that ends under the player's feet. The
     /// player falls with the last of it; <see cref="FreeFallView"/> owns what the camera does about
     /// that, and every chunk that lands near the player kicks it — so a player who was on the
@@ -52,15 +54,34 @@ namespace RootsDance.Environment
             WorldFlags.k_CirculationRing
         };
 
-        [Tooltip("The deck holds — trembling, groaning, shedding dust — until this flag is up: the "
-            + "sprite's outburst finishing. Empty means the warning simply runs its Max Warning "
-            + "Seconds. Either way the deck cannot go before the talking is done.")]
+        [Tooltip("The deck holds still and silent until this flag is up: the sprite reaching the "
+            + "last lines of her outburst. Empty means the warning starts at once. If the release "
+            + "flag arrives first the warning starts then instead, so the deck never goes without one.")]
+        [SerializeField] private string m_warningOnFlag = WorldFlags.k_WrongCycleOutburstPeak;
+
+        [Tooltip("Longest the deck may hold before warning anyway — a missing or skipped "
+            + "conversation must not leave it standing forever.")]
+        [Min(1f)]
+        [SerializeField] private float m_maxHoldSeconds = 60f;
+
+        [Tooltip("The deck trembles, groans and sheds dust until this flag is up: the sprite's "
+            + "outburst finishing. Empty means the warning simply runs its Max Warning Seconds. "
+            + "Either way the deck cannot go before the talking is done.")]
         [SerializeField] private string m_releaseOnFlag = WorldFlags.k_WrongCycleOutburstDone;
 
-        [Tooltip("Longest the warning may last if the release flag never arrives — a missing or "
-            + "skipped conversation must not leave the deck standing forever.")]
+        [Tooltip("Seconds the tremor takes to climb from its start to its end. Sized to the lines "
+            + "left after the warning flag — the view should be at its most unsteady as she stops.")]
+        [Min(0.1f)]
+        [SerializeField] private float m_warningRampSeconds = 8f;
+
+        [Tooltip("Shortest the warning may run even if the release flag comes early — a deck that "
+            + "goes with no warning at all reads as a bug, not a beat.")]
+        [Min(0f)]
+        [SerializeField] private float m_minWarningSeconds = 3f;
+
+        [Tooltip("Longest the warning may last if the release flag never arrives.")]
         [Min(1f)]
-        [SerializeField] private float m_maxWarningSeconds = 45f;
+        [SerializeField] private float m_maxWarningSeconds = 20f;
 
         [Tooltip("Breath between the outburst ending and the first chunk going.")]
         [Min(0f)]
@@ -210,6 +231,7 @@ namespace RootsDance.Environment
         private bool m_hasCollapsed;
         private bool m_isPlaying;
         private bool m_releaseRequested;
+        private bool m_warningRequested;
         private bool m_hasSoundPosition;
         private Vector3 m_soundPosition;
 
@@ -252,6 +274,11 @@ namespace RootsDance.Environment
             if (!string.IsNullOrEmpty(m_releaseOnFlag) && flag == m_releaseOnFlag)
             {
                 m_releaseRequested = true;
+            }
+
+            if (!string.IsNullOrEmpty(m_warningOnFlag) && flag == m_warningOnFlag)
+            {
+                m_warningRequested = true;
             }
 
             if (m_hasCollapsed || m_isPlaying)
@@ -334,6 +361,7 @@ namespace RootsDance.Environment
             m_view = FindFirstObjectByType<FreeFallView>();
             m_player = FindFirstObjectByType<FirstPersonController>();
 
+            await HoldAsync(cancellationToken);
             await WarningAsync(cancellationToken);
             await Awaitable.WaitForSecondsAsync(m_releaseDelaySeconds, cancellationToken);
 
@@ -348,8 +376,30 @@ namespace RootsDance.Environment
         }
 
         /// <summary>
-        /// The deck takes strain and nothing gives. Tremor and sound build until the outburst is
-        /// over, or until the warning has run as long as it is allowed to.
+        /// The deck holds, still and silent, while the sprite talks. Nothing here is a beat: no
+        /// tremor, no groan, no dust. It ends when her last lines raise the warning flag, when the
+        /// outburst is already over, or when the hold has run as long as it is allowed to.
+        /// </summary>
+        private async Awaitable HoldAsync(CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(m_warningOnFlag))
+            {
+                return;
+            }
+
+            Log.Info("[collapse] holding for the outburst", this);
+            float start = Time.time;
+
+            while (!m_warningRequested && !m_releaseRequested && Time.time - start < m_maxHoldSeconds)
+            {
+                await Awaitable.NextFrameAsync(cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// The deck takes strain and nothing gives. Tremor and sound build over the ramp until the
+        /// outburst is over (but never shorter than the minimum), or until the warning has run as
+        /// long as it is allowed to.
         /// </summary>
         private async Awaitable WarningAsync(CancellationToken cancellationToken)
         {
@@ -363,19 +413,17 @@ namespace RootsDance.Environment
             {
                 float elapsed = Time.time - start;
 
-                if (m_releaseRequested || elapsed >= m_maxWarningSeconds)
+                if ((m_releaseRequested && elapsed >= m_minWarningSeconds) || elapsed >= m_maxWarningSeconds)
                 {
                     break;
                 }
 
-                // Tremor grows with time, whatever the outburst's length turns out to be; the
-                // cap keeps a long conversation from shaking the view flat before anything breaks.
-                // Eased in rather than linear: while the sprite is still talking the floor has
-                // barely begun to complain, and the build has to stay out of the way of the line
-                // being delivered. Cubed, so most of the growth lands in the last third — by the
-                // time the deck is about to go the view is already unsteady, but the player was
-                // not being thrown around through the whole conversation to get there.
-                float progress = Mathf.Clamp01(elapsed / m_maxWarningSeconds * 2f);
+                // Eased in rather than linear: the warning sits under her last two lines, and the
+                // build has to stay out of the way of the line being delivered. Cubed, so most of
+                // the growth lands in the last third — by the time the deck is about to go the
+                // view is already unsteady, but it got there in the last few seconds, not through
+                // the whole conversation.
+                float progress = Mathf.Clamp01(elapsed / m_warningRampSeconds);
                 progress = progress * progress * progress;
                 SetTremor(Mathf.Lerp(m_tremorAtWarningStart, m_tremorAtWarningEnd, progress));
 

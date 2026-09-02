@@ -32,14 +32,16 @@ namespace RootsDance.Editor.Content
             public readonly string m_chinese;
             public readonly string m_english;
             public readonly string m_voiceFile;
+            public readonly string m_flagOnShown;
 
             public Line(DialogueSpeaker speaker, string chinese, string english,
-                string voiceFile = null)
+                string voiceFile = null, string flagOnShown = null)
             {
                 m_speaker = speaker;
                 m_chinese = chinese;
                 m_english = english;
                 m_voiceFile = voiceFile;
+                m_flagOnShown = flagOnShown ?? string.Empty;
             }
         }
 
@@ -285,9 +287,11 @@ namespace RootsDance.Editor.Content
                     F("停下来！", "Stop!", "VO_C3_Verity_37_Stop"),
                     F("它们已经不在那里了！", "They're not there anymore!",
                         "VO_C3_Verity_38_TheyreNotThere"),
+                    // The deck's warning starts under this line: the floor is still while she
+                    // talks and begins to complain only for the last two lines.
                     F("为什么你们总想让活着的东西，回到已经死掉的地方？",
                         "Why do you always want to make living things go back to somewhere that's already dead?",
-                        "VO_C3_Verity_39_WhyDoYouAlwa"),
+                        "VO_C3_Verity_39_WhyDoYouAlwa", WorldFlags.k_WrongCycleOutburstPeak),
                     F("它们没有出错。", "They didn't do anything wrong.",
                         "VO_C3_Verity_40_TheyDidntDoAn")
                 },
@@ -300,10 +304,11 @@ namespace RootsDance.Editor.Content
                 voiceFile == null ? null : $"MrsDavid/{voiceFile}");
         }
 
-        private static Line F(string chinese, string english, string voiceFile = null)
+        private static Line F(string chinese, string english, string voiceFile = null,
+            string flagOnShown = null)
         {
             return new Line(DialogueSpeaker.Flower, chinese, english,
-                voiceFile == null ? null : $"Verity/{voiceFile}");
+                voiceFile == null ? null : $"Verity/{voiceFile}", flagOnShown);
         }
 
         private static Line D(string chinese, string english)
@@ -377,6 +382,7 @@ namespace RootsDance.Editor.Content
                 // 0 means "work it out from the text" — see DialogueTiming. Authoring a hold per
                 // line is work that only pays off for a deliberate pause, and none of these are.
                 entry.FindPropertyRelative("m_holdSeconds").floatValue = 0f;
+                entry.FindPropertyRelative("m_flagOnShown").stringValue = lines[i].m_flagOnShown;
 
                 entry.FindPropertyRelative("m_voice").objectReferenceValue =
                     LoadVoice(lines[i].m_voiceFile);
