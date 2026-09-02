@@ -14,6 +14,7 @@ namespace RootsDance.Player
         private const string k_MoveAction = "Player/Move";
         private const string k_LookAction = "Player/Look";
         private const string k_LookHoldAction = "Player/LookHold";
+        private const string k_TrackpadLookAction = "UI/ScrollWheel";
         private const string k_SprintAction = "Player/Sprint";
         private const string k_InteractAction = "Player/Interact";
         private const string k_FlashlightAction = "Player/Flashlight";
@@ -24,6 +25,7 @@ namespace RootsDance.Player
         private InputAction m_move;
         private InputAction m_look;
         private InputAction m_lookHold;
+        private InputAction m_trackpadLook;
         private InputAction m_sprint;
         private InputAction m_interact;
         private InputAction m_flashlight;
@@ -37,6 +39,11 @@ namespace RootsDance.Player
         public Vector2 MoveInput => IsBlocked || m_move == null ? Vector2.zero : m_move.ReadValue<Vector2>();
 
         public Vector2 LookInput => IsBlocked || m_look == null ? Vector2.zero : m_look.ReadValue<Vector2>();
+
+        /// <summary>Two-axis scroll reported by a trackpad, used for touch-only camera look.</summary>
+        public Vector2 TrackpadLookInput => IsBlocked || m_trackpadLook == null
+            ? Vector2.zero
+            : m_trackpadLook.ReadValue<Vector2>();
 
         /// <summary>Current screen-space pointer position, used by close-up physical interfaces.</summary>
         public Vector2 PointerPosition => IsBlocked || m_point == null ? Vector2.zero : m_point.ReadValue<Vector2>();
@@ -68,6 +75,7 @@ namespace RootsDance.Player
             m_move = Resolve(k_MoveAction);
             m_look = Resolve(k_LookAction);
             m_lookHold = Resolve(k_LookHoldAction);
+            m_trackpadLook = Resolve(k_TrackpadLookAction);
             m_sprint = Resolve(k_SprintAction);
             m_interact = Resolve(k_InteractAction);
             m_flashlight = Resolve(k_FlashlightAction);
@@ -83,6 +91,7 @@ namespace RootsDance.Player
             Enable(m_move);
             Enable(m_look);
             Enable(m_lookHold);
+            Enable(m_trackpadLook);
             Enable(m_sprint);
             Enable(m_interact);
             Enable(m_flashlight);

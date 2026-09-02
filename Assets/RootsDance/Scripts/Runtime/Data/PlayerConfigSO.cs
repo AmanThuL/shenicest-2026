@@ -57,6 +57,10 @@ namespace RootsDance.Data
         [Tooltip("Degrees of pitch/yaw per unit of look input.")]
         private float m_lookSensitivity = 0.12f;
 
+        [SerializeField, TitleGroup("Look")]
+        [Tooltip("Degrees of pitch/yaw per unit of two-finger trackpad scroll.")]
+        private float m_trackpadLookSensitivity = 0.1f;
+
         [SerializeField, TitleGroup("Look"), Range(20f, 90f)]
         [Tooltip("How far down the camera can pitch, in degrees from level.")]
         private float m_pitchLimitDown = 25f;
@@ -83,6 +87,7 @@ namespace RootsDance.Data
         public float GroundCheckDistance => m_groundCheckDistance;
         public LayerMask GroundLayers => m_groundLayers;
         public float LookSensitivity => m_lookSensitivity;
+        public float TrackpadLookSensitivity => m_trackpadLookSensitivity;
         public float PitchLimitDown => m_pitchLimitDown;
         public float PitchLimitUp => m_pitchLimitUp;
         public float LookSmoothTime => m_lookSmoothTime;

@@ -28,13 +28,16 @@ namespace RootsDance.Tests.PlayMode.Player
 
             m_mouse = InputSystem.AddDevice<Mouse>();
 
-            // No smoothing here: these two tests assert exact per-frame values, which only holds
-            // when the raw delta passes straight through.
+            // No smoothing here: the rotation tests assert exact per-frame values, which only holds
+            // when the raw input passes straight through.
             m_look = CreatePlayer(lookSensitivity: 1f, lookSmoothTime: 0f, out m_playerObject);
         }
 
         public override void TearDown()
         {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
             if (m_playerObject != null)
             {
                 Object.Destroy(m_playerObject);
@@ -75,6 +78,36 @@ namespace RootsDance.Tests.PlayMode.Player
 
             Assert.AreEqual(0f, m_playerObject.transform.eulerAngles.y, 0.01f,
                 "Without LookHold pressed, mouse movement must not rotate yaw.");
+        }
+
+        [UnityTest]
+        public IEnumerator Update_TrackpadScrollWithLockedCursor_RotatesWithoutLookHold()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            yield return null;
+
+            Set(m_mouse.scroll, new Vector2(10f, 5f));
+            yield return null;
+
+            Assert.AreEqual(10f, m_playerObject.transform.eulerAngles.y, 0.01f,
+                "Two-finger horizontal scroll must rotate yaw without LookHold.");
+            Assert.AreEqual(355f, m_look.transform.GetChild(0).localEulerAngles.x, 0.01f,
+                "Two-finger vertical scroll must rotate pitch without LookHold.");
+        }
+
+        [UnityTest]
+        public IEnumerator Update_TrackpadScrollWithUnlockedCursor_DoesNotRotate()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            yield return null;
+
+            Set(m_mouse.scroll, new Vector2(10f, 5f));
+            yield return null;
+
+            Assert.AreEqual(0f, m_playerObject.transform.eulerAngles.y, 0.01f,
+                "Trackpad scroll must not rotate the view while a menu or close-up UI owns the cursor.");
+            Assert.AreEqual(0f, m_look.transform.GetChild(0).localEulerAngles.x, 0.01f,
+                "Trackpad scroll must not change pitch while the cursor is unlocked.");
         }
 
         /// <summary>
@@ -128,6 +161,7 @@ namespace RootsDance.Tests.PlayMode.Player
         {
             PlayerConfigSO config = ScriptableObject.CreateInstance<PlayerConfigSO>();
             SetPrivateField(config, "m_lookSensitivity", lookSensitivity);
+            SetPrivateField(config, "m_trackpadLookSensitivity", lookSensitivity);
             SetPrivateField(config, "m_pitchLimitDown", 85f);
             SetPrivateField(config, "m_pitchLimitUp", 85f);
             SetPrivateField(config, "m_lookSmoothTime", lookSmoothTime);

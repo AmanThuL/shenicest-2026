@@ -6,9 +6,9 @@ namespace RootsDance.Player
     /// <summary>
     /// Yaw on the player root, pitch on the head transform. The Cinemachine camera follows the head
     /// and must not drive the same axes — one owner per axis, or the view fights itself. Rotation
-    /// only applies while the look-hold input is pressed, so an ordinary click (e.g. Attack) never
-    /// drags the view through whatever incidental mouse delta happened on the same frame. Raw mouse
-    /// delta is exponentially smoothed before use — see LookSmoothTime on PlayerConfigSO.
+    /// applies either while the look-hold input is pressed or while a locked gameplay cursor receives
+    /// two-finger trackpad scroll. Requiring cursor lock keeps trackpad input from moving the camera
+    /// behind dialogue, menus and close-up interfaces. Raw input is exponentially smoothed before use.
     /// </summary>
     [RequireComponent(typeof(PlayerInputReader))]
     public class PlayerLook : MonoBehaviour
@@ -41,12 +41,28 @@ namespace RootsDance.Player
 
         private void Update()
         {
-            if (m_config == null || m_head == null || !m_input.IsLookHeld)
+            if (m_config == null || m_head == null)
             {
                 return;
             }
 
-            Vector2 rawLook = m_input.LookInput * m_config.LookSensitivity;
+            Vector2 rawLook;
+            if (m_input.IsLookHeld)
+            {
+                rawLook = m_input.LookInput * m_config.LookSensitivity;
+            }
+            else if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                rawLook = m_input.TrackpadLookInput * m_config.TrackpadLookSensitivity;
+                if (rawLook == Vector2.zero)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
 
             // A mouse reports movement at its own polling rate, not the render frame rate, so the
             // raw per-frame delta arrives in an uneven stair-step (some frames get none, the next
