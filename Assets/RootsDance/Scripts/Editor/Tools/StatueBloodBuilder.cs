@@ -45,6 +45,14 @@ namespace RootsDance.EditorTools
         public const string k_EndingCueName = "EndingCue";
         public const string k_DoomedCueName = "DoomedCue";
 
+        /// <summary>
+        /// Whether the doomed endings actually run the blood. Off: the clone and its cues are
+        /// still built (so the beat can be switched back on without a rebuild), but the cue
+        /// holder is left inactive and nothing ever hears the flags. Decided 2026-09-02: the
+        /// wrong choices leave the statue dry for now.
+        /// </summary>
+        public const bool k_DoomedCuesArmed = false;
+
         private const string k_MaterialFolder = "Assets/RootsDance/VFX";
 
         private static readonly string[] k_ScenePaths =
@@ -132,6 +140,7 @@ namespace RootsDance.EditorTools
             SceneManager.MoveGameObjectToScene(cueHolder, scene);
             cueHolder.transform.SetParent(endingCue.transform.parent, false);
             cueHolder.transform.SetSiblingIndex(endingCue.transform.GetSiblingIndex() + 1);
+            cueHolder.SetActive(k_DoomedCuesArmed);
 
             for (int i = 0; i < k_DoomedFlags.Length; i++)
             {

@@ -172,7 +172,7 @@
 
 重跑顺序有依赖: `RootsDance > Build Statue Environment Scene` 会重建整个 `Statue` 根，把 `StatueBloom` 一起删掉，所以它之后必须再跑一次 `RootsDance > Build Statue Bloom`。
 
-坏结局的血: `RootsDance > Build Statue Blood (Doomed Endings)` 把 `StatueWater` 整棵克隆成同级的 `StatueBlood`（材质换成 `VFX_StatueBlood*` 三件，其余不变），并在 `EndingCue` 旁挂 `DoomedCue_Core` / `DoomedCue_Ring` 两个 `CueSequence`，分别听 `flow.circulation_core` / `flow.circulation_ring`。它同时写 `Main_Environment_Statue` 和 `GreenhouseInterior_Environment` 两份。规则: 好结局的 `StatueWater`/`EndingCue` 不在这里改；`Build Statue Environment Scene` 或 `Build Stone Pool Overflow` 重跑之后都要再跑一次它，因为血是水的克隆，水一重建血就是旧的。血材质每次重建都从水材质整份拷贝再只改颜色，调水的贴图/折射时不用另外维护血。
+坏结局的血: `RootsDance > Build Statue Blood (Doomed Endings)` 把 `StatueWater` 整棵克隆成同级的 `StatueBlood`（材质换成 `VFX_StatueBlood*` 三件，其余不变），并在 `EndingCue` 旁挂 `DoomedCue_Core` / `DoomedCue_Ring` 两个 `CueSequence`，分别听 `flow.circulation_core` / `flow.circulation_ring`。它同时写 `Main_Environment_Statue` 和 `GreenhouseInterior_Environment` 两份。规则: 好结局的 `StatueWater`/`EndingCue` 不在这里改；`Build Statue Environment Scene` 或 `Build Stone Pool Overflow` 重跑之后都要再跑一次它，因为血是水的克隆，水一重建血就是旧的。血材质每次重建都从水材质整份拷贝再只改颜色，调水的贴图/折射时不用另外维护血。**当前是关的**：`StatueBloodBuilder.k_DoomedCuesArmed = false`，`DoomedCue` 节点 inactive，坏结局不出血；要开就把常量改 true 重跑 builder（或直接在场景里激活 `DoomedCue`）。
 
 ## 5.1 绽放动画怎么烘进顶点里
 

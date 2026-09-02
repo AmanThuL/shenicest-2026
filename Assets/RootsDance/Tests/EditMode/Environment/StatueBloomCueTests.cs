@@ -193,6 +193,25 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsFalse(startsWaterOn.Contains(WorldFlags.k_CirculationCore)
                     || startsWaterOn.Contains(WorldFlags.k_CirculationRing),
                     "a wrong answer runs the clear water as well as the blood.");
+
+                // The switch: the cues exist either way, but only an armed build leaves them
+                // listening. An inactive holder never subscribes to the flag channel.
+                GameObject holder = null;
+
+                foreach (CueSequence sequence in sequences)
+                {
+                    if (sequence.transform.parent != null
+                        && sequence.transform.parent.name == RootsDance.EditorTools.StatueBloodBuilder.k_DoomedCueName)
+                    {
+                        holder = sequence.transform.parent.gameObject;
+                    }
+                }
+
+                Assert.IsNotNull(holder, "the doomed cues have no holder to switch.");
+                Assert.AreEqual(RootsDance.EditorTools.StatueBloodBuilder.k_DoomedCuesArmed, holder.activeSelf,
+                    RootsDance.EditorTools.StatueBloodBuilder.k_DoomedCuesArmed
+                        ? "the blood is switched off in the scene while the builder says it is on."
+                        : "the blood is armed in the scene while the builder says it is off; a wrong answer bleeds.");
             }
             finally
             {
