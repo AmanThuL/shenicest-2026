@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomFlowers.fbx",
   "m_blend": "SourceArt/Blender/StatueBloom/BloomFlowers.blend",
-  "m_blendModifiedUtc": "2026-08-29T19:04:30+00:00",
+  "m_blendModifiedUtc": "2026-09-02T10:58:41+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -14,5 +14,5 @@
   "m_excludedObjects": [],
   "m_blenderVersion": "4.5.3 LTS",
   "m_profile": "Tools/blender/profiles/static_prop_vcol_smooth.json",
-  "m_exportedUtc": "2026-08-29T19:04:53+00:00"
+  "m_exportedUtc": "2026-09-02T10:59:08+00:00"
 }

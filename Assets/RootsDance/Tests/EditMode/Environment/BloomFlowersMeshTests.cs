@@ -58,6 +58,52 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.Greater(mesh.vertexCount, 60000, "the field is far thinner than it was built.");
         }
 
+        /// <summary>
+        /// UV0 is the flower's own axis, octahedral-encoded; _Sink pushes along it. A field
+        /// exported before that contract still imports and still opens — it just sinks in a
+        /// random direction, which is the silent kind of wrong this file exists for.
+        /// </summary>
+        [Test]
+        public void Field_CarriesEachFlowersAxis()
+        {
+            Mesh mesh = LoadMesh();
+            List<Vector2> uv0 = Channel(mesh, 0);
+            Assert.AreEqual(mesh.vertexCount, uv0.Count, "UV0 did not survive the import.");
+
+            int leaningUp = 0;
+            int inRange = 0;
+
+            for (int i = 0; i < uv0.Count; i++)
+            {
+                Vector2 e = uv0[i];
+
+                if (Mathf.Abs(e.x) <= 1.0001f && Mathf.Abs(e.y) <= 1.0001f)
+                {
+                    inRange++;
+                }
+
+                Vector3 v = new Vector3(e.x, e.y, 1f - Mathf.Abs(e.x) - Mathf.Abs(e.y));
+                float t = Mathf.Clamp01(-v.z);
+                v.x += v.x >= 0f ? -t : t;
+                v.y += v.y >= 0f ? -t : t;
+
+                // Mesh space, not world: the importer keeps Blender's X and Y and negates Z, and
+                // the axis conversion sits on the model root as a rotation — so "up the statue"
+                // is -Z here, the same frame the pose deltas are written in.
+                if (v.normalized.z < 0f)
+                {
+                    leaningUp++;
+                }
+            }
+
+            Assert.AreEqual(uv0.Count, inRange, "UV0 holds petal coordinates, not an encoded axis.");
+
+            // Scattered with --upright 0.55 on anchors facing no lower than -0.2 from up: nearly
+            // every flower leans up. Petal coordinates in [0,1] would decode to a fixed quadrant.
+            Assert.Greater(leaningUp, uv0.Count * 0.9f,
+                "most flowers decode to an axis pointing down; UV0 is not the aim.");
+        }
+
         [Test]
         public void Field_CarriesBothClosedPoses()
         {

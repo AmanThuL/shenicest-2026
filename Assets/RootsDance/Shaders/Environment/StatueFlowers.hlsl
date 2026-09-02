@@ -19,7 +19,10 @@
 //   COLOR.g  per-flower phase, for tint spread and sway
 //   COLOR.b  growth order, 0 at the first flower to open and 1 at the last -- the same global
 //            front StatueBloom.hlsl reads, so a flower cannot open before the cover it stands in
-//   UV0      petal-local: x runs root to tip, y across the petal
+//   COLOR.a  petal-local root-to-tip coordinate, for the root shade
+//   UV0      the flower's own axis (unit, octahedral-encoded), so _Sink can push the whole
+//            flower down its stem into the stone -- HDRP's hand-written vertex input stops at
+//            UV3, and this was the last full-precision pair left
 //   UV1      dBud.xy      | the two closed poses, as offsets from the open one, already in the
 //   UV2      dBud.z dMid.x| mesh's own space -- a UV is a number, so nothing transformed them on
 //   UV3      dMid.yz      | the way out and nothing has to transform them back
@@ -36,8 +39,21 @@ float OpenAmount(float order)
     return saturate((_Growth * (1.0 + span) - order) / span);
 }
 
+// Inverse of build_bloom_flowers.py's oct_encode.
+float3 OctDecode(float2 e)
+{
+    float3 v = float3(e.xy, 1.0 - abs(e.x) - abs(e.y));
+    float t = saturate(-v.z);
+    v.xy += float2(v.x >= 0.0 ? -t : t, v.y >= 0.0 ? -t : t);
+    return normalize(v);
+}
+
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 {
+    // Rooted, not perched: the field was scattered with its stem feet on the surface, and the
+    // sink pushes every flower the same distance down its own axis so the base is in the robe.
+    input.positionOS -= OctDecode(input.uv0) * _Sink;
+
     float t = OpenAmount(input.color.b);
     t = t * t * (3.0 - 2.0 * t);        // ease both ends; a linear t starts and stops with a jerk
 
@@ -98,7 +114,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         : lerp(_CentreTint.rgb, _PetalTint.rgb, saturate((part - 0.5) * 2.0));
 
     // A petal is darker where it is rooted and where it has only just opened.
-    float alongPetal = saturate(input.texCoord0.x);
+    float alongPetal = saturate(input.color.a);
     float isPetal = saturate((part - 0.5) * 2.0);
     tint *= lerp(1.0, lerp(_PetalRootShade, 1.0, alongPetal), isPetal);
     tint = lerp(_YoungTint.rgb * tint, tint, saturate((open - 0.5) / 0.5));

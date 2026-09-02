@@ -78,6 +78,21 @@ def to_unity(v):
     return Vector((v.x * MESH_SCALE, v.y * MESH_SCALE, -v.z * MESH_SCALE))
 
 
+def oct_encode(v):
+    """A unit vector as two numbers in [-1, 1] (octahedral), decoded by StatueFlowers.hlsl.
+
+    Two floats instead of three because the only free vertex slot with full float precision is
+    one UV layer, and HDRP's hand-written vertex input stops at UV3.
+    """
+    v = v.normalized()
+    l1 = abs(v.x) + abs(v.y) + abs(v.z)
+    x, y, z = v.x / l1, v.y / l1, v.z / l1
+    if z < 0.0:
+        x, y = ((1.0 - abs(y)) * (1.0 if x >= 0.0 else -1.0),
+                (1.0 - abs(x)) * (1.0 if y >= 0.0 else -1.0))
+    return (x, y)
+
+
 def blender_len(unity_metres):
     """Blender units for a length authored in Unity metres."""
     return unity_metres / MESH_SCALE
@@ -286,6 +301,10 @@ def build_field(surface, anchors, orders, rng, args):
             if height < lo_h * 0.45:
                 continue
 
+        # The flower's own axis, in Unity space, so the shader can push the whole flower down
+        # its stem into the stone by a material parameter (_Sink) instead of this file's --lift.
+        aim_uv = oct_encode(to_unity(aim))
+
         spin = Matrix.Rotation(rng.uniform(0.0, math.tau), 4, "Z")
         frame = aim.to_track_quat("Z", "Y").to_matrix().to_4x4() @ spin
         place = Matrix.Translation(anchor + normal.normalized() * args.lift) @ frame
@@ -308,12 +327,14 @@ def build_field(surface, anchors, orders, rng, args):
             face.smooth = True
             tris += len(corners) - 2
             for corner, (loop, local) in enumerate(zip(face.loops, corners)):
-                loop[uv0].uv = uvs[corners][corner]
+                loop[uv0].uv = aim_uv
                 d_bud, d_mid = deltas[local]
                 loop[bud_xy].uv = (d_bud.x, d_bud.y)
                 loop[bud_z_mid_x].uv = (d_bud.z, d_mid.x)
                 loop[mid_yz].uv = (d_mid.y, d_mid.z)
-                loop[col] = (part[local], phase, order, 1.0)
+                # Alpha carries the petal-local root-to-tip coordinate that UV0 used to; the
+                # shader only shades a gradient with it, so eight bits are plenty.
+                loop[col] = (part[local], phase, order, uvs[corners][corner][0])
 
     me = bpy.data.meshes.new(args.name)
     bm.to_mesh(me)

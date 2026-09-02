@@ -39,6 +39,10 @@ Shader "RootsDance/Environment/StatueFlowers"
         // Spread between flowers, keyed off vertex colour G.
         _FlowerVariation("Flower variation", Range(0, 0.6)) = 0.22
 
+        // Metres the whole flower is pushed down its own axis into the stone, so the stem is
+        // rooted in the robe rather than standing on it. Read from the aim baked into UV0.
+        _Sink("Sink into the stone", Range(0, 0.3)) = 0.06
+
         _Sway("Sway", Range(0, 0.5)) = 0.06
         _SwaySpeed("Sway speed", Range(0, 6)) = 1.1
 
@@ -71,7 +75,6 @@ Shader "RootsDance/Environment/StatueFlowers"
     #define ATTRIBUTES_NEED_TEXCOORD1
     #define ATTRIBUTES_NEED_TEXCOORD2
     #define ATTRIBUTES_NEED_TEXCOORD3
-    #define VARYINGS_NEED_TEXCOORD0
     #define VARYINGS_NEED_COLOR
 
     // Both passes run the surface function, and it shades a petal by which side of it is being
@@ -98,6 +101,7 @@ Shader "RootsDance/Environment/StatueFlowers"
     float4 _YoungTint;
     float _PetalRootShade;
     float _FlowerVariation;
+    float _Sink;
     float _Sway;
     float _SwaySpeed;
     float _Wrap;
