@@ -1,4 +1,3 @@
-using System;
 using RootsDance.Core;
 using RootsDance.Events;
 using RootsDance.Player;
@@ -155,7 +154,7 @@ namespace RootsDance.Cameras
 
         private bool m_isLookingBack;
         private float m_lookBackStartTime;
-        private Func<Vector3?> m_lookBackPoint;
+        private System.Func<Vector3?> m_lookBackPoint;
         private float m_intensity;
         private float m_intensityTarget;
         private float m_lastEvaluationTime;
@@ -265,7 +264,7 @@ namespace RootsDance.Cameras
         /// </summary>
         public void LookBack(Transform target)
         {
-            LookBack(target == null ? null : (Func<Vector3?>)(() => target != null ? target.position : null));
+            LookBack(target == null ? null : (System.Func<Vector3?>)(() => target != null ? target.position : null));
         }
 
         /// <summary>
@@ -274,7 +273,7 @@ namespace RootsDance.Cameras
         /// null delegate, or a null answer, falls back to the fixed-angle look. Ignored while one
         /// is already playing.
         /// </summary>
-        public void LookBack(Func<Vector3?> point)
+        public void LookBack(System.Func<Vector3?> point)
         {
             if (m_isLookingBack)
             {
