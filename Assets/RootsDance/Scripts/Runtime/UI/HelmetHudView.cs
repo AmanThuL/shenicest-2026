@@ -17,7 +17,7 @@ namespace RootsDance.UI
     /// visor only moves once they actually pull.
     /// </para>
     /// </summary>
-    public class HelmetHudView : MonoBehaviour
+    public class HelmetHudView : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Tooltip("Component implementing IHelmetView (the arms rig's HelmetAnimatorView).")]
         [SerializeField] private MonoBehaviour m_helmetViewBehaviour;
@@ -90,6 +90,30 @@ namespace RootsDance.UI
             if (m_view != null)
             {
                 m_view.RemoveStarted += OnRemoveStarted;
+            }
+        }
+
+        /// <summary>
+        /// A seeded checkpoint says the removal already happened, and seeding is deliberately
+        /// silent — no flag event, no performance. The chrome is simply already gone. This is the
+        /// catch-up half the one-shot Update check cannot cover: that check runs before a dev
+        /// checkpoint's flags land, and the visor stayed worn at every post-helmet node.
+        /// </summary>
+        public void RestoreAfterRescue(Data.RescueCheckpoint checkpoint)
+        {
+            if (m_visorRoot == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                if (checkpoint.Flags[i] == WorldFlags.k_HelmetRemoved)
+                {
+                    m_sequence?.Kill();
+                    m_visorRoot.gameObject.SetActive(false);
+                    return;
+                }
             }
         }
 

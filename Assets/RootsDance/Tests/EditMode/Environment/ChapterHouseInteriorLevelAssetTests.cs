@@ -4,6 +4,7 @@ using NUnit.Framework;
 using RootsDance.App;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace RootsDance.Tests.EditMode.Environment
     public sealed class ChapterHouseInteriorLevelAssetTests
     {
         private const string k_LevelAssetPath = "Assets/RootsDance/Data/Levels/ChapterHouseInterior.asset";
+        private const string k_ConnectedLevelAssetPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
         private const string k_CorridorEntranceCheckpointPath =
             "Assets/RootsDance/Data/DevPlay/ChapterHouseInterior/02-04A_CorridorEntrance.asset";
         private const string k_FlowerSpriteEncounterCheckpointPath =
@@ -68,7 +70,9 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(model.localScale, Is.EqualTo(Vector3.one));
 
                 Bounds bounds = GetRendererBounds(model.gameObject);
-                Assert.That(bounds.min.y, Is.EqualTo(0f).Within(0.01f));
+                Transform layoutRoot = model.parent;
+                Assert.That(layoutRoot.localScale, Is.EqualTo(Vector3.one * 2f));
+                Assert.That(bounds.min.y, Is.EqualTo(-3.5f).Within(0.01f));
                 Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.01f));
                 Assert.That(bounds.center.z, Is.EqualTo(0f).Within(0.01f));
 
@@ -114,9 +118,20 @@ namespace RootsDance.Tests.EditMode.Environment
                         }
                     }
 
-                    MeshCollider collider = renderer.GetComponent<MeshCollider>();
-                    Assert.IsTrue(collider != null && collider.sharedMesh != null, renderer.name);
-                    Assert.IsFalse(collider.convex, renderer.name);
+                    MeshCollider meshCollider = renderer.GetComponent<MeshCollider>();
+
+                    if (meshCollider != null)
+                    {
+                        Assert.IsTrue(meshCollider.sharedMesh != null, renderer.name);
+                        Assert.IsFalse(meshCollider.convex, renderer.name);
+                    }
+                    else
+                    {
+                        // The door leaves rotate at runtime, so SeparateDoors gives them a
+                        // BoxCollider instead of a non-convex MeshCollider — same guarantee that
+                        // the piece can be collided with, cheaper to move every frame.
+                        Assert.IsTrue(renderer.GetComponent<BoxCollider>() != null, renderer.name);
+                    }
                 }
 
                 // Distinct surfaces, not one material smeared over the whole building.
@@ -130,8 +145,77 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform lighting = FindRoot(scene, "_Lighting");
                 Volume volume = lighting.GetComponentInChildren<Volume>(true);
                 Assert.IsTrue(volume != null && volume.isGlobal && volume.sharedProfile != null);
+                Assert.IsFalse(lighting.GetComponentsInChildren<Light>(true)
+                    .Any(light => light.name.StartsWith("ChapterHouseUnderglow_")));
+                Renderer cloth = FindPart(model.gameObject, k_ClothPart).GetComponent<Renderer>();
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_BaseColorMap").name);
+                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(0f, cloth.sharedMaterial.GetFloat("_SurfaceType"));
+                Renderer emission = FindPart(model.gameObject, "ClothLandscape_CorridorShell.004")
+                    .GetComponent<Renderer>();
+                Assert.AreEqual("gradalpha", emission.sharedMaterial.GetTexture("_BaseColorMap").name);
+                Assert.AreEqual("gradbake", emission.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_SurfaceType"));
+                Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_BlendMode"));
+                Assert.AreEqual(0f, emission.sharedMaterial.GetFloat("_TransparentZWrite"));
+                Transform mycelium = FindRoot(scene, "_Geometry")
+                    .Find("ChapterHouseRoot/MyceliumUndercroft");
+                Assert.IsNotNull(mycelium);
+                Assert.IsTrue(mycelium.gameObject.activeSelf);
+                Assert.That(mycelium.lossyScale.x, Is.EqualTo(1f).Within(0.001f));
+                Bounds myceliumBounds = GetRendererBounds(mycelium.gameObject);
+                Bounds floorBounds = FindPart(model.gameObject, k_FloorPart)
+                    .GetComponent<Renderer>().bounds;
+                Assert.That(myceliumBounds.center.x, Is.EqualTo(floorBounds.center.x).Within(0.05f));
+                Assert.That(myceliumBounds.center.y, Is.EqualTo(cloth.bounds.center.y).Within(0.05f));
+                Assert.That(myceliumBounds.center.z, Is.EqualTo(cloth.bounds.center.z).Within(0.05f));
+                Assert.Less(myceliumBounds.size.x, cloth.bounds.size.x * 0.5f);
+                Assert.Less(myceliumBounds.size.z, cloth.bounds.size.z * 0.5f);
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void EnvironmentScene_ReplacesDoorAAndKeepsDoorsBThroughD()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform model = FindRoot(scene, "_Geometry").Find("ChapterHouseRoot/ChapterHouse");
+                SwingDoor[] doors = model.GetComponentsInChildren<SwingDoor>(true);
+
+                Assert.AreEqual(3, doors.Length);
+                Assert.IsNull(model.Find("ChapterHouseDoor_A"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_B"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_C"));
+                Assert.IsNotNull(model.Find("ChapterHouseDoor_D"));
+
+                for (int i = 0; i < doors.Length; i++)
+                {
+                    SwingDoor door = doors[i];
+                    Assert.IsFalse(door.gameObject.isStatic, door.name);
+
+                    BoxCollider trigger = door.GetComponent<BoxCollider>();
+                    Assert.IsTrue(trigger != null && trigger.isTrigger, door.name);
+
+                    // The probe only collides with TriggerVolume; on any other layer the door
+                    // never sees the player and never opens.
+                    Assert.AreEqual(LayerMask.NameToLayer("TriggerVolume"), door.gameObject.layer, door.name);
+
+                    MeshRenderer leafRenderer = door.GetComponentInChildren<MeshRenderer>(true);
+                    Assert.IsTrue(leafRenderer != null, door.name);
+                    Assert.AreEqual(0, leafRenderer.gameObject.layer, door.name);
+                }
+
+                Assert.IsNull(FindPartOrNull(model.gameObject, "ClothLandscape_CorridorShell.006"));
             }
             finally
             {
@@ -185,22 +269,88 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void GameplayScene_LeadsToTheGreenhouseBehindDoorD()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform model = FindRoot(environment, "_Geometry").Find("ChapterHouseRoot/ChapterHouse");
+                Bounds doorway = FindPart(
+                        model.gameObject, Editor.Environment.ChapterHouseGreenhousePortalBuilder.k_DoorName)
+                    .GetComponentInChildren<Renderer>(true).bounds;
+
+                Transform portal = FindRoot(gameplay, "_Triggers").Find("ChapterHouseGreenhousePortal");
+                Assert.IsTrue(portal != null, "Run RootsDance/Environment/Apply Chapter House Greenhouse Portal.");
+                Assert.AreEqual(LayerMask.NameToLayer("TriggerVolume"), portal.gameObject.layer);
+
+                BoxCollider trigger = portal.GetComponent<BoxCollider>();
+                Assert.IsTrue(trigger != null && trigger.isTrigger);
+
+                // The probe's 0.45 m radius must not let the load fire from the corridor side of
+                // the doorway plane — approaching the door has to open it, not leave the level.
+                Assert.Greater(trigger.bounds.min.z, doorway.center.z + 0.45f);
+
+                // And once through, the player cannot walk around the volume: it covers the
+                // doorway's full width and from below the sill to above head height.
+                Assert.LessOrEqual(trigger.bounds.min.x, doorway.min.x);
+                Assert.GreaterOrEqual(trigger.bounds.max.x, doorway.max.x);
+                Assert.LessOrEqual(trigger.bounds.min.y, doorway.min.y);
+                Assert.GreaterOrEqual(trigger.bounds.max.y, doorway.min.y + 2f);
+
+                LevelPortal levelPortal = portal.GetComponent<LevelPortal>();
+                Assert.IsTrue(levelPortal != null);
+                SerializedObject serialized = new SerializedObject(levelPortal);
+                Assert.AreSame(
+                    AssetDatabase.LoadAssetAtPath<LevelSO>("Assets/RootsDance/Data/Levels/GreenhouseInterior.asset"),
+                    serialized.FindProperty("m_level").objectReferenceValue);
+                Assert.IsTrue(serialized.FindProperty("m_loadLevelRequested").objectReferenceValue != null);
+
+                MeshRenderer surface = portal.GetComponentInChildren<MeshRenderer>(true);
+                Assert.IsTrue(surface != null && surface.sharedMaterial != null);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        [Test]
         public void Checkpoints_ReferenceLevelAndMatchAnchors()
         {
-            LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
-            AssertCheckpoint(
-                k_CorridorEntranceCheckpointPath,
-                "02-04A Corridor entrance",
-                level,
-                "Checkpoint_CorridorEntrance");
-            AssertCheckpoint(
-                k_FlowerSpriteEncounterCheckpointPath,
-                "02-04B Flower sprite encounter",
-                level,
-                "Checkpoint_FlowerSpriteEncounter");
+            LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_ConnectedLevelAssetPath);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_ChapterHouseConnectedGameplay, OpenSceneMode.Additive);
+
+            try
+            {
+                AssertCheckpoint(
+                    gameplay,
+                    k_CorridorEntranceCheckpointPath,
+                    "02-04A Corridor entrance",
+                    level,
+                    "Checkpoint_CorridorEntrance");
+                AssertCheckpoint(
+                    gameplay,
+                    k_FlowerSpriteEncounterCheckpointPath,
+                    "02-04B Flower sprite encounter",
+                    level,
+                    "Checkpoint_FlowerSpriteEncounter");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+            }
         }
 
         private static void AssertCheckpoint(
+            Scene gameplay,
             string path,
             string label,
             LevelSO level,
@@ -213,6 +363,13 @@ namespace RootsDance.Tests.EditMode.Environment
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);
             Assert.IsFalse(checkpoint.SnapToGround);
+
+            Transform anchor = gameplay.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                .FirstOrDefault(transform => transform.name == anchorName);
+            Assert.IsNotNull(anchor, anchorName);
+            Assert.That(Vector3.Distance(checkpoint.Position, anchor.position), Is.LessThan(0.01f));
+            Assert.That(Mathf.DeltaAngle(checkpoint.Yaw, anchor.eulerAngles.y), Is.EqualTo(0f).Within(0.01f));
         }
 
         private static Transform FindPart(GameObject model, string partName)
@@ -228,6 +385,21 @@ namespace RootsDance.Tests.EditMode.Environment
             }
 
             Assert.Fail("The chapter house export has no piece named " + partName);
+            return null;
+        }
+
+        private static Transform FindPartOrNull(GameObject model, string partName)
+        {
+            Transform[] transforms = model.GetComponentsInChildren<Transform>(true);
+
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                if (transforms[i].gameObject.name == partName)
+                {
+                    return transforms[i];
+                }
+            }
+
             return null;
         }
 

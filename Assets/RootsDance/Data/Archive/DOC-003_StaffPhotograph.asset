@@ -16,7 +16,7 @@ MonoBehaviour:
   m_kind: 1
   m_title: "\u7814\u7A76\u4EBA\u5458\u5408\u7167"
   m_subtitle: "Briggs Botanical Gardens \u2014 Research Division"
-  m_promptText: "\u62FE\u53D6"
+  m_promptText: "[E] \u62FE\u53D6 \u5408\u7167"
   m_pageSizeMeters: {x: 0.16, y: 0.21}
   m_dustAmount: 0.75
   m_requiredFlag: 

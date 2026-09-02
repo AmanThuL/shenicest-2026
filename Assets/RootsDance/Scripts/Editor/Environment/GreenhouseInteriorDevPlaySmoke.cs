@@ -21,7 +21,7 @@ namespace RootsDance.Editor.Environment
         private const string k_CentralCheckpointPath =
             "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-02_CentralGreenhouse.asset";
         private const string k_BriggsCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-03_Greenhouse.asset";
+            "Assets/RootsDance/Data/DevPlay/BriggsInterior/02-01_PlantResearchLab.asset";
         private const string k_BriggsEnvironmentPath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
         private const string k_BriggsGameplayPath =

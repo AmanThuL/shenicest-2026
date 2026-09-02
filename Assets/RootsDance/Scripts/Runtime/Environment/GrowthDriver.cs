@@ -52,6 +52,11 @@ namespace RootsDance.Environment
         [Tooltip("Run as soon as this is switched on. Off leaves the growth parked at Start at.")]
         [SerializeField] private bool m_playOnEnable = true;
 
+        [Tooltip("Switched off entirely until growth actually begins, instead of sitting visible in "
+            + "its bare/bud pose. The flower field on the statue: there is nothing there before the "
+            + "story starts it, not an unopened bud.")]
+        [SerializeField] private Renderer[] m_hiddenUntilStarted = System.Array.Empty<Renderer>();
+
         private Material[] m_materials = System.Array.Empty<Material>();
         private int m_growthId;
         private float m_elapsed;
@@ -177,6 +182,18 @@ namespace RootsDance.Environment
                 if (m_materials[i] != null)
                 {
                     m_materials[i].SetFloat(m_growthId, growth);
+                }
+            }
+
+            // Nothing stands on the statue before the bloom begins — not even a bud. A driver that
+            // is running counts as begun so the field appears on the bloom's first frame.
+            bool started = m_running || growth > 0f;
+
+            for (int i = 0; i < m_hiddenUntilStarted.Length; i++)
+            {
+                if (m_hiddenUntilStarted[i] != null && m_hiddenUntilStarted[i].enabled != started)
+                {
+                    m_hiddenUntilStarted[i].enabled = started;
                 }
             }
         }

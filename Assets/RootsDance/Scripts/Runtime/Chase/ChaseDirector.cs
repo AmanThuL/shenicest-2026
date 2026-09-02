@@ -24,7 +24,7 @@ namespace RootsDance.Chase
     /// shoulder check repeats: a world flag can only ever fire once.
     /// </para>
     /// </summary>
-    public class ChaseDirector : MonoBehaviour
+    public class ChaseDirector : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Header("Listens to")]
         [Tooltip("The bootstrap's FlagRaised channel.")]
@@ -72,6 +72,16 @@ namespace RootsDance.Chase
 
         private bool m_isChasing;
         private bool m_resumeChecked;
+
+        /// <summary>
+        /// A checkpoint seeds flags silently, after the one-shot resume check already read an
+        /// unseeded world. Clearing the latch makes the very next Update re-run the resume logic
+        /// against the seeded truth.
+        /// </summary>
+        public void RestoreAfterRescue(RootsDance.Data.RescueCheckpoint checkpoint)
+        {
+            m_resumeChecked = false;
+        }
 
         /// <summary>True between the start of this leg and the escape.</summary>
         public bool IsChasing => m_isChasing;

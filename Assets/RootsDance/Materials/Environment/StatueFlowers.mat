@@ -26,7 +26,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AmbientFloor: 0.7
-    - _Emission: 0
+    - _Emission: 0.02
     - _FlowerVariation: 0.22
     - _Gloss: 18
     - _Growth: 1
@@ -40,7 +40,7 @@ Material:
     m_Colors:
     - _CentreTint: {r: 0.95, g: 0.82, b: 0.35999998, a: 1}
     - _FoliageTint: {r: 0.31999996, g: 0.45, b: 0.25999996, a: 1}
-    - _PetalTint: {r: 0.86, g: 0.41999996, b: 0.52, a: 1}
+    - _PetalTint: {r: 1, g: 0.22, b: 0.42, a: 1}
     - _YoungTint: {r: 0.95, g: 0.88, b: 0.62, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

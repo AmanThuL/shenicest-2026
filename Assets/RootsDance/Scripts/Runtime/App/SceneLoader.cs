@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using RootsDance.Core;
 using RootsDance.Data;
+using RootsDance.Events;
 using RootsDance.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -41,7 +42,15 @@ namespace RootsDance.App
         [Min(0)]
         [SerializeField] private int m_settleFrames = 4;
 
+        [Header("Streaming")]
+        [Tooltip("Raised with the scene path once an additive content stream finishes loading. "
+            + "Listeners (e.g. a baked-sky reveal) react without polling scene load state themselves.")]
+        [SerializeField] private StringEventChannelSO m_additiveContentStreamed;
+
         private BootScreenCover m_cover;
+
+        /// <summary>Scene paths already streamed in, so a second request for the same path is a no-op.</summary>
+        private readonly HashSet<string> m_streamedScenePaths = new HashSet<string>();
 
         private bool m_isLoading;
 
@@ -118,6 +127,30 @@ namespace RootsDance.App
         public Awaitable LoadLevelAsync(LevelSO level, CancellationToken cancellationToken)
         {
             return LoadLevelInternalAsync(level, null, null, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Fire-and-forget entry point (called by the additive-stream-request channel listener).
+        /// Unlike <see cref="RequestLoad"/>, this never touches the cover or unloads anything — it
+        /// only brings one extra scene in behind whatever is already on screen.
+        /// </summary>
+        public void RequestStreamAdditiveContent(string scenePath)
+        {
+            // Named, with the caller: an additive stream is content appearing behind a playable
+            // level, so when the wrong one arrives there is nothing on screen that says who asked.
+            Log.Warning($"Additive content stream requested: {scenePath}\n"
+                + StackTraceUtility.ExtractStackTrace(), this);
+            StreamAdditiveContentEntryAsync(scenePath, destroyCancellationToken);
+        }
+
+        /// <summary>
+        /// Additively loads one scene without unloading anything else, changing the active scene, or
+        /// showing the cover. For streaming distant content in behind a level that is already playable
+        /// (e.g. real exterior geometry replacing a baked-sky backdrop) rather than switching levels.
+        /// </summary>
+        public Awaitable LoadAdditiveContentAsync(string scenePath, CancellationToken cancellationToken)
+        {
+            return LoadAdditiveContentInternalAsync(scenePath, cancellationToken);
         }
 
         private async Awaitable LoadLevelInternalAsync(LevelSO level, Action beforeLoad, Action<Scene> sceneReady,
@@ -240,6 +273,58 @@ namespace RootsDance.App
                 m_isLoading = false;
                 Progress = 1f;
                 HideCover();
+            }
+        }
+
+        private async Awaitable LoadAdditiveContentInternalAsync(string scenePath, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(scenePath))
+            {
+                throw new ArgumentException("Scene path is empty.", nameof(scenePath));
+            }
+
+            if (m_streamedScenePaths.Contains(scenePath) || SceneManager.GetSceneByPath(scenePath).isLoaded)
+            {
+                return;
+            }
+
+            AsyncOperation load = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
+
+            if (load == null)
+            {
+                throw new InvalidOperationException("Unity could not start the requested scene operation.");
+            }
+
+            // Unity scene operations cannot be cancelled — finish the load before honoring
+            // cancellation so a retry can never race an unfinished one.
+            while (!load.isDone)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            m_streamedScenePaths.Add(scenePath);
+
+            if (m_additiveContentStreamed != null)
+            {
+                m_additiveContentStreamed.RaiseEvent(scenePath);
+            }
+        }
+
+        private async void StreamAdditiveContentEntryAsync(string scenePath, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await LoadAdditiveContentAsync(scenePath, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Loader destroyed (Play mode exit): nothing to do.
+            }
+            catch (Exception exception)
+            {
+                Log.Exception(exception, this);
             }
         }
 

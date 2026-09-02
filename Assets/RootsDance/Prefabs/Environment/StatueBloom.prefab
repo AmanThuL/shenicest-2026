@@ -226,6 +226,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   m_startAt: 0
   m_playOnEnable: 0
+  m_hiddenUntilStarted:
+  - {fileID: 3286982465237494718}
 --- !u!114 &7908281542557864140
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -204,11 +204,6 @@ namespace RootsDance.Archive
 
             m_isHeld = true;
             SetCollidersEnabled(false);
-
-            if (m_view != null)
-            {
-                m_view.SetFocused(false);
-            }
         }
 
         /// <summary>

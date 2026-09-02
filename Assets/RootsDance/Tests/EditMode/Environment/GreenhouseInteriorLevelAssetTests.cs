@@ -1,13 +1,16 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using RootsDance.App;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Environment;
+using RootsDance.Environment;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 namespace RootsDance.Tests.EditMode.Environment
@@ -22,6 +25,12 @@ namespace RootsDance.Tests.EditMode.Environment
             "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-02_CentralGreenhouse.asset";
         private const string k_ModelPath =
             "Assets/RootsDance/Meshes/Environment/GAIA1/Buildings/Briggs_Greenhouse.fbx";
+        private const string k_BaseAtmosphereProfilePath =
+            "Assets/RootsDance/Settings/VolumeProfiles/GreenhouseInteriorProfile.asset";
+        private const string k_BloomAtmosphereProfilePath =
+            "Assets/RootsDance/Settings/VolumeProfiles/GreenhouseInteriorBloomProfile.asset";
+        private const string k_FantasySkyPath =
+            "Assets/RootsDance/Textures/Environment/GreenhouseFantasySunsetCubemap.png";
 
         [Test]
         public void LevelAsset_RegistersEnvironmentThenGameplayInBuildSettings()
@@ -163,21 +172,202 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void EnvironmentScene_UsesExteriorSunAndBloomingFantasySky()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform lighting = FindRoot(scene, "_Lighting");
+                Light[] lights = lighting.GetComponentsInChildren<Light>(true);
+                Assert.IsFalse(lights.Any(light => light.type == LightType.Spot),
+                    "The environment must not fake window light with authored spotlights.");
+                Assert.IsTrue(lights.Any(light => light.type == LightType.Directional && light.name == "Sun"));
+
+                LocalVolumetricFog[] exteriorFog = lighting.GetComponentsInChildren<LocalVolumetricFog>(true)
+                    .Where(fog => fog.name.StartsWith("ExteriorFog_"))
+                    .ToArray();
+                Assert.AreEqual(4, exteriorFog.Length);
+                Assert.IsTrue(exteriorFog.All(fog => fog.parameters.blendingMode
+                    == LocalVolumetricFogBlendingMode.Max));
+
+                GreenhouseBloomAtmosphere atmosphere =
+                    lighting.GetComponentInChildren<GreenhouseBloomAtmosphere>(true);
+                Assert.IsTrue(atmosphere != null);
+                Volume bloomVolume = atmosphere.GetComponent<Volume>();
+                Assert.IsTrue(bloomVolume != null && bloomVolume.isGlobal);
+                Assert.AreEqual(0f, bloomVolume.weight);
+                Assert.AreEqual(k_BloomAtmosphereProfilePath,
+                    AssetDatabase.GetAssetPath(bloomVolume.sharedProfile));
+
+                AssertFantasySky(k_BaseAtmosphereProfilePath);
+                AssertFantasySky(k_BloomAtmosphereProfilePath);
+                AssertBloomBrightnessTarget();
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void EnvironmentScene_SpiralStairRisesFitPlayerStepOffset()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform stair = environment.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                    .Single(item => item.name == "GreenhouseSpiralStair");
+                MeshCollider stairCollider = stair.GetComponentInChildren<MeshCollider>();
+                CharacterController player = FindRootComponent<CharacterController>(gameplay);
+                Assert.IsTrue(stairCollider != null && stairCollider.sharedMesh != null);
+                Assert.IsTrue(player != null);
+
+                Mesh mesh = stairCollider.sharedMesh;
+                Vector3[] vertices = mesh.vertices;
+                int[] triangles = mesh.triangles;
+                Dictionary<float, float> horizontalAreaByHeight = new Dictionary<float, float>();
+
+                for (int i = 0; i < triangles.Length; i += 3)
+                {
+                    Vector3 a = stairCollider.transform.TransformPoint(vertices[triangles[i]]);
+                    Vector3 b = stairCollider.transform.TransformPoint(vertices[triangles[i + 1]]);
+                    Vector3 c = stairCollider.transform.TransformPoint(vertices[triangles[i + 2]]);
+                    Vector3 cross = Vector3.Cross(b - a, c - a);
+
+                    if (cross.normalized.y <= 0.99f)
+                    {
+                        continue;
+                    }
+
+                    float height = Mathf.Round(((a.y + b.y + c.y) / 3f) * 1000f) / 1000f;
+                    float area = cross.magnitude * 0.5f;
+                    horizontalAreaByHeight.TryGetValue(height, out float accumulatedArea);
+                    horizontalAreaByHeight[height] = accumulatedArea + area;
+                }
+
+                float playerFootprintArea = Mathf.PI * player.radius * player.radius;
+                float[] treadLevels = horizontalAreaByHeight
+                    .Where(pair => pair.Value >= playerFootprintArea
+                        && pair.Value <= playerFootprintArea * 10f)
+                    .Select(pair => pair.Key)
+                    .OrderBy(height => height)
+                    .ToArray();
+                Assert.Greater(treadLevels.Length, 2, "The collider exposes no player-sized stair treads.");
+
+                float largestRise = 0f;
+
+                for (int i = 1; i < treadLevels.Length; i++)
+                {
+                    largestRise = Mathf.Max(largestRise, treadLevels[i] - treadLevels[i - 1]);
+                }
+
+                Assert.That(largestRise, Is.EqualTo(0.317f).Within(0.002f));
+                Assert.LessOrEqual(largestRise, player.stepOffset,
+                    $"The greenhouse stair rises {largestRise:F3}m per tread, but the Player can only step "
+                    + $"{player.stepOffset:F3}m.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        [Test]
         public void Checkpoints_ReferenceLevelAndMatchDirectAnchors()
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);
             AssertCheckpoint(k_EntranceCheckpointPath, level, "Checkpoint_GreenhouseEntrance");
-            AssertCheckpoint(k_CentralCheckpointPath, level, "Checkpoint_CentralGreenhouse");
+
+            DevCheckpointSO central = AssertCheckpoint(
+                k_CentralCheckpointPath,
+                level,
+                "Checkpoint_CentralGreenhouse");
+            Assert.That(central.Position, Is.EqualTo(new Vector3(0f, 2.19f, -8f)));
+            Assert.That(central.Yaw, Is.EqualTo(0f).Within(0.01f));
+            Assert.IsTrue(central.SnapToGround);
+            Assert.That(central.GroundClearance, Is.EqualTo(1f).Within(0.01f));
+            Assert.IsFalse(central.UseAnchorHeight);
         }
 
-        private static void AssertCheckpoint(string path, LevelSO level, string anchorName)
+        [Test]
+        public void CentralCheckpoint_PlayerCapsuleHasMovementClearance()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene gameplay = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorGameplay,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                Transform central = FindRoot(gameplay, "_Anchors").Find("Checkpoint_CentralGreenhouse");
+                Assert.That(central.position, Is.EqualTo(new Vector3(0f, 2.19f, -8f)));
+                Assert.That(central.eulerAngles.y, Is.EqualTo(0f).Within(0.01f));
+                Physics.SyncTransforms();
+                Vector3 bottom = central.position + Vector3.down * 0.4f;
+                Vector3 top = central.position + Vector3.up * 0.4f;
+                Collider[] overlaps = Physics.OverlapCapsule(
+                    bottom,
+                    top,
+                    0.48f,
+                    ~0,
+                    QueryTriggerInteraction.Ignore);
+                Assert.AreEqual(0, overlaps.Length,
+                    "The 03-02 checkpoint still overlaps a blocking collider.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(gameplay, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        private static DevCheckpointSO AssertCheckpoint(string path, LevelSO level, string anchorName)
         {
             DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(path);
             Assert.IsTrue(checkpoint != null, path);
             Assert.AreSame(level, checkpoint.Level);
             Assert.AreEqual(anchorName, checkpoint.AnchorName);
             Assert.AreEqual(CheckpointTimeOfDay.LevelDefault, checkpoint.TimeOfDay);
-            Assert.IsFalse(checkpoint.SnapToGround);
+            return checkpoint;
+        }
+
+        private static void AssertFantasySky(string profilePath)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+            Assert.IsTrue(profile != null, profilePath);
+            Assert.IsTrue(profile.TryGet(out HDRISky sky));
+            Assert.IsTrue(sky.hdriSky.value != null, profilePath);
+            Assert.AreEqual(k_FantasySkyPath, AssetDatabase.GetAssetPath(sky.hdriSky.value));
+        }
+
+        private static void AssertBloomBrightnessTarget()
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_BloomAtmosphereProfilePath);
+            Assert.IsTrue(profile.TryGet(out Exposure exposure));
+            Assert.IsTrue(profile.TryGet(out HDRISky sky));
+            Assert.IsTrue(profile.TryGet(out Fog fog));
+            Assert.IsTrue(profile.TryGet(out ColorAdjustments color));
+            Assert.LessOrEqual(exposure.fixedExposure.value, 9.8f);
+            Assert.GreaterOrEqual(sky.exposure.value, 12.8f);
+            Assert.GreaterOrEqual(color.postExposure.value, 0.45f);
+            Assert.That(fog.albedo.value.r, Is.EqualTo(fog.albedo.value.b).Within(0.03f));
+            Assert.LessOrEqual(color.colorFilter.value.r, 0.7f);
+            Assert.GreaterOrEqual(color.colorFilter.value.g, 0.95f);
+            Assert.GreaterOrEqual(color.colorFilter.value.b, 1f);
+            Assert.LessOrEqual(color.saturation.value, -20f);
         }
 
         private static Transform FindRoot(Scene scene, string name)

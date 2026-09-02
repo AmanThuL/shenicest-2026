@@ -16,7 +16,7 @@ MonoBehaviour:
   m_kind: 1
   m_title: "\u73AF\u72B6\u6269\u5F20\u73B0\u8C61"
   m_subtitle: Observation record / incomplete
-  m_promptText: "\u62FE\u53D6"
+  m_promptText: "[E] \u62FE\u53D6 \u6863\u6848"
   m_pageSizeMeters: {x: 0.16, y: 0.21}
   m_dustAmount: 0.7
   m_requiredFlag: 

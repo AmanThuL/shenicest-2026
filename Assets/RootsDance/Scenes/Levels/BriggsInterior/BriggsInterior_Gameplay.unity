@@ -173,7 +173,7 @@ MonoBehaviour:
   m_blockedPrompt: 
   m_flagOnShattered: flow.briggs_exit_rune_broken
   m_repeatable: 0
-  m_shatterCue: {fileID: 0}
+  m_shatterCue: {fileID: 11400000, guid: 906693b0db4d40cd883abf9c60385797, type: 2}
   m_audioChannel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
   m_shatterEffect: {fileID: 8151851006878585952, guid: a5b1df03e18ac449f8e148a72f8e86bf, type: 3}
   m_effectLifetimeSeconds: 4
@@ -407,9 +407,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1039937252}
-    - targetCorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1039937251}
   m_SourcePrefab: {fileID: 100100000, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
 --- !u!4 &1039937245 stripped
 Transform:
@@ -421,17 +418,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 1039937244}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1039937247 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6295360982917947931, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-  m_PrefabInstance: {fileID: 1039937244}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a407ebae978d9466aafbe6874f5dfe19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.InteractionRaycaster
 --- !u!114 &1039937248 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3067282954758705644, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
@@ -465,24 +451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7446a6f54c8184e09b06a88622412e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerInputReader
---- !u!114 &1039937251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1039937246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a41d6352e49bd464d972bba0d4d5bd9c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Archive.ArchiveProximityTrigger
-  m_controller: {fileID: 1039937252}
-  m_player: {fileID: 1039937245}
-  m_input: {fileID: 1039937250}
-  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_range: 2.5
-  m_promptFormat: "[E] \u67E5\u770B {0}"
 --- !u!114 &1039937252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -500,7 +468,7 @@ MonoBehaviour:
   m_suspendedWhileReading:
   - {fileID: 1039937248}
   - {fileID: 1039937249}
-  - {fileID: 1039937247}
+  - {fileID: 0}
   m_restFill: 0.55
   m_zoomedFill: 0.92
   m_zoomMetresPerSecond: 0.35
@@ -525,6 +493,7 @@ GameObject:
   - component: {fileID: 1340303027}
   - component: {fileID: 1340303026}
   - component: {fileID: 1340303029}
+  - component: {fileID: 1340303030}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -632,6 +601,40 @@ MonoBehaviour:
   m_fallDuration: 0.2
   m_amplitudePixels: 7
   m_frequency: 18
+--- !u!114 &1340303030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340303024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f2940d88eed845568008f5de9fa0146, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Cameras.PanicViewShake
+  m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
+  m_panicOnFlag: 
+  m_calmOnFlag: 
+  m_lookBackOnFlag: flow.flower_sprite_appeared
+  m_controller: {fileID: 0}
+  m_fullStrideSpeed: 4.4
+  m_runOnsetSpeed: 2.6
+  m_stepsPerSecond: 2.9
+  m_verticalMeters: 0.025
+  m_lateralMeters: 0.018
+  m_rollDegrees: 1.8
+  m_pitchDegrees: 1
+  m_jitterDegrees: 0.9
+  m_jitterHz: 7
+  m_riseSeconds: 0.35
+  m_fallSeconds: 1.2
+  m_lookBackDegrees: 150
+  m_overLeftShoulder: 1
+  m_turnOutSeconds: 0.5
+  m_holdSeconds: 0.45
+  m_returnSeconds: 0.4
+  m_shakeWhileLookingBack: 0.45
 --- !u!1 &1355721244
 GameObject:
   m_ObjectHideFlags: 0

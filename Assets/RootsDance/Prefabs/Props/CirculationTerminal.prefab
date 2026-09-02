@@ -4856,7 +4856,7 @@ GameObject:
   - component: {fileID: 2113696066172397813}
   - component: {fileID: 5165443242157374047}
   - component: {fileID: 7134629953081597873}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CirculationTerminal
   m_TagString: Untagged
   m_Icon: {fileID: 0}

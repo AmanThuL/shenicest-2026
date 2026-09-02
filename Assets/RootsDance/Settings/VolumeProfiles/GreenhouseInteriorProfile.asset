@@ -262,7 +262,7 @@ MonoBehaviour:
     m_Value: 0
   exposure:
     m_OverrideState: 1
-    m_Value: 12.8
+    m_Value: 10.8
   multiplier:
     m_OverrideState: 1
     m_Value: 1
@@ -299,7 +299,7 @@ MonoBehaviour:
     m_Value: 1
   hdriSky:
     m_OverrideState: 1
-    m_Value: {fileID: 8900000, guid: b90bc8a4300ab4014a558b12825479b2, type: 3}
+    m_Value: {fileID: 8900000, guid: 38f6ae3475c60427da05839e1269ecd3, type: 3}
   distortionMode:
     m_OverrideState: 1
     m_Value: 0
@@ -368,6 +368,34 @@ MonoBehaviour:
   rectLightShadow:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &-5941163328541260623
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b8bcdf71d7fafa419fca1ed162f5fc9, type: 3}
+  m_Name: ColorAdjustments
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.ColorAdjustments
+  active: 1
+  postExposure:
+    m_OverrideState: 1
+    m_Value: 0
+  contrast:
+    m_OverrideState: 1
+    m_Value: -5
+  colorFilter:
+    m_OverrideState: 1
+    m_Value: {r: 0.88, g: 0.89, b: 0.86, a: 1}
+  hueShift:
+    m_OverrideState: 0
+    m_Value: 0
+  saturation:
+    m_OverrideState: 1
+    m_Value: -18
 --- !u!114 &-5594835603142716843
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -492,6 +520,7 @@ MonoBehaviour:
   - {fileID: 8277860772977751353}
   - {fileID: -2968127108476231002}
   - {fileID: -6166766363068378870}
+  - {fileID: -5941163328541260623}
 --- !u!114 &3136193891887760059
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -604,25 +633,25 @@ MonoBehaviour:
     m_Value: 1000
   baseHeight:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 8
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 42
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 55
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
   albedo:
     m_OverrideState: 1
-    m_Value: {r: 0.9, g: 0.94, b: 0.9, a: 1}
+    m_Value: {r: 0.72, g: 0.73, b: 0.7, a: 1}
   globalLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0
   depthExtent:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 60
   denoisingMode:
     m_OverrideState: 1
     m_Value: 3
@@ -634,7 +663,7 @@ MonoBehaviour:
     m_Value: 0.5
   multipleScatteringIntensity:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.24
   m_FogControlMode:
     m_OverrideState: 1
     m_Value: 1

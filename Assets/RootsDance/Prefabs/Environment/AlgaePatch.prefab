@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9350bb5ec10f141a1b51a92e46408c96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannableTarget
-  m_displayName: "\u8367\u5149\u85FB"
+  m_displayName: "\u85FB\u7C7B"
   m_aimPoint: {fileID: 0}
   m_revealedSection: {fileID: 0}
   m_repeatable: 0
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a371a2234baf4da0a23b086491c1f98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.HarvestPoint
-  m_displayName: "\u8367\u5149\u85FB"
+  m_displayName: "\u85FB\u7C7B"
   m_reachPoint: {fileID: 0}
   m_requiresCarriedItem: 1
   m_requiredKind: 1

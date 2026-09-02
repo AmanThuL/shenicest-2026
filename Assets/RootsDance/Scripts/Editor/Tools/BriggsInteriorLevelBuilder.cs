@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
@@ -41,9 +42,11 @@ namespace RootsDance.Editor.Tools
             "Assets/RootsDance/Textures/Environment/Garage";
         private const string k_LegacyLabEntranceAssetPath =
             k_CheckpointFolder + "/02-01_LaboratoryEntrance.asset";
+        private const string k_LegacySampleStorageAssetPath =
+            k_CheckpointFolder + "/02-02_SampleStorage.asset";
+        private const string k_LegacyGreenhouseAssetPath =
+            k_CheckpointFolder + "/02-03_Greenhouse.asset";
         private const string k_PlantResearchLabAnchor = "Checkpoint_PlantResearchLab";
-        private const string k_SampleStorageAnchor = "Checkpoint_SampleStorage";
-        private const string k_GreenhouseAnchor = "Checkpoint_Greenhouse";
 
         private const float k_LabWidth = 18f;
         private const float k_LabDepth = 14f;
@@ -65,8 +68,6 @@ namespace RootsDance.Editor.Tools
         private static readonly CheckpointPlacement[] k_CheckpointPlacements =
         {
             new CheckpointPlacement(k_PlantResearchLabAnchor, new Vector3(3f, 1f, -5.5f), 0f),
-            new CheckpointPlacement(k_SampleStorageAnchor, new Vector3(-4.1f, 1f, -0.7f), 90f),
-            new CheckpointPlacement(k_GreenhouseAnchor, new Vector3(6.8f, 1f, -3.2f), 180f),
         };
 
         [MenuItem("RootsDance/Build Briggs Interior Checkpoint Level")]
@@ -665,9 +666,13 @@ namespace RootsDance.Editor.Tools
 
             SerializedObject serialized = new SerializedObject(level);
             SerializedProperty scenePaths = serialized.FindProperty("m_scenePaths");
-            scenePaths.arraySize = 2;
+            scenePaths.arraySize = 5;
             scenePaths.GetArrayElementAtIndex(0).stringValue = k_EnvironmentPath;
             scenePaths.GetArrayElementAtIndex(1).stringValue = k_GameplayPath;
+            scenePaths.GetArrayElementAtIndex(2).stringValue =
+                "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment_2.unity";
+            scenePaths.GetArrayElementAtIndex(3).stringValue = ScenePaths.k_ChapterHouseConnectedEnvironment;
+            scenePaths.GetArrayElementAtIndex(4).stringValue = ScenePaths.k_ChapterHouseConnectedGameplay;
             serialized.ApplyModifiedProperties();
 
             if (isNew)
@@ -687,7 +692,9 @@ namespace RootsDance.Editor.Tools
             LevelSO level,
             IReadOnlyDictionary<string, CheckpointPlacement> placements)
         {
-            DeleteLegacyCheckpointAsset();
+            DeleteLegacyCheckpointAsset(k_LegacyLabEntranceAssetPath);
+            DeleteLegacyCheckpointAsset(k_LegacySampleStorageAssetPath);
+            DeleteLegacyCheckpointAsset(k_LegacyGreenhouseAssetPath);
 
             string[] completedExteriorFlags =
             {
@@ -707,33 +714,19 @@ namespace RootsDance.Editor.Tools
                 k_PlantResearchLabAnchor,
                 placements[k_PlantResearchLabAnchor],
                 completedExteriorFlags);
-            CreateCheckpoint(
-                k_CheckpointFolder + "/02-02_SampleStorage.asset",
-                "02-02 Sample storage",
-                level,
-                k_SampleStorageAnchor,
-                placements[k_SampleStorageAnchor],
-                completedExteriorFlags);
-            CreateCheckpoint(
-                k_CheckpointFolder + "/02-03_Greenhouse.asset",
-                "02-03 Greenhouse",
-                level,
-                k_GreenhouseAnchor,
-                placements[k_GreenhouseAnchor],
-                completedExteriorFlags);
         }
 
-        private static void DeleteLegacyCheckpointAsset()
+        private static void DeleteLegacyCheckpointAsset(string assetPath)
         {
-            if (AssetDatabase.LoadMainAssetAtPath(k_LegacyLabEntranceAssetPath) == null)
+            if (AssetDatabase.LoadMainAssetAtPath(assetPath) == null)
             {
                 return;
             }
 
-            if (!AssetDatabase.DeleteAsset(k_LegacyLabEntranceAssetPath))
+            if (!AssetDatabase.DeleteAsset(assetPath))
             {
                 throw new System.IO.IOException(
-                    "Could not delete the legacy Briggs checkpoint: " + k_LegacyLabEntranceAssetPath);
+                    "Could not delete the legacy Briggs checkpoint: " + assetPath);
             }
         }
 

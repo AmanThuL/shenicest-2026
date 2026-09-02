@@ -69,6 +69,9 @@ namespace RootsDance.Core
         /// <summary>The staff photograph on the observation deck has been read (02-10).</summary>
         public const string k_SawStaffPhotograph = "flow.saw_staff_photograph";
 
+        /// <summary>The standing water left in the greenhouse sink has been sampled (02-11).</summary>
+        public const string k_ResidualWaterSampled = "flow.residual_water_sampled";
+
         /// <summary>Core Cultivation was started — a wrong answer (02-12).</summary>
         public const string k_CirculationCore = "flow.circulation_core";
 
@@ -132,5 +135,16 @@ namespace RootsDance.Core
         /// the answer right without a restore call.
         /// </summary>
         public const string k_BriggsExitRuneBroken = "flow.briggs_exit_rune_broken";
+
+        // ---- Teaching -------------------------------------------------------------------------
+
+        /// <summary>
+        /// The player has put something down at least once, so the drop key has been taught and the
+        /// standing "[G] 放下" hint stops. Held in world state rather than on the pickup trigger so
+        /// it survives a reload and so a checkpoint can seed a player who is past the tutorial.
+        /// The "put that down first" hint is unaffected — that one explains a blocked action rather
+        /// than teaching a key, and is still worth showing every time.
+        /// </summary>
+        public const string k_LearnedDrop = "flow.learned_drop";
     }
 }

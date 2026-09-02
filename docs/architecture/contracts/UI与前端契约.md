@@ -47,7 +47,7 @@ presenter 通过 `[SerializeField]` 引用拿到每个控件，所以接口是 *
 | prefab 内控件（GameObject 名） | 组件 | 用途 | 消费者 |
 |---|---|---|---|
 | `SubtitleText` | TextMeshProUGUI | 无线电 / 内心独白 / 设备提示 / 调查结果 | `SubtitlePresenter` |
-| `PromptLabel` | TextMeshProUGUI | 准星下方的「采样 / 识别」提示 | `InteractionPromptPresenter` |
+| `PromptLabel` | TextMeshProUGUI | 交互提示（走近且物体在画面内时出现） | `InteractionPromptPresenter` |
 | `ReportToast` | 容器 GameObject（整体显隐） | 报告更新提示的容器 | `ReportToastPresenter` |
 | `ReportToastTitle` | TextMeshProUGUI | 「官方探索报告已更新」 | `ReportToastPresenter` |
 | `ReportToastLine` | TextMeshProUGUI | 「土壤样本：01」 | `ReportToastPresenter` |
@@ -64,7 +64,7 @@ presenter 通过 `[SerializeField]` 引用拿到每个控件，所以接口是 *
 |---|---|---|---|
 | `FlagRaised` | String | GameBootstrap | RadioSequencePlayer、HelmetController、美术的 View 组件 |
 | `ReportUpdated` | Report Update | GameBootstrap | ReportToastPresenter |
-| `InteractionPrompt` | String | InteractionRaycaster | InteractionPromptPresenter |
+| `InteractionPrompt` | String | InteractionProximityTrigger | InteractionPromptPresenter |
 | `RadioLine` | String | RadioSequencePlayer | SubtitlePresenter |
 | `Monologue` | String | InvestigationService | SubtitlePresenter |
 | `Notice` | String | InvestigationService、HelmetController | SubtitlePresenter |

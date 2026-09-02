@@ -5,6 +5,7 @@ using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Data;
 using RootsDance.Editor.DevPlay;
+using RootsDance.Environment;
 using RootsDance.Investigation;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -83,13 +84,42 @@ namespace RootsDance.Editor.Environment
         private const string k_CorridorEntranceAnchor = "Checkpoint_CorridorEntrance";
         private const string k_FlowerSpriteEncounterAnchor = "Checkpoint_FlowerSpriteEncounter";
 
-        /// <summary>The catwalk. The one piece that is not a part of the chapel.</summary>
-        private const string k_BridgePart = "Bridge_Metal_Center.001";
+        /// <summary>
+        /// The catwalk. The one piece that is not a part of the chapel. Public because
+        /// <see cref="ChapterHouseBridgeRailingBuilder"/> rails the same piece off the same name.
+        /// </summary>
+        public const string k_BridgePart = "Bridge_Metal_Center.001";
         private const string k_BridgeSurface = "Bridge_Metal";
 
         /// <summary>The chapel floor the hall is walked on, and the landscape under it.</summary>
         private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
         private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
+
+        /// <summary>Every physical door in the building, flattened into one static mesh by the same
+        /// blockout pass that renamed the pieces. <see cref="SeparateDoors"/> pulls it back apart.</summary>
+        private const string k_DoorsPart = "ClothLandscape_CorridorShell.006";
+        private const string k_EmissionPart = "ClothLandscape_CorridorShell.004";
+        private const string k_EmissionSurface = "emission";
+        private const string k_ClothSurface = "Material.001";
+        private const string k_EdgeEmissionTexture = "gradbake";
+        private const float k_EdgeEmissionNits = 1500f;
+        private const float k_ClothEmissionNits = 30000f;
+
+        /// <summary>How close two loose islands of <see cref="k_DoorsPart"/> have to be, in world
+        /// metres, to count as the same door — a leaf and its handle sit centimetres apart; two
+        /// different doors are metres apart.</summary>
+        private const float k_DoorClusterDistance = 0.6f;
+
+        private const float k_DoorOpenAngle = 100f;
+
+        /// <summary>Sized together with <see cref="k_DoorTriggerMargin"/> so the swing finishes
+        /// before a sprinting player reaches the leaf: 100° at 220°/s takes 0.45 s, and the margin
+        /// gives 2.45 m of approach (half margin minus the probe's 0.45 m radius) — 0.56 s at the
+        /// 4.4 m/s sprint speed. A late-opening leaf swings into the player and shoves them back
+        /// out of the doorway.</summary>
+        private const float k_DoorDegreesPerSecond = 220f;
+        private const float k_DoorTriggerMargin = 5.8f;
+        private const float k_DoorTriggerHeight = 2.4f;
 
         /// <summary>
         /// Head clearance over a walkable surface for a spawn or an anchor. Public because the
@@ -103,6 +133,8 @@ namespace RootsDance.Editor.Environment
         /// shrank the chapel by. Held here so the build fails loudly if the profile drifts from it.
         /// </summary>
         private const float k_ImportScale = 1.511f;
+        private const float k_LayoutScale = 2f;
+        private const float k_LayoutYOffset = -3.5f;
 
         /// <summary>
         /// Every material the chapel declares, and the texture set each one wears. Base and normal
@@ -141,9 +173,9 @@ namespace RootsDance.Editor.Environment
 
             // The three bakes with no surface of their own: a gradient wash the author used for
             // ambient tint, and two odds and ends.
-            new SurfaceMapping("Material.001", "gradbake", null),
-            new SurfaceMapping("emission", "gradbake", null),
-            new SurfaceMapping("bacl", "plane", null),
+            new SurfaceMapping(k_ClothSurface, "plane", null, Color.white, 0f, 0.3f),
+            new SurfaceMapping("emission", "gradalpha", null),
+            new SurfaceMapping("bacl", null, null, new Color(0.015f, 0.02f, 0.03f), 0f, 0.08f),
 
             // The catwalk is not part of the chapel and carries no bake, so it is the one surface
             // that has to be a described material rather than a photographed one.
@@ -167,7 +199,7 @@ namespace RootsDance.Editor.Environment
             ("ClothLandscape_CorridorShell.001", "Window_fourclo"),      // glass_fourclo — the round opening
             ("ClothLandscape_CorridorShell.002", "Windwo_test"),         // glass_largearch
             ("ClothLandscape_CorridorShell.003", "Window_small"),        // glass_threearches
-            ("ClothLandscape_CorridorShell.004", "emission"),            // ImSPOECIAL
+            (k_EmissionPart, k_EmissionSurface),                          // ImSPOECIAL
             ("ClothLandscape_CorridorShell.005", "lower_columns"),
             ("ClothLandscape_CorridorShell.006", "lower_doors"),
             (k_FloorPart, "lower_floor"),
@@ -193,6 +225,7 @@ namespace RootsDance.Editor.Environment
         /// is explicitly a layout the level artist is still moving around.
         /// </summary>
         private static CheckpointPlacement[] s_checkpointPlacements;
+        private static ChapterHouseRoundEntranceBuilder.Placement s_roundEntrancePlacement;
 
         [MenuItem("RootsDance/Build Chapter House Interior")]
         public static void Build()
@@ -222,6 +255,11 @@ namespace RootsDance.Editor.Environment
                 // the sprite are gone every time this runs. Writing them back here is what keeps a
                 // geometry rebuild from silently deleting the only story beat in the level.
                 Content.NarrativeRuntimeBuilder.ApplyChapterHouseOnly();
+
+                // Same reason: the rebuilt gameplay scene starts with an empty _Triggers, which
+                // would silently sever the level's only way onward.
+                ChapterHouseGreenhousePortalBuilder.ApplyToScenes();
+                ChapterHouseConnectedLevelBuilder.Build(s_roundEntrancePlacement);
 
                 AssetDatabase.SaveAssets();
 
@@ -441,6 +479,56 @@ namespace RootsDance.Editor.Environment
             material.SetFloat("_Smoothness", surface.Smoothness);
             material.SetFloat("_Metallic", surface.Metallic);
 
+            // Start from the deterministic opaque state used by every authored surface. The
+            // emission card below is the sole transparent exception.
+            HDMaterial.SetSurfaceType(material, false);
+            HDMaterial.SetAlphaClipping(material, false);
+
+            if (surface.MaterialName == k_EmissionSurface)
+            {
+                Texture emissionTexture = LoadTexture(k_EdgeEmissionTexture);
+
+                // ImSPOECIAL is the thin gradient card between the floor and the cloth. In the
+                // source it contributes light without hiding the landscape behind it. Additive
+                // transparency reproduces that compositing: the black part of gradbake vanishes
+                // and only its blue ramp remains. Treating it as opaque produced the black band
+                // that cut across the Unity version.
+                material.SetColor("_BaseColor", Color.black);
+                material.SetTexture("_EmissiveColorMap", emissionTexture);
+                HDMaterial.SetUseEmissiveIntensity(material, true);
+                HDMaterial.SetEmissiveColor(material, Color.white);
+                HDMaterial.SetEmissiveIntensity(
+                    material,
+                    k_EdgeEmissionNits,
+                    EmissiveIntensityUnit.Nits);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                HDMaterial.SetSurfaceType(material, true);
+                material.SetFloat("_BlendMode", 1f);
+                material.SetFloat("_TransparentZWrite", 0f);
+                material.SetFloat("_EnableFogOnTransparent", 0f);
+            }
+            else if (surface.MaterialName == k_ClothSurface)
+            {
+                // Sketchfab's cloth appearance is baked into plane.png. The original OBJ's MTL
+                // omits that assignment, which previously left the cloth wearing gradbake.png —
+                // the small perimeter card's texture — and made every fold nearly black.
+                Texture clothTexture = LoadTexture(surface.BaseTexture);
+                material.SetTexture("_EmissiveColorMap", clothTexture);
+                HDMaterial.SetUseEmissiveIntensity(material, true);
+                HDMaterial.SetEmissiveColor(material, Color.white);
+                HDMaterial.SetEmissiveIntensity(
+                    material,
+                    k_ClothEmissionNits,
+                    EmissiveIntensityUnit.Nits);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+            else
+            {
+                material.SetTexture("_EmissiveColorMap", null);
+                HDMaterial.SetUseEmissiveIntensity(material, false);
+                HDMaterial.SetEmissiveColor(material, Color.black);
+            }
+
             if (!string.IsNullOrEmpty(surface.NormalTexture))
             {
                 material.SetTexture("_NormalMap", LoadTexture(surface.NormalTexture));
@@ -495,17 +583,25 @@ namespace RootsDance.Editor.Environment
             Transform lighting = CreateRoot("_Lighting");
             Transform geometry = CreateRoot("_Geometry");
             Transform buildingRoot = CreateChild("ChapterHouseRoot", geometry);
+            buildingRoot.localScale = Vector3.one * k_LayoutScale;
             Transform props = CreateRoot("_Props");
             CreateRoot("_NavMesh");
 
             GameObject building = InstantiateModel(k_ModelPath, "ChapterHouse", buildingRoot, scene);
             Bounds bounds = GroundModel(building);
+            buildingRoot.position = new Vector3(0f, k_LayoutYOffset, 0f);
+            bounds = GetRendererBounds(building);
             ApplyMaterials(building, materials);
-            CreateCollision(building);
             SetStatic(building);
-            CreateMycelium(building, scene);
-
+            Bounds legacyDoorway = SeparateDoors(building, materials);
             Bounds floor = PartBounds(building, k_FloorPart);
+            Bounds cloth = PartBounds(building, k_ClothPart);
+            s_roundEntrancePlacement = ChapterHouseRoundEntranceBuilder.Replace(
+                building, geometry, scene, floor, legacyDoorway);
+            CreateCollision(building);
+            CreateMycelium(building, scene, floor, cloth);
+            ChapterHouseBridgeRailingBuilder.Place(building);
+
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
             CreateLighting(lighting, bounds, floor);
             CreateScaleReference(props, floor);
@@ -517,22 +613,24 @@ namespace RootsDance.Editor.Environment
         /// <summary>
         /// Places the mycelium in the undercroft and starts its breath looping.
         ///
-        /// The generator already worked in this level's world space, so the instance only has to
-        /// repeat whatever transform <see cref="GroundModel"/> gave the building. Copying that
-        /// transform rather than writing the offset down keeps the two in register the next time
-        /// the blockout is re-exported and the building is re-grounded.
+        /// The FBX stores the generator's Unity-world coordinates on Blender's Y/Z axes. It is
+        /// rotated once on import, compensated for the two-times chapter-house layout scale, then
+        /// centred over the portion of cloth visible from the catwalk. This keeps it at a true
+        /// world scale of one instead of spreading it across the entire undercroft.
         ///
         /// It is deliberately not marked static: the breath is a blend-shape animation, so these
         /// are SkinnedMeshRenderers and static batching would freeze them.
         /// </summary>
-        private static void CreateMycelium(GameObject building, Scene scene)
+        private static void CreateMycelium(
+            GameObject building,
+            Scene scene,
+            Bounds floor,
+            Bounds cloth)
         {
             GameObject mycelium = InstantiateModel(
                 k_MyceliumModelPath, k_MyceliumName, building.transform.parent, scene);
 
-            mycelium.transform.SetLocalPositionAndRotation(
-                building.transform.localPosition, building.transform.localRotation);
-            mycelium.transform.localScale = building.transform.localScale;
+            FitMyceliumToVisibleCloth(mycelium, building, floor, cloth);
 
             Material hyphae = EnsureMyceliumMaterial(
                 "Hyphae", new Color(0.84f, 0.82f, 0.74f), 0.25f);
@@ -563,6 +661,33 @@ namespace RootsDance.Editor.Environment
             }
 
             EnsureMyceliumAnimator(mycelium);
+            mycelium.SetActive(true);
+        }
+
+        private static void FitMyceliumToVisibleCloth(
+            GameObject mycelium,
+            GameObject building,
+            Bounds floor,
+            Bounds cloth)
+        {
+            Transform myceliumTransform = mycelium.transform;
+            myceliumTransform.SetLocalPositionAndRotation(
+                building.transform.localPosition,
+                building.transform.localRotation * Quaternion.Euler(90f, 0f, 0f));
+            myceliumTransform.localScale = building.transform.localScale / k_LayoutScale;
+
+            // Remove per-renderer overrides left by look-development. The model asset owns both
+            // meshes at identity; scaling them independently makes droplets drift off the hyphae.
+            for (int i = 0; i < myceliumTransform.childCount; i++)
+            {
+                Transform child = myceliumTransform.GetChild(i);
+                child.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                child.localScale = Vector3.one;
+            }
+
+            Bounds myceliumBounds = GetRendererBounds(mycelium);
+            Vector3 targetCentre = new Vector3(floor.center.x, cloth.center.y, cloth.center.z);
+            myceliumTransform.position += targetCentre - myceliumBounds.center;
         }
 
         /// <summary>
@@ -760,7 +885,10 @@ namespace RootsDance.Editor.Environment
         /// Daylight through the glazing plus a low interior fill. A chapter house is read by its
         /// height, and height only reads when the upper walls catch light the floor does not.
         /// </summary>
-        private static void CreateLighting(Transform parent, Bounds bounds, Bounds floor)
+        private static void CreateLighting(
+            Transform parent,
+            Bounds bounds,
+            Bounds floor)
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_VolumeProfilePath);
 
@@ -805,6 +933,7 @@ namespace RootsDance.Editor.Environment
                 new Vector3(x, lower, floor.center.z - depth * 0.34f));
             CreateFillLight(parent, "ChapterHouseFill_CrossingLow",
                 new Vector3(x, lower, floor.center.z + depth * 0.34f));
+
         }
 
         private static void CreateFillLight(Transform parent, string name, Vector3 position)
@@ -872,6 +1001,358 @@ namespace RootsDance.Editor.Environment
                     filter.gameObject.layer = groundLayer;
                 }
             }
+        }
+
+        /// <summary>
+        /// Pulls <see cref="k_DoorsPart"/>'s loose parts back apart into one GameObject per physical
+        /// door, each pivoted on its own hinge edge with a <see cref="SwingDoor"/>, and removes the
+        /// merged piece so nothing renders twice. Which door(s) actually respond to the player is a
+        /// gameplay decision made elsewhere — this only makes each one independently animatable.
+        /// <para>
+        /// Everything here is computed in world space and only converted back to local space once a
+        /// door's own transform is placed, via <c>Transform.InverseTransformPoint</c> — so it never
+        /// has to know or guess the mesh's axis convention or the importer's 1.511 scale.
+        /// </para>
+        /// </summary>
+        private static Bounds SeparateDoors(GameObject building, Dictionary<string, Material> materials)
+        {
+            MeshFilter mergedFilter = building.GetComponentsInChildren<MeshFilter>(true)
+                .FirstOrDefault(filter => filter.gameObject.name == k_DoorsPart);
+
+            if (mergedFilter == null || mergedFilter.sharedMesh == null)
+            {
+                throw new InvalidOperationException(
+                    "The chapter house doors piece was not found: " + k_DoorsPart);
+            }
+
+            if (!materials.TryGetValue(Normalize("lower_doors"), out Material doorMaterial))
+            {
+                throw new InvalidOperationException("No material was built for the chapel doors.");
+            }
+
+            Transform mergedTransform = mergedFilter.transform;
+            Mesh mergedMesh = mergedFilter.sharedMesh;
+            int[] triangles = mergedMesh.triangles;
+            Vector3[] localVertices = mergedMesh.vertices;
+            Vector3[] worldVertices = new Vector3[localVertices.Length];
+
+            for (int i = 0; i < localVertices.Length; i++)
+            {
+                worldVertices[i] = mergedTransform.TransformPoint(localVertices[i]);
+            }
+
+            List<List<int>> islands = FindTriangleIslands(triangles, localVertices.Length);
+            List<List<int>> doorGroups = ClusterIslandsIntoDoors(islands, triangles, worldVertices);
+
+            if (doorGroups.Count == 0)
+            {
+                throw new InvalidOperationException("The chapel doors mesh has no geometry.");
+            }
+
+            doorGroups.Sort((a, b) =>
+            {
+                Vector3 centerA = TriangleGroupWorldBounds(a, triangles, worldVertices).center;
+                Vector3 centerB = TriangleGroupWorldBounds(b, triangles, worldVertices).center;
+                int byZ = centerA.z.CompareTo(centerB.z);
+                return byZ != 0 ? byZ : centerA.x.CompareTo(centerB.x);
+            });
+
+            Transform parent = mergedTransform.parent;
+
+            if (doorGroups.Count != 4)
+            {
+                throw new InvalidOperationException(
+                    "The chapter house entrance replacement expects four authored door groups, found "
+                    + doorGroups.Count + ".");
+            }
+
+            Bounds legacyDoorway = TriangleGroupWorldBounds(doorGroups[0], triangles, worldVertices);
+
+            // Door A was the offset rectangular entrance. It is deliberately not rebuilt: the
+            // round-entrance wall covers and erases that entire bay. Keep the original B/C/D
+            // letters stable so the greenhouse exit remains ChapterHouseDoor_D.
+            for (int i = 1; i < doorGroups.Count; i++)
+            {
+                string name = "ChapterHouseDoor_" + (char)('A' + i);
+                BuildDoor(name, doorGroups[i], mergedMesh, triangles, worldVertices, mergedTransform,
+                    parent, doorMaterial);
+            }
+
+            UnityEngine.Object.DestroyImmediate(mergedFilter.gameObject);
+            return legacyDoorway;
+        }
+
+        /// <summary>Groups triangles by shared-vertex connectivity. The importer welds coincident
+        /// vertices (see the <c>static_chapterhouse</c> profile), so two triangles that touch always
+        /// share a vertex index, not just a position.</summary>
+        private static List<List<int>> FindTriangleIslands(int[] triangles, int vertexCount)
+        {
+            int[] parent = new int[vertexCount];
+
+            for (int i = 0; i < vertexCount; i++)
+            {
+                parent[i] = i;
+            }
+
+            int triangleCount = triangles.Length / 3;
+
+            for (int t = 0; t < triangleCount; t++)
+            {
+                int v0 = triangles[t * 3];
+                int v1 = triangles[t * 3 + 1];
+                int v2 = triangles[t * 3 + 2];
+                Union(parent, v0, v1);
+                Union(parent, v1, v2);
+            }
+
+            Dictionary<int, List<int>> byRoot = new Dictionary<int, List<int>>();
+
+            for (int t = 0; t < triangleCount; t++)
+            {
+                int root = Find(parent, triangles[t * 3]);
+
+                if (!byRoot.TryGetValue(root, out List<int> group))
+                {
+                    group = new List<int>();
+                    byRoot[root] = group;
+                }
+
+                group.Add(t);
+            }
+
+            return byRoot.Values.ToList();
+        }
+
+        /// <summary>Merges islands whose world-space bounds sit within
+        /// <see cref="k_DoorClusterDistance"/> of each other — a door leaf and its handle or hinge
+        /// hardware, as separate loose islands belonging to the same physical door.</summary>
+        private static List<List<int>> ClusterIslandsIntoDoors(
+            List<List<int>> islands, int[] triangles, Vector3[] worldVertices)
+        {
+            int count = islands.Count;
+            Bounds[] bounds = new Bounds[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                bounds[i] = TriangleGroupWorldBounds(islands[i], triangles, worldVertices);
+            }
+
+            int[] parent = new int[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                parent[i] = i;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (BoundsDistance(bounds[i], bounds[j]) <= k_DoorClusterDistance)
+                    {
+                        Union(parent, i, j);
+                    }
+                }
+            }
+
+            Dictionary<int, List<int>> byRoot = new Dictionary<int, List<int>>();
+
+            for (int i = 0; i < count; i++)
+            {
+                int root = Find(parent, i);
+
+                if (!byRoot.TryGetValue(root, out List<int> group))
+                {
+                    group = new List<int>();
+                    byRoot[root] = group;
+                }
+
+                group.AddRange(islands[i]);
+            }
+
+            return byRoot.Values.ToList();
+        }
+
+        private static int Find(int[] parent, int v)
+        {
+            while (parent[v] != v)
+            {
+                parent[v] = parent[parent[v]];
+                v = parent[v];
+            }
+
+            return v;
+        }
+
+        private static void Union(int[] parent, int a, int b)
+        {
+            int rootA = Find(parent, a);
+            int rootB = Find(parent, b);
+
+            if (rootA != rootB)
+            {
+                parent[rootA] = rootB;
+            }
+        }
+
+        private static float BoundsDistance(Bounds a, Bounds b)
+        {
+            Vector3 gap = Vector3.Max(Vector3.zero, Vector3.Max(a.min - b.max, b.min - a.max));
+            return gap.magnitude;
+        }
+
+        private static Bounds TriangleGroupWorldBounds(
+            List<int> triangleIndices, int[] triangles, Vector3[] worldVertices)
+        {
+            Bounds bounds = new Bounds(worldVertices[triangles[triangleIndices[0] * 3]], Vector3.zero);
+
+            for (int i = 0; i < triangleIndices.Count; i++)
+            {
+                int triangle = triangleIndices[i];
+
+                for (int corner = 0; corner < 3; corner++)
+                {
+                    bounds.Encapsulate(worldVertices[triangles[triangle * 3 + corner]]);
+                }
+            }
+
+            return bounds;
+        }
+
+        /// <summary>The hinge sits on the door's own thin (wall-normal) axis, at the minimum edge of
+        /// its long (width) axis, at floor height — one vertical edge of the opening, same
+        /// convention for every door regardless of which wall it is set into.</summary>
+        private static Vector3 ComputeHinge(Bounds worldBounds)
+        {
+            bool thinIsX = worldBounds.size.x < worldBounds.size.z;
+
+            return thinIsX
+                ? new Vector3(worldBounds.center.x, worldBounds.min.y, worldBounds.min.z)
+                : new Vector3(worldBounds.min.x, worldBounds.min.y, worldBounds.center.z);
+        }
+
+        /// <summary>
+        /// Builds one door: a trigger root at the hinge point plus a leaf child that carries the
+        /// extracted mesh and rotates. The root's rotation is left at world identity and the leaf's
+        /// vertices are baked in the leaf's own local space via <c>InverseTransformPoint</c>, so the
+        /// result is correct regardless of the merged mesh's own rotation or the model's import scale.
+        /// </summary>
+        private static void BuildDoor(
+            string name,
+            List<int> triangleIndices,
+            Mesh mergedMesh,
+            int[] triangles,
+            Vector3[] worldVertices,
+            Transform mergedTransform,
+            Transform parent,
+            Material material)
+        {
+            Vector3[] normals = mergedMesh.normals;
+            Vector2[] uvs = mergedMesh.uv;
+            bool hasNormals = normals != null && normals.Length == worldVertices.Length;
+            bool hasUvs = uvs != null && uvs.Length == worldVertices.Length;
+
+            Bounds worldBounds = TriangleGroupWorldBounds(triangleIndices, triangles, worldVertices);
+            Vector3 hinge = ComputeHinge(worldBounds);
+
+            GameObject root = new GameObject(name);
+            root.transform.SetParent(parent, false);
+            root.transform.position = hinge;
+            root.transform.rotation = Quaternion.identity;
+            // The player's probe only collides with TriggerVolume, so a door root left on Default
+            // never sees the probe and never opens. The leaf below stays on Default: its collider
+            // has to block the player's capsule, not talk to the probe.
+            int triggerLayer = LayerMask.NameToLayer("TriggerVolume");
+            if (triggerLayer < 0)
+            {
+                throw new InvalidOperationException("The required TriggerVolume layer does not exist.");
+            }
+            root.layer = triggerLayer;
+
+            GameObject leaf = new GameObject(name + "_Leaf");
+            leaf.transform.SetParent(root.transform, false);
+            leaf.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            leaf.transform.localScale = Vector3.one;
+
+            Dictionary<int, int> remap = new Dictionary<int, int>();
+            List<Vector3> newVertices = new List<Vector3>();
+            List<Vector3> newNormals = hasNormals ? new List<Vector3>() : null;
+            List<Vector2> newUvs = hasUvs ? new List<Vector2>() : null;
+            int[] newTriangles = new int[triangleIndices.Count * 3];
+
+            for (int i = 0; i < triangleIndices.Count; i++)
+            {
+                int triangle = triangleIndices[i];
+
+                for (int corner = 0; corner < 3; corner++)
+                {
+                    int originalIndex = triangles[triangle * 3 + corner];
+
+                    if (!remap.TryGetValue(originalIndex, out int newIndex))
+                    {
+                        newIndex = newVertices.Count;
+                        remap[originalIndex] = newIndex;
+                        newVertices.Add(leaf.transform.InverseTransformPoint(worldVertices[originalIndex]));
+
+                        if (hasNormals)
+                        {
+                            Vector3 worldNormal = mergedTransform.TransformDirection(normals[originalIndex]);
+                            newNormals.Add(leaf.transform.InverseTransformDirection(worldNormal));
+                        }
+
+                        if (hasUvs)
+                        {
+                            newUvs.Add(uvs[originalIndex]);
+                        }
+                    }
+
+                    newTriangles[i * 3 + corner] = newIndex;
+                }
+            }
+
+            Mesh leafMesh = new Mesh { name = name + "_Mesh" };
+            leafMesh.SetVertices(newVertices);
+
+            if (hasNormals)
+            {
+                leafMesh.SetNormals(newNormals);
+            }
+
+            if (hasUvs)
+            {
+                leafMesh.SetUVs(0, newUvs);
+            }
+
+            leafMesh.SetTriangles(newTriangles, 0);
+
+            if (!hasNormals)
+            {
+                leafMesh.RecalculateNormals();
+            }
+
+            leafMesh.RecalculateBounds();
+            leafMesh.RecalculateTangents();
+
+            MeshFilter filter = leaf.AddComponent<MeshFilter>();
+            filter.sharedMesh = leafMesh;
+            MeshRenderer renderer = leaf.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+
+            BoxCollider leafCollider = leaf.AddComponent<BoxCollider>();
+            leafCollider.center = leafMesh.bounds.center;
+            leafCollider.size = leafMesh.bounds.size;
+
+            BoxCollider trigger = root.AddComponent<BoxCollider>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector3(
+                leafMesh.bounds.size.x + k_DoorTriggerMargin,
+                k_DoorTriggerHeight,
+                leafMesh.bounds.size.z + k_DoorTriggerMargin);
+            trigger.center = new Vector3(
+                leafMesh.bounds.center.x, trigger.size.y * 0.5f, leafMesh.bounds.center.z);
+
+            SwingDoor swingDoor = root.AddComponent<SwingDoor>();
+            swingDoor.Configure(leaf.transform, k_DoorOpenAngle, k_DoorDegreesPerSecond);
         }
 
         /// <summary>
@@ -1078,8 +1559,9 @@ namespace RootsDance.Editor.Environment
                 checkpoint = ScriptableObject.CreateInstance<DevCheckpointSO>();
             }
 
-            // No story flags: the building has no place in the script yet, so this is a walk-in
-            // for looking at it, not a rehearsal of a beat.
+            // The chapter house sits after chapter 00, so its checkpoints seed the same flags as
+            // every other post-00 checkpoint (Briggs 02-01, greenhouse 03-01). An empty list here
+            // rewinds the world: the helmet comes back on, the radio briefing re-arms.
             checkpoint.Configure(
                 label,
                 level,
@@ -1087,7 +1569,16 @@ namespace RootsDance.Editor.Environment
                 placement.Position,
                 placement.Yaw,
                 CheckpointTimeOfDay.LevelDefault,
-                new string[0],
+                new[]
+                {
+                    WorldFlags.k_LeftStartArea,
+                    WorldFlags.k_RadioBriefingStarted,
+                    WorldFlags.k_RadioBriefingFinished,
+                    WorldFlags.k_HelmetRemovable,
+                    WorldFlags.k_HelmetRemoved,
+                    WorldFlags.k_EnteredGrassBelt,
+                    WorldFlags.k_FirstInvestigationDone,
+                },
                 new InvestigationTargetSO[0]);
 
             SerializedObject serialized = new SerializedObject(checkpoint);

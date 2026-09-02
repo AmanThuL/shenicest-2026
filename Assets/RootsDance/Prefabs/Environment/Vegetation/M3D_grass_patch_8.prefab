@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1531899168936603892}
-  - component: {fileID: 3731345859648423427}
   m_Layer: 0
   m_Name: M3D_grass_patch_8
   m_TagString: Untagged
@@ -33,28 +32,6 @@ Transform:
   - {fileID: 1225155900156732262}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!205 &3731345859648423427
-LODGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4753371296762209619}
-  serializedVersion: 2
-  m_LocalReferencePoint: {x: 0.06715274, y: 0.31653556, z: -0.029927015}
-  m_Size: 0.9914577
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
-  m_LastLODIsBillboard: 0
-  m_LODs:
-  - screenRelativeHeight: 0.01717255
-    fadeTransitionWidth: 0
-    renderers:
-    - renderer: {fileID: 1706609212720524162}
-    - renderer: {fileID: 7363839688947731689}
-    - renderer: {fileID: 7300106735117866885}
-    - renderer: {fileID: 8968866022208454952}
-  m_Enabled: 1
 --- !u!1001 &1624138866605524109
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -159,6 +136,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 80
       objectReference: {fileID: 0}
+    - target: {fileID: 4742473837712756890, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
+      propertyPath: m_LODs.Array.data[3].screenRelativeHeight
+      value: 0.01717255
+      objectReference: {fileID: 0}
     - target: {fileID: 4881266857340442969, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 80
@@ -183,25 +164,5 @@ PrefabInstance:
 --- !u!4 &1225155900156732262 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
-  m_PrefabInstance: {fileID: 1624138866605524109}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &1706609212720524162 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -9140897975546925297, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
-  m_PrefabInstance: {fileID: 1624138866605524109}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &7300106735117866885 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8342119876639232776, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
-  m_PrefabInstance: {fileID: 1624138866605524109}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &7363839688947731689 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -1100139864532547484, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
-  m_PrefabInstance: {fileID: 1624138866605524109}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &8968866022208454952 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -1513832273070013019, guid: de05b4f3ea2b54849a80c24da9f9666c, type: 3}
   m_PrefabInstance: {fileID: 1624138866605524109}
   m_PrefabAsset: {fileID: 0}

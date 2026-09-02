@@ -19,9 +19,9 @@ namespace RootsDance.Tests.EditMode.Chase
         private const string k_MainGameplayPath =
             "Assets/RootsDance/Scenes/Levels/Main/Main_Gameplay.unity";
         private const string k_IndoorCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-03_MonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/GreenhouseInterior/03-04_MonsterChase.asset";
         private const string k_OutdoorCheckpointPath =
-            "Assets/RootsDance/Data/DevPlay/Main/03-04_OutdoorMonsterChase.asset";
+            "Assets/RootsDance/Data/DevPlay/Main/03-05_OutdoorMonsterChase.asset";
 
         [Test]
         public void MonsterVisual_AuthoredBackward_FacesRootForward()
@@ -155,7 +155,7 @@ namespace RootsDance.Tests.EditMode.Chase
 
             Assert.That(checkpoint, Is.Not.Null,
                 "There is no direct Dev Play checkpoint for the outdoor chase leg.");
-            Assert.That(checkpoint.Label, Is.EqualTo("03-04 Outdoor Monster Chase"));
+            Assert.That(checkpoint.Label, Is.EqualTo("03-05 Outdoor Monster Chase"));
             Assert.That(checkpoint.Level.name, Is.EqualTo("Main"));
             Assert.That(checkpoint.Position, Is.EqualTo(new Vector3(30f, 8.9f, 105f)));
             Assert.That(checkpoint.Yaw, Is.EqualTo(195f));

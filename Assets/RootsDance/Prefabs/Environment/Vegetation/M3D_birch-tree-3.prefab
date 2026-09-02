@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4816263866567805246}
   - component: {fileID: 4088780604433485937}
-  - component: {fileID: 3125983799653372639}
   m_Layer: 0
   m_Name: M3D_birch-tree-3
   m_TagString: Untagged
@@ -57,32 +56,6 @@ CapsuleCollider:
   m_Height: 6.4148064
   m_Direction: 1
   m_Center: {x: 0, y: 3.2074032, z: 0}
---- !u!205 &3125983799653372639
-LODGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2262240538471101720}
-  serializedVersion: 2
-  m_LocalReferencePoint: {x: 0.6483276, y: 3.201015, z: -0.022676945}
-  m_Size: 6.61162
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
-  m_LastLODIsBillboard: 0
-  m_LODs:
-  - screenRelativeHeight: 0.031810183
-    fadeTransitionWidth: 0
-    renderers:
-    - renderer: {fileID: 5523674324992492474}
-    - renderer: {fileID: 3696493433380321787}
-    - renderer: {fileID: 1025709625049831193}
-    - renderer: {fileID: 8138098901239889690}
-    - renderer: {fileID: 9150778864935980596}
-    - renderer: {fileID: 7359552527594619752}
-    - renderer: {fileID: 8873143520125369507}
-    - renderer: {fileID: 4710499700440174173}
-  m_Enabled: 1
 --- !u!1001 &660966154572277571
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -195,6 +168,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 124f5c134698448afac98e2e755d9f59, type: 2}
+    - target: {fileID: 4742473837712756890, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
+      propertyPath: m_LODs.Array.data[3].screenRelativeHeight
+      value: 0.031810183
+      objectReference: {fileID: 0}
     - target: {fileID: 4882885865225872610, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 80
@@ -248,48 +225,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
---- !u!23 &1025709625049831193 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 508964271801856090, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1055672219279769768 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &3696493433380321787 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 4206551195493637816, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &4710499700440174173 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 5220577631174666526, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &5523674324992492474 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 5009183383558399225, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &7359552527594619752 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -1220938121977453525, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &8138098901239889690 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -442358943445919655, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &8873143520125369507 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8218933196163095520, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
-  m_PrefabInstance: {fileID: 660966154572277571}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &9150778864935980596 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8634000622481271159, guid: 4ab231c48933a40a7ba7293a97c4a092, type: 3}
   m_PrefabInstance: {fileID: 660966154572277571}
   m_PrefabAsset: {fileID: 0}

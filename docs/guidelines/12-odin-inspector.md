@@ -25,6 +25,7 @@ Serialization semantics are owned by [04 Unity scripting rules](./04-unity-scrip
 13. **NEVER** edit anything under `Assets/Plugins/Sirenix/` (the Odin `Config/Editor/*.asset` files count as single-owner files like `ProjectSettings/`); upgrades are re-imports into the same path, announced first, in their own `chore(odin):` commit that also re-runs the reference generator.
 14. **MUST** keep validation and helper *logic* in plain C# (`RootsDance.Data`/`RootsDance.Core`) so it is EditMode-testable; Odin drawing itself is never tested.
 15. **MUST** grep the offline Odin reference before using an attribute or editor type you are not sure about (`grep -n "### \`<Name>Attribute\`" docs/reference/third-party/odin-inspector/attributes.md`) — Odin 4.0 is newer than every agent's training data.
+16. **NEVER** discard the `PluginImporter` block Unity writes into `Assets/Plugins/Sirenix/Assemblies/**/*.dll.meta`, and never commit one of those files as a bare `fileFormatVersion` + `guid` stub — that block is what keeps Odin's three assembly copies from landing in the same build. Restore a stubbed `.meta` and commit the restoration in its own `chore(odin):` commit.
 
 ## What is installed and where
 
@@ -294,6 +295,9 @@ namespace RootsDance.Editor.Content
 - **NEVER** edit, move or delete files under `Assets/Plugins/Sirenix/`. The folder is Odin's required path (`OdinPathLookup.asset` and the config assets are located relative to it); the exception to "vendor packages go to `Assets/ThirdParty/`" is recorded in [`docs/third-party.md`](../third-party.md).
 - The four config assets under `Odin Inspector/Config/Editor/` change when someone touches **Tools > Odin Inspector > Preferences**. Treat them like `ProjectSettings/` ([11](./11-scenes-prefabs-workflow.md) single-owner files): do not commit a preference change unless it is deliberate, announced and in its own `chore(odin):` commit.
 - **Upgrading:** announce in the team channel; import the new `.unitypackage` over the existing folder (Package Manager › *My Assets* or *Assets > Import Package*) with the Editor closed to other work; check the Console is clean; run `python3 docs/reference/_tools/build_odin_reference.py`; update the version line at the top of this guideline and in [09](./09-packages-systems.md); commit everything as one `chore(odin): upgrade Odin Inspector to x.y.z` commit including the `ProjectSettings` define change if any.
+- **NEVER** discard the `PluginImporter` block Unity writes back into `Assets/Plugins/Sirenix/Assemblies/**/*.dll.meta`, and **NEVER** commit one of those files truncated to a bare `fileFormatVersion` + `guid` stub. Odin ships three copies of the same assemblies — `Assemblies/` for the Editor, `NoEditor/` and `NoEmitAndNoEditor/` for players — and only that block keeps them mutually exclusive. Restore a stubbed file from the last `chore(odin):` import commit, in its own commit.
+  - *Why:* without the block every copy is enabled for every platform, so a player build pulls in duplicate assemblies and the Editor-only ones as well. The Editor keeps working either way, so nothing surfaces until someone builds. Unity rewrites the correct block — byte-identical to the imported one — on the next import, which reads like stray churn and invites a `git restore` that puts the project straight back into the broken state.
+  - *Check:* `grep -L platformData Assets/Plugins/Sirenix/Assemblies/*.dll.meta Assets/Plugins/Sirenix/Assemblies/*/*.dll.meta` must print nothing.
 - Git: the DLLs and `ConfigData.bytes` go through LFS automatically (`*.dll`, `*.bytes` in `.gitattributes`); `.pdb` and `.xml` are ordinary files; commit every `.meta` ([06](./06-version-control.md)).
 - *Source:* [02 section 5](./02-project-structure.md#5-thirdparty-and-plugins), [06 what to commit](./06-version-control.md#what-to-commit-what-to-ignore), [09 package policy](./09-packages-systems.md).
 
@@ -310,6 +314,7 @@ namespace RootsDance.Editor.Content
 - ❌ `[PropertyOrder(-1)]` to move a field up → ✅ move the field in the source.
 - ❌ `[InlineEditor]` on a field whose asset itself has `[InlineEditor]` fields → ✅ one level; open the inner asset from the object field.
 - ❌ Editing `Assets/Plugins/Sirenix/Odin Inspector/Config/Editor/InspectorConfig.asset` to "fix" a drawer for yourself → ✅ `[DrawWithUnity]` on the affected field, plus a note in the PR.
+- ❌ `git restore Assets/Plugins/Sirenix/` to clear "unexpected" `.dll.meta` churn after an import → ✅ check for `platformData:` first; if Unity put the block back, that is the repair — commit it as `chore(odin):`.
 - ❌ Adding `ODIN_INSPECTOR_3_3` to the WebGL define list by hand → ✅ switch platform in the Editor and let Odin write it.
 
 ## Review checklist

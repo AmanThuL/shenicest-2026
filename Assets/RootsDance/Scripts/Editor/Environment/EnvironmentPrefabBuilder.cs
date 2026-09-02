@@ -72,6 +72,9 @@ namespace RootsDance.Editor.Environment
         private const float k_TreeCullDistance = 180f;
         private const float k_AssumedVerticalFieldOfView = 60f;
 
+        /// <summary>Fraction of the previous LOD's height the raised last step may reach.</summary>
+        private const float k_CullHeightHeadroom = 0.95f;
+
         private static readonly HashSet<string> k_RootScanLodKeys = new HashSet<string>
         {
             "pine_roots", "root_cluster_01", "root_cluster_02"
@@ -541,6 +544,27 @@ namespace RootsDance.Editor.Environment
             }
 
             float cullDistance = CullDistanceFor(entry.RenderClass);
+            float size = Mathf.Max(local.size.x, Mathf.Max(local.size.y, local.size.z));
+
+            float largestScale = Mathf.Max(Mathf.Abs(instance.transform.lossyScale.x),
+                Mathf.Max(Mathf.Abs(instance.transform.lossyScale.y), Mathf.Abs(instance.transform.lossyScale.z)));
+            float worldSize = size * largestScale;
+            float halfFovRadians = k_AssumedVerticalFieldOfView * Mathf.Deg2Rad * 0.5f;
+            float cullHeight = worldSize / (2f * cullDistance * Mathf.Tan(halfFovRadians));
+            cullHeight = Mathf.Clamp(cullHeight, 0.001f, 0.99f);
+
+            LODGroup nested = NestedLodGroup(instance);
+
+            if (nested != null)
+            {
+                // The vendor model ships its own LOD chain. A group on the wrapper as well would register
+                // the same renderers with two LODGroups — which Unity warns about and which makes LOD
+                // selection and culling non-deterministic — so the model's group stays authoritative and
+                // only takes the cull distance on its last LOD.
+                RaiseCullHeight(nested, cullHeight);
+                return;
+            }
+
             LODGroup group = instance.GetComponent<LODGroup>();
 
             if (group == null)
@@ -549,22 +573,11 @@ namespace RootsDance.Editor.Environment
             }
 
             group.localReferencePoint = local.center;
-            group.size = Mathf.Max(local.size.x, Mathf.Max(local.size.y, local.size.z));
-
-            float largestScale = Mathf.Max(Mathf.Abs(instance.transform.lossyScale.x),
-                Mathf.Max(Mathf.Abs(instance.transform.lossyScale.y), Mathf.Abs(instance.transform.lossyScale.z)));
-            float worldSize = group.size * largestScale;
-            float halfFovRadians = k_AssumedVerticalFieldOfView * Mathf.Deg2Rad * 0.5f;
-            float cullHeight = worldSize / (2f * cullDistance * Mathf.Tan(halfFovRadians));
-            cullHeight = Mathf.Clamp(cullHeight, 0.001f, 0.99f);
+            group.size = size;
 
             if (HasLods(entry))
             {
-                LOD[] lods = group.GetLODs();
-                int finalIndex = lods.Length - 1;
-                lods[finalIndex].screenRelativeTransitionHeight =
-                    Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
-                group.SetLODs(lods);
+                RaiseCullHeight(group, cullHeight);
             }
             else
             {
@@ -572,6 +585,52 @@ namespace RootsDance.Editor.Environment
                 group.animateCrossFading = false;
                 group.SetLODs(new[] { new LOD(cullHeight, renderers) });
             }
+        }
+
+        /// <summary>
+        /// The first <see cref="LODGroup"/> below <paramref name="instance"/>'s own root — the one the vendor
+        /// model prefab brings with it. Null when the model has no LODs of its own.
+        /// </summary>
+        private static LODGroup NestedLodGroup(GameObject instance)
+        {
+            foreach (LODGroup candidate in instance.GetComponentsInChildren<LODGroup>(true))
+            {
+                if (candidate.gameObject != instance)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Pushes <paramref name="group"/>'s last LOD out to <paramref name="cullHeight"/>, never past the
+        /// step before it: a LOD chain must stay strictly descending, and <see cref="LODGroup.SetLODs"/>
+        /// rejects the whole array otherwise — which would silently drop the cull distance instead of
+        /// tightening it. A model whose last two steps already sit close together therefore culls a little
+        /// later than <see cref="CullDistanceFor"/> asks for.
+        /// </summary>
+        private static void RaiseCullHeight(LODGroup group, float cullHeight)
+        {
+            LOD[] lods = group.GetLODs();
+
+            if (lods.Length == 0)
+            {
+                return;
+            }
+
+            int finalIndex = lods.Length - 1;
+            float raised = Mathf.Max(lods[finalIndex].screenRelativeTransitionHeight, cullHeight);
+
+            if (finalIndex > 0)
+            {
+                raised = Mathf.Min(raised,
+                    lods[finalIndex - 1].screenRelativeTransitionHeight * k_CullHeightHeadroom);
+            }
+
+            lods[finalIndex].screenRelativeTransitionHeight = raised;
+            group.SetLODs(lods);
         }
 
         private static float CullDistanceFor(EnvironmentRenderClass renderClass)

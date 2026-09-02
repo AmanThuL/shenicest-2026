@@ -144,7 +144,6 @@ namespace RootsDance.Editor.Archive
             }
 
             DocumentInspectController reader = ArchivePlaytestBuilder.SetUpReader(player);
-            ArchivePlaytestBuilder.SetUpOffer(player, reader);
 
             string playerName = player.name;
 

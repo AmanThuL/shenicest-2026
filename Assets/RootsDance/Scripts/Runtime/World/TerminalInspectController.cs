@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Player;
+using RootsDance.Player.Arms;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -57,8 +60,15 @@ namespace RootsDance.World
         [Range(0f, 1f)]
         [SerializeField] private float m_exitLockoutSeconds = 0.25f;
 
+        [Header("Arms")]
+        [Tooltip("The first-person arms rig. Its renderers — and with them anything in the hands — "
+            + "are hidden while the panel is up. Found under the player root when left empty.")]
+        [SerializeField] private ArmsDirector m_arms;
+
+        private readonly List<Renderer> m_hiddenArmRenderers = new List<Renderer>();
         private ReadState m_state = ReadState.Idle;
         private WallTerminal m_terminal;
+        private ITerminalScreenView m_screen;
         private CinemachineBrain m_brain;
         private CinemachineBlendDefinition m_previousBlend;
         private bool m_hasStoredBlend;
@@ -83,6 +93,15 @@ namespace RootsDance.World
                 m_input = GetComponentInParent<PlayerInputReader>();
             }
 
+            if (m_arms == null)
+            {
+                m_arms = transform.root.GetComponentInChildren<ArmsDirector>(true);
+            }
+        }
+
+        private void OnDisable()
+        {
+            EndRead();
         }
 
         private void Update()
@@ -120,6 +139,11 @@ namespace RootsDance.World
                 return false;
             }
 
+            if (!WorldAccess.TryBeginExclusiveInteraction(this))
+            {
+                return false;
+            }
+
             m_terminal = terminal;
             m_state = ReadState.Reading;
             m_exitAllowedAt = Time.unscaledTime + m_exitLockoutSeconds;
@@ -140,6 +164,15 @@ namespace RootsDance.World
             terminal.SetReadCamera(Camera.main);
 
             SuspendPlayer(true);
+            HideArms(true);
+            m_screen = terminal.Screen;
+
+            if (m_screen != null)
+            {
+                m_screen.Closed += EndRead;
+                m_screen.Open();
+            }
+
             ReadingStarted?.Invoke();
             return true;
         }
@@ -152,16 +185,26 @@ namespace RootsDance.World
                 return;
             }
 
+            if (m_screen != null)
+            {
+                // Close also raises Closed. Unsubscribe first so manual exit cannot recurse.
+                m_screen.Closed -= EndRead;
+                m_screen.Close();
+                m_screen = null;
+            }
+
             if (m_terminal != null && m_terminal.InspectCamera != null)
             {
                 m_terminal.InspectCamera.gameObject.SetActive(false);
             }
 
+            HideArms(false);
             SuspendPlayer(false);
             RestoreBlend();
 
             m_terminal = null;
             m_state = ReadState.Idle;
+            WorldAccess.EndExclusiveInteraction(this);
             ReadingEnded?.Invoke();
         }
 
@@ -169,6 +212,46 @@ namespace RootsDance.World
         public void ResetForRescue()
         {
             EndRead();
+        }
+
+        /// <summary>
+        /// Takes the arms out of the shot. The terminal camera flies onto the panel while the arms
+        /// rig stays parented in front of the eye, so a forearm — and whatever is in the hand —
+        /// ends up lying across the screen the player is trying to read. Renderers are switched
+        /// rather than the object, so the Animator keeps its state and the hands are back exactly
+        /// as they were when the panel closes.
+        /// </summary>
+        private void HideArms(bool hidden)
+        {
+            if (!hidden)
+            {
+                for (int i = 0; i < m_hiddenArmRenderers.Count; i++)
+                {
+                    if (m_hiddenArmRenderers[i] != null)
+                    {
+                        m_hiddenArmRenderers[i].enabled = true;
+                    }
+                }
+
+                m_hiddenArmRenderers.Clear();
+                return;
+            }
+
+            if (m_arms == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = m_arms.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i].enabled)
+                {
+                    renderers[i].enabled = false;
+                    m_hiddenArmRenderers.Add(renderers[i]);
+                }
+            }
         }
 
         private void SuspendPlayer(bool suspended)

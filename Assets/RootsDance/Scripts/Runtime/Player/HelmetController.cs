@@ -18,7 +18,7 @@ namespace RootsDance.Player
     /// on (see <c>FlagGate</c>) until the helmet is actually off, so it has to say what it wants.
     /// </para>
     /// </summary>
-    public class HelmetController : MonoBehaviour
+    public class HelmetController : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Header("Listens to")]
         [SerializeField] private StringEventChannelSO m_flagRaised;
@@ -206,6 +206,34 @@ namespace RootsDance.Player
             // the player must be able to read what the game is waiting for at any moment, not only
             // in the seconds the subtitle was up.
             Raise(m_hintRequested, m_hintText);
+        }
+
+        /// <summary>
+        /// A dev checkpoint or rescue seeds its flags silently after the one-shot
+        /// <see cref="RestoreInitialState"/> has already run and concluded the helmet is still on
+        /// — which left the player wearing the helmet at every post-removal node. Seeded history
+        /// lands here instead, through the same participant path every other catch-up uses.
+        /// </summary>
+        public void RestoreAfterRescue(Data.RescueCheckpoint checkpoint)
+        {
+            bool removed = false;
+            bool removable = false;
+
+            for (int i = 0; i < checkpoint.Flags.Count; i++)
+            {
+                removed |= checkpoint.Flags[i] == WorldFlags.k_HelmetRemoved;
+                removable |= checkpoint.Flags[i] == m_unlockFlag;
+            }
+
+            if (removed)
+            {
+                SetRemovedImmediately();
+            }
+            else if (removable && !m_isRemoved)
+            {
+                m_isUnlocked = true;
+                Raise(m_hintRequested, m_hintText);
+            }
         }
 
         private void SetRemovedImmediately()

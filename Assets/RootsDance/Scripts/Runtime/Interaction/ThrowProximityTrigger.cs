@@ -177,7 +177,9 @@ namespace RootsDance.Interaction
 
         private void TryThrow(CarriedItem carried)
         {
-            if (m_input == null || !m_input.InteractPressedThisFrame)
+            // A press while an exclusive interaction is up belongs to that interaction, not here.
+            if (WorldAccess.IsInteractionLocked
+                || m_input == null || !m_input.InteractPressedThisFrame)
             {
                 return;
             }
@@ -255,8 +257,13 @@ namespace RootsDance.Interaction
             for (int i = 0; i < active.Count; i++)
             {
                 // Unavailable targets are pushed out of range rather than skipped, so the index the
-                // shared rule returns still lines up with the registry.
-                m_points.Add(active[i] != null && active[i].IsAvailable(state)
+                // shared rule returns still lines up with the registry. Off screen is unavailable:
+                // the same near-and-on-screen rule every other offer in the game uses, and you
+                // cannot throw at something you are not looking at.
+                bool offered = active[i] != null && active[i].IsAvailable(state)
+                    && InteractionVisibility.IsOnScreen(active[i]);
+
+                m_points.Add(offered
                     ? active[i].ReachPosition
                     : origin.position + Vector3.up * (m_range + 1000f));
             }
@@ -281,13 +288,12 @@ namespace RootsDance.Interaction
 
         private void Broadcast(string prompt)
         {
-            if (m_promptChanged == null || prompt == m_lastPrompt)
-            {
-                return;
-            }
-
+            // Through the arbiter, never straight at the channel: several triggers share it, and a
+            // private "only send on change" latch would let this one's empty frame wipe another's
+            // live hint for good. See <see cref="RootsDance.Interaction.InteractionPrompts"/>.
             m_lastPrompt = prompt;
-            m_promptChanged.RaiseEvent(prompt);
+            InteractionPrompts.Set(this, m_promptChanged, prompt,
+                InteractionPrompts.k_ThrowPriority);
         }
 
         private void OnDrawGizmosSelected()

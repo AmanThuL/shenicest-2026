@@ -64,6 +64,11 @@ namespace RootsDance.Companion
 
         [SerializeField] private float m_hoverFrequency = 1.4f;
 
+        [Tooltip("Yaw between the rig's +Z and where her face actually is on the model, in "
+            + "degrees. Matches FollowCompanion's offset for the same model.")]
+        [Range(0f, 360f)]
+        [SerializeField] private float m_modelYawOffset;
+
         [Header("Broadcasts on")]
         [SerializeField] private DialogueEventChannelSO m_dialogueChannel;
 
@@ -112,7 +117,8 @@ namespace RootsDance.Companion
 
                 if (toPlayer.sqrMagnitude > 0.0001f)
                 {
-                    transform.rotation = Quaternion.LookRotation(toPlayer);
+                    transform.rotation = Quaternion.LookRotation(toPlayer)
+                        * Quaternion.Euler(0f, m_modelYawOffset, 0f);
                 }
             }
 

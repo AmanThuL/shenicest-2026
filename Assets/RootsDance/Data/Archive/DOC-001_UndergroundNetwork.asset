@@ -16,7 +16,7 @@ MonoBehaviour:
   m_kind: 0
   m_title: "\u5730\u4E0B\u7F51\u7EDC"
   m_subtitle: Subterranean response / field hypothesis
-  m_promptText: "\u62FE\u53D6"
+  m_promptText: "[E] \u62FE\u53D6 \u6863\u6848"
   m_pageSizeMeters: {x: 0.16, y: 0.21}
   m_dustAmount: 0.8
   m_requiredFlag: 

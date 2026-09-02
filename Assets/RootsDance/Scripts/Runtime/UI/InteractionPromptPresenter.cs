@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace RootsDance.UI
 {
     /// <summary>
-    /// The "press to investigate" hint under the crosshair.
+    /// The "press to investigate" hint for whatever is currently in reach.
     /// <para>
     /// Motion: hard reveal, plus a one-off border flash on the frame the target changes. The prompt
     /// must never make the player wait, so it snaps rather than flickering in.

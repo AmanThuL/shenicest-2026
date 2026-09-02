@@ -110,7 +110,6 @@ namespace RootsDance.Investigation
 
             if (m_view != null)
             {
-                m_view.SetFocused(false);
                 m_view.SetInvestigated(true);
             }
         }

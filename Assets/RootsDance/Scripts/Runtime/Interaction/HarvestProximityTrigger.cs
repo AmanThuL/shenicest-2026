@@ -55,7 +55,7 @@ namespace RootsDance.Interaction
         [SerializeField] private string m_actionId = "grabGround";
 
         [Tooltip("Hint while a point is in reach and the hand holds the right thing. {0} is its name.")]
-        [SerializeField] private string m_promptFormat = "[E] 采集 {0}";
+        [SerializeField] private string m_promptFormat = "[E] 采集{0}";
 
         private readonly List<Vector3> m_points = new List<Vector3>();
         private HarvestPoint m_inReach;
@@ -143,7 +143,9 @@ namespace RootsDance.Interaction
 
         private void TryTake()
         {
-            if (m_input == null || !m_input.InteractPressedThisFrame)
+            // A press while an exclusive interaction is up belongs to that interaction, not here.
+            if (WorldAccess.IsInteractionLocked
+                || m_input == null || !m_input.InteractPressedThisFrame)
             {
                 return;
             }
@@ -189,8 +191,12 @@ namespace RootsDance.Interaction
             for (int i = 0; i < active.Count; i++)
             {
                 // Unavailable points are pushed out of range rather than skipped, so the index the
-                // shared rule returns still lines up with the registry.
-                m_points.Add(active[i].IsAvailable(state)
+                // shared rule returns still lines up with the registry. Off screen is unavailable:
+                // the same near-and-on-screen rule every other offer in the game uses.
+                bool offered = active[i] != null && active[i].IsAvailable(state)
+                    && InteractionVisibility.IsOnScreen(active[i]);
+
+                m_points.Add(offered
                     ? active[i].ReachPosition
                     : origin.position + Vector3.up * (m_range + 1000f));
             }
@@ -202,13 +208,11 @@ namespace RootsDance.Interaction
 
         private void Broadcast(string prompt)
         {
-            if (m_promptChanged == null || prompt == m_lastPrompt)
-            {
-                return;
-            }
-
+            // Through the arbiter, never straight at the channel: several triggers share it, and a
+            // private "only send on change" latch would let this one's empty frame wipe another's
+            // live hint for good. See <see cref="RootsDance.Interaction.InteractionPrompts"/>.
             m_lastPrompt = prompt;
-            m_promptChanged.RaiseEvent(prompt);
+            RootsDance.Interaction.InteractionPrompts.Set(this, m_promptChanged, prompt);
         }
     }
 }

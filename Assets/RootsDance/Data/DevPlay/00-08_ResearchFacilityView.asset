@@ -34,4 +34,3 @@ MonoBehaviour:
   - flow.first_investigation_done
   m_recordedTargets:
   - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-  - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}

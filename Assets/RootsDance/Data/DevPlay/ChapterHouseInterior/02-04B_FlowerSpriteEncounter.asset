@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: 02-04B_FlowerSpriteEncounter
   m_EditorClassIdentifier: RootsDance.Editor::RootsDance.Editor.DevPlay.DevCheckpointSO
   m_label: 02-04B Flower sprite encounter
-  m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+  m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
   m_anchorName: Checkpoint_FlowerSpriteEncounter
-  m_position: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+  m_position: {x: 0.31388, y: 1.8908081, z: 24.761797}
   m_yaw: 180
   m_snapToGround: 0
   m_groundLayers:
@@ -24,5 +24,12 @@ MonoBehaviour:
   m_groundClearance: 0
   m_useAnchorHeight: 1
   m_timeOfDay: 0
-  m_flags: []
+  m_flags:
+  - flow.left_start_area
+  - flow.radio_briefing_started
+  - flow.radio_briefing_finished
+  - flow.helmet_removable
+  - flow.helmet_removed
+  - flow.entered_grass_belt
+  - flow.first_investigation_done
   m_recordedTargets: []

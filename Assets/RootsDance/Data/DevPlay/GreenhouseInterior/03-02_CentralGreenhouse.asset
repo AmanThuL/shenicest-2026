@@ -15,14 +15,14 @@ MonoBehaviour:
   m_label: 03-02 Central greenhouse
   m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
   m_anchorName: Checkpoint_CentralGreenhouse
-  m_position: {x: 0, y: 1, z: 0}
-  m_yaw: 180
-  m_snapToGround: 0
+  m_position: {x: 0, y: 2.19, z: -8}
+  m_yaw: 0
+  m_snapToGround: 1
   m_groundLayers:
     serializedVersion: 2
     m_Bits: 256
-  m_groundClearance: 0
-  m_useAnchorHeight: 1
+  m_groundClearance: 1
+  m_useAnchorHeight: 0
   m_timeOfDay: 0
   m_flags:
   - flow.left_start_area

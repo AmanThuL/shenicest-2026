@@ -173,8 +173,11 @@ namespace RootsDance.EditorTools
                 }
             }
 
-            // Replaced rather than left alone: the prefab is what changes between runs, and an
-            // instance from an older one keeps its old children.
+            // Replace the contents but preserve the level artist's placement and readable side.
+            Vector3 position = existing == null ? k_WallPosition : existing.transform.position;
+            Quaternion rotation = existing == null ? k_WallRotation : existing.transform.rotation;
+            Vector3 scale = existing == null ? Vector3.one : existing.transform.localScale;
+
             if (existing != null)
             {
                 Object.DestroyImmediate(existing);
@@ -182,7 +185,8 @@ namespace RootsDance.EditorTools
 
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
             instance.name = k_InstanceName;
-            instance.transform.SetPositionAndRotation(k_WallPosition, k_WallRotation);
+            instance.transform.SetPositionAndRotation(position, rotation);
+            instance.transform.localScale = scale;
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -192,8 +196,8 @@ namespace RootsDance.EditorTools
                 EditorSceneManager.CloseScene(scene, true);
             }
 
-            Debug.Log($"[UI] '{k_InstanceName}' placed at {k_WallPosition} in {k_PropScene}. "
-                + "Move it in the Editor and write the new pose back here, or it moves back.");
+            Debug.Log($"[UI] '{k_InstanceName}' placed at {position} in {k_PropScene}. "
+                + "Existing placement is preserved when rebuilding.");
         }
 
         /// <summary>
@@ -255,14 +259,14 @@ namespace RootsDance.EditorTools
                 root2.GetComponentInChildren<PlayerInputReader>(true);
 
             // One owner per axis: while the terminal is up its camera owns the view, so the look,
-            // the move and the interaction ray all stand down. Same three as the archive's.
+            // the move and the interaction offer all stand down. Same three as the archive's.
             SerializedProperty suspended =
                 serializedReader.FindProperty("m_suspendedWhileReading");
             Behaviour[] toSuspend =
             {
                 root2.GetComponentInChildren<PlayerLook>(true),
                 player,
-                root2.GetComponentInChildren<InteractionRaycaster>(true),
+                root2.GetComponentInChildren<InteractionProximityTrigger>(true),
             };
 
             suspended.arraySize = 0;
@@ -281,24 +285,9 @@ namespace RootsDance.EditorTools
 
             serializedReader.ApplyModifiedPropertiesWithoutUndo();
 
-            TerminalProximityTrigger trigger = root2.GetComponent<TerminalProximityTrigger>();
-
-            if (trigger == null)
-            {
-                trigger = root2.AddComponent<TerminalProximityTrigger>();
-            }
-
-            Transform head = root2.transform.Find("Head");
-            SerializedObject serializedTrigger = new SerializedObject(trigger);
-            serializedTrigger.FindProperty("m_controller").objectReferenceValue = reader;
-            serializedTrigger.FindProperty("m_player").objectReferenceValue =
-                head == null ? root2.transform : head;
-            serializedTrigger.FindProperty("m_input").objectReferenceValue =
-                root2.GetComponentInChildren<PlayerInputReader>(true);
-            serializedTrigger.FindProperty("m_promptChanged").objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<StringEventChannelSO>(k_PromptChannel);
-            serializedTrigger.ApplyModifiedPropertiesWithoutUndo();
-
+            // The approach hint needs no wiring of its own: the terminal is an IInteractable, and
+            // the one InteractionProximityTrigger on the player prefab already offers every one of
+            // them by the same near-and-on-screen rule.
             string playerName = player.name;
 
             EditorSceneManager.MarkSceneDirty(scene);

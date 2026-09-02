@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RootsDance.Core;
 using RootsDance.Interaction;
 using UnityEngine;
 using Unity.Cinemachine;
@@ -11,9 +12,9 @@ namespace RootsDance.World
     /// The shape is the archive sheet's, not the scanner's: walk into range, a hint appears, press
     /// the key. What happens next is the scanner's, not the archive's — the screen does not come to
     /// the player, the camera goes to the screen. Between them those are the two halves this needs,
-    /// and neither is new: <see cref="RootsDance.Archive.ArchiveProximityTrigger"/> already decides
-    /// "which of the things in reach is being offered", and the scanner already flies a Cinemachine
-    /// camera onto a panel and hands the mouse to the UI on it.
+    /// and neither is new: <see cref="RootsDance.Interaction.InteractionProximityTrigger"/> already
+    /// decides "which of the things in reach is being offered", and the scanner already flies a
+    /// Cinemachine camera onto a panel and hands the mouse to the UI on it.
     /// </para>
     /// <para>
     /// The terminal keeps a static register of everything switched on, exactly as the sheets do,
@@ -52,6 +53,8 @@ namespace RootsDance.World
 
         public CinemachineCamera InspectCamera => m_inspectCamera;
 
+        public ITerminalScreenView Screen { get; private set; }
+
         /// <summary>Where the hint measures from — the screen itself, not the housing's pivot.</summary>
         public Vector3 ScreenPosition =>
             m_screenAnchor == null ? transform.position : m_screenAnchor.position;
@@ -68,6 +71,14 @@ namespace RootsDance.World
         private void OnDisable()
         {
             s_active.Remove(this);
+        }
+
+        private void Start()
+        {
+            if (m_canvas != null)
+            {
+                Screen = m_canvas.GetComponent<ITerminalScreenView>();
+            }
         }
 
         /// <summary>

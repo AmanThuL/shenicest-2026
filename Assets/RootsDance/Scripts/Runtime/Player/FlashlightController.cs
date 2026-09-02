@@ -1,6 +1,7 @@
 using RootsDance.App;
 using RootsDance.Core;
 using RootsDance.Events;
+using RootsDance.Interaction;
 using RootsDance.Player.Arms;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -68,8 +69,22 @@ namespace RootsDance.Player
         [Tooltip("Time-of-day channel raised by GameBootstrap when the world phase changes.")]
         [SerializeField] private TimeOfDayEventChannelSO m_timeOfDayChanged;
 
+        [Header("Teaching")]
+        [Tooltip("Interaction hint channel (Data/Events/InteractionPrompt). While the torch is "
+            + "held with its switch off, offers the line below until the player first turns it on.")]
+        [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [Tooltip("The flashlight key's one-time teaching line.")]
+        [SerializeField] private string m_switchHint = "[F] 打开手电";
+
         /// <summary>Metres past which a "hand" anchor cannot be a hand, so the eye is used.</summary>
         private const float k_MaxHandReach = 1.5f;
+
+        /// <summary>
+        /// Below every other offer: any contextual line — a pickup, the throw, a swap — outranks
+        /// the standing teacher, which is only there while nothing better is being said.
+        /// </summary>
+        private const int k_SwitchHintPriority = -5;
 
         private PlayerInputReader m_input;
         private FlashlightState m_state;
@@ -106,6 +121,23 @@ namespace RootsDance.Player
             }
         }
 
+        /// <summary>
+        /// The player's torch, or null while no player rig is enabled. Props that react to the
+        /// carried light — the archive sheets above all — resolve it here at runtime: the torch
+        /// lives on the persistent player prefab, so nothing saved in a level scene can hold a
+        /// serialized reference to it (guideline 03).
+        /// </summary>
+        public static FlashlightController Active { get; private set; }
+
+        /// <summary>The Light the torch shines with. Disabled whenever the beam is dark.</summary>
+        public Light BeamLight => m_light;
+
+        /// <summary>
+        /// The hint channel the torch teaches on. Shared with the sheet-reading hint so the two
+        /// lines about light can never talk over each other.
+        /// </summary>
+        public StringEventChannelSO PromptChannel => m_promptChanged;
+
         private void Awake()
         {
             m_input = GetComponent<PlayerInputReader>();
@@ -126,6 +158,8 @@ namespace RootsDance.Player
 
         private void OnEnable()
         {
+            Active = this;
+
             if (m_timeOfDayChanged != null)
             {
                 m_timeOfDayChanged.EventRaised += OnTimeOfDayChanged;
@@ -175,9 +209,22 @@ namespace RootsDance.Player
                 return;
             }
 
-            Vector3 forward = m_aimDistance > 0f
-                ? cameraTransform.position + cameraTransform.forward * m_aimDistance - origin
-                : m_beamAnchor.forward;
+            // Converge on the surface actually being looked at, not on a fixed point out along
+            // the ray. The hand is a metre below the eye, so a fixed far convergence leaves the
+            // pool that far below the look point on any close surface — at poster distance the
+            // bright cone lands at knee height, off the bottom of the view, and an eye-level mark
+            // sits outside the cone entirely. The fixed distance remains the aim when nothing is
+            // within it.
+            Vector3 aim = cameraTransform.position + cameraTransform.forward * m_aimDistance;
+
+            if (m_aimDistance > 0f && Physics.Raycast(cameraTransform.position,
+                    cameraTransform.forward, out RaycastHit lookHit, m_aimDistance,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                aim = lookHit.point;
+            }
+
+            Vector3 forward = m_aimDistance > 0f ? aim - origin : m_beamAnchor.forward;
 
             if (forward.sqrMagnitude < 1e-6f)
             {
@@ -204,17 +251,44 @@ namespace RootsDance.Player
                 m_state.Toggle();
             }
 
+            OfferSwitchHint();
             Fade();
+        }
+
+        /// <summary>
+        /// The one hint this component owns: a torch in the hand whose switch is off says which
+        /// key turns it on — every time, for as long as that is true. It hides while the beam is
+        /// lit (nothing left to say) and comes back when the switch goes off again; its low
+        /// priority means any contextual offer speaks over it.
+        /// </summary>
+        private void OfferSwitchHint()
+        {
+            if (m_promptChanged == null)
+            {
+                return;
+            }
+
+            bool wanted = IsHeld && m_state.HasPower && !m_state.IsOn;
+
+            InteractionPrompts.Set(this, m_promptChanged,
+                wanted ? m_switchHint : string.Empty, k_SwitchHintPriority);
         }
 
         private void OnDisable()
         {
+            if (Active == this)
+            {
+                Active = null;
+            }
+
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
 
             if (m_timeOfDayChanged != null)
             {
                 m_timeOfDayChanged.EventRaised -= OnTimeOfDayChanged;
             }
+
+            InteractionPrompts.Clear(this, m_promptChanged);
         }
 
         private void OnTimeOfDayChanged(TimeOfDay phase)

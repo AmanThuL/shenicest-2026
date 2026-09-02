@@ -57,9 +57,13 @@ namespace RootsDance.Data
         [Tooltip("Degrees of pitch/yaw per unit of look input.")]
         private float m_lookSensitivity = 0.12f;
 
-        [SerializeField, TitleGroup("Look"), Range(20f, 89f)]
-        [Tooltip("Pitch clamp in degrees, applied symmetrically up and down.")]
-        private float m_pitchLimit = 85f;
+        [SerializeField, TitleGroup("Look"), Range(20f, 90f)]
+        [Tooltip("How far down the camera can pitch, in degrees from level.")]
+        private float m_pitchLimitDown = 25f;
+
+        [SerializeField, TitleGroup("Look"), Range(20f, 90f)]
+        [Tooltip("How far up the camera can pitch, in degrees from level.")]
+        private float m_pitchLimitUp = 80f;
 
         [SerializeField, TitleGroup("Look")]
         [Tooltip("Exponential smoothing time, in seconds, applied to raw mouse look input. A mouse "
@@ -79,7 +83,8 @@ namespace RootsDance.Data
         public float GroundCheckDistance => m_groundCheckDistance;
         public LayerMask GroundLayers => m_groundLayers;
         public float LookSensitivity => m_lookSensitivity;
-        public float PitchLimit => m_pitchLimit;
+        public float PitchLimitDown => m_pitchLimitDown;
+        public float PitchLimitUp => m_pitchLimitUp;
         public float LookSmoothTime => m_lookSmoothTime;
     }
 }

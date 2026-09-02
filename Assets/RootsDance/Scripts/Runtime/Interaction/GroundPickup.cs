@@ -25,6 +25,11 @@ namespace RootsDance.Interaction
         [Tooltip("Name shown in the hint while this is the nearest thing to pick up.")]
         [SerializeField] private string m_displayName = "手电筒";
 
+        [Tooltip("On: while this is the held item, the swap hint ('put X down to pick up Y') "
+            + "is never offered. For props the player must keep to progress — the game does not "
+            + "suggest putting down the flask it is about to ask them to throw.")]
+        [SerializeField] private bool m_suppressSwapHint;
+
         [Tooltip("Where the player is measured to. Empty = this object's own origin.")]
         [SerializeField] private Transform m_grabPoint;
 
@@ -52,6 +57,9 @@ namespace RootsDance.Interaction
         }
 
         public string DisplayName => m_displayName;
+
+        /// <summary>While held, no swap hint is shown for other pickups in reach.</summary>
+        public bool SuppressSwapHint => m_suppressSwapHint;
 
         /// <summary>Arms action id the taker plays, or empty for a straight-into-the-hand pickup.</summary>
         public string PickupActionId => m_pickupActionId;

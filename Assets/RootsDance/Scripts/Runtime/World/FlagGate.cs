@@ -20,7 +20,7 @@ namespace RootsDance.World
     /// seeds the flag starts with the way already open instead of a wall in the middle of the field.
     /// </para>
     /// </summary>
-    public class FlagGate : MonoBehaviour
+    public class FlagGate : MonoBehaviour, IRescueStateRestoredParticipant
     {
         [Header("Listens to")]
         [Tooltip("The bootstrap's FlagRaised channel. Data/Events/FlagRaised.")]
@@ -36,6 +36,16 @@ namespace RootsDance.World
 
         private bool m_isOpen;
         private bool m_isSeeded;
+
+        /// <summary>
+        /// A checkpoint seeds flags silently, after the one-shot Update check has already read an
+        /// unseeded world. Clearing the latch makes the very next Update read the seeded truth —
+        /// otherwise the gate stands shut in a field the player was dropped past.
+        /// </summary>
+        public void RestoreAfterRescue(RootsDance.Data.RescueCheckpoint checkpoint)
+        {
+            m_isSeeded = false;
+        }
 
         /// <summary>True once the flag has been seen and the way is clear.</summary>
         public bool IsOpen => m_isOpen;

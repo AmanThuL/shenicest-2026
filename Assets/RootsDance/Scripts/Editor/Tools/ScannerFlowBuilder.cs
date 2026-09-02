@@ -352,19 +352,19 @@ namespace RootsDance.EditorTools
 
             SetField(trigger, "m_player", player);
 
-            // Reuse whatever channel the interaction raycaster already broadcasts prompts on, so
+            // Reuse whatever channel the interaction trigger already broadcasts prompts on, so
             // the hint lands in the HUD that is already listening.
-            InteractionRaycasterPromptChannel(trigger, log);
+            InteractionPromptChannel(trigger, log);
             return trigger;
         }
 
-        private static void InteractionRaycasterPromptChannel(ScannerProximityTrigger trigger,
+        private static void InteractionPromptChannel(ScannerProximityTrigger trigger,
             StringBuilder log)
         {
             foreach (Component component
                 in Object.FindObjectsByType<Component>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
-                if (component == null || component.GetType().Name != "InteractionRaycaster")
+                if (component == null || component.GetType().Name != "InteractionProximityTrigger")
                 {
                     continue;
                 }

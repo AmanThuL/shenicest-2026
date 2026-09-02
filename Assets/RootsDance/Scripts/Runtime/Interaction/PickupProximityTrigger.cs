@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Core.Commands;
 using RootsDance.Events;
 using RootsDance.Player;
 using RootsDance.Player.Arms;
@@ -68,9 +70,6 @@ namespace RootsDance.Interaction
 
         [Tooltip("Hint while something is in reach and the hand is empty. {0} is its name.")]
         [SerializeField] private string m_pickPromptFormat = "[E] 拾取 {0}";
-
-        [Tooltip("Hint while the hand is full and nothing else is in reach. {0} is what it holds.")]
-        [SerializeField] private string m_dropPromptFormat = "[G] 放下 {0}";
 
         [Tooltip("Hint while the hand is full and something else is in reach. {0} is the thing "
             + "in reach, {1} is what the hand already holds.")]
@@ -175,8 +174,10 @@ namespace RootsDance.Interaction
             if (m_throwTrigger != null && m_throwTrigger.HasOfferNow())
             {
                 // The rune wall is right there and the hand is full of the thing it wants. "[G]
-                // 放下" is true but useless next to it, and writing it would take the throw hint
-                // off screen for good.
+                // 放下" is true but useless next to it, so this one stands down. It must withdraw
+                // its request rather than just skip writing: a request left registered still counts
+                // as this trigger wanting the line, and the throw hint never gets it.
+                Broadcast(string.Empty);
                 return;
             }
 
@@ -190,14 +191,37 @@ namespace RootsDance.Interaction
 
             string holding = m_held != null ? m_held.DisplayName : m_socket.Carried.name;
 
-            Broadcast(m_inReach == null
-                ? string.Format(m_dropPromptFormat, holding)
-                : string.Format(m_swapPromptFormat, m_inReach.DisplayName, holding));
+            if (m_inReach != null)
+            {
+                // A pickup can forbid the swap suggestion outright: a prop the player must keep
+                // (the flask headed for the rune wall) is never something the game tells them to
+                // put down. Silence, not a blocked line — the offer itself is the mistake.
+                if (m_held != null && m_held.SuppressSwapHint)
+                {
+                    Broadcast(string.Empty);
+                    return;
+                }
+
+                // Still worth saying every time: this one is not teaching the key, it is explaining
+                // why the thing in front of the player cannot be picked up.
+                Broadcast(string.Format(m_swapPromptFormat, m_inReach.DisplayName, holding));
+                return;
+            }
+
+            // A full hand with nothing else in reach says nothing. A standing "[G] 放下" teacher
+            // used to live here and it taught the wrong lesson: the first thing the game said
+            // after picking something up was how to get rid of it, and it crowded out the hints
+            // that actually carry the level forward (the torch's own [F], the throw offer). The
+            // drop key is taught where empty hands are really needed — the swap line above and
+            // the keypad's blocked prompt.
+            Broadcast(string.Empty);
         }
 
         private void TryPick()
         {
-            if (m_inReach == null || m_input == null || !m_input.InteractPressedThisFrame)
+            // A press while an exclusive interaction is up belongs to that interaction, not here.
+            if (WorldAccess.IsInteractionLocked
+                || m_inReach == null || m_input == null || !m_input.InteractPressedThisFrame)
             {
                 return;
             }
@@ -322,7 +346,10 @@ namespace RootsDance.Interaction
 
             for (int i = 0; i < active.Count; i++)
             {
-                m_points.Add(active[i] == null ? Vector3Far() : active[i].GrabPosition);
+                // Off-screen counts as out of reach, the same rule every other offer uses.
+                bool offered = active[i] != null && InteractionVisibility.IsOnScreen(active[i]);
+
+                m_points.Add(offered ? active[i].GrabPosition : Vector3Far());
             }
 
             int index = NearestInRange.Index(m_points, origin.position, m_range);
@@ -339,13 +366,11 @@ namespace RootsDance.Interaction
         /// <summary>Only raises the channel when the text actually changes.</summary>
         private void Broadcast(string prompt)
         {
-            if (m_promptChanged == null || prompt == m_lastPrompt)
-            {
-                return;
-            }
-
+            // Through the arbiter, never straight at the channel: several triggers share it, and a
+            // private "only send on change" latch would let this one's empty frame wipe another's
+            // live hint for good. See <see cref="RootsDance.Interaction.InteractionPrompts"/>.
             m_lastPrompt = prompt;
-            m_promptChanged.RaiseEvent(prompt);
+            RootsDance.Interaction.InteractionPrompts.Set(this, m_promptChanged, prompt);
         }
 
         private void OnDrawGizmosSelected()

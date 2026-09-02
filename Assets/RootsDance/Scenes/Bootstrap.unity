@@ -239,6 +239,7 @@ MonoBehaviour:
   m_coverPrefab: {fileID: 2958449225259461879, guid: eafc288f91f4847f6a1b7fdda9f13d1f, type: 3}
   m_minimumCoverSeconds: 1.25
   m_settleFrames: 4
+  m_additiveContentStreamed: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
 --- !u!114 &797071105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,6 +255,7 @@ MonoBehaviour:
   m_sceneLoader: {fileID: 797071104}
   m_rescueService: {fileID: 797071114}
   m_loadLevelRequested: {fileID: 11400000, guid: be46edc8df9db40fab9f18c82ae804ee, type: 2}
+  m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
   m_reportUpdated: {fileID: 11400000, guid: be9c903e76a644c7f9eec315eda926c1, type: 2}
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
@@ -422,6 +424,27 @@ MonoBehaviour:
   - m_flagId: flow.chase_escaped
     m_cue: {fileID: 11400000, guid: 6d15b85afcfe4432bb0af6941235f2f5, type: 2}
     m_stopsMusic: 0
+--- !u!114 &797071114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797071103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1f09196999614ea7bb868c6d3923358, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.App.CheckpointRescueService
+  m_bootstrap: {fileID: 797071105}
+  m_sceneLoader: {fileID: 797071104}
+  m_catalog: {fileID: 11400000, guid: ed3ba73c6fee84161b2a2b3aa386c109, type: 2}
+  m_participants:
+  - {fileID: 797071112}
+  - {fileID: 797071111}
+  - {fileID: 797071107}
+  - {fileID: 797071113}
+  - {fileID: 1729773946}
 --- !u!1 &921370396
 GameObject:
   m_ObjectHideFlags: 0
@@ -536,27 +559,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &797071114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 797071103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1f09196999614ea7bb868c6d3923358, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.App.CheckpointRescueService
-  m_bootstrap: {fileID: 797071105}
-  m_sceneLoader: {fileID: 797071104}
-  m_catalog: {fileID: 11400000, guid: ed3ba73c6fee84161b2a2b3aa386c109, type: 2}
-  m_participants:
-  - {fileID: 797071112}
-  - {fileID: 797071111}
-  - {fileID: 797071107}
-  - {fileID: 797071113}
-  - {fileID: 1729773946}
 --- !u!1 &1237885287
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,7 +693,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 140}
+  m_AnchoredPosition: {x: 0, y: 260}
   m_SizeDelta: {x: 1400, y: 120}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1001 &1342033614

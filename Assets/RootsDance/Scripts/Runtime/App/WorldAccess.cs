@@ -24,6 +24,47 @@ namespace RootsDance.App
         }
 
         /// <summary>
+        /// True while any exclusive interaction — a tool performance, the scanner, a document, a
+        /// terminal, the keypad — holds the player. Proximity offers and the interaction ray check
+        /// this before starting another one. False while the bootstrap has not arrived yet.
+        /// </summary>
+        public static bool IsInteractionLocked
+        {
+            get
+            {
+                GameBootstrap bootstrap = GameBootstrap.Instance;
+                return bootstrap != null && bootstrap.InteractionLock != null
+                    && bootstrap.InteractionLock.IsLocked;
+            }
+        }
+
+        /// <summary>
+        /// Takes the exclusive-interaction gate for <paramref name="owner"/>. Returns false while
+        /// another interaction holds it — the caller must then not start. Succeeds trivially while
+        /// the bootstrap has not arrived yet, so a level-only Play session still plays.
+        /// </summary>
+        public static bool TryBeginExclusiveInteraction(object owner)
+        {
+            GameBootstrap bootstrap = GameBootstrap.Instance;
+            return bootstrap == null || bootstrap.InteractionLock == null
+                || bootstrap.InteractionLock.TryAcquire(owner);
+        }
+
+        /// <summary>
+        /// Opens the exclusive-interaction gate, but only if <paramref name="owner"/> holds it.
+        /// Safe to call from any teardown path without checking first.
+        /// </summary>
+        public static void EndExclusiveInteraction(object owner)
+        {
+            GameBootstrap bootstrap = GameBootstrap.Instance;
+
+            if (bootstrap != null && bootstrap.InteractionLock != null)
+            {
+                bootstrap.InteractionLock.Release(owner);
+            }
+        }
+
+        /// <summary>
         /// Queues a world change. Returns false (and logs) when the bootstrap is not available,
         /// which in practice only happens on the very first frame of a level-only Play session.
         /// </summary>
@@ -31,7 +72,7 @@ namespace RootsDance.App
         {
             GameBootstrap bootstrap = GameBootstrap.Instance;
 
-            if (bootstrap == null)
+            if (bootstrap == null || bootstrap.Commands == null)
             {
                 Log.Warning("No GameBootstrap yet; command dropped.", context);
                 return false;

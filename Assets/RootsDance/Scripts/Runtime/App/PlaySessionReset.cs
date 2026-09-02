@@ -1,4 +1,5 @@
 using DG.Tweening;
+using RootsDance.Core;
 using RootsDance.Interaction;
 using RootsDance.Player;
 using RootsDance.Scanner;
@@ -17,9 +18,10 @@ namespace RootsDance.App
     /// <para>
     /// The list is deliberately short, and stays short. Most of the project already avoids
     /// statics — <see cref="WorldAccess"/> reads the bootstrap through
-    /// <see cref="RootsDance.Core.PersistentSingleton{T}"/> every time rather than caching it, and
-    /// that singleton re-finds itself because Unity's destroyed objects compare equal to null. What
-    /// is left is the four self-registration lists, the flashlight's last published beam, and
+    /// <see cref="RootsDance.Core.PersistentSingleton{T}"/> every time rather than caching it. That
+    /// singleton's own static is cleared here rather than left to Unity's destroyed-equals-null
+    /// rule: leaning on the rule means the next session starts holding the last session's object.
+    /// What is left is the four self-registration lists, the flashlight's last published beam, and
     /// DOTween, whose own state outlives the component it drives.
     /// </para>
     /// <see cref="RuntimeInitializeLoadType.SubsystemRegistration"/> is the earliest hook and the
@@ -31,6 +33,7 @@ namespace RootsDance.App
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reset()
         {
+            PersistentSingleton<GameBootstrap>.ResetInstance();
             ScannableTarget.ResetRegistry();
             GroundPickup.ResetRegistry();
             HarvestPoint.ResetRegistry();

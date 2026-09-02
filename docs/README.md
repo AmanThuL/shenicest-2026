@@ -5,6 +5,7 @@ Unity engineering guidelines, and offline Unity reference material.
 
 ## Documentation Entry Points
 
+- [Game Jam 提交归档](submission/README.md)：SheNicest 2026 项目介绍、玩法说明及提交图片；[版本说明](submission/release-notes.md)记录提交快照与验证范围。
 - [运行时架构说明书](architecture/运行时架构说明书.md)：runtime 的 as-built 总览。
 - [架构文档索引](architecture/README.md)：架构原则、契约、系统说明、技术决策、研究记录与历史资料。
 - [策划与需求索引](design/README.md)：玩法、叙事、关卡和交互需求的归档入口。
@@ -32,6 +33,7 @@ AGENTS.md  ──►  docs/guidelines/README.md  ──►  docs/guidelines/NN-*
 
 | 目录 | 内容 |
 |---|---|
+| `submission/` | SheNicest 2026 参赛文案 Markdown 归档、作品图片与提交版本说明 |
 | `architecture/` | 当前架构总览、锁定契约、系统说明、技术决策、研究记录和历史架构资料 |
 | `design/` | 策划案、节点流程、叙事文本、关卡需求和玩法规则 |
 | `research/` | 尚未落定的外部调研、参考资料梳理和风格方向定义 |

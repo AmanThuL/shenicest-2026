@@ -134,7 +134,6 @@ MonoBehaviour:
     - flow.first_investigation_done
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: aa6fa0b2ba14d49319f3f22e42ac9d0e
     m_label: 00-09 Blocked main entrance
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -159,7 +158,6 @@ MonoBehaviour:
     - flow.first_investigation_done
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: f099f43fbde53464ca99d575da4d379f
     m_label: 00-10 Main entrance sign
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -185,7 +183,6 @@ MonoBehaviour:
     - flow.main_entrance_blocked
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: 7dfd6881f3f994093b767acbca62698d
     m_label: 00-11 Research facility poster
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
@@ -212,7 +209,6 @@ MonoBehaviour:
     - flow.main_entrance_sign_read
     m_recordedTargets:
     - {fileID: 11400000, guid: 010205c3e9eb242b9a9e30e93fa6722c, type: 2}
-    - {fileID: 11400000, guid: 50f6bfbf33f104a689ec02ea85e56b30, type: 2}
   - m_id: dd519febe6c9c4b95aa6f5fa7cbdc202
     m_label: 02-01 Plant research lab
     m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
@@ -236,57 +232,11 @@ MonoBehaviour:
     - flow.entered_grass_belt
     - flow.first_investigation_done
     m_recordedTargets: []
-  - m_id: 50340584f0109463390e633bc9424f19
-    m_label: 02-02 Sample storage
-    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
-    m_anchorName: Checkpoint_SampleStorage
-    m_position: {x: -4.1, y: 1, z: -0.7}
-    m_yaw: 90
-    m_snapToGround: 0
-    m_groundLayers:
-      serializedVersion: 2
-      m_Bits: 256
-    m_groundClearance: 0
-    m_useAnchorHeight: 1
-    m_overrideTimeOfDay: 1
-    m_timeOfDay: 1
-    m_flags:
-    - flow.left_start_area
-    - flow.radio_briefing_started
-    - flow.radio_briefing_finished
-    - flow.helmet_removable
-    - flow.helmet_removed
-    - flow.entered_grass_belt
-    - flow.first_investigation_done
-    m_recordedTargets: []
-  - m_id: cecc1f714077c4da9abd702a3f3034ec
-    m_label: 02-03 Greenhouse
-    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
-    m_anchorName: Checkpoint_Greenhouse
-    m_position: {x: 6.8, y: 1, z: -3.2}
-    m_yaw: 180
-    m_snapToGround: 0
-    m_groundLayers:
-      serializedVersion: 2
-      m_Bits: 256
-    m_groundClearance: 0
-    m_useAnchorHeight: 1
-    m_overrideTimeOfDay: 1
-    m_timeOfDay: 1
-    m_flags:
-    - flow.left_start_area
-    - flow.radio_briefing_started
-    - flow.radio_briefing_finished
-    - flow.helmet_removable
-    - flow.helmet_removed
-    - flow.entered_grass_belt
-    - flow.first_investigation_done
-    m_recordedTargets: []
   - m_id: e86f8cd5964b8449795e0c128b1c97cf
     m_label: 02-04A Corridor entrance
-    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
     m_anchorName: Checkpoint_CorridorEntrance
-    m_position: {x: 0.13872959, y: 6.1544313, z: -2.023664}
+    m_position: {x: 0.31388, y: 1.8908081, z: 18.397137}
     m_yaw: 0
     m_snapToGround: 0
     m_groundLayers:
@@ -296,13 +246,20 @@ MonoBehaviour:
     m_useAnchorHeight: 1
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
-    m_flags: []
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
     m_recordedTargets: []
   - m_id: 4b6fc46e702124e4cbd9e7545ace5d88
     m_label: 02-04B Flower sprite encounter
-    m_level: {fileID: 11400000, guid: 4b59ac1867dee42708cdaa39ede8d64c, type: 2}
+    m_level: {fileID: 11400000, guid: 66db56cf230d349b5a42f5313401c45d, type: 2}
     m_anchorName: Checkpoint_FlowerSpriteEncounter
-    m_position: {x: 0.13872959, y: 6.1544313, z: 0.9086666}
+    m_position: {x: 0.31388, y: 1.8908081, z: 24.761797}
     m_yaw: 180
     m_snapToGround: 0
     m_groundLayers:
@@ -312,19 +269,26 @@ MonoBehaviour:
     m_useAnchorHeight: 1
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
-    m_flags: []
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
     m_recordedTargets: []
   - m_id: 34802efc2b1b54ee8bf6a32a3ff19d60
     m_label: 03-01 Greenhouse entrance
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_GreenhouseEntrance
-    m_position: {x: 0, y: 1.05, z: -10}
-    m_yaw: 0
-    m_snapToGround: 0
+    m_position: {x: -41.8, y: 1.0619, z: 1.19509}
+    m_yaw: 90
+    m_snapToGround: 1
     m_groundLayers:
       serializedVersion: 2
       m_Bits: 256
-    m_groundClearance: 0
+    m_groundClearance: 1
     m_useAnchorHeight: 1
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
@@ -341,14 +305,14 @@ MonoBehaviour:
     m_label: 03-02 Central greenhouse
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_CentralGreenhouse
-    m_position: {x: 0, y: 1, z: 0}
-    m_yaw: 180
-    m_snapToGround: 0
+    m_position: {x: 0, y: 2.19, z: -8}
+    m_yaw: 0
+    m_snapToGround: 1
     m_groundLayers:
       serializedVersion: 2
       m_Bits: 256
-    m_groundClearance: 0
-    m_useAnchorHeight: 1
+    m_groundClearance: 1
+    m_useAnchorHeight: 0
     m_overrideTimeOfDay: 0
     m_timeOfDay: 0
     m_flags:
@@ -360,8 +324,35 @@ MonoBehaviour:
     - flow.entered_grass_belt
     - flow.first_investigation_done
     m_recordedTargets: []
+  - m_id: 6d86f13b998d442189a53f57d79a8b80
+    m_label: 03-03 Circulation console
+    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
+    m_anchorName: Checkpoint_CirculationConsole
+    m_position: {x: -4.530938, y: 10.268323, z: 132.00891}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.saw_underground_network
+    - flow.met_flower_sprite
+    - flow.heard_about_her
+    - flow.entered_greenhouse
+    m_recordedTargets: []
   - m_id: fc113b8a136ff4ac58d801aba23d44bd
-    m_label: 03-03 Monster Chase
+    m_label: 03-04 Monster Chase
     m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
     m_anchorName: Checkpoint_ChaseStart
     m_position: {x: 0, y: 1.05, z: 2}
@@ -390,7 +381,7 @@ MonoBehaviour:
     - flow.chase_started
     m_recordedTargets: []
   - m_id: 617a1a3a22a634616a4728279f630cef
-    m_label: 03-04 Outdoor Monster Chase
+    m_label: 03-05 Outdoor Monster Chase
     m_level: {fileID: 11400000, guid: 252331109c2044bb0b74960a91c24880, type: 2}
     m_anchorName: 
     m_position: {x: 30, y: 8.9, z: 105}
@@ -417,4 +408,32 @@ MonoBehaviour:
     - flow.entered_greenhouse
     - flow.circulation_core
     - flow.chase_started
+    m_recordedTargets: []
+  - m_id: 51d7f12c315574a4fa88924dd5a9bf94
+    m_label: 03-06 Rebirth
+    m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
+    m_anchorName: Checkpoint_Rebirth
+    m_position: {x: -5.741475, y: 10.235285, z: 133.16821}
+    m_yaw: 0
+    m_snapToGround: 0
+    m_groundLayers:
+      serializedVersion: 2
+      m_Bits: 256
+    m_groundClearance: 1
+    m_useAnchorHeight: 1
+    m_overrideTimeOfDay: 0
+    m_timeOfDay: 0
+    m_flags:
+    - flow.left_start_area
+    - flow.radio_briefing_started
+    - flow.radio_briefing_finished
+    - flow.helmet_removable
+    - flow.helmet_removed
+    - flow.entered_grass_belt
+    - flow.first_investigation_done
+    - flow.saw_underground_network
+    - flow.met_flower_sprite
+    - flow.heard_about_her
+    - flow.entered_greenhouse
+    - flow.circulation_outer
     m_recordedTargets: []
