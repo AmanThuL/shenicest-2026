@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7875384276227732793}
   - component: {fileID: 1140367773766002957}
   - component: {fileID: 9129452936627506689}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: AlgaePatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
