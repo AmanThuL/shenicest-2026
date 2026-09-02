@@ -36,7 +36,7 @@ namespace RootsDance.Audio
         [Tooltip("Metres between steps. Roughly the player's stride: shorter sounds like running "
             + "on the spot, longer sounds like the sound is late.")]
         [Min(0.1f)]
-        [SerializeField] private float m_strideLength = 1.9f;
+        [SerializeField] private float m_strideLength = 0.8f;
 
         [Tooltip("Below this speed nothing sounds, so leaning against a wall is silent.")]
         [Min(0f)]
