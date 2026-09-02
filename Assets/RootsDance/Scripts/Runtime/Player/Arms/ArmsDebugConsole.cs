@@ -31,8 +31,10 @@ namespace RootsDance.Player.Arms
         [SerializeField] private ArmsActionSetSO m_actions;
 
         [Header("On-screen key list")]
-        [Tooltip("Draw the key list over the game view. Toggled in play with the key below.")]
-        [SerializeField] private bool m_showOverlay = true;
+        [Tooltip("Draw the key list over the game view. Toggled in play with the key below. The "
+            + "debug keys only fire while the list is up: scaffolding that answers gameplay keys "
+            + "while invisible is how G once played grab-ground over the real drop.")]
+        [SerializeField] private bool m_showOverlay;
 
         [Tooltip("Shows and hides the list.")]
         [SerializeField] private Key m_toggleKey = Key.F1;
@@ -89,6 +91,13 @@ namespace RootsDance.Player.Arms
             if (m_toggleKey != Key.None && keyboard[m_toggleKey].wasPressedThisFrame)
             {
                 m_showOverlay = !m_showOverlay;
+            }
+
+            // Armed only while summoned: the debug keys share the keyboard with gameplay (G is
+            // also the put-down key), so a hidden console must not swallow or double-play them.
+            if (!m_showOverlay)
+            {
+                return;
             }
 
             for (int i = 0; i < m_actions.Actions.Count; i++)

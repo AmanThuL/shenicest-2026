@@ -16,7 +16,8 @@ namespace RootsDance.Scanner
     {
         [SerializeField] private ScannerInspectController m_controller;
 
-        [SerializeField] private Key m_key = Key.J;
+        [Tooltip("Debug key. Never a gameplay key (guidelines §5) — J is the real scan.")]
+        [SerializeField] private Key m_key = Key.I;
 
         private void Awake()
         {

@@ -96,6 +96,18 @@ namespace RootsDance.Chase
                 return;
             }
 
+            if (m_trail == null)
+            {
+                // An in-play domain reload wipes runtime fields without re-running Awake; rebuild
+                // in place rather than spraying one NullReference per frame at the playtester.
+                if (m_config == null)
+                {
+                    return;
+                }
+
+                m_trail = new ChaseTrail(m_config.TrailSpacing, m_config.MaxTrailPoints);
+            }
+
             Vector3 head = m_target.position;
             m_trail.Record(head);
 
