@@ -108,7 +108,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7588660316284413694, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: -7260100034124161115, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_CastShadows
@@ -124,11 +124,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 22dcdae9743c4485aae3feb821623576, type: 2}
     - target: {fileID: -5375239906018253791, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: -5280379812020454374, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: -4859171787413526202, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_CastShadows
@@ -168,7 +168,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 22dcdae9743c4485aae3feb821623576, type: 2}
     - target: {fileID: -102838395644851738, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_Name
@@ -180,15 +180,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1490648836169475844, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 1568615749516789752, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 1724810798998902125, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 1825384961077066380, guid: f259db6cac5384cff9ce8f24d5090b13, type: 3}
       propertyPath: m_CastShadows
