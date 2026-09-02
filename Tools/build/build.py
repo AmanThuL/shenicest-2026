@@ -3,9 +3,12 @@
 
 Usage:  python3 Tools/build/build.py [PROFILE] [--dev] [--package-only] [--dry-run]
                                      [--force] [--output-dir DIR] [--unity PATH] [-v]
+                                     [--audit] [--fix] [--strict] [--skip-audit]
+                                     [--max-zip-mb MB] [--no-color] [--keep-churn]
 
 The convention and the rationale live in docs/architecture/tooling/build-and-packaging.md.
-Exit codes: 0 ok, 1 preflight/usage, 2 Unity build failed, 3 packaging failed.
+Exit codes: 0 ok, 1 preflight/usage, 2 Unity build failed, 3 packaging failed,
+4 zip larger than --max-zip-mb.
 """
 import argparse
 import datetime
@@ -13,6 +16,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shlex
 import shutil
 import subprocess
@@ -20,6 +24,10 @@ import sys
 import time
 import zipfile
 
+import console as console_module
+import history
+import progress
+from console import bar, fmt_bytes, fmt_duration
 from naming import parse_bundle_version, platform_for_profile, zip_stem
 import windows as windows_tools
 
@@ -27,11 +35,60 @@ EXIT_OK = 0
 EXIT_PREFLIGHT = 1
 EXIT_BUILD = 2
 EXIT_PACKAGE = 3
+EXIT_SIZE = 4
 
 BUILD_METHOD = "RootsDance.Editor.Build.BuildScript.BuildFromCommandLine"
+AUDIT_METHOD = "RootsDance.Editor.Build.AssetSizeAudit.RunFromCommandLine"
 PROFILE_FOLDER = "Assets/RootsDance/Settings/BuildProfiles"
 APP_NAME = "RootsDance"
 BUILD_INFO_FILE = "build-info.json"
+BUILD_REPORT_FILE = "build-report.json"
+AUDIT_REPORT_FILE = "asset-audit.json"
+POLL_SECONDS = 0.5
+QUIT_TIMEOUT_SECONDS = "30"
+
+
+class _StdoutProxy:
+    """Looks up sys.stdout at each write/flush/isatty call, the way print()'s own
+    file=sys.stdout default does. `con` is a module-level global rebuilt by
+    make_console() whenever main() runs, but a test calling a build step directly
+    (skipping main()) sees whatever the previous test last left it bound to. A
+    plain Console(stream=sys.stdout) would capture one process's stdout (or one
+    test's contextlib.redirect_stdout target) and keep writing to it forever;
+    this proxy keeps `con` pointed at whichever stream is current."""
+
+    def write(self, text):
+        sys.stdout.write(text)
+
+    def flush(self):
+        sys.stdout.flush()
+
+    def isatty(self):
+        return bool(getattr(sys.stdout, "isatty", lambda: False)())
+
+
+class _StderrProxy:
+    """The same late lookup as _StdoutProxy, for the stream Console.warn/error use."""
+
+    def write(self, text):
+        sys.stderr.write(text)
+
+    def flush(self):
+        sys.stderr.flush()
+
+    def isatty(self):
+        return bool(getattr(sys.stderr, "isatty", lambda: False)())
+
+
+con = console_module.Console(stream=_StdoutProxy(), error_stream=_StderrProxy())
+
+
+def make_console(no_color=False):
+    global con
+    con = console_module.Console(stream=_StdoutProxy(), error_stream=_StderrProxy(),
+                                 color=False if no_color else None)
+    return con
+
 
 # Unity's IL2CPP backend drops these next to the player it builds. Their own folder
 # names say not to ship them (multi-gigabyte debug symbols / Burst debug info), and the
@@ -40,6 +97,11 @@ EXCLUDED_SIDECAR_SUFFIXES = (
     "_BackUpThisFolder_ButDontShipItWithYourGame",
     "_BurstDebugInformation_DoNotShip",
 )
+
+# Written into the build directory by BuildScript for build.py's own size summary, and
+# archived to Builds/.history/<profile>/. It is internal tooling data, not part of the
+# player, so it stays out of the zip (build-info.json is the shipped provenance file).
+EXCLUDED_NAMES = (BUILD_REPORT_FILE,)
 
 RUN_README = """{stem}
 
@@ -70,6 +132,97 @@ class PreflightError(Exception):
 
 def repo_root():
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+CHURN_ALLOWLIST = (
+    "ProjectSettings/ProjectSettings.asset",
+    "Assets/RootsDance/Fonts/",
+    "Assets/RootsDance/Settings/HDRP/",
+)
+
+
+def git_modified_paths(repo):
+    """Tracked files with working-tree modifications (porcelain -z status, untracked ignored).
+
+    Returns None — not an empty set — when git status could not be read at all. An empty set
+    means "the tree was clean"; treating an unreadable status as clean would make every file the
+    build touches look like fresh churn and hand it to `git checkout --`, discarding real work.
+
+    -z mode is required, not cosmetic: the default porcelain format double-quotes any path
+    containing a space (and every file under Assets/RootsDance/Fonts/ has one), so a plain
+    line[3:] would capture the quotes and never match CHURN_ALLOWLIST. -z never quotes paths,
+    NUL-terminates each record, and appends an extra NUL-terminated original-path field after
+    a rename/copy (status R or C) that must be skipped.
+    """
+    try:
+        result = subprocess.run(["git", "-C", repo, "status", "--porcelain", "-z", "--untracked-files=no"],
+                                capture_output=True, text=True, check=False)
+    except (subprocess.SubprocessError, OSError) as error:
+        con.warn("  could not read git status: {0}".format(error))
+        return None
+    if result.returncode != 0:
+        con.warn("  git status failed: {0}".format(result.stderr.strip()))
+        return None
+    paths = set()
+    fields = result.stdout.split("\0")
+    index = 0
+    while index < len(fields):
+        entry = fields[index]
+        index += 1
+        if not entry:
+            continue
+        status, path = entry[:2], entry[3:]
+        if status[0] in ("R", "C"):
+            # Rename/copy: the next NUL-terminated field is the original path, not a record.
+            index += 1
+        if status != "??":
+            paths.add(path)
+    return paths
+
+
+def restore_build_churn(repo, dirty_before):
+    """Undo the re-serialisation Unity does after every build (HDRP's post-build SaveAssets
+    rewrites ProjectSettings.asset, the TMP font atlases, and the default volume profile and
+    global settings). Only files that were clean before the build and match the allowlist are restored.
+
+    `dirty_before` is None when the pre-build `git status` failed: without a baseline every
+    allowlisted file looks newly dirty, so restoring would throw away edits the build never made."""
+    if dirty_before is None:
+        con.warn("skipping post-build churn restore: git status failed before the build")
+        return [], []
+
+    dirty_after = git_modified_paths(repo)
+    if dirty_after is None:
+        con.warn("skipping post-build churn restore: git status failed after the build")
+        return [], []
+
+    new = sorted(dirty_after - set(dirty_before))
+    candidates = [p for p in new if p.startswith(CHURN_ALLOWLIST)]
+    restore = []
+    if candidates:
+        result = subprocess.run(["git", "-C", repo, "checkout", "--"] + candidates,
+                                capture_output=True, text=True, check=False)
+        if result.returncode == 0:
+            restore = candidates
+        else:
+            con.warn("  could not restore build churn: {0}".format(result.stderr.strip()))
+    left = [p for p in new if p not in restore]
+    return restore, left
+
+
+def clone_or_copy(source, destination, target_platform):
+    """Stage a build entry. On macOS use an APFS clone (instant, keeps symlinks/permissions
+    inside the .app); fall back to ditto when the volume cannot clone."""
+    if target_platform == "macOS":
+        result = subprocess.run(["/bin/cp", "-Rpc", source, destination], capture_output=True, text=True)
+        if result.returncode == 0:
+            return
+        shutil.rmtree(destination, ignore_errors=True)
+        subprocess.run(["ditto", source, destination], check=True)
+    elif os.path.isdir(source):
+        shutil.copytree(source, destination)
+    else:
+        shutil.copy2(source, destination)
 
 
 def git_state(repo):
@@ -171,7 +324,7 @@ def enabled_scenes(repo):
     return scenes
 
 
-def preflight(repo, profile, target_platform, unity_binary, package_only, dry_run=False, dev=False):
+def preflight(repo, profile, target_platform, unity_binary, dry_run=False, dev=False):
     asset = os.path.join(repo, PROFILE_FOLDER, profile + ".asset")
     if not os.path.exists(asset):
         available = sorted(
@@ -181,9 +334,6 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
             "No build profile '{0}'. Available: {1}\nRun the Editor menu "
             "RootsDance > Build > Create Default Build Profiles to create them.".format(
                 profile, ", ".join(available) if available else "(none)"))
-
-    if package_only:
-        return
 
     host = {"Darwin": "macOS", "Windows": "Windows"}.get(platform.system(), platform.system())
     if target_platform != host:
@@ -208,8 +358,8 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
                 "Windows Build Support (IL2CPP) is missing for this Editor/build variant. "
                 "Add that module in Unity Hub; Mono support alone is insufficient.")
         compiler, sdk = windows_tools.validate_toolchain()
-        print("MSVC: " + compiler)
-        print("Windows SDK: " + sdk)
+        con.println("MSVC: " + compiler)
+        con.println("Windows SDK: " + sdk)
 
     scenes = enabled_scenes(repo)
     if len(scenes) == 0:
@@ -217,14 +367,15 @@ def preflight(repo, profile, target_platform, unity_binary, package_only, dry_ru
             "No scenes are enabled in ProjectSettings/EditorBuildSettings.asset — the build would "
             "be empty. Enable at least one in File > Build Profiles > Scene List (Bootstrap first).")
 
-    print("scenes ({0}):".format(len(scenes)))
+    con.println("scenes ({0}):".format(len(scenes)))
     for scene in scenes:
-        print("  " + scene)
+        con.println("  " + scene)
 
 
-def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path):
+def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path, strict=False, skip_audit=False):
     command = [
-        unity_binary, "-batchmode", "-quit", "-projectPath", repo,
+        unity_binary, "-batchmode", "-quit", "-quitTimeout", QUIT_TIMEOUT_SECONDS, "-timestamps",
+        "-projectPath", repo,
         "-buildTarget", "StandaloneWindows64" if platform_for_profile(profile) == "Windows" else "StandaloneOSX",
         "-executeMethod", BUILD_METHOD,
         "-rdProfile", profile, "-rdOutput", output_path,
@@ -232,7 +383,25 @@ def unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
     ]
     if dev:
         command.append("-rdDev")
+    if strict:
+        command.append("-rdStrict")
+    if skip_audit:
+        command.append("-rdSkipAudit")
     return command
+
+
+def unity_audit_command(unity_binary, repo, log_path, fix):
+    command = [
+        unity_binary, "-batchmode", "-quit", "-quitTimeout", QUIT_TIMEOUT_SECONDS, "-timestamps",
+        "-projectPath", repo, "-executeMethod", AUDIT_METHOD, "-logFile", log_path,
+    ]
+    if fix:
+        command.append("-rdFix")
+    return command
+
+
+def audit_log_path(repo):
+    return os.path.join(repo, "Logs", "asset-audit.log")
 
 
 def format_command(command):
@@ -243,71 +412,183 @@ def build_log_path(repo, profile):
     return os.path.join(repo, "Logs", "build-{0}.log".format(profile))
 
 
-def build_succeeded(profile, log_text):
-    """True when BuildScript's own success marker is present in the log.
+def _status_line(tracker):
+    if len(tracker.phases) == 1:
+        # A single-phase tracker (the asset audit) has no weight to derive a percent
+        # from: PhaseTracker.percent() always reports 100% at the only/last phase,
+        # which would misleadingly read as "done" for the whole run.
+        return "{0}  {1}".format(con.paint("phase", tracker.current), fmt_duration(tracker.elapsed()))
+    text = "{0} {1} {2:3.0f}%  {3}".format(
+        con.paint("phase", tracker.current.ljust(22)), bar(tracker.percent() / 100.0),
+        tracker.percent(), fmt_duration(tracker.elapsed()))
+    eta = tracker.eta_seconds()
+    if eta is not None and tracker.index < len(tracker.phases) - 1:
+        text += "  eta ~" + fmt_duration(eta)
+    if tracker.scene and tracker.current == "Building scenes":
+        text += "  (scene {0}/{1})".format(*tracker.scene)
+    return text
 
-    Exit code alone is not trustworthy: Unity can report a non-zero exit after
-    "Timeout after 300 seconds while waiting async operations to finish" even
-    though BuildPipeline.BuildPlayer already succeeded. It can also report a
-    zero-ish exit while StrictMode or an IL2CPP/link failure happened after the
-    .app skeleton was already written to disk, which existence-of-output alone
-    would miss. Trust BuildScript.cs's own marker line instead of either signal.
-    """
-    return "[BuildScript] {0}: result=Succeeded".format(profile) in log_text
+
+def _follow_process(process, follower, tracker, verbose):
+    """Poll the log until the process exits; render progress; return the tracker."""
+    last_phase = tracker.current
+    while True:
+        finished = process.poll() is not None
+        lines = follower.poll()
+        for line in lines:
+            tracker.feed(line)
+            if verbose and ("[BuildScript]" in line or "[AssetSizeAudit]" in line):
+                con.println(con.dim("  " + line.strip()))
+        if tracker.current != last_phase:
+            if not con.interactive:
+                con.println("  {0}  {1:3.0f}%  {2}".format(tracker.current.ljust(22), tracker.percent(),
+                                                          fmt_duration(tracker.elapsed())))
+            last_phase = tracker.current
+        con.status("  " + _status_line(tracker))
+        if finished:
+            break
+        time.sleep(POLL_SECONDS)
+    con.end_status()
+    return tracker
 
 
-def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose):
+def _launch(command, log_path):
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    # An early launch failure may leave Unity unable to open its log. Never
+    # let a previous invocation's success marker authorize this build.
+    with open(log_path, "w"):
+        pass
+    return subprocess.Popen(command)
+
+
+def run_unity_build(unity_binary, repo, profile, output_path, dev, verbose, strict=False, skip_audit=False):
     log_path = build_log_path(repo, profile)
+    command = unity_build_command(unity_binary, repo, profile, output_path, dev, log_path,
+                                  strict=strict, skip_audit=skip_audit)
 
-    command = unity_build_command(unity_binary, repo, profile, output_path, dev, log_path)
-
-    print("Building {0}{1}".format(profile, " (development)" if dev else ""))
-    print("  log: {0}".format(log_path))
-    print("  An IL2CPP build takes a while — 10-25 minutes is normal, and batch mode is silent.")
+    con.header("Building {0}{1}".format(profile, " (development)" if dev else ""))
+    con.println(con.dim("  log: " + log_path))
     if verbose:
-        print("  " + format_command(command))
+        con.println(con.dim("  " + format_command(command)))
 
-    started = time.time()
     try:
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
-        # An early launch failure may leave Unity unable to open its log. Never
-        # let a previous invocation's success marker authorize this build.
-        with open(log_path, "w"):
-            pass
-        process = subprocess.Popen(command)
+        process = _launch(command, log_path)
     except OSError as error:
-        print("error: could not launch Unity build: {0}".format(error), file=sys.stderr)
-        raise SystemExit(EXIT_BUILD)
-    while process.poll() is None:
-        time.sleep(10)
-        print("  ... {0:.0f}s".format(time.time() - started), flush=True)
-    elapsed = time.time() - started
+        con.error("error: could not launch Unity build: {0}".format(error))
+        return EXIT_BUILD
 
-    if not build_succeeded(profile, read_log(log_path)):
-        print(tail(log_path, 40), file=sys.stderr)
-        raise SystemExit(EXIT_BUILD)
-    print("Build finished in {0:.0f}s".format(elapsed))
+    follower = progress.LogFollower(log_path)
+    tracker = progress.PhaseTracker(weights=history.load_timings(repo, profile))
+    _follow_process(process, follower, tracker, verbose)
+    durations = tracker.finish()
+
+    # Neither the exit code nor the presence of the player proves anything: Unity can exit
+    # non-zero after a successful build ("Timeout ... while waiting async operations to finish"),
+    # and it writes the .app skeleton before the IL2CPP/link stages that can still fail. Only
+    # BuildScript.cs's own marker line, for this profile, in this run's freshly truncated log.
+    success = tracker.success_marker is not None and re.search(
+        progress.success_marker_pattern(profile), tracker.success_marker) is not None
+    if not success:
+        con.error("Build failed after {0}".format(fmt_duration(tracker.elapsed())))
+        for line in tracker.errors[:20]:
+            con.println("  " + line)
+        con.println(con.dim(follower.tail()))
+        con.println("  full log: " + log_path)
+        return EXIT_BUILD
+
+    history.save_timings(repo, profile, durations)
+    con.ok("Build finished in {0}".format(fmt_duration(tracker.elapsed())))
+    return EXIT_OK
 
 
-def read_log(path):
+def audit_report_path(repo):
+    return os.path.join(repo, "Logs", AUDIT_REPORT_FILE)
+
+
+def run_asset_audit(unity_binary, repo, fix, verbose):
+    log_path = audit_log_path(repo)
+    report_path = audit_report_path(repo)
+    command = unity_audit_command(unity_binary, repo, log_path, fix)
+    con.header("Asset size audit ({0})".format("fix" if fix else "report"))
+    con.println(con.dim("  log: " + log_path))
+    if verbose:
+        con.println(con.dim("  " + format_command(command)))
+    # Delete the previous report first: a run that dies before writing one would otherwise
+    # be summarised from last time's numbers and read as a clean audit.
     try:
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            return handle.read()
+        os.remove(report_path)
     except OSError:
-        return ""
-
-
-def tail(path, lines):
+        pass
     try:
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            return "".join(handle.readlines()[-lines:])
-    except OSError:
-        return "(no log at {0})".format(path)
+        process = _launch(command, log_path)
+    except OSError as error:
+        con.error("error: could not launch Unity: {0}".format(error))
+        return EXIT_BUILD
+    follower = progress.LogFollower(log_path)
+    tracker = progress.PhaseTracker(phases=[progress.Phase("Auditing", None, 0, False)])
+    _follow_process(process, follower, tracker, verbose)
+    audit = history.load_report_any(report_path)
+    if audit is None:
+        con.error("error: Unity exited {0} and wrote no {1}; see the log.".format(
+            process.returncode, AUDIT_REPORT_FILE))
+        con.println(con.dim(follower.tail()))
+        con.println("  full log: " + log_path)
+        return EXIT_BUILD
+    print_audit_summary(con, audit)
+    return EXIT_OK
+
+
+def print_audit_summary(con, audit):
+    violations = audit.get("violations", [])
+    con.println("  scanned {0} assets, {1} violations, {2} fixed".format(
+        audit.get("scanned", 0), len(violations), audit.get("fixedCount", 0)))
+    rows = [[v.get("rule", ""), v.get("assetPath", ""), v.get("message", "")] for v in violations[:60]]
+    if rows:
+        con.table(["rule", "asset", "message"], rows)
+    if len(violations) > 60:
+        con.println(con.dim("  ... {0} more in Logs/{1}".format(len(violations) - 60, AUDIT_REPORT_FILE)))
+
+
+def print_build_summary(con, report, previous):
+    con.header("Build report")
+    steps = [[("  " * int(s.get("depth", 0))) + s.get("name", ""), fmt_duration(s.get("seconds", 0))]
+             for s in report.get("steps", []) if float(s.get("seconds", 0)) >= 1.0]
+    if steps:
+        con.table(["step", "time"], steps, align="lr")
+    delta = history.report_delta(previous, report)
+    con.println()
+    rows = []
+    for name, before, after in delta["by_type"]:
+        rows.append([name, fmt_bytes(after), _signed(after - before) if previous else ""])
+    rows.append(["total", fmt_bytes(delta["total_after"]),
+                 _signed(delta["total_after"] - delta["total_before"]) if previous else ""])
+    con.table(["type", "size", "delta"], rows, align="lrr")
+    con.println()
+    top = [[a.get("path", ""), a.get("type", ""), fmt_bytes(a.get("bytes", 0))]
+           for a in report.get("topAssets", [])[:10]]
+    if top:
+        con.table(["largest assets", "type", "size"], top, align="llr")
+    if previous and delta["assets"]:
+        con.println()
+        con.table(["changed assets", "before", "after"],
+                  [[p, fmt_bytes(b), fmt_bytes(a)] for p, b, a in delta["assets"]], align="lrr")
+    warnings = int(report.get("warnings", 0))
+    if warnings:
+        con.warn("  {0} warnings during the build (see the log)".format(warnings))
+
+
+def _signed(delta_bytes):
+    if delta_bytes == 0:
+        return "0"
+    sign = "+" if delta_bytes > 0 else "-"
+    return sign + fmt_bytes(abs(delta_bytes))
 
 
 def stageable_entries(names):
-    """Return the names to copy into the staged build, dropping Unity's debug sidecars."""
-    return [name for name in names if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES)]
+    """Return the names to copy into the staged build, dropping Unity's debug sidecars
+    and the tooling files (build-report.json) that are not part of the player."""
+    return [name for name in names
+            if not name.endswith(EXCLUDED_SIDECAR_SUFFIXES) and name not in EXCLUDED_NAMES]
 
 
 def snapshot_build_info(repo, profile, target_platform, dev):
@@ -383,22 +664,20 @@ def package(repo, build_dir, stem, output_dir, info):
     os.makedirs(staging)
 
     try:
+        started = time.time()
         all_entries = sorted(os.listdir(build_dir))
         keep = set(stageable_entries(all_entries))
         for entry in all_entries:
             if entry not in keep:
-                print("  skip: {0} (Unity debug sidecar, not shipped)".format(entry))
+                con.println("  skip: {0} (not shipped)".format(entry))
                 continue
             source = os.path.join(build_dir, entry)
             destination = os.path.join(staging, entry)
-            if target_platform == "macOS":
-                # ditto preserves the symlinks and permission bits inside a .app bundle;
-                # shutil.copytree and zipfile do not, and the copied app will not launch.
-                subprocess.run(["ditto", source, destination], check=True)
-            elif os.path.isdir(source):
-                shutil.copytree(source, destination)
-            else:
-                shutil.copy2(source, destination)
+            # clone_or_copy preserves the symlinks and permission bits inside a .app bundle
+            # (shutil.copytree and zipfile do not, and the copied app will not launch), and on
+            # APFS clones instead of duplicating bytes for the ~2.8 GB player.
+            clone_or_copy(source, destination, target_platform)
+        con.println("  staged in {0}".format(fmt_duration(time.time() - started)))
 
         app_name = APP_NAME + ".app"
         write_build_info(staging, info)
@@ -410,16 +689,27 @@ def package(repo, build_dir, stem, output_dir, info):
                 date=datetime.datetime.fromisoformat(info["builtAt"]).date().isoformat()))
 
         os.makedirs(output_dir, exist_ok=True)
+        started = time.time()
         if target_platform == "macOS":
-            subprocess.run(
-                ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", staging, zip_path],
-                check=True)
+            process = subprocess.Popen(
+                ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", staging, zip_path])
+            while process.poll() is None:
+                try:
+                    con.status("  zipping  {0}  {1}".format(fmt_bytes(os.path.getsize(zip_path)),
+                                                          fmt_duration(time.time() - started)))
+                except OSError:
+                    pass
+                time.sleep(POLL_SECONDS)
+            con.end_status()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, "ditto")
         else:
-            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
                 for folder, _dirs, files in os.walk(staging):
                     for name in files:
                         full = os.path.join(folder, name)
                         archive.write(full, os.path.join(stem, os.path.relpath(full, staging)))
+        con.println("  zipped in {0}".format(fmt_duration(time.time() - started)))
     finally:
         shutil.rmtree(staging_root, ignore_errors=True)
 
@@ -445,9 +735,40 @@ def main(argv=None):
     parser.add_argument("--output-dir", default=None, help="where the zip goes (default Builds/)")
     parser.add_argument("--unity", default=None, help="path to the Unity binary")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("--audit", action="store_true", help="run the asset size audit instead of building")
+    parser.add_argument("--fix", action="store_true", help="with --audit: apply fixes and reimport")
+    parser.add_argument("--strict", action="store_true", help="fail the build on audit violations")
+    parser.add_argument("--skip-audit", action="store_true", help="do not run the pre-build audit")
+    parser.add_argument("--max-zip-mb", type=float, default=None, help="exit 4 if the zip is larger")
+    parser.add_argument("--no-color", action="store_true", help="plain output")
+    parser.add_argument("--keep-churn", action="store_true",
+                        help="do not restore files Unity re-serialises during the build")
     args = parser.parse_args(argv)
+    if args.fix and not args.audit:
+        # --fix alone would silently do nothing: only the audit run applies fixes.
+        parser.error("--fix requires --audit")
+    make_console(args.no_color)
 
     repo = repo_root()
+
+    if args.audit:
+        try:
+            unity_binary = resolve_unity(args.unity, editor_version(repo))
+            if not args.dry_run and editor_is_running(repo):
+                raise PreflightError("A Unity Editor has this project open. Close it, or use the menu "
+                                     "RootsDance > Build > Asset Size Audit instead.")
+        except (PreflightError, OSError) as error:
+            con.error("error: {0}".format(error))
+            return EXIT_PREFLIGHT
+        if args.dry_run:
+            command = unity_audit_command(unity_binary, repo, audit_log_path(repo), args.fix)
+            con.println("mode:     asset size audit ({0})".format("fix" if args.fix else "report"))
+            con.println("unity:    {0}".format(unity_binary))
+            con.println("command:  {0}".format(format_command(command)))
+            con.println("report:   {0}".format(audit_report_path(repo)))
+            return EXIT_OK
+        return run_asset_audit(unity_binary, repo, args.fix, args.verbose)
+
     try:
         target_platform = platform_for_profile(args.profile)
         build_dir = os.path.join(repo, "Builds", args.profile)
@@ -455,10 +776,10 @@ def main(argv=None):
             info = load_build_info(build_dir, args.profile, target_platform, args.dev)
         else:
             unity_binary = resolve_unity(args.unity, editor_version(repo))
-            preflight(repo, args.profile, target_platform, unity_binary, False, dry_run=args.dry_run, dev=args.dev)
+            preflight(repo, args.profile, target_platform, unity_binary, dry_run=args.dry_run, dev=args.dev)
             info = snapshot_build_info(repo, args.profile, target_platform, args.dev)
     except (PreflightError, ValueError, OSError, subprocess.SubprocessError) as error:
-        print("error: {0}".format(error), file=sys.stderr)
+        con.error("error: {0}".format(error))
         return EXIT_PREFLIGHT
 
     build_date = datetime.datetime.fromisoformat(info["builtAt"]).strftime("%Y%m%d")
@@ -470,36 +791,54 @@ def main(argv=None):
     zip_path = os.path.join(output_dir, stem + ".zip")
 
     if args.dry_run:
-        print("profile:  {0}{1}".format(args.profile, " (dev)" if info["development"] else ""))
+        con.println("profile:  {0}{1}".format(args.profile, " (dev)" if info["development"] else ""))
         if args.package_only:
-            print("mode:     package existing player with saved build-info.json")
+            con.println("mode:     package existing player with saved build-info.json")
         else:
             log_path = build_log_path(repo, args.profile)
-            command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path)
-            print("unity:    {0}".format(unity_binary))
-            print("command:  {0}".format(format_command(command)))
-        print("player:   {0}".format(output_path))
-        print("zip:      {0}".format(zip_path))
+            command = unity_build_command(unity_binary, repo, args.profile, output_path, args.dev, log_path,
+                                          strict=args.strict, skip_audit=args.skip_audit)
+            con.println("unity:    {0}".format(unity_binary))
+            con.println("command:  {0}".format(format_command(command)))
+        con.println("player:   {0}".format(output_path))
+        con.println("zip:      {0}".format(zip_path))
         if info["dirty"]:
-            print("note:     build source was dirty, the zip is tagged -dirty")
+            con.println("note:     build source was dirty, the zip is tagged -dirty")
         return EXIT_OK
 
-    # Checked before the (possibly 10-25 minute) build, not just before packaging — two
+    # Checked before the (possibly multi-minute) build, not just before packaging — two
     # builds from the same commit on the same day is the normal pattern, and failing only
     # after Unity is done would burn a full build for nothing.
     if os.path.exists(zip_path) and not args.force:
-        print("error: Refusing to overwrite {0}\nPass --force to replace it.".format(zip_path),
-              file=sys.stderr)
+        con.error("error: Refusing to overwrite {0}\nPass --force to replace it.".format(zip_path))
         return EXIT_PREFLIGHT
 
     if not args.package_only:
+        dirty_before = git_modified_paths(repo)
         shutil.rmtree(build_dir, ignore_errors=True)
         os.makedirs(build_dir, exist_ok=True)
-        run_unity_build(unity_binary, repo, args.profile, output_path, args.dev, args.verbose)
+        code = run_unity_build(unity_binary, repo, args.profile, output_path, args.dev, args.verbose,
+                               strict=args.strict, skip_audit=args.skip_audit)
+        if code != EXIT_OK:
+            return code
+
+        if not args.keep_churn:
+            restored, left = restore_build_churn(repo, dirty_before)
+            for path in restored:
+                con.println(con.dim("  restored post-build churn: " + path))
+            for path in left:
+                con.warn("  left modified by the build: " + path)
+
+        report_path = os.path.join(build_dir, BUILD_REPORT_FILE)
+        report = history.load_report(report_path)
+        if report is None:
+            con.warn("  no {0} written by BuildScript; skipping the size summary".format(BUILD_REPORT_FILE))
+        else:
+            print_build_summary(con, report, history.load_previous_report(repo, args.profile))
+            history.archive_report(repo, args.profile, report_path)
 
     if not os.path.exists(output_path):
-        print("error: no player at {0}. Build first, or drop --package-only.".format(output_path),
-              file=sys.stderr)
+        con.error("error: no player at {0}. Build first, or drop --package-only.".format(output_path))
         return EXIT_PACKAGE
 
     try:
@@ -509,11 +848,16 @@ def main(argv=None):
             write_build_info(build_dir, info)
         zip_path = package(repo, build_dir, stem, output_dir, info)
     except (subprocess.CalledProcessError, OSError) as error:
-        print("error: packaging failed: {0}".format(error), file=sys.stderr)
+        con.error("error: packaging failed: {0}".format(error))
         return EXIT_PACKAGE
 
     size_mb = os.path.getsize(zip_path) / (1024.0 * 1024.0)
-    print("\n{0}\n  {1:.1f} MB\n  sha256 {2}".format(zip_path, size_mb, sha256(zip_path)))
+    con.println()
+    con.ok(zip_path)
+    con.println("  {0:.1f} MB\n  sha256 {1}".format(size_mb, sha256(zip_path)))
+    if args.max_zip_mb is not None and size_mb > args.max_zip_mb:
+        con.error("error: zip is {0:.1f} MB, above the --max-zip-mb {1:.0f} limit".format(size_mb, args.max_zip_mb))
+        return EXIT_SIZE
     return EXIT_OK
 
 
