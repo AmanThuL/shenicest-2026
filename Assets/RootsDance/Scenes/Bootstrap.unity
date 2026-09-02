@@ -457,6 +457,8 @@ GameObject:
   - component: {fileID: 921370399}
   - component: {fileID: 921370398}
   - component: {fileID: 921370397}
+  - component: {fileID: 921370402}
+  - component: {fileID: 921370401}
   m_Layer: 0
   m_Name: InteractionHudCanvas
   m_TagString: Untagged
@@ -560,6 +562,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &921370401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 921370396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b996ed819564d20ad35e80ebf04210, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.RecordingModeHider
+  m_mode: {fileID: 11400000, guid: bd3f353cee90843f2b8624ad3e2f4426, type: 2}
+  m_group: 1
+  m_canvasGroup: {fileID: 921370402}
+--- !u!225 &921370402
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 921370396}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1195962998
 GameObject:
   m_ObjectHideFlags: 0
@@ -1280,6 +1309,8 @@ GameObject:
   - component: {fileID: 1729773948}
   - component: {fileID: 1729773947}
   - component: {fileID: 1729773946}
+  - component: {fileID: 1729773951}
+  - component: {fileID: 1729773950}
   m_Layer: 0
   m_Name: SubtitleCanvas
   m_TagString: Untagged
@@ -1382,6 +1413,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1729773950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729773945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b996ed819564d20ad35e80ebf04210, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.RecordingModeHider
+  m_mode: {fileID: 11400000, guid: bd3f353cee90843f2b8624ad3e2f4426, type: 2}
+  m_group: 4
+  m_canvasGroup: {fileID: 1729773951}
+--- !u!225 &1729773951
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729773945}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1872718229
 GameObject:
   m_ObjectHideFlags: 0

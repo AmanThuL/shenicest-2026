@@ -26,6 +26,11 @@ namespace RootsDance.UI
         [SerializeField] private RectTransform m_list;
         [SerializeField] private CheckpointRescueRow m_rowTemplate;
 
+        [Header("Recording")]
+        [Tooltip("The recording-mode checkboxes, in reading order. Each binds itself; the panel "
+            + "only threads them into keyboard navigation.")]
+        [SerializeField] private Toggle[] m_recordingToggles = new Toggle[0];
+
         private ICheckpointRescueService m_service;
         private readonly List<CheckpointRescueRow> m_rows = new List<CheckpointRescueRow>();
         private InputAction m_toggle;
@@ -211,6 +216,29 @@ namespace RootsDance.UI
 
             Selectable first = m_rows.Count > 0 ? m_rows[0].NavigationButton : m_close;
             Selectable last = m_rows.Count > 0 ? m_rows[m_rows.Count - 1].NavigationButton : m_close;
+
+            // The recording checkboxes sit between the list and the buttons: down from the last
+            // row lands on the first box, down from any box lands on Close.
+            Selectable belowList = m_close;
+            if (m_recordingToggles.Length > 0)
+            {
+                belowList = m_recordingToggles[0];
+                if (m_rows.Count > 0)
+                {
+                    SetNavigation(last, m_rows.Count > 1 ? m_rows[m_rows.Count - 2].NavigationButton : m_close,
+                        belowList, m_close, m_jump);
+                }
+
+                for (int i = 0; i < m_recordingToggles.Length; i++)
+                {
+                    Selectable left = i > 0 ? m_recordingToggles[i - 1] : m_recordingToggles[m_recordingToggles.Length - 1];
+                    Selectable right = i + 1 < m_recordingToggles.Length ? m_recordingToggles[i + 1] : m_recordingToggles[0];
+                    SetNavigation(m_recordingToggles[i], last, m_close, left, right);
+                }
+
+                last = m_recordingToggles[m_recordingToggles.Length - 1];
+            }
+
             SetNavigation(m_close, last, first, m_jump, m_jump);
             SetNavigation(m_jump, last, first, m_close, m_close);
         }

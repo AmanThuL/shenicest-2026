@@ -1337,6 +1337,8 @@ GameObject:
   - component: {fileID: 6212772888183751750}
   - component: {fileID: 1577686847898533398}
   - component: {fileID: 5783654284724217943}
+  - component: {fileID: 7025423685452139297}
+  - component: {fileID: 3362963410964992124}
   m_Layer: 0
   m_Name: DialogueScreen
   m_TagString: Untagged
@@ -1427,6 +1429,33 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!225 &7025423685452139297
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8169736721705708723}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &3362963410964992124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8169736721705708723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b996ed819564d20ad35e80ebf04210, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.RecordingModeHider
+  m_mode: {fileID: 11400000, guid: bd3f353cee90843f2b8624ad3e2f4426, type: 2}
+  m_group: 2
+  m_canvasGroup: {fileID: 7025423685452139297}
 --- !u!1 &8177204280685673809
 GameObject:
   m_ObjectHideFlags: 0

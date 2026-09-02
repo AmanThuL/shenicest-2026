@@ -586,6 +586,8 @@ GameObject:
   - component: {fileID: 494570009}
   - component: {fileID: 494570008}
   - component: {fileID: 494570007}
+  - component: {fileID: 494570015}
+  - component: {fileID: 494570014}
   m_Layer: 0
   m_Name: HelmetHudCanvas
   m_TagString: Untagged
@@ -765,6 +767,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &494570014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 494570006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b996ed819564d20ad35e80ebf04210, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.RecordingModeHider
+  m_mode: {fileID: 11400000, guid: bd3f353cee90843f2b8624ad3e2f4426, type: 2}
+  m_group: 8
+  m_canvasGroup: {fileID: 494570015}
+--- !u!225 &494570015
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 494570006}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &524287890
 GameObject:
   m_ObjectHideFlags: 0
