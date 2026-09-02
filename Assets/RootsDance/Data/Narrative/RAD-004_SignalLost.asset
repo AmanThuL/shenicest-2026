@@ -15,8 +15,12 @@ MonoBehaviour:
   m_id: RAD-004
   m_title: "\u4FE1\u53F7\u4E2D\u65AD\uFF0800-04\uFF09"
   m_lines:
-  - m_text: "\u5566\u5566\u5566\u5566\u5566\u5566"
-    m_english: "(placeholder) RAD-004 \u2014 \u4FE1\u53F7\u4E2D\u65AD\uFF0800-04\uFF09"
+  - m_text: "\u2026\u2026\u542C\u5F97\u5230\u5417\uFF1F\u4FE1\u53F7\u2014\u2014"
+    m_english: "...Can you hear me? The signal-"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 2
+  - m_text: "\u2026\u2026\u4FDD\u6301\u2026\u2026\u8BB0\u5F55\u2026\u2026"
+    m_english: "...keep... recording..."
     m_voice: {fileID: 0}
     m_holdSeconds: 2.5
   m_startDelay: 0.5

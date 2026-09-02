@@ -20,8 +20,13 @@ MonoBehaviour:
   m_playsOnce: 1
   m_lines:
   - m_speaker: 0
-    m_chinese: "\u5566\u5566\u5566\u5566\u5566\u5566"
-    m_english: "(placeholder) DLG-105 \u2014 \u8FDB\u5165\u5F02\u8272\u8349\u5E26\uFF0800-06\uFF09"
+    m_chinese: "\u8FD9\u989C\u8272\u4E0D\u5BF9\u3002\u5065\u5EB7\u7684\u8349\u4E0D\u957F\u8FD9\u79CD\u989C\u8272\u3002"
+    m_english: "That colour is wrong. Healthy grass doesn't grow in colours like these."
     m_voice: {fileID: 0}
-    m_holdSeconds: 2.5
+    m_holdSeconds: 0
+  - m_speaker: 0
+    m_chinese: "\u53EF\u5B83\u4EEC\u957F\u5F97\u2026\u2026\u592A\u597D\u4E86\u3002"
+    m_english: "And yet they're thriving. A little too well."
+    m_voice: {fileID: 0}
+    m_holdSeconds: 0
   m_flagOnComplete: 
