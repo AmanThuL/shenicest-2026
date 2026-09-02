@@ -1,3 +1,4 @@
+using System;
 using RootsDance.Core;
 using RootsDance.Events;
 using RootsDance.Player;
@@ -154,7 +155,7 @@ namespace RootsDance.Cameras
 
         private bool m_isLookingBack;
         private float m_lookBackStartTime;
-        private Transform m_lookBackTarget;
+        private Func<Vector3?> m_lookBackPoint;
         private float m_intensity;
         private float m_intensityTarget;
         private float m_lastEvaluationTime;
@@ -258,18 +259,29 @@ namespace RootsDance.Cameras
         }
 
         /// <summary>
-        /// Fires one shoulder check that turns to <paramref name="target"/> — exactly far enough
-        /// to frame it, whichever side is shorter, tracking it through the hold. Null falls back
-        /// to the fixed-angle look. Ignored while one is already playing.
+        /// Fires one shoulder check that turns to <paramref name="target"/>'s pivot — exactly far
+        /// enough to frame it, whichever side is shorter, tracking it through the hold. Null falls
+        /// back to the fixed-angle look. Ignored while one is already playing.
         /// </summary>
         public void LookBack(Transform target)
+        {
+            LookBack(target == null ? null : (Func<Vector3?>)(() => target != null ? target.position : null));
+        }
+
+        /// <summary>
+        /// Fires one shoulder check that turns to whatever point <paramref name="point"/> answers,
+        /// re-asked every frame so a moving or animating body stays framed through the hold. A
+        /// null delegate, or a null answer, falls back to the fixed-angle look. Ignored while one
+        /// is already playing.
+        /// </summary>
+        public void LookBack(Func<Vector3?> point)
         {
             if (m_isLookingBack)
             {
                 return;
             }
 
-            m_lookBackTarget = target;
+            m_lookBackPoint = point;
             m_isLookingBack = true;
             m_lookBackStartTime = Time.time;
         }
@@ -388,19 +400,21 @@ namespace RootsDance.Cameras
             if (elapsed >= ShoulderCheckCurve.TotalSeconds(m_turnOutSeconds, m_holdSeconds, m_returnSeconds))
             {
                 m_isLookingBack = false;
-                m_lookBackTarget = null;
+                m_lookBackPoint = null;
                 return Vector2.zero;
             }
 
             float deflection = ShoulderCheckCurve.Evaluate(elapsed, m_turnOutSeconds, m_holdSeconds,
                 m_returnSeconds);
 
-            if (m_lookBackTarget == null)
+            Vector3? point = m_lookBackPoint?.Invoke();
+
+            if (point == null)
             {
                 return new Vector2(deflection * m_lookBackDegrees * (m_overLeftShoulder ? -1f : 1f), 0f);
             }
 
-            Vector3 to = m_lookBackTarget.position - cameraPosition;
+            Vector3 to = point.Value - cameraPosition;
             Vector3 flat = Vector3.ProjectOnPlane(to, Vector3.up);
             Vector3 forwardFlat = Vector3.ProjectOnPlane(baseOrientation * Vector3.forward, Vector3.up);
 

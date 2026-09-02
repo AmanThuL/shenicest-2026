@@ -224,15 +224,25 @@ namespace RootsDance.Chase
         }
 
         /// <summary>
-        /// One shoulder check aimed at the boss herself, not a fixed shoulder: the look exists to
+        /// One shoulder check aimed at the boss's body, not a fixed shoulder: the look exists to
         /// show the player where she is. Ignored while one is already playing.
         /// </summary>
         public void LookBackAtMonster()
         {
-            if (m_panicShake != null)
+            if (m_panicShake == null)
             {
-                m_panicShake.LookBack(m_monster != null ? m_monster.transform : null);
+                return;
             }
+
+            if (m_monster == null)
+            {
+                m_panicShake.LookBack((Transform)null);
+                return;
+            }
+
+            // The body centre, re-read every frame: the root pivot is under the feet.
+            ChaseMonster monster = m_monster;
+            m_panicShake.LookBack(() => monster != null ? monster.LookAtPoint : (Vector3?)null);
         }
 
         private void EndChase()
