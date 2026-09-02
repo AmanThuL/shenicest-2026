@@ -121,14 +121,41 @@ namespace RootsDance.UI
         private bool m_hasUnread;
         private bool m_hasLatestRecord;
 
+        /// <summary>
+        /// Carries "the report is closed" when <see cref="m_root"/> is this component's own
+        /// object. Resolved once, because the alternative — deactivating that object — switches
+        /// this presenter off for the whole of the time the player is out scanning things, which
+        /// is exactly when it has to be listening. See <see cref="UiRootVisibility"/>.
+        /// </summary>
+        private CanvasGroup m_rootGroup;
+
         /// <inheritdoc />
         public event Action CloseRequested;
 
         /// <summary>True while the report holds a record the player has not looked at yet.</summary>
         public bool HasUnread => m_hasUnread;
 
+        /// <summary>
+        /// The section the rail is showing, by its position among the visible ones, or -1 when the
+        /// report has none. Read-only and public so a test can state where the report opened —
+        /// "it opens on the thing you just scanned" is the whole behaviour, and it was wrong for a
+        /// long time while looking right in code.
+        /// </summary>
+        public int CurrentSectionIndex => m_visibleSections.Count == 0 ? -1 : m_sectionIndex;
+
+        /// <summary>The page the report is turned to inside the current section.</summary>
+        public int CurrentPageIndex => m_pageIndex;
+
+        /// <summary>The sections currently on the rail, in rail order.</summary>
+        public IReadOnlyList<ScannerReportSectionSO> VisibleSections => m_visibleSections;
+
         private void Awake()
         {
+            if (UiRootVisibility.RootIsOwner(m_root, this))
+            {
+                m_rootGroup = TerminalMotion.EnsureCanvasGroup(m_root);
+            }
+
             if (m_reportTitle != null)
             {
                 m_reportTitle.Text = m_reportTitleText;
@@ -620,10 +647,11 @@ namespace RootsDance.UI
 
         private void SetRootActive(bool active)
         {
-            if (m_root != null)
-            {
-                m_root.SetActive(active);
-            }
+            // Through the shared rule rather than a bare SetActive. This presenter's root is its
+            // own GameObject, so switching it off on Close() would unsubscribe it from the report
+            // channel and it would never learn what was scanned — which is what decides the
+            // section and page the report opens on. See <see cref="UiRootVisibility"/>.
+            UiRootVisibility.Set(m_root, this, m_rootGroup, active);
         }
 
         private void HideTemplate(ScannerReportTab template)

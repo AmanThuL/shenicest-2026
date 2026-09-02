@@ -3583,7 +3583,7 @@ MonoBehaviour:
   m_controller: {fileID: 510528445}
   m_channel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
   m_cue: {fileID: 11400000, guid: 4c11e926b1bf848c099f0f90c01badde, type: 2}
-  m_strideLength: 1.9
+  m_strideLength: 0.8
   m_minimumSpeed: 0.4
 --- !u!1 &1357867348
 GameObject:

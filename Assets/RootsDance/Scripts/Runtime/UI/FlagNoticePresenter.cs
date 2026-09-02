@@ -190,10 +190,10 @@ namespace RootsDance.UI
 
         private void SetRootActive(bool active)
         {
-            if (m_root != null)
-            {
-                m_root.SetActive(active);
-            }
+            // Through the shared rule, never a bare SetActive: this presenter's root is its own
+            // GameObject in the bootstrap scene, and switching that off would drop the FlagRaised
+            // subscription the notice exists to listen on. See <see cref="UiRootVisibility"/>.
+            UiRootVisibility.Set(m_root, this, m_group, active);
         }
     }
 }

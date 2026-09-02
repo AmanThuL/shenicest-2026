@@ -30,5 +30,15 @@ namespace RootsDance.Tests.EditMode.Player
             property.objectReferenceValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        /// <summary>Reads a serialized reference field, for asserting a prefab shipped wired up.</summary>
+        public static Object Get(Object target, string fieldName)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty property = so.FindProperty(fieldName);
+
+            Debug.Assert(property != null, $"No serialized field '{fieldName}' on {target}.");
+            return property.objectReferenceValue;
+        }
     }
 }

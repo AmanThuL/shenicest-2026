@@ -52,12 +52,29 @@ namespace RootsDance.UI
         {
             // The prefab's root Canvas cannot retain overrideSorting until it has a Canvas parent.
             GetComponent<Canvas>().overrideSorting = true;
+            ExemptFromParentCanvasGroups();
             m_service = m_serviceBehaviour as ICheckpointRescueService;
             m_panel.SetActive(false);
             m_rowTemplate.gameObject.SetActive(false);
             InputActionAsset actions = InputSystem.actions;
             m_toggle = actions == null ? null : actions.FindAction("Debug/ToggleCheckpointRescue");
             m_cancel = actions == null ? null : actions.FindAction("Debug/CloseCheckpointRescue");
+        }
+
+        /// <summary>
+        /// Takes this panel out of every CanvasGroup above it.
+        /// <para>
+        /// The developer panel lives wherever the builder could find a Canvas in the bootstrap,
+        /// which puts it under the dialogue screen — and the dialogue screen is one of the roots
+        /// recording mode hides. A parent group at alpha 0 takes everything below it down, with
+        /// its raycasts off, so switching recording mode on hid the panel that owns the
+        /// recording-mode switches and left no way to switch it back off. The one tool that must
+        /// never be hidden by a display option is the tool that sets that option.
+        /// </para>
+        /// </summary>
+        private void ExemptFromParentCanvasGroups()
+        {
+            UiRootVisibility.Exempt(gameObject);
         }
 
         private void OnEnable()

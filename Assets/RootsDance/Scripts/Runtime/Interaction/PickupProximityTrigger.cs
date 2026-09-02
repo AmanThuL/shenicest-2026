@@ -61,10 +61,13 @@ namespace RootsDance.Interaction
         [SerializeField] private StringEventChannelSO m_promptChanged;
 
         [Header("Tuning")]
-        [Tooltip("Metres. The player must be at least this close for a pick-up to be offered. "
-            + "Arm's reach, not sight range: the grab clip's hand has to plausibly touch the prop.")]
+        [Tooltip("Metres, measured from the player root on the floor to the prop's grab point — "
+            + "not from the eye. It has to clear the body: the controller's own radius already "
+            + "spends part of it, and the offer also needs the prop to still be in frame, which a "
+            + "prop at your feet stops being. Too tight and there is no stretch of ground where "
+            + "both halves of the rule are true at once, which reads as pick-up being broken.")]
         [Range(0.5f, 20f)]
-        [SerializeField] private float m_range = 1.5f;
+        [SerializeField] private float m_range = 2.5f;
 
         [Tooltip("Seconds for the reached-for prop to glide the last stretch to the hand while "
             + "the grab clip plays, so the Attach frame closes on something it is touching.")]

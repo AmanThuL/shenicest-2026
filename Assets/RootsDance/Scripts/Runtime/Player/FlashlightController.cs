@@ -140,7 +140,19 @@ namespace RootsDance.Player
 
         private void Awake()
         {
-            m_input = GetComponent<PlayerInputReader>();
+            // Parent-inclusive, and checked. The reader normally sits on the same object, but a
+            // rig that puts the torch on a child leaves this null, and Update dereferences it every
+            // frame — one missing reference then throws 60 times a second and takes the rest of
+            // Update with it, including the power gate and the fade. The beam is left frozen at
+            // whatever the previous frame set, which reads as the gate not working at all.
+            m_input = GetComponentInParent<PlayerInputReader>();
+
+            if (m_input == null)
+            {
+                Log.Error("FlashlightController found no PlayerInputReader on itself or a parent; "
+                    + "the switch will not respond.", this);
+            }
+
             m_state = new FlashlightState(m_autoOnAtNight);
             m_hasLight = m_light != null;
 
@@ -246,7 +258,7 @@ namespace RootsDance.Player
             m_state.SetHeld(IsHeld);
             m_state.SetPower(ReadPower());
 
-            if (m_input.FlashlightPressedThisFrame)
+            if (m_input != null && m_input.FlashlightPressedThisFrame)
             {
                 m_state.Toggle();
             }

@@ -290,6 +290,21 @@ MonoBehaviour:
   m_timeOfDayChanged: {fileID: 11400000, guid: 6bcc2cf57fbcb4e3e9492ac434a92857, type: 2}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_switchHint: "[F] \u6253\u5F00\u624B\u7535"
+--- !u!114 &9011859582228339412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5480e59bcea44613b11e23138b4e085c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Chase.ChaseLookBackTrigger
+  m_input: {fileID: 2523268967826309828}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_hint: "[Q] \u56DE\u5934\u770B"
 --- !u!114 &6841962975302966709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,7 +340,7 @@ MonoBehaviour:
   m_director: {fileID: 6881924305928856330}
   m_throwTrigger: {fileID: 1267723497874549201}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_range: 1.5
+  m_range: 2.5
   m_takeGlideSeconds: 0.45
   m_dropKey: 21
   m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
@@ -349,21 +364,6 @@ MonoBehaviour:
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 6.5
   m_actionId: throw
---- !u!114 &9011859582228339412
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4558733782070972204}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5480e59bcea44613b11e23138b4e085c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Chase.ChaseLookBackTrigger
-  m_input: {fileID: 2523268967826309828}
-  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_hint: "[Q] \u56DE\u5934\u770B"
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
@@ -2109,11 +2109,11 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[0]'
+      propertyPath: m_suspendedWhileReading.Array.data[0]
       value: 
       objectReference: {fileID: 3067282954758705644}
     - target: {fileID: 5597022893923250975, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
-      propertyPath: 'm_suspendedWhileReading.Array.data[1]'
+      propertyPath: m_suspendedWhileReading.Array.data[1]
       value: 
       objectReference: {fileID: 1168216218860767587}
     - target: {fileID: 5703141744406727806, guid: 9f2e2d555f1224a7d95f617436e34c1d, type: 3}
