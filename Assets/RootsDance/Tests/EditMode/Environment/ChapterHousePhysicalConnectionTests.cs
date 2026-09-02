@@ -197,7 +197,21 @@ namespace RootsDance.Tests.EditMode.Environment
                 Transform mycelium = FindTransform(environment, "MyceliumUndercroft");
                 Assert.IsNotNull(mycelium);
                 Assert.Greater(mycelium.GetComponentsInChildren<Renderer>(true).Length, 0);
-                Assert.IsFalse(mycelium.gameObject.activeSelf);
+                Assert.IsTrue(mycelium.gameObject.activeSelf);
+                Assert.That(mycelium.lossyScale.x, Is.EqualTo(1f).Within(0.001f));
+                Assert.That(mycelium.lossyScale.y, Is.EqualTo(1f).Within(0.001f));
+                Assert.That(mycelium.lossyScale.z, Is.EqualTo(1f).Within(0.001f));
+
+                Bounds myceliumBounds = GetRendererBounds(mycelium.gameObject);
+                Bounds floorBounds = FindTransform(environment, "ClothLandscape_CorridorShell.007")
+                    .GetComponent<Renderer>().bounds;
+                Bounds clothBounds = FindTransform(environment, "ClothLandscape_CorridorShell.011")
+                    .GetComponent<Renderer>().bounds;
+                Assert.That(myceliumBounds.center.x, Is.EqualTo(floorBounds.center.x).Within(0.05f));
+                Assert.That(myceliumBounds.center.y, Is.EqualTo(clothBounds.center.y).Within(0.05f));
+                Assert.That(myceliumBounds.center.z, Is.EqualTo(clothBounds.center.z).Within(0.05f));
+                Assert.Less(myceliumBounds.size.x, clothBounds.size.x * 0.5f);
+                Assert.Less(myceliumBounds.size.z, clothBounds.size.z * 0.5f);
                 Animator animator = mycelium.GetComponent<Animator>();
                 Assert.IsNotNull(animator);
                 Assert.IsNotNull(animator.runtimeAnimatorController);

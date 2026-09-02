@@ -595,10 +595,11 @@ namespace RootsDance.Editor.Environment
             SetStatic(building);
             Bounds legacyDoorway = SeparateDoors(building, materials);
             Bounds floor = PartBounds(building, k_FloorPart);
+            Bounds cloth = PartBounds(building, k_ClothPart);
             s_roundEntrancePlacement = ChapterHouseRoundEntranceBuilder.Replace(
                 building, geometry, scene, floor, legacyDoorway);
             CreateCollision(building);
-            CreateMycelium(building, scene);
+            CreateMycelium(building, scene, floor, cloth);
             ChapterHouseBridgeRailingBuilder.Place(building);
 
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
@@ -612,22 +613,24 @@ namespace RootsDance.Editor.Environment
         /// <summary>
         /// Places the mycelium in the undercroft and starts its breath looping.
         ///
-        /// The generator already worked in this level's world space, so the instance only has to
-        /// repeat whatever transform <see cref="GroundModel"/> gave the building. Copying that
-        /// transform rather than writing the offset down keeps the two in register the next time
-        /// the blockout is re-exported and the building is re-grounded.
+        /// The FBX stores the generator's Unity-world coordinates on Blender's Y/Z axes. It is
+        /// rotated once on import, compensated for the two-times chapter-house layout scale, then
+        /// centred over the portion of cloth visible from the catwalk. This keeps it at a true
+        /// world scale of one instead of spreading it across the entire undercroft.
         ///
         /// It is deliberately not marked static: the breath is a blend-shape animation, so these
         /// are SkinnedMeshRenderers and static batching would freeze them.
         /// </summary>
-        private static void CreateMycelium(GameObject building, Scene scene)
+        private static void CreateMycelium(
+            GameObject building,
+            Scene scene,
+            Bounds floor,
+            Bounds cloth)
         {
             GameObject mycelium = InstantiateModel(
                 k_MyceliumModelPath, k_MyceliumName, building.transform.parent, scene);
 
-            mycelium.transform.SetLocalPositionAndRotation(
-                building.transform.localPosition, building.transform.localRotation);
-            mycelium.transform.localScale = building.transform.localScale;
+            FitMyceliumToVisibleCloth(mycelium, building, floor, cloth);
 
             Material hyphae = EnsureMyceliumMaterial(
                 "Hyphae", new Color(0.84f, 0.82f, 0.74f), 0.25f);
@@ -658,9 +661,33 @@ namespace RootsDance.Editor.Environment
             }
 
             EnsureMyceliumAnimator(mycelium);
-            // Park the procedural pass while the authored cloth landscape is the visual target.
-            // Keeping the object and animator in the scene makes the experiment reversible.
-            mycelium.SetActive(false);
+            mycelium.SetActive(true);
+        }
+
+        private static void FitMyceliumToVisibleCloth(
+            GameObject mycelium,
+            GameObject building,
+            Bounds floor,
+            Bounds cloth)
+        {
+            Transform myceliumTransform = mycelium.transform;
+            myceliumTransform.SetLocalPositionAndRotation(
+                building.transform.localPosition,
+                building.transform.localRotation * Quaternion.Euler(90f, 0f, 0f));
+            myceliumTransform.localScale = building.transform.localScale / k_LayoutScale;
+
+            // Remove per-renderer overrides left by look-development. The model asset owns both
+            // meshes at identity; scaling them independently makes droplets drift off the hyphae.
+            for (int i = 0; i < myceliumTransform.childCount; i++)
+            {
+                Transform child = myceliumTransform.GetChild(i);
+                child.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                child.localScale = Vector3.one;
+            }
+
+            Bounds myceliumBounds = GetRendererBounds(mycelium);
+            Vector3 targetCentre = new Vector3(floor.center.x, cloth.center.y, cloth.center.z);
+            myceliumTransform.position += targetCentre - myceliumBounds.center;
         }
 
         /// <summary>

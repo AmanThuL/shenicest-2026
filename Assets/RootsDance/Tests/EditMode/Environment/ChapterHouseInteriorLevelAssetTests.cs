@@ -158,6 +158,19 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_SurfaceType"));
                 Assert.AreEqual(1f, emission.sharedMaterial.GetFloat("_BlendMode"));
                 Assert.AreEqual(0f, emission.sharedMaterial.GetFloat("_TransparentZWrite"));
+                Transform mycelium = FindRoot(scene, "_Geometry")
+                    .Find("ChapterHouseRoot/MyceliumUndercroft");
+                Assert.IsNotNull(mycelium);
+                Assert.IsTrue(mycelium.gameObject.activeSelf);
+                Assert.That(mycelium.lossyScale.x, Is.EqualTo(1f).Within(0.001f));
+                Bounds myceliumBounds = GetRendererBounds(mycelium.gameObject);
+                Bounds floorBounds = FindPart(model.gameObject, k_FloorPart)
+                    .GetComponent<Renderer>().bounds;
+                Assert.That(myceliumBounds.center.x, Is.EqualTo(floorBounds.center.x).Within(0.05f));
+                Assert.That(myceliumBounds.center.y, Is.EqualTo(cloth.bounds.center.y).Within(0.05f));
+                Assert.That(myceliumBounds.center.z, Is.EqualTo(cloth.bounds.center.z).Within(0.05f));
+                Assert.Less(myceliumBounds.size.x, cloth.bounds.size.x * 0.5f);
+                Assert.Less(myceliumBounds.size.z, cloth.bounds.size.z * 0.5f);
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
             }
