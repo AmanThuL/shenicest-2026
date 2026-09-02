@@ -92,6 +92,25 @@
 | `SourceArt/Blender/StatueBloom/BloomPatch.blend` | patch 源文件，与 `AlgaePatch` 并列 |
 | `SourceArt/Export/GAIA1/BloomPatch.export.json` | 导出溯源 sidecar |
 
+重跑斑块（靶子是本仓库 `GAIA1_v8.blend` 里的 `Robe`；斑的大小只由 `--sizes` 决定，shader 的 `_AlphaCutoff` / `_EdgeErode` 只能在每片内让斑胖一圈，撑不出片的边界）:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/GAIA1/GAIA1_v8.blend \
+  --python Tools/pipeline/build_bloom_patch.py -- \
+  --out SourceArt/Blender/StatueBloom/BloomPatch.blend --target Robe \
+  --count 299 --sizes 0.7,1.05,1.5,2.1,3.0 --spacing 0.075 --spread 0.6 \
+  --seed-objects LeftHand_hand_anim,RightHand_hand_anim --strip
+
+/Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/StatueBloom/BloomPatch.blend \
+  --python Tools/blender/export_fbx.py -- --project-root "$PWD" \
+  --output Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomPatches.fbx \
+  --objects BloomPatches \
+  --profile Tools/blender/profiles/static_prop_vcol.json \
+  --manifest SourceArt/Export/GAIA1/BloomPatches.export.json
+```
+
+先让 Editor 把新 FBX 导完再跑 builder；导入未完成时跑，prefab 会带着空材质存盘。
+
 重跑花田（Editor 可以开着，这一步只写 `SourceArt/` 与 `Assets/.../BloomFlowers.fbx`）:
 
 ```bash
@@ -130,7 +149,7 @@
 ## 5. 执行顺序
 
 - [x] 1. `build_bloom_patch.py`: 贴合改用 BVH 投射 + barycentric 插值法线；球面靶子实测 clearance 恒为 `3.99 mm`（即 `lift`），法线与径向 `dot = 1.00000`
-- [x] 2. `Robe` 靶子: `119` 个 clump 全部通过内建审计，无穿模、无桥接；撕裂逻辑把最大边拉伸从 `39.7×` 降到阈值 `2.5×`
+- [x] 2. `Robe` 靶子: `298` 个 clump（尺寸 0.7–3.0 m）通过内建审计，无穿模、无桥接；撕裂逻辑把最大边拉伸从 `39.7×` 降到阈值 `2.5×`
 - [x] 3. 导出 `BloomPatches.fbx`: `colors_type LINEAR`；round-trip 顶点色 `rms = 0.000000`，Unity 侧 B 通道四分位数与源一致（`0.125 / 0.039 / 0.255`）
 - [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
 - [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
