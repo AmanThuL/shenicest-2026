@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VOX_Dialogue
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Audio.AudioCueSO
   m_clips: []
-  m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
+  m_outputGroup: {fileID: -2270042955378919051, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
   m_volume: 1
   m_volumeJitter: 0
   m_pitch: 1

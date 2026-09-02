@@ -370,7 +370,13 @@ namespace RootsDance.Environment
 
                 // Tremor grows with time, whatever the outburst's length turns out to be; the
                 // cap keeps a long conversation from shaking the view flat before anything breaks.
+                // Eased in rather than linear: while the sprite is still talking the floor has
+                // barely begun to complain, and the build has to stay out of the way of the line
+                // being delivered. Cubed, so most of the growth lands in the last third — by the
+                // time the deck is about to go the view is already unsteady, but the player was
+                // not being thrown around through the whole conversation to get there.
                 float progress = Mathf.Clamp01(elapsed / m_maxWarningSeconds * 2f);
+                progress = progress * progress * progress;
                 SetTremor(Mathf.Lerp(m_tremorAtWarningStart, m_tremorAtWarningEnd, progress));
 
                 if (Time.time >= nextWarning)

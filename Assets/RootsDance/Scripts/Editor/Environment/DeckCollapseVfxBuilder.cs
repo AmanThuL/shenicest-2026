@@ -154,9 +154,9 @@ namespace RootsDance.Editor.Environment
         private static void ConfigureWarning(GameObject root, Material dust, Material grit)
         {
             ParticleSystem sift = Child(root, "Sift").AddComponent<ParticleSystem>();
-            Configure(sift, dust, loop: true, duration: 4f, lifetime: (2.5f, 4.5f), size: (0.5f, 1.2f),
-                speed: 0.15f, gravity: 0.03f, rate: 14f, burst: 0, maxParticles: 120, box: new Vector3(14f, 0.3f, 14f),
-                growTo: 1.8f, alphaPeak: 0.35f, noise: 0.25f, stretch: false);
+            Configure(sift, dust, loop: true, duration: 4f, lifetime: (5f, 9f), size: (1.5f, 3.5f),
+                speed: 0.25f, gravity: 0.16f, rate: 34f, burst: 0, maxParticles: 320, box: new Vector3(14f, 0.3f, 14f),
+                growTo: 1.8f, alphaPeak: 0.4f, noise: 0.18f, stretch: false);
 
             ParticleSystem crumbs = Child(root, "Grit").AddComponent<ParticleSystem>();
             Configure(crumbs, grit, loop: true, duration: 4f, lifetime: (1.6f, 2.4f), size: (0.03f, 0.09f),
@@ -168,13 +168,13 @@ namespace RootsDance.Editor.Environment
         private static void ConfigureCollapse(GameObject root, Material dust, Material grit)
         {
             ParticleSystem cloud = Child(root, "Cloud").AddComponent<ParticleSystem>();
-            Configure(cloud, dust, loop: false, duration: 9f, lifetime: (4f, 7f), size: (2f, 4.5f),
-                speed: 0.8f, gravity: -0.01f, rate: 18f, burst: 50, maxParticles: 260, box: new Vector3(14f, 1.5f, 14f),
-                growTo: 2.2f, alphaPeak: 0.55f, noise: 0.5f, stretch: false);
+            Configure(cloud, dust, loop: false, duration: 12f, lifetime: (6f, 11f), size: (4f, 9f),
+                speed: 1.4f, gravity: 0.24f, rate: 45f, burst: 160, maxParticles: 700, box: new Vector3(11f, 2.5f, 11f),
+                growTo: 2.2f, alphaPeak: 0.55f, noise: 0.3f, stretch: false);
 
             ParticleSystem floor = Child(root, "Floor").AddComponent<ParticleSystem>();
-            Configure(floor, dust, loop: false, duration: 10f, lifetime: (3f, 6f), size: (1.5f, 3.5f),
-                speed: 1.2f, gravity: 0.02f, rate: 30f, burst: 0, maxParticles: 320, box: new Vector3(18f, 0.6f, 18f),
+            Configure(floor, dust, loop: false, duration: 14f, lifetime: (5f, 10f), size: (3f, 7f),
+                speed: 1.2f, gravity: 0.07f, rate: 40f, burst: 0, maxParticles: 520, box: new Vector3(18f, 0.6f, 18f),
                 growTo: 2.5f, alphaPeak: 0.5f, noise: 0.35f, stretch: false);
 
             ParticleSystem spray = Child(root, "Grit").AddComponent<ParticleSystem>();

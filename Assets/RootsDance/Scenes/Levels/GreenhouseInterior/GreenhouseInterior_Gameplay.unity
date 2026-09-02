@@ -2453,6 +2453,9 @@ MonoBehaviour:
   m_turnOutSeconds: 0.5
   m_holdSeconds: 0.45
   m_returnSeconds: 0.4
+  m_lookBackTargetName: FlowerSprite
+  m_maxTargetDegrees: 170
+  m_targetPitchLimit: 35
   m_shakeWhileLookingBack: 0.45
 --- !u!114 &2104559398
 MonoBehaviour:
@@ -2480,10 +2483,16 @@ MonoBehaviour:
   m_rollHz: 0.7
   m_fovBoostDegrees: 5
   m_windSmoothSeconds: 0.25
-  m_tremorDegrees: 0.45
-  m_tremorMeters: 0.012
-  m_tremorHz: 13
+  m_tremorDegrees: 8
+  m_tremorMeters: 0.16
+  m_tremorHz: 9
   m_tremorSmoothSeconds: 0.5
+  m_swayDegrees: 6.5
+  m_swayHz: 0.55
+  m_tremorFovDegrees: 4
+  m_kickSeconds: 0.35
+  m_kickTrauma: 0.55
+  m_traumaDecaySeconds: 1.2
   m_landDipMeters: 0.13
   m_landPitchDegrees: 5
   m_landSeconds: 0.5

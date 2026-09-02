@@ -4328,6 +4328,8 @@ MonoBehaviour:
   m_swayHz: 0.55
   m_tremorFovDegrees: 4
   m_kickSeconds: 0.35
+  m_kickTrauma: 0.55
+  m_traumaDecaySeconds: 1.2
   m_landDipMeters: 0.13
   m_landPitchDegrees: 5
   m_landSeconds: 0.5

@@ -94,38 +94,58 @@ namespace RootsDance.Cameras
         [SerializeField] private float m_windSmoothSeconds = 0.25f;
 
         [Header("Tremor")]
-        [Tooltip("Rotational jitter at full tremor, degrees. Driven by whatever is shaking the floor "
-            + "(the deck collapse) through SetTremor; sits at zero otherwise. Past the panic jitter "
-            + "(0.9°): a structure about to go has to be unmistakable, not felt.")]
+        [Tooltip("Rotational jitter at full tremor, degrees: the fast buzz on top of the lurch. "
+            + "Driven by whatever is shaking the floor (the deck collapse) through SetTremor; sits "
+            + "at zero otherwise. This is texture, not the read — see Sway Degrees for the part "
+            + "that actually sells a structure coming apart.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorDegrees = 2.6f;
+        [SerializeField] private float m_tremorDegrees = 8f;
 
         [Tooltip("Vertical jitter at full tremor, metres.")]
         [Min(0f)]
-        [SerializeField] private float m_tremorMeters = 0.07f;
+        [SerializeField] private float m_tremorMeters = 0.16f;
 
         [Tooltip("Tremor noise rate, Hz. Higher than the wind: a structure buzzes before it goes.")]
         [Min(0.1f)]
-        [SerializeField] private float m_tremorHz = 13f;
+        [SerializeField] private float m_tremorHz = 9f;
 
         [Tooltip("Seconds for the tremor to follow a new level. Long enough that a stage change "
             + "swells rather than steps.")]
         [Min(0f)]
         [SerializeField] private float m_tremorSmoothSeconds = 0.5f;
 
-        [Tooltip("Slow roll under the jitter at full tremor, degrees: the whole structure swaying, "
-            + "not just the floor buzzing.")]
+        [Tooltip("The lurch: slow, heavy roll/pitch/yaw at full tremor, degrees — the whole "
+            + "structure actually moving underfoot, not just the floor buzzing. This is the "
+            + "dominant, legible motion; disaster-film handheld work reads from swings this size, "
+            + "not from a fine jitter. Its amplitude is itself modulated by a slow random walk so "
+            + "it never settles into a metronome.")]
         [Min(0f)]
-        [SerializeField] private float m_swayDegrees = 1.6f;
+        [SerializeField] private float m_swayDegrees = 6.5f;
 
-        [Tooltip("Sway rate, Hz.")]
+        [Tooltip("Sway rate, Hz — a heavy, irregular heave rather than a buzz.")]
         [Min(0.05f)]
-        [SerializeField] private float m_swayHz = 0.8f;
+        [SerializeField] private float m_swayHz = 0.55f;
+
+        [Tooltip("Degrees of FOV punched in at full tremor, riding the same lurch — the lens "
+            + "itself seems to lose its footing on the big swings.")]
+        [Range(0f, 12f)]
+        [SerializeField] private float m_tremorFovDegrees = 4f;
 
         [Tooltip("Longest a debris kick lasts, seconds. The dip and pitch of a landing, scaled by "
             + "how hard and how near the hit was.")]
         [Min(0.05f)]
         [SerializeField] private float m_kickSeconds = 0.35f;
+
+        [Tooltip("Trauma one full-strength impact adds, 0..1. Trauma stacks on top of whatever "
+            + "SetTremor asked for and decays on its own, so a rain of debris keeps the view "
+            + "violent even for a player standing on solid ground watching it come down — being "
+            + "off the deck must not mean being outside the disaster.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float m_kickTrauma = 0.55f;
+
+        [Tooltip("Seconds for a full trauma pool to drain back to nothing.")]
+        [Min(0.1f)]
+        [SerializeField] private float m_traumaDecaySeconds = 1.2f;
 
         [Header("Landing")]
         [Tooltip("How deep the view dips on a full-strength landing, in metres.")]
@@ -159,6 +179,7 @@ namespace RootsDance.Cameras
 
         private float m_tremorTarget;
         private float m_tremorSmoothed;
+        private float m_trauma;
         private float m_kickTime = float.NegativeInfinity;
         private float m_kickStrength;
 
@@ -185,6 +206,11 @@ namespace RootsDance.Cameras
         public void Kick(float strength01)
         {
             strength01 = Mathf.Clamp01(strength01);
+
+            // Trauma accumulates from every hit, even one too soft to take over the dip: what
+            // makes a collapse read is the pile-up, not the single biggest block.
+            AddTrauma(strength01 * m_kickTrauma);
+
             float now = Time.time;
             bool playing = now - m_kickTime < m_kickSeconds;
 
@@ -195,6 +221,17 @@ namespace RootsDance.Cameras
 
             m_kickTime = now;
             m_kickStrength = strength01;
+        }
+
+        /// <summary>
+        /// Adds to the trauma pool, 0..1, clamped. Trauma rides on top of the tremor level and
+        /// drains by itself, so repeated hits accumulate into something violent instead of each
+        /// one replacing the last. This is the half of the collapse that reaches a player who
+        /// never leaves the ground.
+        /// </summary>
+        public void AddTrauma(float amount01)
+        {
+            m_trauma = Mathf.Clamp01(m_trauma + Mathf.Max(0f, amount01));
         }
 
         protected override void Awake()
@@ -262,24 +299,45 @@ namespace RootsDance.Cameras
             float tremorLift = 0f;
             float tremorSide = 0f;
 
-            if (m_tremorSmoothed > 0.0001f)
+            // The stage level the collapse asked for, plus whatever the debris has just done to
+            // the player. One number drives every layer below.
+            float shake = Mathf.Clamp01(m_tremorSmoothed + m_trauma);
+
+            if (shake > 0.0001f)
             {
+                // Two layers, the way real handheld disaster coverage reads: a slow, heavy lurch
+                // that is the actual legible motion (the structure moving underfoot), plus a fast
+                // buzz on top for texture. The lurch's own amplitude is walked by a slow Perlin
+                // channel so it never falls into a readable, trampoline-like period — three
+                // independent phases (roll/pitch/yaw) so it never swings as one flat plane either.
+                float lurchTime = now * m_swayHz;
+                float lurchWobble = 0.55f + 0.55f * Mathf.PerlinNoise(m_seed + 29f, lurchTime * 0.23f);
+                float lurchGain = m_swayDegrees * shake * lurchWobble;
+                roll += Mathf.Sin(lurchTime * 2f * Mathf.PI) * lurchGain;
+                pitch += Mathf.Sin(lurchTime * 2f * Mathf.PI * 0.63f + 1.3f) * lurchGain * 0.7f;
+                yaw += Mathf.Sin(lurchTime * 2f * Mathf.PI * 0.41f + 2.6f) * lurchGain * 0.85f;
+
                 // Perlin sits in roughly 0.3..0.7, so the jitter is scaled up to reach its
                 // authored degrees rather than a third of them.
                 float tremorTime = now * m_tremorHz;
-                float gain = 4f * m_tremorDegrees * m_tremorSmoothed;
+                float gain = 4f * m_tremorDegrees * shake;
                 yaw += (Mathf.PerlinNoise(tremorTime, m_seed + 7f) - 0.5f) * gain;
                 pitch += (Mathf.PerlinNoise(m_seed + 7f, tremorTime) - 0.5f) * gain;
                 roll += (Mathf.PerlinNoise(tremorTime, m_seed + 13f) - 0.5f) * gain * 0.6f;
-                roll += Mathf.Sin(now * m_swayHz * 2f * Mathf.PI) * m_swayDegrees * m_tremorSmoothed;
-                pitch += Mathf.Sin(now * m_swayHz * 2f * Mathf.PI * 0.5f + 1.3f) * m_swayDegrees * 0.5f * m_tremorSmoothed;
-                tremorLift = (Mathf.PerlinNoise(m_seed + 13f, tremorTime) - 0.5f) * 4f * m_tremorMeters * m_tremorSmoothed;
-                tremorSide = (Mathf.PerlinNoise(m_seed + 19f, tremorTime) - 0.5f) * 2f * m_tremorMeters * m_tremorSmoothed;
+
+                tremorLift = (Mathf.PerlinNoise(m_seed + 13f, tremorTime) - 0.5f) * 4f * m_tremorMeters * shake
+                    + Mathf.Sin(lurchTime * 2f * Mathf.PI * 0.87f + 0.4f) * m_tremorMeters * 1.6f * shake * lurchWobble;
+                tremorSide = (Mathf.PerlinNoise(m_seed + 19f, tremorTime) - 0.5f) * 2f * m_tremorMeters * shake
+                    + Mathf.Sin(lurchTime * 2f * Mathf.PI * 0.53f + 2.1f) * m_tremorMeters * 1.2f * shake * lurchWobble;
+
+                LensSettings tremorLens = state.Lens;
+                tremorLens.FieldOfView += m_tremorFovDegrees * shake * lurchWobble;
+                state.Lens = tremorLens;
             }
 
             float kick = FreeFallResponse.LandingDip01(now - m_kickTime, m_kickSeconds) * m_kickStrength;
 
-            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f && m_tremorSmoothed <= 0.0001f
+            if (lift <= 0.0001f && dip <= 0.0001f && m_windSmoothed <= 0.0001f && shake <= 0.0001f
                 && kick <= 0.0001f)
             {
                 return;
@@ -333,6 +391,9 @@ namespace RootsDance.Cameras
 
             float tremorStep = m_tremorSmoothSeconds <= 0f ? 1f : elapsed / m_tremorSmoothSeconds;
             m_tremorSmoothed = Mathf.MoveTowards(m_tremorSmoothed, m_tremorTarget, tremorStep);
+
+            m_trauma = Mathf.MoveTowards(m_trauma, 0f,
+                m_traumaDecaySeconds <= 0f ? 1f : elapsed / m_traumaDecaySeconds);
         }
     }
 }

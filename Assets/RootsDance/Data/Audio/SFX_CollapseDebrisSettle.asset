@@ -21,7 +21,7 @@ MonoBehaviour:
   m_pitchJitter: 0
   m_loop: 0
   m_cooldownSeconds: 0
-  m_spatialBlend: 1
-  m_minDistance: 3
-  m_maxDistance: 30
+  m_spatialBlend: 0.6
+  m_minDistance: 6
+  m_maxDistance: 80
   m_rolloff: 1
