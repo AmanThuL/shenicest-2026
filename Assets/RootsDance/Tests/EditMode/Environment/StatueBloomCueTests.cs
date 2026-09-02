@@ -117,6 +117,89 @@ namespace RootsDance.Tests.EditMode.Environment
             }
         }
 
+        /// <summary>
+        /// The doomed choices run the statue red, and only the doomed choices.
+        /// <para>
+        /// Two ways for this to go quietly wrong: the blood already showing when the scene loads
+        /// (the same lie as running water, worse), or the blood keyed to the good ending's flag
+        /// so a right answer bleeds. Both wrong answers must start it, because the console offers
+        /// two and a player who picks the other one gets a dry statue.
+        /// </para>
+        /// </summary>
+        [Test]
+        public void Blood_WaitsForTheDoomedChoice()
+        {
+            Scene scene = EditorSceneManager.OpenScene(k_StatueScene, OpenSceneMode.Additive);
+
+            try
+            {
+                GameObject water = null;
+                GameObject blood = null;
+                var sequences = new System.Collections.Generic.List<CueSequence>();
+
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (child.name == "StatueWater")
+                        {
+                            water = child.gameObject;
+                        }
+                        else if (child.name == "StatueBlood")
+                        {
+                            blood = child.gameObject;
+                        }
+                    }
+
+                    sequences.AddRange(root.GetComponentsInChildren<CueSequence>(true));
+                }
+
+                Assert.IsNotNull(blood, "the statue has no blood; run RootsDance > Build Statue Blood.");
+                Assert.IsFalse(blood.activeSelf, "the statue bleeds before anyone has chosen.");
+                Assert.AreNotEqual(water, blood, "the blood is the water.");
+
+                var startsBloodOn = new System.Collections.Generic.HashSet<string>();
+                var startsWaterOn = new System.Collections.Generic.HashSet<string>();
+
+                foreach (CueSequence sequence in sequences)
+                {
+                    SerializedObject so = new SerializedObject(sequence);
+                    string flag = so.FindProperty("m_startOnFlag").stringValue;
+                    SerializedProperty steps = so.FindProperty("m_steps");
+
+                    for (int i = 0; i < steps.arraySize; i++)
+                    {
+                        SerializedProperty step = steps.GetArrayElementAtIndex(i);
+                        Object target = step.FindPropertyRelative("m_target").objectReferenceValue;
+                        bool on = step.FindPropertyRelative("m_isActive").boolValue;
+
+                        if (target == blood && on)
+                        {
+                            startsBloodOn.Add(flag);
+                        }
+                        else if (target == water && on)
+                        {
+                            startsWaterOn.Add(flag);
+                        }
+                    }
+                }
+
+                Assert.IsTrue(startsBloodOn.Contains(WorldFlags.k_CirculationCore),
+                    "Core Cultivation leaves the statue dry.");
+                Assert.IsTrue(startsBloodOn.Contains(WorldFlags.k_CirculationRing),
+                    "Standard Ring leaves the statue dry.");
+                Assert.IsFalse(startsBloodOn.Contains(WorldFlags.k_CirculationOuter),
+                    "the right answer bleeds.");
+                Assert.IsFalse(startsWaterOn.Contains(WorldFlags.k_CirculationCore)
+                    || startsWaterOn.Contains(WorldFlags.k_CirculationRing),
+                    "a wrong answer runs the clear water as well as the blood.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
         [Test]
         public void Statue_StartsBareAndWaits()
         {
