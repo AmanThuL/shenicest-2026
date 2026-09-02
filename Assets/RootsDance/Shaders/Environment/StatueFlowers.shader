@@ -41,7 +41,7 @@ Shader "RootsDance/Environment/StatueFlowers"
 
         // Metres the whole flower is pushed down its own axis into the stone, so the stem is
         // rooted in the robe rather than standing on it. Read from the aim baked into UV0.
-        _Sink("Sink into the stone", Range(0, 0.3)) = 0.06
+        _Sink("Sink into the stone", Range(0, 1.0)) = 0.06
 
         _Sway("Sway", Range(0, 0.5)) = 0.06
         _SwaySpeed("Sway speed", Range(0, 6)) = 1.1
