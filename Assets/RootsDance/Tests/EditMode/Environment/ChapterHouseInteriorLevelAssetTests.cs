@@ -35,6 +35,7 @@ namespace RootsDance.Tests.EditMode.Environment
         private const string k_BridgePart = "Bridge_Metal_Center.001";
         private const string k_FloorPart = "ClothLandscape_CorridorShell.007";
         private const string k_ClothPart = "ClothLandscape_CorridorShell.011";
+        private const float k_MyceliumBridgeClearance = 0.35f;
 
         [Test]
         public void LevelAsset_RegistersEnvironmentThenGameplayInBuildSettings()
@@ -164,13 +165,28 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.IsTrue(mycelium.gameObject.activeSelf);
                 Assert.That(mycelium.lossyScale.x, Is.EqualTo(1f).Within(0.001f));
                 Bounds myceliumBounds = GetRendererBounds(mycelium.gameObject);
-                Bounds floorBounds = FindPart(model.gameObject, k_FloorPart)
+                Bounds bridgeBounds = FindPart(model.gameObject, k_BridgePart)
                     .GetComponent<Renderer>().bounds;
-                Assert.That(myceliumBounds.center.x, Is.EqualTo(floorBounds.center.x).Within(0.05f));
-                Assert.That(myceliumBounds.center.y, Is.EqualTo(cloth.bounds.center.y).Within(0.05f));
-                Assert.That(myceliumBounds.center.z, Is.EqualTo(cloth.bounds.center.z).Within(0.05f));
+                Assert.That(myceliumBounds.center.x, Is.EqualTo(bridgeBounds.center.x).Within(0.05f));
+                Assert.That(myceliumBounds.center.z, Is.EqualTo(bridgeBounds.center.z).Within(0.05f));
+                Assert.That(
+                    myceliumBounds.max.y,
+                    Is.EqualTo(bridgeBounds.min.y - k_MyceliumBridgeClearance).Within(0.001f));
                 Assert.Less(myceliumBounds.size.x, cloth.bounds.size.x * 0.5f);
                 Assert.Less(myceliumBounds.size.z, cloth.bounds.size.z * 0.5f);
+
+                Renderer[] myceliumRenderers = mycelium.GetComponentsInChildren<Renderer>(true);
+
+                for (int i = 0; i < myceliumRenderers.Length; i++)
+                {
+                    Material material = myceliumRenderers[i].sharedMaterial;
+                    Color emissiveColour = material.GetColor("_EmissiveColor");
+                    Assert.That(material.GetFloat("_UseEmissiveIntensity"), Is.EqualTo(1f), material.name);
+                    Assert.That(material.GetFloat("_EmissiveIntensity"), Is.GreaterThanOrEqualTo(7000f), material.name);
+                    Assert.That(emissiveColour.b, Is.GreaterThan(emissiveColour.r * 4f), material.name);
+                    Assert.That(emissiveColour.b, Is.GreaterThan(emissiveColour.g), material.name);
+                }
+
                 Assert.IsTrue(FindRoot(scene, "_Props") != null);
                 Assert.IsTrue(FindRoot(scene, "_NavMesh") != null);
             }

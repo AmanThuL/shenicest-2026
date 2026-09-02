@@ -81,6 +81,11 @@ namespace RootsDance.Editor.Environment
         private const string k_MyceliumControllerPath =
             k_AnimationFolder + "/MyceliumUndercroft.controller";
 
+        /// <summary>The 0.30 m breathing rise plus a 0.05 m visible gap below the bridge.</summary>
+        private const float k_MyceliumBridgeClearance = 0.35f;
+        private const float k_MyceliumHyphaeEmissionNits = 7000f;
+        private const float k_MyceliumGuttationEmissionNits = 12000f;
+
         private const string k_CorridorEntranceAnchor = "Checkpoint_CorridorEntrance";
         private const string k_FlowerSpriteEncounterAnchor = "Checkpoint_FlowerSpriteEncounter";
 
@@ -595,11 +600,11 @@ namespace RootsDance.Editor.Environment
             SetStatic(building);
             Bounds legacyDoorway = SeparateDoors(building, materials);
             Bounds floor = PartBounds(building, k_FloorPart);
-            Bounds cloth = PartBounds(building, k_ClothPart);
+            Bounds bridge = PartBounds(building, k_BridgePart);
             s_roundEntrancePlacement = ChapterHouseRoundEntranceBuilder.Replace(
                 building, geometry, scene, floor, legacyDoorway);
             CreateCollision(building);
-            CreateMycelium(building, scene, floor, cloth);
+            CreateMycelium(building, scene, bridge);
             ChapterHouseBridgeRailingBuilder.Place(building);
 
             s_checkpointPlacements = PlaceCheckpoints(building, floor);
@@ -615,8 +620,8 @@ namespace RootsDance.Editor.Environment
         ///
         /// The FBX stores the generator's Unity-world coordinates on Blender's Y/Z axes. It is
         /// rotated once on import, compensated for the two-times chapter-house layout scale, then
-        /// centred over the portion of cloth visible from the catwalk. This keeps it at a true
-        /// world scale of one instead of spreading it across the entire undercroft.
+        /// centred below the catwalk with enough clearance for its breathing animation. This keeps
+        /// it at a true world scale of one instead of spreading it across the entire undercroft.
         ///
         /// It is deliberately not marked static: the breath is a blend-shape animation, so these
         /// are SkinnedMeshRenderers and static batching would freeze them.
@@ -624,18 +629,25 @@ namespace RootsDance.Editor.Environment
         private static void CreateMycelium(
             GameObject building,
             Scene scene,
-            Bounds floor,
-            Bounds cloth)
+            Bounds bridge)
         {
             GameObject mycelium = InstantiateModel(
                 k_MyceliumModelPath, k_MyceliumName, building.transform.parent, scene);
 
-            FitMyceliumToVisibleCloth(mycelium, building, floor, cloth);
+            FitMyceliumBelowBridge(mycelium, building, bridge);
 
             Material hyphae = EnsureMyceliumMaterial(
-                "Hyphae", new Color(0.84f, 0.82f, 0.74f), 0.25f);
+                "Hyphae",
+                new Color(0.015f, 0.055f, 0.09f),
+                0.25f,
+                new Color(0.015f, 0.22f, 1f),
+                k_MyceliumHyphaeEmissionNits);
             Material guttation = EnsureMyceliumMaterial(
-                "Guttation", new Color(0.93f, 0.96f, 0.98f), 0.95f);
+                "Guttation",
+                new Color(0.02f, 0.12f, 0.2f),
+                0.95f,
+                new Color(0.02f, 0.55f, 1f),
+                k_MyceliumGuttationEmissionNits);
 
             Renderer[] renderers = mycelium.GetComponentsInChildren<Renderer>(true);
 
@@ -664,11 +676,10 @@ namespace RootsDance.Editor.Environment
             mycelium.SetActive(true);
         }
 
-        private static void FitMyceliumToVisibleCloth(
+        private static void FitMyceliumBelowBridge(
             GameObject mycelium,
             GameObject building,
-            Bounds floor,
-            Bounds cloth)
+            Bounds bridge)
         {
             Transform myceliumTransform = mycelium.transform;
             myceliumTransform.SetLocalPositionAndRotation(
@@ -686,8 +697,11 @@ namespace RootsDance.Editor.Environment
             }
 
             Bounds myceliumBounds = GetRendererBounds(mycelium);
-            Vector3 targetCentre = new Vector3(floor.center.x, cloth.center.y, cloth.center.z);
-            myceliumTransform.position += targetCentre - myceliumBounds.center;
+            Vector3 offset = new Vector3(
+                bridge.center.x - myceliumBounds.center.x,
+                bridge.min.y - k_MyceliumBridgeClearance - myceliumBounds.max.y,
+                bridge.center.z - myceliumBounds.center.z);
+            myceliumTransform.position += offset;
         }
 
         /// <summary>
@@ -695,7 +709,12 @@ namespace RootsDance.Editor.Environment
         /// described by parameters. Single-sided on purpose: every filament is a closed, capped
         /// tube, so the back faces are never seen and double-siding would only cost fill rate.
         /// </summary>
-        private static Material EnsureMyceliumMaterial(string name, Color colour, float smoothness)
+        private static Material EnsureMyceliumMaterial(
+            string name,
+            Color baseColour,
+            float smoothness,
+            Color emissionColour,
+            float emissionNits)
         {
             string path = $"{k_MaterialFolder}/Mycelium_{name}.mat";
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -713,9 +732,14 @@ namespace RootsDance.Editor.Environment
                 material = new Material(lit);
             }
 
-            material.SetColor("_BaseColor", colour);
+            material.SetColor("_BaseColor", baseColour);
             material.SetFloat("_Smoothness", smoothness);
             material.SetFloat("_Metallic", 0f);
+            material.SetTexture("_EmissiveColorMap", null);
+            HDMaterial.SetUseEmissiveIntensity(material, true);
+            HDMaterial.SetEmissiveColor(material, emissionColour);
+            HDMaterial.SetEmissiveIntensity(material, emissionNits, EmissiveIntensityUnit.Nits);
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             material.enableInstancing = true;
 
             HDMaterial.ValidateMaterial(material);

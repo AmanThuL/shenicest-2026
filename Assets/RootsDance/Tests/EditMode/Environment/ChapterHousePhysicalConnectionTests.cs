@@ -15,6 +15,8 @@ namespace RootsDance.Tests.EditMode.Environment
     /// <summary>Guards the continuous laboratory-to-Chapter-House route and its scene composition.</summary>
     public sealed class ChapterHousePhysicalConnectionTests
     {
+        private const string k_BridgePart = "Bridge_Metal_Center.001";
+        private const float k_MyceliumBridgeClearance = 0.35f;
         private const string k_BriggsLevelPath = "Assets/RootsDance/Data/Levels/BriggsInterior.asset";
         private const string k_BriggsEnvironmentPath =
             "Assets/RootsDance/Scenes/Levels/BriggsInterior/BriggsInterior_Environment.unity";
@@ -203,13 +205,15 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(mycelium.lossyScale.z, Is.EqualTo(1f).Within(0.001f));
 
                 Bounds myceliumBounds = GetRendererBounds(mycelium.gameObject);
-                Bounds floorBounds = FindTransform(environment, "ClothLandscape_CorridorShell.007")
+                Bounds bridgeBounds = FindTransform(environment, k_BridgePart)
                     .GetComponent<Renderer>().bounds;
                 Bounds clothBounds = FindTransform(environment, "ClothLandscape_CorridorShell.011")
                     .GetComponent<Renderer>().bounds;
-                Assert.That(myceliumBounds.center.x, Is.EqualTo(floorBounds.center.x).Within(0.05f));
-                Assert.That(myceliumBounds.center.y, Is.EqualTo(clothBounds.center.y).Within(0.05f));
-                Assert.That(myceliumBounds.center.z, Is.EqualTo(clothBounds.center.z).Within(0.05f));
+                Assert.That(myceliumBounds.center.x, Is.EqualTo(bridgeBounds.center.x).Within(0.05f));
+                Assert.That(myceliumBounds.center.z, Is.EqualTo(bridgeBounds.center.z).Within(0.05f));
+                Assert.That(
+                    myceliumBounds.max.y,
+                    Is.EqualTo(bridgeBounds.min.y - k_MyceliumBridgeClearance).Within(0.001f));
                 Assert.Less(myceliumBounds.size.x, clothBounds.size.x * 0.5f);
                 Assert.Less(myceliumBounds.size.z, clothBounds.size.z * 0.5f);
                 Animator animator = mycelium.GetComponent<Animator>();
