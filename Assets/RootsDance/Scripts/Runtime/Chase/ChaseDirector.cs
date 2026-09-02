@@ -267,7 +267,9 @@ namespace RootsDance.Chase
 
                     if (m_panicShake != null)
                     {
-                        m_panicShake.LookBack();
+                        // At the monster itself, not a fixed shoulder: the look exists to show
+                        // the player where she is.
+                        m_panicShake.LookBack(m_monster != null ? m_monster.transform : null);
                     }
                 }
             }
