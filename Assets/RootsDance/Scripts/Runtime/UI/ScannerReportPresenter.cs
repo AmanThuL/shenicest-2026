@@ -99,6 +99,11 @@ namespace RootsDance.UI
             + "brief asks, instead of greying them out.")]
         [SerializeField] private bool m_hideArrowsAtEnds = true;
 
+        [Header("Opening")]
+        [Tooltip("On: the screen opens on the record that was just scanned — its section, its "
+            + "page — instead of on whatever was read last. Off: it reopens where it was left.")]
+        [SerializeField] private bool m_openOnLatestRecord = true;
+
         [Header("Listens to")]
         [SerializeField] private ReportUpdateEventChannelSO m_reportUpdated;
 
@@ -109,10 +114,12 @@ namespace RootsDance.UI
         private readonly List<ScannerReportTab> m_functionTabs = new List<ScannerReportTab>();
 
         private WorldSpaceTextMaterial m_worldSpaceText;
+        private ReportEntry m_latestRecord;
         private int m_sectionIndex;
         private int m_pageIndex;
         private bool m_isOpen;
         private bool m_hasUnread;
+        private bool m_hasLatestRecord;
 
         /// <inheritdoc />
         public event Action CloseRequested;
@@ -189,6 +196,15 @@ namespace RootsDance.UI
             m_isOpen = true;
             SetRootActive(true);
             RebuildSections();
+
+            // The screen a scan puts up is about the thing that was just scanned. Opening it on
+            // 调查概况 and leaving the player to find 03 生物记录 themselves is the report answering
+            // a question nobody asked.
+            if (TryShowLatestRecord())
+            {
+                return;
+            }
+
             SelectSection(Mathf.Clamp(m_sectionIndex, 0, Mathf.Max(0, m_visibleSections.Count - 1)));
         }
 
@@ -288,14 +304,111 @@ namespace RootsDance.UI
         {
             SetUnread(true);
 
+            m_latestRecord = update.Entry;
+            m_hasLatestRecord = true;
+
             // A record arriving while the screen is open should show up on the strip immediately;
             // otherwise the rebuild happens the next time it opens.
-            if (m_isOpen && m_visibleSections.Count > 0
-                && m_visibleSections[m_sectionIndex].FeedsFromReport)
+            if (!m_isOpen)
+            {
+                return;
+            }
+
+            if (TryShowLatestRecord())
+            {
+                return;
+            }
+
+            if (m_visibleSections.Count > 0 && m_visibleSections[m_sectionIndex].FeedsFromReport)
             {
                 RebuildPages(m_visibleSections[m_sectionIndex]);
                 ShowPage(m_pageIndex);
             }
+        }
+
+        /// <summary>
+        /// Turns the report to the record that was scanned last: its section down the rail, its
+        /// own page across the top. Spends the record — a second opening with nothing new scanned
+        /// comes back where the player left off, which is what re-reading the report is for.
+        /// </summary>
+        /// <returns>False when there is nothing pending, or no section holds that category.</returns>
+        private bool TryShowLatestRecord()
+        {
+            if (!m_openOnLatestRecord || !m_hasLatestRecord)
+            {
+                return false;
+            }
+
+            int section = SectionIndexFor(m_latestRecord.Category);
+
+            if (section < 0)
+            {
+                return false;
+            }
+
+            SelectSection(section);
+
+            int page = PageIndexOf(m_latestRecord);
+
+            if (page >= 0)
+            {
+                ShowPage(page);
+            }
+
+            m_hasLatestRecord = false;
+
+            return true;
+        }
+
+        /// <summary>The visible section fed by <paramref name="category"/>, or -1.</summary>
+        private int SectionIndexFor(ReportCategory category)
+        {
+            for (int i = 0; i < m_visibleSections.Count; i++)
+            {
+                ScannerReportSectionSO section = m_visibleSections[i];
+
+                if (section.FeedsFromReport && section.Category == category)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Where <paramref name="entry"/> sits among the pages of its own section. Counted the same
+        /// way <see cref="RebuildPages"/> prints them — report order, that category only — so the
+        /// two cannot drift apart. -1 when the entry is not in the report.
+        /// </summary>
+        private int PageIndexOf(ReportEntry entry)
+        {
+            IWorldStateReader state = WorldAccess.State;
+
+            if (state == null)
+            {
+                return -1;
+            }
+
+            IReadOnlyList<ReportEntry> entries = state.Report;
+            int position = 0;
+
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].Category != entry.Category)
+                {
+                    continue;
+                }
+
+                if (entries[i].Id == entry.Id)
+                {
+                    return position;
+                }
+
+                position++;
+            }
+
+            return -1;
         }
 
         private void SetUnread(bool unread)
