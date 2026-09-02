@@ -6,9 +6,11 @@
 > teammate reading the profile/player-settings rationale.
 > **Status:** written alongside the implementation on 2026-08-28 from
 > `docs/superpowers/specs/2026-08-28-build-and-packaging-design.md`; build-result checks and
-> package provenance and Windows support updated 2026-08-30. macOS is the verified build path.
-> Windows implementation and script tests are in place; actual Windows IL2CPP compilation and
-> player launch remain **UNVERIFIED** (see Open follow-ups).
+> package provenance and Windows support updated 2026-08-30; build progress/ETA, the build-size
+> report and history, the asset size audit and post-build churn restoration added and verified
+> 2026-09-03 (commit `6108177a`). macOS is the verified build path. Windows implementation and
+> script tests are in place; actual Windows IL2CPP compilation and player launch remain
+> **UNVERIFIED** (see Open follow-ups).
 
 Owning guideline: [08 — Testing, tooling and IDE setup](../../guidelines/08-testing-tooling.md)
 holds the project's build-profile and command-line-build rules (profiles live under
@@ -28,6 +30,8 @@ rather than just a `Builds/<Profile>/` folder.
 ```
 python3 Tools/build/build.py [PROFILE] [--dev] [--package-only] [--dry-run] [--force]
                              [--output-dir DIR] [--unity PATH]
+                             [--audit] [--fix] [--strict] [--skip-audit]
+                             [--max-zip-mb MB] [--no-color] [--keep-churn]
 ```
 
 `PROFILE` defaults to `macOS-Release` on macOS and `Windows-Release` on Windows. Command usage lives in
@@ -65,7 +69,7 @@ there is no second copy of the convention to drift out of sync.
 Two builds made on the same day from the same clean commit produce the same zip name. The script
 treats that as a feature: it refuses to silently overwrite an existing zip and exits `1` naming
 the file, unless `--force` is passed. That check runs right after the plan is resolved, before the
-(possibly 10–25 minute) Unity build starts — not after — since two same-day builds from the same
+(possibly several-minute) Unity build starts — not after — since two same-day builds from the same
 commit is the normal pattern and failing only at packaging time would burn a full build for
 nothing.
 
@@ -80,6 +84,10 @@ RootsDance_macOS_v0.1.0_20260828_fb56640/
 ├── build-info.json      # product, version, commit, dirty, development, profile, platform, unityVersion, builtAt
 └── README.txt           # how to run it, including the Gatekeeper quarantine workaround
 ```
+
+`build-info.json` is the only metadata file in the zip. `build-report.json` is *not* shipped: it
+stays in `Builds/<PROFILE>/` and is archived to `Builds/.history/<profile>/` for the next build's
+size diff (see "What's excluded, and why" below and "Build report and history").
 
 A new build snapshots `product, version, commit, dirty, development, profile, platform,
 unityVersion, builtAt` before launching Unity. `builtAt` is a local ISO 8601 timestamp including
@@ -115,10 +123,25 @@ backend writes next to the player itself: `<ProductName>_BackUpThisFolder_ButDon
 (an incremental-build cache) and `<ProductName>_BurstDebugInformation_DoNotShip` (Burst's native
 debug symbols). Their own folder names say not to ship them, so `stageable_entries()` in
 `Tools/build/build.py` drops both by suffix match before staging (the prefix varies with
-`productName`, so matching is by suffix, not exact name) — the run prints a
-`skip: <name> (Unity debug sidecar, not shipped)` line for each one it drops. This is the entire
-reason the zip is roughly 40% the size of `Builds/<PROFILE>/` on disk — the verified macOS-Release
-build was 960.9 MB unstaged, 398.6 MB zipped.
+`productName`, so matching is by suffix, not exact name), together with the exact names in
+`EXCLUDED_NAMES` — currently just `build-report.json`, which `BuildScript` writes into the build
+directory for `build.py`'s own size summary. That report is internal tooling data, not part of the
+player: it stays in `Builds/<PROFILE>/` and is archived to `Builds/.history/<profile>/`, and never
+enters the zip. `build-info.json` is the one metadata file that *is* shipped. The run prints a
+`skip: <name> (not shipped)` line for each entry it drops.
+
+Dropping those sidecars is a small, constant saving next to what actually drives the zip size: the
+content itself. The 2026-08-30 `macOS-Release` build was 2,791.8 MB unstaged / 2,322.2 MB zipped.
+Fixing the 302 asset size audit violations found on 2026-09-03 (commit `6108177a`) — mostly
+`Batching Static` scatter prefabs that were copying every instance's mesh into the scene file
+(1,479.8 MB in one `level1.resS` alone), plus texture/audio import fixes — brought the same profile
+to 665 MB unstaged / **512.1 MB zipped**, a 78% reduction. See ["Asset size policy and
+audit"](#asset-size-policy-and-audit) below and ["Build report and
+history"](#build-report-and-history) for the packed-size breakdown by type
+(Mesh 373.2 MB, Texture2D 300.4 MB, AudioClip 44.4 MB, Shader 23.4 MB, ComputeShader 12.5 MB,
+Font 7.1 MB) and the largest remaining individual assets (`MyceliumUndercroft.fbx` at 161.3 MB —
+animated, intentionally kept at full detail; `SHA2017Poster.obj` at 48.3 MB;
+`Briggs_LabCorridor02.fbx` at 34.8 MB).
 
 **Symbolication warning:** `_BurstDebugInformation_DoNotShip` holds the native/IL2CPP debug symbols
 needed to symbolicate a crash report from a build you've shared. It is never copied into the zip,
@@ -194,6 +217,11 @@ python3 Tools/build/build.py --package-only         # package an existing player
 python3 Tools/build/build.py --package-only --dry-run # inspect the original package name and metadata
 python3 Tools/build/build.py --dry-run              # print the plan, build and touch nothing
 python3 Tools/build/build.py --force                # overwrite an existing zip of the same name
+python3 Tools/build/build.py --audit                # asset size audit only, report violations
+python3 Tools/build/build.py --audit --fix          # audit and fix what's fixable (--fix requires --audit)
+python3 Tools/build/build.py --audit --dry-run      # print the audit command and exit, launching nothing
+python3 Tools/build/build.py --strict               # fail the build on any remaining fixable audit violation
+python3 Tools/build/build.py --max-zip-mb 600        # exit 4 if the zip ends up bigger than this
 ```
 
 On Windows, from PowerShell in the repository root:
@@ -215,19 +243,106 @@ Under the hood, phase 2 is the same shape as guideline 08's `-executeMethod` esc
 non-interactively:
 
 ```
--batchmode -quit -projectPath <repo root>
+-batchmode -quit -quitTimeout 30 -timestamps -projectPath <repo root>
 -buildTarget <StandaloneOSX|StandaloneWindows64>
 -executeMethod RootsDance.Editor.Build.BuildScript.BuildFromCommandLine
--rdProfile <ProfileName> -rdOutput <path> [-rdDev]
+-rdProfile <ProfileName> -rdOutput <path> [-rdDev] [-rdStrict] [-rdSkipAudit]
 -logFile Logs/build-<profile>.log
 ```
 
 Selecting `-buildTarget` before `-executeMethod` makes Unity compile scripts for the requested
 platform before invoking the build entry point. The Windows player target is x64.
 
-Batch mode prints nothing to the terminal while it works, so the script prints an elapsed-time
-heartbeat and the log path up front — with an explicit warning that a first IL2CPP build can take
-10–25 minutes.
+Batch mode prints nothing to the terminal while it works, so `build.py` follows the growing log
+itself and renders phase/percent/ETA progress instead of a bare elapsed-time heartbeat — see
+"Progress and the log contract" below. Measured on 2026-09-03 (commit `6108177a`, warm `Library/`,
+Apple Silicon): a cold `macOS-Release` build (this run's own `Library` was already primed by a
+previous build, but every generated/derived cache was otherwise fresh) took 4 min 05 s wall clock
+end to end — 3 min 44 s inside Unity including its own exit, then staging (0 s, an APFS clone) and
+zipping (20 s) — and a warm second build of the same profile took 2 min 13 s. A genuinely first-ever
+build against an empty `Library/` (no prior import cache at all) will take longer than either of
+these.
+
+## Progress and the log contract
+
+`build.py` never parses Unity's full batch-mode log for meaning; it watches for a small, fixed set
+of marker lines and treats everything else as noise. The contract is deliberately narrow so a
+change to Unity's own log formatting cannot silently break progress reporting — only a change to
+these exact lines can, and every one of them is logged by our own code (`BuildScript.cs`,
+`BuildProgressLogger.cs`, `AssetSizeAudit.cs`), never by Unity itself:
+
+| Marker | Written by | Meaning |
+|---|---|---|
+| `[BuildScript] build start profile=<name> dev=<bool>` | `BuildScript.BuildFromCommandLine` | Validation passed; the pre-build audit (unless `--skip-audit`) and `BuildPipeline.BuildPlayer` are about to run. |
+| `[BuildScript] scene <i>/<n> <path>` | `BuildProgressLogger.OnProcessScene` | Scene `i` of `n` enabled scenes has been processed. |
+| `[BuildScript] scenes done` | `BuildProgressLogger.OnProcessScene` | The last enabled scene was processed; `build.py` moves from the "Building scenes" phase to "Packing player data". |
+| `[BuildScript] <profile>: result=<BuildResult>` | `BuildScript.BuildFromCommandLine` | The build finished. `build.py` requires this *exact* line — `progress.success_marker_pattern(<profile>)` matched against the `PhaseTracker.success_marker` it collected while following the log — with `result=Succeeded` and this profile's name, before it will call the build a success — see "A non-zero exit does not always mean the build failed" below. |
+| `[AssetSizeAudit] <n> assets, <n> violations, <n> fixed` | `AssetSizeAudit.Run` | A pre-build or standalone (`--audit`) audit run finished. |
+
+`Tools/build/progress.py`'s `PhaseTracker` searches each log line for these markers — plus a couple
+of Unity-native ones, `bee_backend` and `Tundra build success`, for the native-compile/finishing
+phases, marked `strict` so they only fire immediately after the phase that precedes them — and
+advances through `DEFAULT_PHASES` to compute a percent and an ETA; `LogFollower` reads the log
+incrementally (`poll()` reads only the bytes appended since the last call) so a large log is never
+re-read from the start. Phase weights default to the durations measured on
+2026-08-30 and are overwritten after every successful build with that run's own per-phase
+durations, saved to `Builds/.history/<profile>/timings.json` — so a profile's ETA reflects your
+machine and the project's current scene count from its second run onward, not the shipped
+defaults. `Tools/build/console.py`'s `Console` renders that as a self-overwriting status line on a
+TTY, or one printed line per phase transition when stdout is not a TTY (CI logs, redirected
+output, piping to `tee`); colour follows the [NO_COLOR](https://no-color.org) convention
+(`--no-color` or the `NO_COLOR` environment variable both disable it).
+
+**`-timestamps`, `-quitTimeout 30` and `EditorApplication.Exit(0)`.** Every build command line
+passes `-timestamps` (a timestamp prefix on each log line — harmless to marker matching, since
+`progress.py` searches each line rather than anchoring at its start) and `-quitTimeout 30`. Before
+this, a `-quit` batch build was measured on 2026-08-30 idling up to Unity's 5-minute default
+`-quitTimeout` *after* `BuildPipeline.BuildPlayer` had already finished and returned a result —
+IL2CPP's own post-build analytics/launch bookkeeping keeps an async operation pending that `-quit`
+waits on before it will exit. `BuildScript.BuildFromCommandLine` now calls
+`EditorApplication.Exit(0)` itself, immediately after logging the `result=` marker, whenever
+`Application.isBatchMode` — so a successful build exits in seconds instead of minutes. The
+`-quitTimeout 30` on the command line is the belt-and-suspenders cap for the rare case where that
+explicit exit doesn't fire.
+
+**Stack-trace suppression.** The 2026-08-30 log for a full build was 614 MB, almost entirely stack
+traces attached to 322,672 duplicate-`LODGroup` warnings from the vegetation scatter groups (see
+Open follow-ups). `BuildScript.BuildFromCommandLine` now sets
+`Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None)` and the same for
+`LogType.Warning`, for the duration of `BuildPipeline.BuildPlayer` only (restored in a `finally`
+block right after), which brought the equivalent build down to a 1.5 MB log without dropping any
+of the marker lines above — they are plain `Debug.Log` calls, unaffected by the warning-level
+suppression.
+
+## Build report and history
+
+`BuildReportWriter.Write` — called from `BuildScript.BuildFromCommandLine` after every successful,
+non-`--package-only` build — turns Unity's in-memory `BuildReport` into
+`Builds/<profile>/build-report.json`, a small, stable-shaped file `build.py` can read without
+touching the (now much smaller, but still not something to grep for structure) build log:
+
+| Field | Contents |
+|---|---|
+| `result`, `totalSeconds`, `totalBytes`, `outputPath`, `warnings`, `errors` | `BuildSummary`'s own fields. |
+| `steps[]` | `{name, depth, seconds}` per `BuildReport.steps`, in report order. `build.py` prints only the steps that took ≥ 1 second. |
+| `byType[]` | `{type, bytes, count}` — every packed asset's `PackedAssetInfo.type.Name`, summed. This is the table behind the "Mesh 373.2 MB, Texture2D 300.4 MB, …" breakdown quoted above. |
+| `topAssets[]` | The 40 largest individual assets by packed size, `{path, type, bytes}` (`BuildReportWriter.k_TopAssetCount`). |
+| `files[]` | Every `BuildFile` Unity wrote, `{path, bytes}` — the raw data `byType`/`topAssets` are aggregated from (`BuildReportWriter.Aggregate`/`Packed`). |
+
+After printing the summary, `build.py` archives that report to
+`Builds/.history/<profile>/previous-report.json` (`history.archive_report`), so the *next* build of
+the same profile can diff against it. `history.report_delta` matches types and assets by
+name/path across the two reports and returns the before/after byte counts for each;
+`print_build_summary` renders that as the "type / size / delta" and "changed assets / before /
+after" tables in the printed summary — the `+`/`-` delta columns only appear once a previous report
+exists, i.e. never on the very first build of a profile. `Builds/.history/<profile>/` also holds
+`timings.json` (see "Progress and the log contract" above); both files are best-effort, matching
+every other write under `Tools/build/history.py` — a missing or unwritable history directory never
+fails a build, it just means no ETA or no delta on the next run.
+
+A build with no `build-report.json` on disk afterward (an interrupted build, or one from before
+this system existed) skips the summary with a warning rather than failing; `--package-only` never
+rebuilds, so it never has a new report to summarize either.
 
 ## Profile and player settings
 
@@ -287,8 +402,8 @@ who needs to reproduce a bug).
 
 ## Preflight failures and fixes
 
-All preflight checks run before Unity is launched, so a failure costs seconds, not the 10–25
-minutes of an IL2CPP build. Each one exits `1` and names its own fix:
+All preflight checks run before Unity is launched, so a failure costs seconds, not the minutes
+of an IL2CPP build. Each one exits `1` and names its own fix:
 
 | Failure | Fix |
 |---|---|
@@ -304,12 +419,89 @@ minutes of an IL2CPP build. Each one exits `1` and names its own fix:
 | No complete Windows SDK 10.0.19041.0+ is found | Install a Windows 10/11 SDK including x64 libraries, headers, UCRT and resource compiler using Visual Studio Installer. |
 | `xcodebuild` not found on `PATH` (`shutil.which("xcodebuild")`) on a macOS IL2CPP profile | Install full Xcode from the App Store or developer.apple.com — the Command Line Tools alone are not enough: `xcode-select -p` succeeds with just CLT installed, but IL2CPP's C++ toolchain needs the full `Xcode.app` (the CLT bundle doesn't ship it). Then run `xcode-select --install` if prompted. |
 | No scenes are enabled in `EditorBuildSettings.asset` | Enable at least one in **File > Build Profiles > Scene List** (Bootstrap first). |
-| A zip of that exact name already exists in the output directory | Checked in `main()` right after the plan is resolved, before the (possibly 10–25 minute) Unity build starts — not after. Pass `--force` to overwrite, or remove the existing zip. |
+| A zip of that exact name already exists in the output directory | Checked in `main()` right after the plan is resolved, before the (possibly several-minute) Unity build starts — not after. Pass `--force` to overwrite, or remove the existing zip. |
 | `--package-only` has missing, invalid or mismatched `build-info.json` | Rebuild with this script to create a valid manifest alongside the player. Do not fill in provenance from the current checkout. |
 | `--package-only --dev` is used on a saved release build | Drop `--dev` to preserve the release build, or run a new build with `--dev`. |
 
 Package-only runs skip the Unity, toolchain, profile-asset and scene-list checks above. They
 validate the existing player and saved manifest instead, without reading Git or project settings.
+
+## Asset size policy and audit
+
+`AssetSizePolicy` (`Assets/RootsDance/Scripts/Editor/Build/AssetSizePolicy.cs`) is the single
+definition of the project's build-size rules, as pure functions over small snapshot structs so the
+audit, the import postprocessors and the EditMode tests all agree on the same thresholds:
+
+| Rule | Applies to | Checks | Fixable |
+|---|---|---|---|
+| `TextureNpot4` | `Assets/RootsDance/Textures/`, `Assets/ThirdParty/Environment/` | Compressed, non-cubemap, source size not a multiple of 4, NPOT scale `None` — ships uncompressed at roughly 3x the size | Yes — sets Non Power of 2 = To Nearest |
+| `TextureStandaloneMax` | `Assets/RootsDance/Textures/Props/`, `Assets/RootsDance/Textures/Environment/` | No Standalone platform override, or its Max Size/format don't match the 1024 cap with Automatic format | Yes — adds/corrects the Standalone override |
+| `TextureReadable` | Same texture roots as `TextureNpot4` | Read/Write is enabled | Yes — disables it |
+| `TextureUncompressed` | `Assets/RootsDance/Textures/`, excluding pixel art (`Assets/ThirdParty/Environment/RetroPSXNature/`, or a filename containing `psx`/`lowrez`) | Compression is Uncompressed | **No** — warning only, to confirm intent |
+| `ModelReadable` | `Assets/RootsDance/Meshes/Environment/` | Read/Write is enabled | Yes, unless pipeline-owned |
+| `ModelExtras` | Same mesh root | Imports blend shapes, cameras or lights | Yes, unless pipeline-owned |
+| `AudioProfile` | `Assets/RootsDance/Audio/` | Import settings differ from the folder's `AudioImportProfile` (Music/Ambience/SFX/Voice) | Yes — reimport applies the profile |
+| `PrefabScatterBatching` | `Assets/RootsDance/Prefabs/Environment/Rocks/` | Any renderer on the prefab is `Batching Static` | Yes — clears the flag, keeps Occluder/Occludee/Reflection Probe |
+
+Two import postprocessors apply the fixable texture and audio rules automatically at import time,
+so most assets never violate them in the first place: `TexturePipelinePostprocessor` sets Non
+Power of 2 = To Nearest whenever the source isn't a multiple of 4, and adds the Standalone override
+(`AssetSizePolicy.k_StandaloneMaxSize` = 1024) for anything under `Textures/Props/` or
+`Textures/Environment/` — source files keep their full authored resolution up to the 2048 ceiling
+in [guideline 05 §7.1](../../guidelines/05-performance.md#71-textures). `AudioImportProfiles`
+applies the Music/Ambience/SFX/Voice settings by folder. The audit exists for everything imported
+*before* these rules existed, and for the one rule no importer can self-apply —
+`PrefabScatterBatching`, since a prefab's static flags aren't an import setting.
+
+Run it from the Editor via **`RootsDance > Build > Asset Size Audit (Report)`** /
+**`(Fix)`**, or from the command line: `python3 Tools/build/build.py --audit` /
+`--audit --fix` (`AssetSizeAudit.RunFromCommandLine`; needs the Editor closed, like a build). Both
+write `Logs/asset-audit.json` (`scanned`, `fixedCount`,
+`violations[]{assetPath, rule, message, fixable}`). A normal build also runs the audit
+(report-only, logging every violation) before `BuildPipeline.BuildPlayer`, unless
+`--skip-audit`/`-rdSkipAudit` is passed; add `--strict`/`-rdStrict` to fail the build instead (exit
+`2`) when any **fixable** violation remains, with a message pointing at `build.py --audit --fix`.
+Report-only rules (`fixable: false` — an intentionally uncompressed texture, a pipeline-owned
+model) are logged but never gate the build: `--fix` has no action to take for them, so counting
+them would make `--strict` permanently red and unusable.
+
+**Pipeline-owned models are report-only.** A model registered in
+`Tools/unity/model_import_profiles.json` (`BlenderModelPostprocessor`'s domain) is still scanned
+and reported, but its `ModelReadable`/`ModelExtras` violations are marked `fixable: false` — the
+audit never edits an importer the Blender pipeline owns. Fix those by changing the pipeline
+profile and running **`RootsDance > Pipeline > Reimport Pipeline Models`** instead. As of the
+2026-09-03 audit run, the only 3 violations left after `--fix` were exactly this: two
+pipeline-owned ChapterHouse meshes still Read/Write-enabled (see Open follow-ups).
+
+## Post-build churn
+
+Several assets get re-serialised as a side effect of running a build even when nothing about their
+own content changed: HDRP's post-build `SaveAssets` touches
+`ProjectSettings/ProjectSettings.asset`, the TextMeshPro font atlases regenerate under
+`Assets/RootsDance/Fonts/`, and HDRP's global volume/settings assets under
+`Assets/RootsDance/Settings/HDRP/` (`DefaultVolumeProfile.asset`,
+`HDRenderPipelineGlobalSettings.asset`) get rewritten too. Left alone, that churn does two things:
+it dirties files nobody meant to change (showing up in the next `git status` and code review), and
+— because the naming convention snapshots the dirty flag *before* the build (see "Naming
+convention" above) — it makes the *next* `build.py` invocation compute a `-dirty` zip name for what
+is, from a content point of view, an unmodified checkout.
+
+`build.py` snapshots `git status --porcelain -z` before the build (`git_modified_paths`), and again
+after, and restores (`git checkout --`) any file that (a) was clean before the build, (b) is dirty
+after it, and (c) matches `CHURN_ALLOWLIST`:
+
+```
+ProjectSettings/ProjectSettings.asset
+Assets/RootsDance/Fonts/
+Assets/RootsDance/Settings/HDRP/
+```
+
+Anything newly dirty that is *not* on the allowlist is left alone and printed as a warning
+(`left modified by the build: <path>`) instead of being silently discarded — an unexpected file
+changing during a build is worth a human looking at, not an automatic `git checkout`. Pass
+`--keep-churn` to skip this step entirely, for example to inspect exactly what a build touched.
+This restoration only runs for a real build; `--package-only` never runs Unity and has nothing to
+restore.
 
 ## Exit codes
 
@@ -319,6 +511,7 @@ validate the existing player and saved manifest instead, without reading Git or 
 | `1` | Preflight or usage failure — see the table above. |
 | `2` | The Unity build failed. The script prints the log tail and the full log path. |
 | `3` | Packaging failed (staging, `build-info.json`/`README.txt` generation, or archiving). |
+| `4` | The zip is larger than `--max-zip-mb`. The zip is still written and kept — this is a size gate checked after packaging, not a packaging failure. |
 
 ## Running an unsigned build on another Mac (Gatekeeper)
 
@@ -350,7 +543,8 @@ xattr -dr com.apple.quarantine RootsDance.app
   build step. Unity also creates the `.app` skeleton *before* the IL2CPP/link stages run, so a
   StrictMode or IL2CPP failure late in the build can leave a `.app` on disk that will not launch.
   `build.py` requires `BuildScript.cs`'s own `[BuildScript] <profile>: result=Succeeded` marker
-  (`build_succeeded()` in `build.py`) regardless of Unity's exit code. It clears
+  (`progress.success_marker_pattern` matched against `PhaseTracker.success_marker`) regardless of
+  Unity's exit code. It clears
   `Logs/build-<profile>.log` before launching Unity so an early failure cannot reuse a previous
   run's success. A zero exit without the fresh marker fails; a nonzero shutdown exit with it is
   accepted. If you are diagnosing a build by hand, look for that exact line in the current log.
@@ -369,9 +563,11 @@ xattr -dr com.apple.quarantine RootsDance.app
   Running the generator in a session where TVE materials are dirty writes ~37 unrelated `.mat`
   files. They are not yours to commit: `git restore Assets/RootsDance/Materials/Environment/`
   afterwards, and stage `ProjectSettings/` explicitly.
-- **Every batch build re-serializes three assets** — the VT323 SDF font, `DefaultVolumeProfile`
-  and `HDRenderPipelineGlobalSettings`. Restore them after a build, or the *next* build sees a
-  dirty tree and tags its zip `-dirty`.
+- **Every batch build re-serializes several assets** — `ProjectSettings.asset`, the VT323 SDF font,
+  `DefaultVolumeProfile` and `HDRenderPipelineGlobalSettings`. `build.py` now restores these
+  automatically after a real build (see "Post-build churn" above); this is only worth knowing
+  about if you build Unity by hand outside `build.py`, or pass `--keep-churn` — in either case,
+  restore them yourself or the *next* `build.py` run sees a dirty tree and tags its zip `-dirty`.
 
 ## Open follow-ups
 
@@ -383,32 +579,96 @@ xattr -dr com.apple.quarantine RootsDance.app
   or launched a Windows player. On a configured Windows machine, run the Python suite, a
   `Windows-Release --dry-run`, a real release build and an extracted-player smoke test; check the
   build log's fresh success marker and the archive's runtime files before sharing it.
-- **The global scene list is content-owned.** As checked on 2026-08-30,
-  `ProjectSettings/EditorBuildSettings.asset` enables 13 scenes: `Bootstrap`, `Main_Environment`,
-  `Main_Gameplay`, `Main_Environment_2`, `MainMenu`, `BriggsInterior_Environment`,
-  `BriggsInterior_Gameplay`, `BriggsInterior_Environment_2`, `GreenhouseInterior_Environment`,
-  `GreenhouseInterior_Gameplay`, `Main_Environment_Statue`, `ChapterHouseInterior_Environment`
-  and `ChapterHouseInterior_Gameplay`. Both `PlayerTest` scenes and `Main_DevGround` are disabled.
-  Both profiles inherit the global list; inspect preflight's printed list for the current build.
+- **The global scene list is content-owned.** As checked on 2026-09-03,
+  `ProjectSettings/EditorBuildSettings.asset` enables **16** scenes (13 on 2026-08-30, +3 since):
+  `Bootstrap`, `Main_Environment`, `Main_Gameplay`, `Main_Environment_2`, `MainMenu`,
+  `BriggsInterior_Environment`, `BriggsInterior_Gameplay`, `BriggsInterior_Environment_2`,
+  `GreenhouseInterior_Environment`, `GreenhouseInterior_Gameplay`, `Main_Environment_Statue`,
+  `ChapterHouseInterior_Environment`, `ChapterHouseInterior_Gameplay`,
+  `GreenhouseInterior_Environment_2`, `ChapterHouseInterior_ConnectedEnvironment` and
+  `ChapterHouseInterior_ConnectedGameplay`. Both `PlayerTest` scenes and `Main_DevGround` are
+  disabled. Both profiles inherit the global list; inspect preflight's printed list for the
+  current build.
+- **Duplicate-`LODGroup` warnings in the vegetation scatter groups.** The C00V scatter groups log
+  322,672 duplicate-LODGroup warnings during a build (20 s in the Preprocess step alone), and the
+  same content makes `Main_Environment` slow to open in the Editor. This is a content bug in the
+  scatter groups, not a build-system one; stack traces on these warnings are now suppressed during
+  builds (see "Progress and the log contract") so they no longer inflate the log, but the
+  underlying duplicate LODGroups and the slow scene open are unaddressed.
+- **Three of the largest remaining assets are Blender decimation candidates**, not build-system
+  fixes: `SHA2017Poster.obj` (48.3 MB), `Briggs_LabCorridor02.fbx` (34.8 MB) and
+  `MyceliumUndercroft.fbx` (161.3 MB — animated, kept at full detail on purpose; decimating an
+  animated mesh risks breaking the rig, so this one needs an art-side call, not just a poly
+  reduction).
+- **`Assets/Resources/PerformanceTestRunSettings.json` ships in every build.** The
+  performance-testing package writes this file into `Resources/`, which Unity always includes in a
+  build regardless of what references it. It's small, but it's an unintentional inclusion from a
+  package the shipping build never needs — worth dropping the package before a submission build, or
+  finding its "don't write this" setting, rather than a build-system fix.
+- **Two pipeline-owned ChapterHouse meshes are still Read/Write-enabled.** They are the only 3
+  audit violations left after a `--fix` run (see "Asset size policy and audit"); the audit
+  deliberately won't touch pipeline-owned importers. Run
+  **`RootsDance > Pipeline > Reimport Pipeline Models`** to clear them once the pipeline profile is
+  updated.
+- **The static-batching fix cost a small amount of Editor Play-mode frame rate.** Clearing
+  `Batching Static` on the scatter rock prefabs (the fix for `PrefabScatterBatching`) measured
+  ≈46 fps in the Main level in the Editor versus ≈49 fps before, both well above the frame budget in
+  [guideline 05 §1.1](../../guidelines/05-performance.md#11-frame-budget) — accepted as the cost of
+  a 78% smaller shipped build.
 
 ## Files
 
 - `Assets/RootsDance/Scripts/Editor/Build/BuildProfileGenerator.cs` — creates/updates the two
-  profile assets, applies the global player settings, and bakes ARM64 architecture directly onto
-  the macOS profile asset (see "Target architecture" above); menu item
+  profile assets, applies the global player settings (including `stripUnusedMeshComponents`,
+  Unity's "Optimize Mesh Data"), and bakes ARM64 architecture directly onto the macOS profile
+  asset (see "Target architecture" above); menu item
   `RootsDance > Build > Create Default Build Profiles`.
 - `Assets/RootsDance/Scripts/Editor/Build/BuildScript.cs` — the `-executeMethod` entry point,
-  `BuildFromCommandLine`, reading `-rdProfile` / `-rdOutput` / `-rdDev`.
+  `BuildFromCommandLine`, reading `-rdProfile` / `-rdOutput` / `-rdDev` / `-rdStrict` /
+  `-rdSkipAudit`; runs the pre-build asset size audit, suppresses stack traces for the duration of
+  `BuildPipeline.BuildPlayer`, writes `build-report.json` and calls `EditorApplication.Exit(0)` in
+  batch mode (see "Progress and the log contract" and "Build report and history").
+- `Assets/RootsDance/Scripts/Editor/Build/BuildProgressLogger.cs` — an `IProcessSceneWithReport`
+  that logs the `[BuildScript] scene i/n` / `scenes done` markers `build.py` watches for.
+- `Assets/RootsDance/Scripts/Editor/Build/BuildReportWriter.cs` — turns a Unity `BuildReport` into
+  `build-report.json` (`Summarize`/`Aggregate`/`Write`); the JSON shape is the contract with
+  `Tools/build/history.py`.
+- `Assets/RootsDance/Scripts/Editor/Build/AssetSizePolicy.cs` — the build-size rules
+  (`AssetRule`, `AssetSizePolicy.Check(...)` overloads) as pure functions over importer/prefab
+  snapshots; shared by the audit, the import postprocessors and the EditMode tests.
+- `Assets/RootsDance/Scripts/Editor/Build/AssetSizeAudit.cs` — scans the policy's asset roots,
+  applies fixes when asked, and writes `Logs/asset-audit.json`; menu items
+  `RootsDance > Build > Asset Size Audit (Report)` / `(Fix)`; command-line entry point
+  `RunFromCommandLine` (`-rdFix`).
+- `Assets/RootsDance/Scripts/Editor/Pipeline/TexturePipelinePostprocessor.cs` — applies the
+  Non-Power-of-2 = To Nearest and Standalone 1024 override rules at import time for textures under
+  `Textures/Props/` and `Textures/Environment/`, alongside the map-naming/sRGB/compression rules
+  from guideline 07 §10 and guideline 05 §7.1.
+- `Assets/RootsDance/Scripts/Editor/Audio/AudioImportProfiles.cs` — the per-folder
+  Music/Ambience/SFX/Voice import settings (Music at Vorbis quality 0.5, streaming).
 - `Tools/build/naming.py` — the naming convention, pure logic, no side effects.
-- `Tools/build/build.py` — the CLI: preflight, build, package, report.
+- `Tools/build/build.py` — the CLI: preflight, build, audit, package, progress, report, churn
+  restoration.
+- `Tools/build/console.py` — terminal output: colour/`NO_COLOR` detection, the self-overwriting
+  status line, table rendering, `fmt_duration`/`fmt_bytes`/`bar`.
+- `Tools/build/progress.py` — `LogFollower` (incremental log reads) and `PhaseTracker` (marker
+  matching, phase/percent/ETA, scene progress, error collection) — see "Progress and the log
+  contract".
+- `Tools/build/history.py` — reads/writes `Builds/.history/<profile>/timings.json` and
+  `previous-report.json`, and computes `report_delta` — see "Build report and history".
 - `Tools/build/windows.py` — Windows Unity discovery, read-only process checks and MSVC/SDK
   validation; standard-library only.
 - `Tools/build/test_naming.py` — `unittest` coverage (`python3 -m unittest discover -s
   Tools/build`) for `naming.py` plus the pure/stubbable helpers in `build.py`: `git_state`,
-  `editor_is_running`, `resolve_unity`, `stageable_entries` and `build_succeeded`.
+  `editor_is_running`, `resolve_unity` and `stageable_entries`; the build-success check itself is
+  `progress.success_marker_pattern` / `PhaseTracker.success_marker`, covered by `test_progress.py`.
 - `Tools/build/test_build.py` — orchestration and provenance regressions: fresh build-result logs,
-  manifest persistence and validation, and package-only behavior. These tests do not replace a
-  real Unity build and player smoke test.
+  manifest persistence and validation, package-only behavior, the `--audit`/`--strict`/
+  `--skip-audit` command construction, the `--max-zip-mb` size gate, and post-build churn
+  restoration (including the `Assets/RootsDance/Settings/HDRP/` allowlist entries). These tests do
+  not replace a real Unity build and player smoke test.
+- `Tools/build/test_console.py`, `test_progress.py`, `test_history.py` — unit coverage for
+  `console.py`, `progress.py` and `history.py` respectively; same discovery command.
 - `Tools/build/test_windows.py` — Windows host behavior, toolchain fixtures and zip packaging
   regressions. Run with the same discovery command, or
   `py -3 -m unittest discover -s Tools/build` on Windows.
