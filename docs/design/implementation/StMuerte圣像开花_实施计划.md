@@ -98,7 +98,7 @@
 /Applications/Blender.app/Contents/MacOS/Blender -b --python Tools/pipeline/build_bloom_flowers.py -- \
   --statue Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/StMuerte.fbx \
   --out SourceArt/Blender/StatueBloom/BloomFlowers.blend \
-  --count 4200 --spread 0.22 \
+  --count 8400 --spread 0.155 \
   --seed-objects LeftHand_hand_anim,RightHand_hand_anim --strip
 
 /Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/StatueBloom/BloomFlowers.blend \
@@ -135,7 +135,7 @@
 - [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
 - [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
 - [x] 6. `StatueBloomBuilder.cs`: 材质、prefab、场景放置；**尚未运行**，运行会打开并保存 `Main_Environment_Statue`
-- [x] 8. L3 花田: `build_bloom_flowers.py` 散布 `3,296` 朵，`158,792` verts / `97,072` tris，一个 mesh 一个 draw call；姿态由顶点着色器插值，`BloomFlowersMeshTests` 守住通道契约
+- [x] 8. L3 花田: `build_bloom_flowers.py` 散布 `6,681` 朵，`321,696` verts / `196,648` tris，一个 mesh 一个 draw call；姿态由顶点着色器插值，`BloomFlowersMeshTests` 守住通道契约
 - [x] 9. `SunBroadcaster` 已挂在 `_Lighting/Sun`：`12000 lux` → 全局量 `(1.20, 1.15, 1.06)`，贴近 shader 兜底光，`[ExecuteAlways]` 让 Editor 里也生效
 - [ ] 7. L1 生长贴图与基底材质
 - [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
@@ -239,7 +239,7 @@ UV 就是一组数，导出链路上没有任何东西会变换它；而顶点�
 
 ### 6.9 三千朵花的开销
 
-花田是一个 mesh、一个 renderer、一个 draw call，unlit 两个 pass，不投影不接收阴影。代价在顶点: `158,792` verts / `97,072` tris，比圣像本体（`85,963` tris）略多。顶点着色器每帧对每个顶点做一次 Bezier 与一次摇摆，没有分支。若要减，`--count` 与 `--spread` 是唯一旋钮，重跑 `build_bloom_flowers.py` 并重跑 builder。
+花田是一个 mesh、一个 renderer、一个 draw call，unlit 两个 pass，不投影不接收阴影。代价在顶点: `321,696` verts / `196,648` tris，约圣像本体（`85,963` tris）的两倍多。顶点着色器每帧对每个顶点做一次 Bezier 与一次摇摆，没有分支。若要减，`--count` 与 `--spread` 是唯一旋钮（朝向的随机量在 `--upright-jitter` / `--aim-jitter`，默认已开，避免同一褶皱上长出一排同向的花），重跑 `build_bloom_flowers.py` 并重跑 builder。
 
 ### 6.10 变形后的法线没有跟着转
 

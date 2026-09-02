@@ -288,7 +288,16 @@ def build_field(surface, anchors, orders, rng, args):
 
         # Lean towards world up rather than straight out of the robe: a flower on a vertical
         # fold grows upwards, it does not stick out sideways like a bracket.
-        aim = normal.normalized().slerp(up, args.upright)
+        # Same lean and same normal on a smooth fold gives a row of flowers all facing one way,
+        # and a row is the one thing a field must not have. Vary the lean per flower, then tip
+        # the aim off by a random direction -- which is what different-sized roots would do.
+        upright = min(1.0, max(0.0, args.upright + rng.uniform(-args.upright_jitter,
+                                                                 args.upright_jitter)))
+        aim = normal.normalized().slerp(up, upright)
+        if args.aim_jitter > 0.0:
+            tilt = Vector((rng.gauss(0.0, 1.0), rng.gauss(0.0, 1.0), rng.gauss(0.0, 1.0)))
+            if tilt.length > 1e-6:
+                aim = (aim + tilt.normalized() * args.aim_jitter * rng.random()).normalized()
 
         # The robe folds back on itself. A flower planted in the bottom of a crease grows
         # straight into the far wall, and the only evidence is petals buried in stone -- which
@@ -434,6 +443,10 @@ def main():
                     help="tallest flower, in Unity metres")
     ap.add_argument("--upright", type=float, default=0.55,
                     help="0 grows straight out of the robe, 1 straight up")
+    ap.add_argument("--upright-jitter", type=float, default=0.2,
+                    help="per-flower spread around --upright, so a fold does not grow a row")
+    ap.add_argument("--aim-jitter", type=float, default=0.4,
+                    help="random tilt blended into each flower's aim (0 none, 0.4 about 20 deg)")
     ap.add_argument("--lift", type=float, default=0.004,
                     help="Blender units the root sits off the surface")
     ap.add_argument("--seed-objects", default="",

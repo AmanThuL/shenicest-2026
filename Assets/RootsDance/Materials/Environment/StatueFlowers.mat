@@ -32,7 +32,7 @@ Material:
     - _Growth: 1
     - _OpenSpan: 0.1
     - _PetalRootShade: 0.68
-    - _Sink: 0.372
+    - _Sink: 0.2
     - _Specular: 0.2
     - _SurfaceType: 0
     - _Sway: 0.06
