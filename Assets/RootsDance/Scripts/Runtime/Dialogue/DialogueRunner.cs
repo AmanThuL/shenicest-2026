@@ -28,12 +28,19 @@ namespace RootsDance.Dialogue
         [SerializeField] private DialogueEventChannelSO m_playRequested;
 
         [Header("Broadcasts on")]
-        [Tooltip("Raised as a conversation starts. Nothing consumes it yet; it is the hook for "
-            + "taking movement and interaction away from the player while someone is talking.")]
+        [Tooltip("Raised as a conversation starts — the hook for taking movement and interaction "
+            + "away from the player while someone is talking.")]
         [SerializeField] private VoidEventChannelSO m_conversationStarted;
 
         [Tooltip("Raised once it ends, whichever way it went — including when it is cut short.")]
         [SerializeField] private VoidEventChannelSO m_conversationEnded;
+
+        [Tooltip("Raised while choice buttons are on screen — the hook for taking the camera away "
+            + "from a mouse that needs to click one. Data/Events/DialogueChoicesShown.")]
+        [SerializeField] private VoidEventChannelSO m_choicesShown;
+
+        [Tooltip("Raised once the choice buttons come down, however that happens.")]
+        [SerializeField] private VoidEventChannelSO m_choicesHidden;
 
         [Header("Voice")]
         [Tooltip("Where a line's recording is played. Data/Events/AudioCueRequested. Empty runs "
@@ -72,6 +79,7 @@ namespace RootsDance.Dialogue
         private IDialogueView m_view;
         private int m_pendingChoice = -1;
         private CancellationTokenSource m_conversationCancellation;
+        private bool m_choicesActive;
 
         /// <summary>True while a conversation is on screen. A second request is refused, not queued.</summary>
         public bool IsPlaying { get; private set; }
@@ -158,11 +166,27 @@ namespace RootsDance.Dialogue
             bool wasPlaying = IsPlaying;
             IsPlaying = false;
             m_view?.Hide();
+            HideChoicesIfActive();
 
             if (wasPlaying)
             {
                 Raise(m_conversationEnded);
             }
+        }
+
+        /// <summary>
+        /// Closes out the choices-shown bracket when a conversation ends or is cut short while
+        /// buttons are still up — otherwise whatever they suspended (the camera) never comes back.
+        /// </summary>
+        private void HideChoicesIfActive()
+        {
+            if (!m_choicesActive)
+            {
+                return;
+            }
+
+            m_choicesActive = false;
+            Raise(m_choicesHidden);
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -240,6 +264,7 @@ namespace RootsDance.Dialogue
                     m_conversationCancellation = null;
                     IsPlaying = false;
                     m_view?.Hide();
+                    HideChoicesIfActive();
                     Raise(m_conversationEnded);
                 }
 
@@ -377,11 +402,15 @@ namespace RootsDance.Dialogue
 
                 m_pendingChoice = -1;
                 m_view.ShowChoices(chinese, english);
+                m_choicesActive = true;
+                Raise(m_choicesShown);
 
                 while (m_pendingChoice < 0)
                 {
                     await Awaitable.NextFrameAsync(cancellationToken);
                 }
+
+                HideChoicesIfActive();
 
                 // The view reports an index into what it was shown, which is the remaining set.
                 int offered = Mathf.Clamp(m_pendingChoice, 0, m_remaining.Count - 1);

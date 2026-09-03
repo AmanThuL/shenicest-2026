@@ -1,4 +1,5 @@
 using RootsDance.Data;
+using RootsDance.Events;
 using UnityEngine;
 
 namespace RootsDance.Player
@@ -23,9 +24,17 @@ namespace RootsDance.Player
         [Tooltip("Lock and hide the cursor while this component is enabled.")]
         [SerializeField] private bool m_lockCursor = true;
 
+        [Tooltip("Raised while dialogue choice buttons are on screen, so mouse movement picks an "
+            + "option instead of swinging the view. Data/Events/DialogueChoicesShown.")]
+        [SerializeField] private VoidEventChannelSO m_choicesShown;
+
+        [Tooltip("Raised once the choice buttons come down. Data/Events/DialogueChoicesHidden.")]
+        [SerializeField] private VoidEventChannelSO m_choicesHidden;
+
         private PlayerInputReader m_input;
         private float m_pitch;
         private Vector2 m_smoothedLook;
+        private bool m_isChoiceActive;
 
         private void Awake()
         {
@@ -39,11 +48,21 @@ namespace RootsDance.Player
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
             }
+
+            if (m_choicesShown != null)
+            {
+                m_choicesShown.EventRaised += OnChoicesShown;
+            }
+
+            if (m_choicesHidden != null)
+            {
+                m_choicesHidden.EventRaised += OnChoicesHidden;
+            }
         }
 
         private void Update()
         {
-            if (m_config == null || m_head == null)
+            if (m_config == null || m_head == null || m_isChoiceActive)
             {
                 return;
             }
@@ -65,6 +84,28 @@ namespace RootsDance.Player
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
+
+            if (m_choicesShown != null)
+            {
+                m_choicesShown.EventRaised -= OnChoicesShown;
+            }
+
+            if (m_choicesHidden != null)
+            {
+                m_choicesHidden.EventRaised -= OnChoicesHidden;
+            }
+
+            m_isChoiceActive = false;
+        }
+
+        private void OnChoicesShown()
+        {
+            m_isChoiceActive = true;
+        }
+
+        private void OnChoicesHidden()
+        {
+            m_isChoiceActive = false;
         }
 
         private Vector2 GetLookRotation(Vector2 lookInput, bool isDelta)
