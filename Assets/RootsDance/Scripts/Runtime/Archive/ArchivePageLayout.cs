@@ -75,7 +75,8 @@ namespace RootsDance.Archive
         {
             ArchiveDocumentKind.FieldNote,
             ArchiveDocumentKind.ObservationRecord,
-            ArchiveDocumentKind.Memo
+            ArchiveDocumentKind.Memo,
+            ArchiveDocumentKind.Photograph
         };
 
         /// <summary>
@@ -94,6 +95,10 @@ namespace RootsDance.Archive
 
                 case ArchiveDocumentKind.Memo:
                     return block == Block.Title || block == Block.Body || block == Block.ArchiveCode;
+
+                case ArchiveDocumentKind.Photograph:
+                    // The page is the print and nothing else.
+                    return block == Block.Photo;
 
                 default:
                     return block != Block.Diagram;
@@ -117,6 +122,8 @@ namespace RootsDance.Archive
                     return FieldNoteRect(block);
                 case ArchiveDocumentKind.Memo:
                     return MemoRect(block);
+                case ArchiveDocumentKind.Photograph:
+                    return PhotographRect(k_PhotographAspect);
                 default:
                     return ObservationRect(block);
             }
@@ -198,6 +205,37 @@ namespace RootsDance.Archive
                 case Block.Body:        return new Rect(110f, 240f, 700f, 300f);
                 default:                return new Rect(110f, 600f, 250f, 76f);
             }
+        }
+
+        /// <summary>
+        /// The print's own width over its height when no texture is there to measure: a 3:2 frame,
+        /// which is what a 35 mm print is.
+        /// </summary>
+        public const float k_PhotographAspect = 1.5f;
+
+        /// <summary>
+        /// The size of the page in canvas units. Every sheet is the same sheet, except a photograph:
+        /// that page is the print itself, so it is as wide as a sheet and exactly as tall as the
+        /// print's aspect makes it — the exposure is never stretched to fit a page.
+        /// </summary>
+        public static Vector2 PageUnits(ArchiveDocumentKind kind, float photoAspect)
+        {
+            if (kind != ArchiveDocumentKind.Photograph)
+            {
+                return new Vector2(k_Width, k_Height);
+            }
+
+            float aspect = photoAspect > 0.01f ? photoAspect : k_PhotographAspect;
+
+            return new Vector2(k_Width, k_Width / aspect);
+        }
+
+        /// <summary>The print on a photograph page: the whole page, edge to edge.</summary>
+        public static Rect PhotographRect(float photoAspect)
+        {
+            Vector2 page = PageUnits(ArchiveDocumentKind.Photograph, photoAspect);
+
+            return new Rect(0f, 0f, page.x, page.y);
         }
 
         /// <summary>

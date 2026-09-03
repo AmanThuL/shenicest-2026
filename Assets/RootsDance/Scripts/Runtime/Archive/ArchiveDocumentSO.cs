@@ -42,7 +42,7 @@ namespace RootsDance.Archive
         // ---- Interaction ------------------------------------------------------------------------
         [SerializeField, TitleGroup("Interaction")]
         [Tooltip("Prompt shown while the sheet is focused.")]
-        private string m_promptText = "拾取";
+        private string m_promptText = "[E] 拾取";
 
         [SerializeField, TitleGroup("Interaction")]
         [Tooltip("Width and height of the physical sheet in metres. A5 is 0.148 x 0.21.")]
@@ -115,6 +115,14 @@ namespace RootsDance.Archive
 
         public string Id => m_id;
         public ArchiveDocumentKind Kind => m_kind;
+
+        /// <summary>
+        /// The photograph's width over its height, or a 35 mm frame when there is no photograph
+        /// to measure. A <see cref="ArchiveDocumentKind.Photograph"/> page takes its shape from it.
+        /// </summary>
+        public float PhotoAspect => m_photo == null || m_photo.height == 0
+            ? ArchivePageLayout.k_PhotographAspect
+            : (float)m_photo.width / m_photo.height;
         public string Title => m_title;
         public string Subtitle => m_subtitle;
         public string PromptText => m_promptText;

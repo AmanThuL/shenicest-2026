@@ -90,11 +90,48 @@ namespace RootsDance.Tests.EditMode.Archive
             {
                 ArchiveDocumentKind kind = ArchivePageLayout.k_AllKinds[k];
 
+                // A photograph page is the print and nothing else; nothing is written on it.
+                if (kind == ArchiveDocumentKind.Photograph)
+                {
+                    continue;
+                }
+
                 Assert.IsTrue(ArchivePageLayout.Uses(kind, Block.Title), $"{kind} has no title.");
                 Assert.IsTrue(ArchivePageLayout.Uses(kind, Block.Body), $"{kind} has no body.");
                 Assert.IsTrue(ArchivePageLayout.Uses(kind, Block.ArchiveCode),
                     $"{kind} has no archive code.");
             }
+        }
+
+        [Test]
+        public void Uses_Photograph_CarriesNothingButThePrint()
+        {
+            for (int i = 0; i < ArchivePageLayout.k_AllBlocks.Length; i++)
+            {
+                Block block = ArchivePageLayout.k_AllBlocks[i];
+
+                Assert.AreEqual(block == Block.Photo,
+                    ArchivePageLayout.Uses(ArchiveDocumentKind.Photograph, block),
+                    $"A photograph page {(block == Block.Photo ? "is" : "is not")} the {block}.");
+            }
+        }
+
+        [Test]
+        public void PageUnits_Photograph_IsThePrintsOwnShape_NeverStretched()
+        {
+            Vector2 landscape = ArchivePageLayout.PageUnits(ArchiveDocumentKind.Photograph, 1.5f);
+            Vector2 portrait = ArchivePageLayout.PageUnits(ArchiveDocumentKind.Photograph, 0.8f);
+            Vector2 sheet = ArchivePageLayout.PageUnits(ArchiveDocumentKind.ObservationRecord, 1.5f);
+
+            Assert.AreEqual(ArchivePageLayout.k_Width, landscape.x);
+            Assert.AreEqual(1.5f, landscape.x / landscape.y, 0.001f);
+            Assert.AreEqual(0.8f, portrait.x / portrait.y, 0.001f);
+            Assert.AreEqual(new Vector2(ArchivePageLayout.k_Width, ArchivePageLayout.k_Height), sheet);
+
+            // The print fills its page edge to edge, so there is nothing around it.
+            Rect print = ArchivePageLayout.PhotographRect(1.5f);
+            Assert.AreEqual(new Rect(0f, 0f, landscape.x, landscape.y), print);
+            Assert.AreEqual(print, ArchivePageLayout.RectOf(ArchiveDocumentKind.Photograph, Block.Photo));
         }
 
         [Test]

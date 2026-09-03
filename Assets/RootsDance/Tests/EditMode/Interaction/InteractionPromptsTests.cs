@@ -118,6 +118,27 @@ namespace RootsDance.Tests.EditMode.Interaction
                 "Priority decides, not arrival order.");
         }
 
+        /// <summary>
+        /// A held-up mode lists the keys that work in it. The proximity triggers stand down under
+        /// the interaction lock, but a stale offer must not be able to show over that line either;
+        /// the chase hint still wins, because it never coexists with a mode.
+        /// </summary>
+        [Test]
+        public void Set_ModeHint_OutranksProximityOffers_AndYieldsToTheChase()
+        {
+            InteractionPrompts.Set(NewSource("throw"), m_channel, "[E] 将蓝色烧瓶砸向符文",
+                InteractionPrompts.k_ThrowPriority);
+            InteractionPrompts.Set(NewSource("reading"), m_channel, "[E] 放回  [W/S] 凑近/拉远",
+                InteractionPrompts.k_ModePriority);
+
+            Assert.That(InteractionPrompts.Published, Is.EqualTo("[E] 放回  [W/S] 凑近/拉远"));
+
+            InteractionPrompts.Set(NewSource("chase"), m_channel, "[Q] 回头看",
+                InteractionPrompts.k_ChaseHintPriority);
+
+            Assert.That(InteractionPrompts.Published, Is.EqualTo("[Q] 回头看"));
+        }
+
         [Test]
         public void Set_ChaseHint_OutranksEverythingElse()
         {

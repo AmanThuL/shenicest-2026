@@ -13,6 +13,13 @@ namespace RootsDance.Archive
         ObservationRecord = 1,
 
         /// <summary>便条 — a short torn-off memo, no header furniture.</summary>
-        Memo = 2
+        Memo = 2,
+
+        /// <summary>
+        /// 合照 — the print itself and nothing else: no paper behind it, no pin, no stamp, no
+        /// writing. Picked up and read like any other sheet, but the page *is* the photograph,
+        /// at the photograph's own aspect.
+        /// </summary>
+        Photograph = 3
     }
 }

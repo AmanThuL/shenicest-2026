@@ -296,8 +296,12 @@ namespace RootsDance.Dialogue
                 // A recorded line is not skippable: the pool has no per-voice stop, so cutting the
                 // subtitle would leave the recording talking over the next line. An unvoiced line
                 // still skips, which is what makes a subtitle-only conversation bearable to replay.
-                await HoldAsync(hold, voice == null, cancellationToken);
+                bool skippable = voice == null && m_input != null;
+                (m_view as IDialogueSkipHintView)?.SetSkippable(skippable);
+                await HoldAsync(hold, skippable, cancellationToken);
             }
+
+            (m_view as IDialogueSkipHintView)?.SetSkippable(false);
         }
 
         /// <summary>

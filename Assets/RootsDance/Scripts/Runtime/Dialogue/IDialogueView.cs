@@ -29,4 +29,18 @@ namespace RootsDance.Dialogue
         /// <summary>Clears everything. The conversation is over.</summary>
         void Hide();
     }
+
+    /// <summary>
+    /// A view that can show which key advances an unvoiced line. Separate from
+    /// <see cref="IDialogueView"/> so a silent test view need not implement it; the runner asks
+    /// for it with <c>as</c>.
+    /// </summary>
+    public interface IDialogueSkipHintView
+    {
+        /// <summary>
+        /// True while the line on screen can be cut short with the interact key; false for a
+        /// voiced line (which cannot) and between lines.
+        /// </summary>
+        void SetSkippable(bool skippable);
+    }
 }

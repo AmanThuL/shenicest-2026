@@ -28,6 +28,9 @@ namespace RootsDance.World
         [Tooltip("Shown in the approach hint.")]
         [SerializeField] private string m_displayName = "终端";
 
+        [Tooltip("The approach hint. An interaction, so it names its key (规范·规则 2).")]
+        [SerializeField] private string m_promptText = "[E] 查看终端";
+
         [Tooltip("The screen's own canvas. Its world camera is repointed when the player steps up, "
             + "so its buttons can be clicked.")]
         [SerializeField] private Canvas m_canvas;
@@ -59,7 +62,7 @@ namespace RootsDance.World
         public Vector3 ScreenPosition =>
             m_screenAnchor == null ? transform.position : m_screenAnchor.position;
 
-        public string PromptText => m_displayName;
+        public string PromptText => m_promptText;
 
         public bool CanInteract => m_isAvailable && isActiveAndEnabled;
 

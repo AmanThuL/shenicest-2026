@@ -5,6 +5,8 @@ using RootsDance.Core;
 using RootsDance.Player;
 using RootsDance.Rendering;
 using Unity.Cinemachine;
+using RootsDance.Events;
+using RootsDance.Interaction;
 using UnityEngine;
 
 namespace RootsDance.Scanner
@@ -61,6 +63,14 @@ namespace RootsDance.Scanner
         [Tooltip("Reads the interact button. Also exits the screen when the player has no mouse "
             + "on the close control.")]
         [SerializeField] private PlayerInputReader m_input;
+
+        [Header("Hint")]
+        [Tooltip("Interaction hint channel (Data/Events/InteractionPrompt).")]
+        [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [Tooltip("What the HUD says while the report is up: every key that works in this mode "
+            + "(规范·规则 2).")]
+        [SerializeField] private string m_readingHint = "[鼠标] 翻页  [E] 收起扫描仪";
 
         [Tooltip("Suspended while reading — the look and move components on the player. The report "
             + "covers the view, so nothing behind it is worth aiming at.")]
@@ -147,6 +157,7 @@ namespace RootsDance.Scanner
         private void OnDisable()
         {
             CancelScan();
+            InteractionPrompts.Clear(this, m_promptChanged);
             if (m_view != null)
             {
                 m_view.RaiseFinished -= OnRaiseFinished;
@@ -225,6 +236,7 @@ namespace RootsDance.Scanner
             }
 
             m_state = ScannerState.Lowering;
+            InteractionPrompts.Clear(this, m_promptChanged);
 
             if (m_screen != null)
             {
@@ -251,6 +263,7 @@ namespace RootsDance.Scanner
         public void ResetForRescue()
         {
             CancelScan();
+            InteractionPrompts.Clear(this, m_promptChanged);
             WorldAccess.EndExclusiveInteraction(this);
             m_state = ScannerState.Idle;
             m_target = null;
@@ -350,6 +363,8 @@ namespace RootsDance.Scanner
                 m_screen.Open();
             }
 
+            InteractionPrompts.Set(this, m_promptChanged, m_readingHint,
+                InteractionPrompts.k_ModePriority);
             ReadingStarted?.Invoke();
         }
 
@@ -380,6 +395,7 @@ namespace RootsDance.Scanner
         private void OnDestroy()
         {
             // Mid-read scene unload: the loop will never reach idle, so the gate is opened here.
+            InteractionPrompts.Clear(this, m_promptChanged);
             WorldAccess.EndExclusiveInteraction(this);
         }
 

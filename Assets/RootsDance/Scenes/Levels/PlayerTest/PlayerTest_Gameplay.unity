@@ -1235,6 +1235,7 @@ MonoBehaviour:
   m_readEulerOffset: {x: 0, y: 0, z: 0}
   m_raiseSeconds: 0.45
   m_lowerSeconds: 0.35
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_tooDarkHint: "\u592A\u6697\u4E86\uFF0C\u770B\u4E0D\u6E05\u2026\u2026"
   m_darkReadLuminance: 0.25
 --- !u!114 &719944782 stripped

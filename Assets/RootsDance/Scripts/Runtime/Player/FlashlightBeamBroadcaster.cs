@@ -1,3 +1,4 @@
+using RootsDance.App;
 using RootsDance.Core;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -130,6 +131,15 @@ namespace RootsDance.Player
             float innerDegrees = Mathf.Min(m_light.innerSpotAngle * 0.5f, outerDegrees);
 
             float strength = m_controller != null ? m_controller.BeamStrength : 1f;
+
+            // 规范：手电本身与荧光藻无关——拿到就能亮。只有装入荧光藻之后，光束才带荧光
+            // 显影的能力；这里发布给显影 shader 的强度在那之前一律为 0，灯照样照。
+            IWorldStateReader state = WorldAccess.State;
+
+            if (state == null || !state.HasFlag(WorldFlags.k_FlashlightPowered))
+            {
+                strength = 0f;
+            }
 
             // Nothing may react to a torch no hand is holding, however the switch was left.
             bool held = m_controller == null || m_controller.IsHeld;

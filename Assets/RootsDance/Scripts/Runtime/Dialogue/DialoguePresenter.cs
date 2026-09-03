@@ -16,7 +16,7 @@ namespace RootsDance.Dialogue
     /// buttons is something a UI artist can lay out and style once.
     /// </para>
     /// </summary>
-    public class DialoguePresenter : MonoBehaviour, IDialogueView
+    public class DialoguePresenter : MonoBehaviour, IDialogueView, IDialogueSkipHintView
     {
         [Header("Line")]
         [Tooltip("Shown and hidden as a whole. Its alpha is what 'no conversation' looks like.")]
@@ -28,6 +28,11 @@ namespace RootsDance.Dialogue
 
         [Tooltip("The English subtitle, set smaller under the line.")]
         [SerializeField] private TextMeshProUGUI m_englishLabel;
+
+        [Tooltip("Shown only while the line on screen can be skipped. Names the key (规范·规则 2).")]
+        [SerializeField] private TextMeshProUGUI m_skipHintLabel;
+
+        [SerializeField] private string m_skipHint = "[E] 下一句";
 
         [Header("Speaker names")]
         [Tooltip("What each speaker is called on screen. Kept as data so the writer owns the names.")]
@@ -167,6 +172,19 @@ namespace RootsDance.Dialogue
         {
             SetRootVisible(false);
             HideChoiceButtons();
+            SetSkippable(false);
+        }
+
+        /// <inheritdoc />
+        public void SetSkippable(bool skippable)
+        {
+            if (m_skipHintLabel == null)
+            {
+                return;
+            }
+
+            m_skipHintLabel.text = m_skipHint;
+            m_skipHintLabel.gameObject.SetActive(skippable);
         }
 
         private void OnButtonClicked(int index)

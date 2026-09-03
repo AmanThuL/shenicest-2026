@@ -79,7 +79,7 @@ namespace RootsDance.Archive
         /// <summary>True once the player has read this sheet at least once.</summary>
         public bool HasBeenRead => m_hasBeenRead;
 
-        public string PromptText => m_document == null ? "拾取" : m_document.PromptText;
+        public string PromptText => m_document == null ? "[E] 拾取" : m_document.PromptText;
 
         public bool CanInteract
         {

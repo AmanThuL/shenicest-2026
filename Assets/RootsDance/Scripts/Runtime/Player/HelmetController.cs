@@ -44,7 +44,7 @@ namespace RootsDance.Player
         [SerializeField] private StringEventChannelSO m_hintRequested;
 
         [TextArea(1, 4)]
-        [SerializeField] private string m_hintText = "[E]  解除环境隔离";
+        [SerializeField] private string m_hintText = "[E] 解除环境隔离";
 
         [Tooltip("Refusal written on the visor when the seal is pressed too early. "
             + "Data/Events/HelmetWarning.")]

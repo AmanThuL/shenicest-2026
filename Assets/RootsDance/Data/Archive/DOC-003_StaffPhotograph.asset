@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DOC-003_StaffPhotograph
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Archive.ArchiveDocumentSO
   m_id: DOC-003
-  m_kind: 1
+  m_kind: 3
   m_title: "\u7814\u7A76\u4EBA\u5458\u5408\u7167"
   m_subtitle: "Briggs Botanical Gardens \u2014 Research Division"
   m_promptText: "[E] \u62FE\u53D6 \u5408\u7167"

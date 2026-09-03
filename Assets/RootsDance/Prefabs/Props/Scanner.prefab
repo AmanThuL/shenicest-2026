@@ -368,3 +368,4 @@ MonoBehaviour:
   m_suspendedWhileReading: []
   m_scanHoldSeconds: 0.25
   m_releaseCursorWhileReading: 1
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}

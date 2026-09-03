@@ -48,7 +48,7 @@ namespace RootsDance.Dialogue
 
         [Header("Interact")]
         [Tooltip("Prompt shown while this is focused. Only read for On Interact.")]
-        [SerializeField] private string m_promptText = "交谈";
+        [SerializeField] private string m_promptText = "[E] 交谈";
 
         [Tooltip("On: fires at most once, whatever the moment. The conversation asset has its own "
             + "plays-once switch; this one is about the trigger, not the writing.")]
