@@ -12,6 +12,12 @@ note and the open follow-ups. This file only says how to run the code.
 Use Python 3.9 or newer (64-bit recommended), Git and Git LFS. Install the Unity version pinned
 in `ProjectSettings/ProjectVersion.txt` and restore LFS assets before building.
 
+For a Windows 11 machine, the Chinese bootstrapper and its instructions are under
+[`Tools/setup/windows/`](../setup/windows/Windows构建环境安装说明.txt). Keep the three files together
+and double-click `双击安装VS2026和Unity-IL2CPP环境.cmd`. It checks every prerequisite, installs what
+is missing, and falls back to the newest compatible Visual Studio release when the installed
+Windows 11 version cannot accept Visual Studio 2026.
+
 Open the project in the Editor once and run **`RootsDance > Build > Create Default Build
 Profiles`**. It creates `macOS-Release.asset` and `Windows-Release.asset` under
 `Assets/RootsDance/Settings/BuildProfiles/` and applies the release player settings. Idempotent —
