@@ -150,8 +150,11 @@ namespace RootsDance.Tests.EditMode.Environment
                     .Any(light => light.name.StartsWith("ChapterHouseUnderglow_")));
                 Renderer cloth = FindPart(model.gameObject, k_ClothPart).GetComponent<Renderer>();
                 Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_BaseColorMap").name);
-                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(
+                    "MyceliumNetwork_Emission",
+                    cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
                 Assert.AreEqual(0f, cloth.sharedMaterial.GetFloat("_SurfaceType"));
+                Assert.Less(cloth.sharedMaterial.GetColor("_BaseColor").maxColorComponent, 0.02f);
                 Renderer emission = FindPart(model.gameObject, "ClothLandscape_CorridorShell.004")
                     .GetComponent<Renderer>();
                 Assert.AreEqual("gradalpha", emission.sharedMaterial.GetTexture("_BaseColorMap").name);
@@ -172,10 +175,17 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(
                     myceliumBounds.max.y,
                     Is.EqualTo(bridgeBounds.min.y - k_MyceliumBridgeClearance).Within(0.001f));
-                Assert.Less(myceliumBounds.size.x, cloth.bounds.size.x * 0.5f);
-                Assert.Less(myceliumBounds.size.z, cloth.bounds.size.z * 0.5f);
+                Assert.Greater(myceliumBounds.size.x, cloth.bounds.size.x * 0.65f);
+                Assert.Less(myceliumBounds.size.x, cloth.bounds.size.x * 0.9f);
+                Assert.Greater(myceliumBounds.size.z, bridgeBounds.size.z * 0.9f);
 
                 Renderer[] myceliumRenderers = mycelium.GetComponentsInChildren<Renderer>(true);
+                int vertexCount = myceliumRenderers.Sum(renderer =>
+                    renderer.GetComponent<SkinnedMeshRenderer>().sharedMesh.vertexCount);
+                long triangleCount = myceliumRenderers.Sum(renderer =>
+                    (long)renderer.GetComponent<SkinnedMeshRenderer>().sharedMesh.GetIndexCount(0) / 3L);
+                Assert.LessOrEqual(vertexCount, 150000);
+                Assert.LessOrEqual(triangleCount, 260000L);
 
                 for (int i = 0; i < myceliumRenderers.Length; i++)
                 {

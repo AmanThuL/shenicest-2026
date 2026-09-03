@@ -63,8 +63,8 @@ PARAMS = {
     # --- the volume it grows in, Unity world metres ------------------------------------
     # Default: the chapter house undercroft — between the cloth landscape and the
     # underside of the hall floor. Measured, not guessed.
-    "bounds_min": [-3.42, 1.13, -4.94],
-    "bounds_max": [3.38, 4.50, 8.80],
+    "bounds_min": [-9.00, 1.13, -4.94],
+    "bounds_max": [9.00, 4.50, 8.80],
     "margin": 0.12,                 # keep growth off the exact bounding planes
 
     # --- containment --------------------------------------------------------------------
@@ -91,37 +91,37 @@ PARAMS = {
     # scaffold is also *drawn*: off, the cord paths still route the layout and the hyphae
     # still branch off them, but only the fine filaments become geometry.
     "emit_cords": False,
-    "cord_count": 48,
+    "cord_count": 52,
     "cord_ceiling_to_floor": 0.45,  # share of cords hanging straight down to the substrate
     "cord_ceiling_to_ceiling": 0.3,  # share slung along the underside of the floor
     "cord_wall_to_wall": 0.25,      # the rest: spanning the volume sideways
     "cord_span_min": 0.8,
-    "cord_span_max": 7.0,
+    "cord_span_max": 14.0,
     "cord_sag": 0.16,               # slack, as a fraction of the span
     "cord_sag_jitter": 0.7,
 
     # --- layout: clustering ------------------------------------------------------------
     # Mycelium is not evenly sown: it thickens where the substrate feeds it. Anchors are
     # pulled toward a handful of colony centres instead of being uniform.
-    "cluster_count": 9,
+    "cluster_count": 14,
     "cluster_pull": 0.42,           # 0 = uniform scatter, 1 = everything on the centres
-    "cluster_radius": 2.2,
+    "cluster_radius": 3.0,
     "cluster_to_wall": 0.2,        # share of centres placed against a wall/corner
 
     # --- layout: branching -------------------------------------------------------------
-    "hyphae_per_cord": 12,
-    "branch_depth": 2,              # generations of branching off a cord
+    "hyphae_per_cord": 9,
+    "branch_depth": 1,              # generations of branching off a cord
     "branch_falloff": 0.42,         # children per generation, multiplied
     "branch_length": 1.5,           # mean hypha length, metres
     "branch_length_jitter": 0.7,
     "branch_sag": 0.22,
     "fusion_chance": 0.4,           # anastomosis: hypha ends on another strand
-    "tip_chance": 0.35,             # free apical tip instead of an anchored end
+    "tip_chance": 0.25,             # free apical tip instead of an anchored end
     "tip_length": 0.45,
 
     # --- layout: veils -----------------------------------------------------------------
-    "veil_count": 9,                # sheets of fine hyphae slung between two cords
-    "veil_strands": 9,
+    "veil_count": 20,               # sheets of fine hyphae slung between two cords
+    "veil_strands": 8,
 
     # --- fibre thickness (Unity metres) -------------------------------------------------
     "cord_radius": 0.016,
@@ -129,13 +129,13 @@ PARAMS = {
     "cord_twist": 0.9,              # bundle turns per metre
     "hypha_radius": 0.005,
     "hypha_fibrils": 1,
-    "tube_sides": 5,
+    "tube_sides": 3,
     "generation_taper": 0.6,        # each branch generation is this much of its parent
 
     # --- noise ---------------------------------------------------------------------------
     "wind_noise": 0.05,
     "radius_jitter": 0.45,
-    "path_samples_per_m": 20,
+    "path_samples_per_m": 4,
 
     # --- breathing ----------------------------------------------------------------------
     # The mat is alive: a slow swell driven by two out-of-phase 3D noise fields, baked as
@@ -150,9 +150,9 @@ PARAMS = {
     # --- guttation droplets -------------------------------------------------------------
     "guttation": True,
     "guttation_on_cords_only": False,
-    "guttation_chance": 0.5,       # share of eligible strands that carry droplets
+    "guttation_chance": 0.25,      # share of eligible strands that carry droplets
     "guttation_film": 0.012,        # sets both spacing and droplet size, via Rayleigh
-    "guttation_dropout": 0.75,
+    "guttation_dropout": 0.85,
 }
 
 
@@ -497,6 +497,17 @@ def noise_field(points, rng, cells=8):
     return out
 
 
+def action_fcurves(action):
+    """Return curves from legacy Actions or Blender 4.4+ layered Actions."""
+    if hasattr(action, "fcurves"):
+        return action.fcurves
+    return [curve
+            for layer in action.layers
+            for strip in layer.strips
+            for channelbag in strip.channelbags
+            for curve in channelbag.fcurves]
+
+
 def add_breathing(obj, anchors, p, rng):
     """Two out-of-phase shape keys; their sine drivers cross, so the swell wanders."""
     mesh = obj.data
@@ -543,7 +554,7 @@ def add_breathing(obj, anchors, p, rng):
             frame = 1 + phase + step * period // 4
             key.value = math.sin(step * math.pi * 0.5)
             key.keyframe_insert("value", frame=frame)
-        for fc in obj.data.shape_keys.animation_data.action.fcurves:
+        for fc in action_fcurves(obj.data.shape_keys.animation_data.action):
             for kp in fc.keyframe_points:
                 kp.interpolation = 'BEZIER'
             if not fc.modifiers:

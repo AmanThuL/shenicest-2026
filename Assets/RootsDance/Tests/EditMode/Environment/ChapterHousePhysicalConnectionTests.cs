@@ -214,8 +214,9 @@ namespace RootsDance.Tests.EditMode.Environment
                 Assert.That(
                     myceliumBounds.max.y,
                     Is.EqualTo(bridgeBounds.min.y - k_MyceliumBridgeClearance).Within(0.001f));
-                Assert.Less(myceliumBounds.size.x, clothBounds.size.x * 0.5f);
-                Assert.Less(myceliumBounds.size.z, clothBounds.size.z * 0.5f);
+                Assert.Greater(myceliumBounds.size.x, clothBounds.size.x * 0.65f);
+                Assert.Less(myceliumBounds.size.x, clothBounds.size.x * 0.9f);
+                Assert.Greater(myceliumBounds.size.z, bridgeBounds.size.z * 0.9f);
                 Animator animator = mycelium.GetComponent<Animator>();
                 Assert.IsNotNull(animator);
                 Assert.IsNotNull(animator.runtimeAnimatorController);
@@ -257,7 +258,7 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
-        public void ChapterHouseCloth_UsesTheAuthoredBakeInsteadOfTheEdgeGradient()
+        public void ChapterHouseUndercroft_UsesDarkMyceliumBackdrop()
         {
             SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
 
@@ -279,10 +280,14 @@ namespace RootsDance.Tests.EditMode.Environment
                     .GetComponent<Renderer>();
                 Assert.IsNotNull(cloth);
                 Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_BaseColorMap").name);
-                Assert.AreEqual("plane", cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
+                Assert.AreEqual(
+                    "MyceliumNetwork_Emission",
+                    cloth.sharedMaterial.GetTexture("_EmissiveColorMap").name);
                 Assert.AreEqual(0f, cloth.sharedMaterial.GetFloat("_SurfaceType"));
-                Assert.Greater(cloth.sharedMaterial.GetFloat("_EmissiveIntensity"),
+                Assert.Less(cloth.sharedMaterial.GetFloat("_EmissiveIntensity"),
                     emission.sharedMaterial.GetFloat("_EmissiveIntensity"));
+                Assert.Greater(cloth.sharedMaterial.GetFloat("_EmissiveIntensity"), 100f);
+                Assert.Less(cloth.sharedMaterial.GetColor("_BaseColor").maxColorComponent, 0.02f);
                 Assert.AreEqual(0.3f, cloth.sharedMaterial.GetFloat("_Smoothness"), 0.001f);
                 Assert.IsNull(FindTransform(environment, "ChapterHouseUnderglowLights"));
             }

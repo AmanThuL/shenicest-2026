@@ -150,9 +150,10 @@ blend distance 渐变进入。派生 profile 还会把 Briggs 的低间接光、
 中性值。四盏 `ChapterHouseFill_*` 局部补光也随建筑一起平移保留，因此进入室内后恢复独立场景的
 环境光和补光效果，又不会改变实验室其余空间。
 Player、摄像机和 Spawn 只保留 Briggs 的一套；原本的 Deathbox mesh 被删除。程序化
-`MyceliumUndercroft` 随连接版复制并保持 active，世界缩放为 1，只覆盖中央桥两侧的可见布料。
-原地板中段本来就是中央桥加左右布料坑，不是圆拱切坏的两块地板；早期加的两块深蓝防漏底板已经移除，
-玩家现在直接看到作者的 `the_warbler` 布料表面。
+`MyceliumUndercroft` 随连接版复制并保持 active，世界缩放为 1。低模 3D 菌丝横向覆盖约 18 m，
+以约 23 万三角形承担桥边轮廓和呼吸；可平铺的 `MyceliumNetwork_Emission` 纹理负责铺满远处和几何缝隙。
+原地板中段本来就是中央桥加左右布料坑，不是圆拱切坏的两块地板；`the_warbler` 布料仍保留原始褶皱，
+但改为近黑底和低强度蓝色菌丝自发光，让桥下读成深暗空间而不是发白地形。
 02-04 两个 checkpoint 记录连接版锚点，并指向这个五场景组合。
 
 ---

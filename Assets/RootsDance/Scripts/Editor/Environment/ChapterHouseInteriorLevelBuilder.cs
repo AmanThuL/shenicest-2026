@@ -107,9 +107,10 @@ namespace RootsDance.Editor.Environment
         private const string k_EmissionPart = "ClothLandscape_CorridorShell.004";
         private const string k_EmissionSurface = "emission";
         private const string k_ClothSurface = "Material.001";
+        private const string k_MyceliumEmissionTexture = "MyceliumNetwork_Emission";
         private const string k_EdgeEmissionTexture = "gradbake";
         private const float k_EdgeEmissionNits = 1500f;
-        private const float k_ClothEmissionNits = 30000f;
+        private const float k_ClothEmissionNits = 450f;
 
         /// <summary>How close two loose islands of <see cref="k_DoorsPart"/> have to be, in world
         /// metres, to count as the same door — a leaf and its handle sit centimetres apart; two
@@ -179,7 +180,13 @@ namespace RootsDance.Editor.Environment
 
             // The three bakes with no surface of their own: a gradient wash the author used for
             // ambient tint, and two odds and ends.
-            new SurfaceMapping(k_ClothSurface, "plane", null, Color.white, 0f, 0.3f),
+            new SurfaceMapping(
+                k_ClothSurface,
+                "plane",
+                null,
+                new Color(0.004f, 0.006f, 0.01f),
+                0f,
+                0.3f),
             new SurfaceMapping("emission", "gradalpha", null),
             new SurfaceMapping("bacl", null, null, new Color(0.015f, 0.02f, 0.03f), 0f, 0.08f),
 
@@ -406,6 +413,33 @@ namespace RootsDance.Editor.Environment
                 importer.textureType = TextureImporterType.NormalMap;
                 importer.SaveAndReimport();
             }
+
+            string emissionPath = $"{k_TextureFolder}/{k_MyceliumEmissionTexture}.png";
+            TextureImporter emissionImporter = AssetImporter.GetAtPath(emissionPath) as TextureImporter;
+
+            if (emissionImporter == null)
+            {
+                throw new System.IO.FileNotFoundException(
+                    "Chapter house mycelium texture missing: " + emissionPath);
+            }
+
+            bool requiresReimport = emissionImporter.textureType != TextureImporterType.Default
+                || !emissionImporter.sRGBTexture
+                || !emissionImporter.mipmapEnabled
+                || emissionImporter.wrapMode != TextureWrapMode.Repeat
+                || emissionImporter.maxTextureSize != 1024
+                || emissionImporter.textureCompression != TextureImporterCompression.CompressedHQ;
+
+            if (requiresReimport)
+            {
+                emissionImporter.textureType = TextureImporterType.Default;
+                emissionImporter.sRGBTexture = true;
+                emissionImporter.mipmapEnabled = true;
+                emissionImporter.wrapMode = TextureWrapMode.Repeat;
+                emissionImporter.maxTextureSize = 1024;
+                emissionImporter.textureCompression = TextureImporterCompression.CompressedHQ;
+                emissionImporter.SaveAndReimport();
+            }
         }
 
         /// <summary>
@@ -515,13 +549,14 @@ namespace RootsDance.Editor.Environment
             }
             else if (surface.MaterialName == k_ClothSurface)
             {
-                // Sketchfab's cloth appearance is baked into plane.png. The original OBJ's MTL
-                // omits that assignment, which previously left the cloth wearing gradbake.png —
-                // the small perimeter card's texture — and made every fold nearly black.
-                Texture clothTexture = LoadTexture(surface.BaseTexture);
-                material.SetTexture("_EmissiveColorMap", clothTexture);
+                // Keep the authored folds as a nearly black substrate, then cover their broad
+                // footprint with a cheap tiling network. The animated 3D mesh supplies depth near
+                // the bridge without repeating its two-million-triangle cost across the undercroft.
+                Texture myceliumTexture = LoadTexture(k_MyceliumEmissionTexture);
+                material.SetTexture("_EmissiveColorMap", myceliumTexture);
+                material.SetTextureScale("_EmissiveColorMap", new Vector2(2f, 2f));
                 HDMaterial.SetUseEmissiveIntensity(material, true);
-                HDMaterial.SetEmissiveColor(material, Color.white);
+                HDMaterial.SetEmissiveColor(material, new Color(0.02f, 0.28f, 1f));
                 HDMaterial.SetEmissiveIntensity(
                     material,
                     k_ClothEmissionNits,
@@ -619,10 +654,9 @@ namespace RootsDance.Editor.Environment
         /// <summary>
         /// Places the mycelium in the undercroft and starts its breath looping.
         ///
-        /// The FBX stores the generator's Unity-world coordinates on Blender's Y/Z axes. It is
-        /// rotated once on import, compensated for the two-times chapter-house layout scale, then
-        /// centred below the catwalk with enough clearance for its breathing animation. This keeps
-        /// it at a true world scale of one instead of spreading it across the entire undercroft.
+        /// The FBX importer owns the Blender-to-Unity axis conversion on its child renderers. The
+        /// instance keeps those imported transforms, compensates for the two-times chapter-house
+        /// layout scale, then centres below the catwalk with enough clearance for breathing.
         ///
         /// It is deliberately not marked static: the breath is a blend-shape animation, so these
         /// are SkinnedMeshRenderers and static batching would freeze them.
@@ -635,6 +669,7 @@ namespace RootsDance.Editor.Environment
             GameObject mycelium = InstantiateModel(
                 k_MyceliumModelPath, k_MyceliumName, building.transform.parent, scene);
 
+            StabilizeMyceliumBounds(mycelium);
             FitMyceliumBelowBridge(mycelium, building, bridge);
 
             Material hyphae = EnsureMyceliumMaterial(
@@ -677,6 +712,25 @@ namespace RootsDance.Editor.Environment
             mycelium.SetActive(true);
         }
 
+        private static void StabilizeMyceliumBounds(GameObject mycelium)
+        {
+            SkinnedMeshRenderer[] renderers =
+                mycelium.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i].sharedMesh == null)
+                {
+                    continue;
+                }
+
+                // Unity derives an undersized animated bound when a mesh has blend shapes but no
+                // skeleton and a shape key uses negative weights. The FBX bounds cover the whole
+                // generated volume, preventing both bad fitting and view-frustum culling.
+                renderers[i].localBounds = renderers[i].sharedMesh.bounds;
+            }
+        }
+
         private static void FitMyceliumBelowBridge(
             GameObject mycelium,
             GameObject building,
@@ -685,17 +739,8 @@ namespace RootsDance.Editor.Environment
             Transform myceliumTransform = mycelium.transform;
             myceliumTransform.SetLocalPositionAndRotation(
                 building.transform.localPosition,
-                building.transform.localRotation * Quaternion.Euler(90f, 0f, 0f));
+                building.transform.localRotation);
             myceliumTransform.localScale = building.transform.localScale / k_LayoutScale;
-
-            // Remove per-renderer overrides left by look-development. The model asset owns both
-            // meshes at identity; scaling them independently makes droplets drift off the hyphae.
-            for (int i = 0; i < myceliumTransform.childCount; i++)
-            {
-                Transform child = myceliumTransform.GetChild(i);
-                child.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                child.localScale = Vector3.one;
-            }
 
             Bounds myceliumBounds = GetRendererBounds(mycelium);
             Vector3 offset = new Vector3(

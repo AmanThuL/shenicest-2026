@@ -1,7 +1,7 @@
 {
   "m_fbx": "Assets/RootsDance/Meshes/Environment/ChapterHouse/MyceliumUndercroft.fbx",
   "m_blend": "SourceArt/Corridor/RootsDance_Corridor_Blockout.blend",
-  "m_blendModifiedUtc": "2026-08-29T17:09:59+00:00",
+  "m_blendModifiedUtc": "2026-08-29T05:54:46+00:00",
   "m_action": "",
   "m_armature": "",
   "m_frameStart": 1,
@@ -13,7 +13,7 @@
     "Mycelium_Guttation"
   ],
   "m_excludedObjects": [],
-  "m_blenderVersion": "4.5.3 LTS",
+  "m_blenderVersion": "5.1.2",
   "m_profile": "Tools/blender/profiles/shapekey_loop.json",
-  "m_exportedUtc": "2026-08-29T21:01:53+00:00"
+  "m_exportedUtc": "2026-09-02T16:13:02+00:00"
 }
