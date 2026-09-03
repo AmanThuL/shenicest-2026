@@ -49,7 +49,8 @@ namespace RootsDance.Editor.Tools
             {
                 RescueCheckpointExporter.RefreshCatalog();
                 InstallInput();
-                BuildPrefab();
+                BuildPrefab(RecordingModeInstaller.EnsureAsset());
+                RecordingModeInstaller.InstallHiders();
                 Scene scene = EditorSceneManager.OpenScene(ScenePaths.k_Bootstrap, OpenSceneMode.Single);
                 // Opening Single unloads unreferenced assets. Resolve saved assets only after it,
                 // or a first install silently serializes a fake-null catalog reference.
@@ -170,7 +171,7 @@ namespace RootsDance.Editor.Tools
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static GameObject BuildPrefab()
+        private static GameObject BuildPrefab(RecordingModeSO recordingMode)
         {
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(k_FontPath);
             if (font == null)
@@ -201,7 +202,7 @@ namespace RootsDance.Editor.Tools
                 TextMeshProUGUI status = Label("Status", panel, font, "Current level", 24,
                     new Vector2(0.035f, 0.77f), new Vector2(0.965f, 0.89f));
                 RectTransform scrollRoot = Rect("CheckpointList", panel);
-                Anchor(scrollRoot, new Vector2(0.035f, 0.31f), new Vector2(0.965f, 0.75f));
+                Anchor(scrollRoot, new Vector2(0.035f, 0.41f), new Vector2(0.965f, 0.75f));
                 CanvasGroup listGroup = scrollRoot.gameObject.AddComponent<CanvasGroup>();
                 ScrollRect scroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
                 scroll.horizontal = false;
@@ -233,6 +234,7 @@ namespace RootsDance.Editor.Tools
                 SetReference(row, "m_button", rowButton);
                 SetReference(row, "m_label", rowLabel);
                 row.gameObject.SetActive(false);
+                Toggle[] recordingToggles = BuildRecordingSection(panel, font, recordingMode);
                 TextMeshProUGUI details = Label("Details", panel, font, "Select a checkpoint.", 22,
                     new Vector2(0.035f, 0.12f), new Vector2(0.965f, 0.29f));
                 Button close = Button("Close", panel, font, "Close / Esc", out _);
@@ -248,6 +250,7 @@ namespace RootsDance.Editor.Tools
                 SetReference(presenter, "m_listGroup", listGroup);
                 SetReference(presenter, "m_list", content);
                 SetReference(presenter, "m_rowTemplate", row);
+                SetReferences(presenter, "m_recordingToggles", recordingToggles);
                 blocker.gameObject.SetActive(false);
                 return PrefabUtility.SaveAsPrefabAsset(root.gameObject, k_PrefabPath);
             }
@@ -255,6 +258,72 @@ namespace RootsDance.Editor.Tools
             {
                 Object.DestroyImmediate(root.gameObject);
             }
+        }
+
+        /// <summary>
+        /// The "no UI while recording" row: one master switch and one box per hidden group. Every
+        /// box carries its own <see cref="RecordingModeToggle"/>; the presenter only threads them
+        /// into keyboard navigation. Order here is reading order.
+        /// </summary>
+        private static Toggle[] BuildRecordingSection(Transform panel, TMP_FontAsset font,
+            RecordingModeSO recordingMode)
+        {
+            Label("RecordingCaption", panel, font, "RECORDING  /  hide while capturing footage", 18,
+                new Vector2(0.035f, 0.375f), new Vector2(0.965f, 0.40f));
+
+            var toggles = new List<Toggle>
+            {
+                RecordingToggle("RecordingMaster", panel, font, recordingMode, "Recording mode (hide UI)",
+                    isMaster: true, RecordingHiddenUi.None, 0.035f, 0.33f),
+                RecordingToggle("HideHints", panel, font, recordingMode, "Hints",
+                    isMaster: false, RecordingHiddenUi.InteractionHints, 0.345f, 0.49f),
+                RecordingToggle("HideDialogue", panel, font, recordingMode, "Dialogue",
+                    isMaster: false, RecordingHiddenUi.Dialogue, 0.50f, 0.655f),
+                RecordingToggle("HideSubtitles", panel, font, recordingMode, "Subtitles",
+                    isMaster: false, RecordingHiddenUi.Subtitles, 0.665f, 0.815f),
+                RecordingToggle("HideHelmetHud", panel, font, recordingMode, "Helmet HUD",
+                    isMaster: false, RecordingHiddenUi.HelmetHud, 0.825f, 0.965f)
+            };
+
+            return toggles.ToArray();
+        }
+
+        private static Toggle RecordingToggle(string name, Transform parent, TMP_FontAsset font,
+            RecordingModeSO recordingMode, string text, bool isMaster, RecordingHiddenUi group,
+            float xMin, float xMax)
+        {
+            RectTransform rect = Rect(name, parent);
+            Anchor(rect, new Vector2(xMin, 0.31f), new Vector2(xMax, 0.37f));
+            RectTransform box = Rect("Box", rect);
+            box.anchorMin = new Vector2(0f, 0.5f);
+            box.anchorMax = new Vector2(0f, 0.5f);
+            box.pivot = new Vector2(0f, 0.5f);
+            box.anchoredPosition = Vector2.zero;
+            box.sizeDelta = new Vector2(28f, 28f);
+            Image background = box.gameObject.AddComponent<Image>();
+            background.color = k_Button;
+            RectTransform mark = Rect("Checkmark", box);
+            Anchor(mark, new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.8f));
+            Image check = mark.gameObject.AddComponent<Image>();
+            check.color = new Color(0.55f, 0.95f, 0.80f, 1f);
+            check.raycastTarget = false;
+            Toggle toggle = rect.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = background;
+            toggle.graphic = check;
+            toggle.isOn = false;
+            TextMeshProUGUI label = Label("Label", rect, font, text, 20, Vector2.zero, Vector2.one);
+            label.rectTransform.offsetMin = new Vector2(36f, 0f);
+            label.alignment = TextAlignmentOptions.MidlineLeft;
+            // The label is part of the click target; a 28px box alone is a fiddly thing to hit.
+            label.raycastTarget = true;
+            RecordingModeToggle binding = rect.gameObject.AddComponent<RecordingModeToggle>();
+            SetReference(binding, "m_mode", recordingMode);
+            SetReference(binding, "m_toggle", toggle);
+            var serialized = new SerializedObject(binding);
+            serialized.FindProperty("m_isMasterSwitch").boolValue = isMaster;
+            serialized.FindProperty("m_group").intValue = (int)group;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return toggle;
         }
 
         private static Canvas EnsureCanvas(Scene scene)
@@ -391,6 +460,24 @@ namespace RootsDance.Editor.Tools
             label = Label("Label", rect, font, text, 24, new Vector2(0.025f, 0f), new Vector2(0.975f, 1f));
             label.alignment = TextAlignmentOptions.MidlineLeft;
             return button;
+        }
+
+        private static void SetReferences(Object target, string field, Object[] values)
+        {
+            var serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(field);
+            if (property == null)
+            {
+                throw new InvalidOperationException(target.GetType().Name + " is missing " + field);
+            }
+
+            property.arraySize = values.Length;
+            for (int i = 0; i < values.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void SetReference(Object target, string field, Object value)

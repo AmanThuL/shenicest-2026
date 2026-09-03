@@ -78,6 +78,21 @@ def to_unity(v):
     return Vector((v.x * MESH_SCALE, v.y * MESH_SCALE, -v.z * MESH_SCALE))
 
 
+def oct_encode(v):
+    """A unit vector as two numbers in [-1, 1] (octahedral), decoded by StatueFlowers.hlsl.
+
+    Two floats instead of three because the only free vertex slot with full float precision is
+    one UV layer, and HDRP's hand-written vertex input stops at UV3.
+    """
+    v = v.normalized()
+    l1 = abs(v.x) + abs(v.y) + abs(v.z)
+    x, y, z = v.x / l1, v.y / l1, v.z / l1
+    if z < 0.0:
+        x, y = ((1.0 - abs(y)) * (1.0 if x >= 0.0 else -1.0),
+                (1.0 - abs(x)) * (1.0 if y >= 0.0 else -1.0))
+    return (x, y)
+
+
 def blender_len(unity_metres):
     """Blender units for a length authored in Unity metres."""
     return unity_metres / MESH_SCALE
@@ -273,7 +288,16 @@ def build_field(surface, anchors, orders, rng, args):
 
         # Lean towards world up rather than straight out of the robe: a flower on a vertical
         # fold grows upwards, it does not stick out sideways like a bracket.
-        aim = normal.normalized().slerp(up, args.upright)
+        # Same lean and same normal on a smooth fold gives a row of flowers all facing one way,
+        # and a row is the one thing a field must not have. Vary the lean per flower, then tip
+        # the aim off by a random direction -- which is what different-sized roots would do.
+        upright = min(1.0, max(0.0, args.upright + rng.uniform(-args.upright_jitter,
+                                                                 args.upright_jitter)))
+        aim = normal.normalized().slerp(up, upright)
+        if args.aim_jitter > 0.0:
+            tilt = Vector((rng.gauss(0.0, 1.0), rng.gauss(0.0, 1.0), rng.gauss(0.0, 1.0)))
+            if tilt.length > 1e-6:
+                aim = (aim + tilt.normalized() * args.aim_jitter * rng.random()).normalized()
 
         # The robe folds back on itself. A flower planted in the bottom of a crease grows
         # straight into the far wall, and the only evidence is petals buried in stone -- which
@@ -285,6 +309,10 @@ def build_field(surface, anchors, orders, rng, args):
             height = min(height, room * 0.75)
             if height < lo_h * 0.45:
                 continue
+
+        # The flower's own axis, in Unity space, so the shader can push the whole flower down
+        # its stem into the stone by a material parameter (_Sink) instead of this file's --lift.
+        aim_uv = oct_encode(to_unity(aim))
 
         spin = Matrix.Rotation(rng.uniform(0.0, math.tau), 4, "Z")
         frame = aim.to_track_quat("Z", "Y").to_matrix().to_4x4() @ spin
@@ -308,12 +336,14 @@ def build_field(surface, anchors, orders, rng, args):
             face.smooth = True
             tris += len(corners) - 2
             for corner, (loop, local) in enumerate(zip(face.loops, corners)):
-                loop[uv0].uv = uvs[corners][corner]
+                loop[uv0].uv = aim_uv
                 d_bud, d_mid = deltas[local]
                 loop[bud_xy].uv = (d_bud.x, d_bud.y)
                 loop[bud_z_mid_x].uv = (d_bud.z, d_mid.x)
                 loop[mid_yz].uv = (d_mid.y, d_mid.z)
-                loop[col] = (part[local], phase, order, 1.0)
+                # Alpha carries the petal-local root-to-tip coordinate that UV0 used to; the
+                # shader only shades a gradient with it, so eight bits are plenty.
+                loop[col] = (part[local], phase, order, uvs[corners][corner][0])
 
     me = bpy.data.meshes.new(args.name)
     bm.to_mesh(me)
@@ -413,6 +443,10 @@ def main():
                     help="tallest flower, in Unity metres")
     ap.add_argument("--upright", type=float, default=0.55,
                     help="0 grows straight out of the robe, 1 straight up")
+    ap.add_argument("--upright-jitter", type=float, default=0.2,
+                    help="per-flower spread around --upright, so a fold does not grow a row")
+    ap.add_argument("--aim-jitter", type=float, default=0.4,
+                    help="random tilt blended into each flower's aim (0 none, 0.4 about 20 deg)")
     ap.add_argument("--lift", type=float, default=0.004,
                     help="Blender units the root sits off the surface")
     ap.add_argument("--seed-objects", default="",

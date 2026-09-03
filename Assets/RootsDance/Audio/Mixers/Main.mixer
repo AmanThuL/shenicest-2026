@@ -1,5 +1,19 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!244 &-6168159734289695390
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 75d98213f05944b37acb50d84fd84220
+  m_EffectName: Attenuation
+  m_MixLevel: b15da4d39ef7b4611a53bf1acc9badff
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &-3989681393947174152
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -15,6 +29,25 @@ AudioMixerGroupController:
   m_Send: 00000000000000000000000000000000
   m_Effects:
   - {fileID: 2556914756641966037}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
+--- !u!243 &-2270042955378919051
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Voice
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: efcc5a5468b2a44d590fab48d47a1d5c
+  m_Children: []
+  m_Volume: fe1c208c38d4f488a82d2d58a9d0cf42
+  m_Pitch: 5cd66f7839de54b90b840497ca33dda6
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: -6168159734289695390}
   m_UserColorIndex: 0
   m_Mute: 0
   m_Solo: 0
@@ -41,12 +74,15 @@ AudioMixerController:
     name: SfxVolume
   - guid: 6cd24ef2465ab4629a2a9f48db93d384
     name: UiVolume
+  - guid: fe1c208c38d4f488a82d2d58a9d0cf42
+    name: VoiceVolume
   m_AudioMixerGroupViews:
   - guids:
     - 75acb85359c9e48ec857a24050772e72
     - ef5bd590d25d44d16a8123c07c17fc38
     - dbf4aa8b3c7cd447d82f9b7cd0ed73ac
     - 2398d2b6a541a4d2dbef406eb62c8059
+    - efcc5a5468b2a44d590fab48d47a1d5c
     name: View
   m_CurrentViewIndex: 0
   m_TargetSnapshot: {fileID: 24500006}
@@ -63,6 +99,7 @@ AudioMixerGroupController:
   - {fileID: 1808069202947050206}
   - {fileID: -3989681393947174152}
   - {fileID: 7254828753142777459}
+  - {fileID: -2270042955378919051}
   m_Volume: 80c6d6c60251e48458834e1cdfcfb4b3
   m_Pitch: fd2061228204048e3bdc231a13654a73
   m_Send: 00000000000000000000000000000000

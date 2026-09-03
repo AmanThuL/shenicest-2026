@@ -412,6 +412,7 @@ namespace RootsDance.EditorTools
             WallTerminal terminal = root.AddComponent<WallTerminal>();
             SerializedObject serialized = new SerializedObject(terminal);
             serialized.FindProperty("m_displayName").stringValue = "中央循环装置";
+            serialized.FindProperty("m_promptText").stringValue = "[E] 查看终端";
             serialized.FindProperty("m_canvas").objectReferenceValue = canvas;
             serialized.FindProperty("m_inspectCamera").objectReferenceValue = readCamera;
             serialized.FindProperty("m_screenAnchor").objectReferenceValue = anchor.transform;

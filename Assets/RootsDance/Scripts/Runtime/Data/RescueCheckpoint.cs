@@ -46,7 +46,7 @@ namespace RootsDance.Data
             string id, string label, LevelSO level, string anchorName, Vector3 position, float yaw,
             bool overrideTimeOfDay, TimeOfDay timeOfDay, IReadOnlyList<string> flags,
             IReadOnlyList<InvestigationTargetSO> recordedTargets, bool snapToGround = true,
-            int groundLayerMask = 1 << 8, float groundClearance = 1f, bool useAnchorHeight = true)
+            int groundLayerMask = 1 << 8, float groundClearance = 0.05f, bool useAnchorHeight = true)
         {
             m_id = id;
             m_label = label;

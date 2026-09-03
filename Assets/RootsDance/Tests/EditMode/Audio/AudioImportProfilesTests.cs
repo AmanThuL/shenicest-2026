@@ -51,6 +51,15 @@ namespace RootsDance.Tests.EditMode.Audio
         }
 
         [Test]
+        public void TryGet_Music_UsesVorbisQualityHalf()
+        {
+            AudioImportProfile profile;
+            Assert.IsTrue(AudioImportProfile.TryGet(AudioAssetKind.Music, out profile));
+            Assert.AreEqual(0.5f, profile.Quality, 0.0001f);
+            Assert.AreEqual(AudioClipLoadType.Streaming, profile.LoadType);
+        }
+
+        [Test]
         public void TryGet_Voice_IsMonoAndStaysCompressedInMemory()
         {
             Assert.IsTrue(AudioImportProfile.TryGet(AudioAssetKind.Voice, out AudioImportProfile profile));

@@ -249,7 +249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39ebbd4d49e34e72aa312350e1c02ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.WorldFlagInteractable
-  m_promptText: "\u67E5\u770B\u8BBE\u65BD\u5916\u5899\u4E0A\u7684\u7814\u7A76\u6D77\u62A5"
+  m_promptText: "[E] \u67E5\u770B\u65E7\u7814\u7A76\u6D77\u62A5"
   m_flagId: flow.research_facility_poster_read
   m_isRepeatable: 0
 --- !u!1001 &6025382471220851818

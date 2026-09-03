@@ -138,8 +138,9 @@ namespace RootsDance.Editor.Archive
 
         private static bool Compose(ArchiveDocumentSO document)
         {
-            int width = Mathf.RoundToInt(k_Height * ArchivePageLayout.k_Width
-                / ArchivePageLayout.k_Height);
+            // A photograph page is the print's own shape, so its bake is too.
+            Vector2 units = ArchivePageLayout.PageUnits(document.Kind, document.PhotoAspect);
+            int width = Mathf.RoundToInt(k_Height * units.x / units.y);
 
             // Composed flat: no fold, no lighting, no dust. The fold shader applies all three to
             // the finished page, and baking any of them in would fold the sheet twice.
@@ -152,7 +153,13 @@ namespace RootsDance.Editor.Archive
             }
 
             Texture2D image = ArchivePageStage.ToSrgb(linear);
-            StampSilhouette(image);
+
+            // A print has no torn edge to stamp; its border is in the exposure.
+            if (document.Kind != ArchiveDocumentKind.Photograph)
+            {
+                StampSilhouette(image);
+            }
+
             string path = PagePath(document);
             File.WriteAllBytes(path, image.EncodeToPNG());
             Object.DestroyImmediate(linear);

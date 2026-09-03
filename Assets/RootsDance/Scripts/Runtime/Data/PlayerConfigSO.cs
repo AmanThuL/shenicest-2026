@@ -54,8 +54,12 @@ namespace RootsDance.Data
         private LayerMask m_groundLayers = ~0;
 
         [SerializeField, TitleGroup("Look")]
-        [Tooltip("Degrees of pitch/yaw per unit of look input.")]
+        [Tooltip("Degrees of pitch/yaw per unit of pointer-delta input.")]
         private float m_lookSensitivity = 0.12f;
+
+        [SerializeField, TitleGroup("Look")]
+        [Tooltip("Degrees per second at full gamepad-stick deflection.")]
+        private float m_gamepadLookSpeed = 180f;
 
         [SerializeField, TitleGroup("Look")]
         [Tooltip("Degrees of pitch/yaw per unit of two-finger trackpad scroll.")]
@@ -74,7 +78,7 @@ namespace RootsDance.Data
             + "reports movement at its own polling rate, not the render frame rate, so the raw "
             + "per-frame delta arrives in an uneven stair-step; this removes it without adding "
             + "perceptible input lag. 0 disables smoothing.")]
-        private float m_lookSmoothTime = 0.03f;
+        private float m_lookSmoothTime;
 
         public float WalkSpeed => m_walkSpeed;
         public float SprintSpeed => m_sprintSpeed;
@@ -87,6 +91,7 @@ namespace RootsDance.Data
         public float GroundCheckDistance => m_groundCheckDistance;
         public LayerMask GroundLayers => m_groundLayers;
         public float LookSensitivity => m_lookSensitivity;
+        public float GamepadLookSpeed => m_gamepadLookSpeed;
         public float TrackpadLookSensitivity => m_trackpadLookSensitivity;
         public float PitchLimitDown => m_pitchLimitDown;
         public float PitchLimitUp => m_pitchLimitUp;

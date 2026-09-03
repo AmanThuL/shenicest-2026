@@ -15,8 +15,12 @@ MonoBehaviour:
   m_id: RAD-003
   m_title: "\u63A5\u8FD1\u5F02\u8272\u8349\u5E26\u524D\u7684\u6700\u540E\u901A\u8BAF\uFF0800-04\uFF09"
   m_lines:
-  - m_text: "\u5566\u5566\u5566\u5566\u5566\u5566"
-    m_english: "(placeholder) RAD-003 \u2014 \u63A5\u8FD1\u5F02\u8272\u8349\u5E26\u524D\u7684\u6700\u540E\u901A\u8BAF\uFF0800-04\uFF09"
+  - m_text: "\u4FE1\u53F7\u5F00\u59CB\u8870\u51CF\u3002\u542C\u7740\u2014\u2014\u8FDB\u4E86\u90A3\u7247\u8349\u5E26\uFF0C\u4F60\u5C31\u662F\u4E00\u4E2A\u4EBA\u4E86\u3002"
+    m_english: "Signal's starting to fade. Listen - past that grass belt, you're on your own."
+    m_voice: {fileID: 0}
+    m_holdSeconds: 3
+  - m_text: "\u6309\u8BAD\u7EC3\u6765\u3002\u8BB0\u5F55\u4E00\u5207\u3002\u56DE\u5934\u89C1\u3002"
+    m_english: "Stick to your training. Record everything. See you on the other side."
     m_voice: {fileID: 0}
     m_holdSeconds: 2.5
   m_startDelay: 0.5

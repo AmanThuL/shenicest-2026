@@ -243,7 +243,7 @@ namespace RootsDance.Editor.Archive
 
             RectTransform diagramRect = AddDiagram(inkLayer, furniture, inkGraphics);
             RectTransform photoRect = AddPhoto(inkLayer, furniture, inkGraphics,
-                out RawImage photoExposure);
+                out RawImage photoExposure, out RawImage photoClip);
             RectTransform signatureRect = AddText(inkLayer, "Signature", furniture.HandFont, 24f,
                 k_SignatureInk, TextAlignmentOptions.Midline, texts,
                 out TextMeshProUGUI signature);
@@ -337,6 +337,9 @@ namespace RootsDance.Editor.Archive
             Bind(serialized, "m_archiveCode", archiveCode);
             Bind(serialized, "m_diagram", diagramRect.GetComponent<RawImage>());
             Bind(serialized, "m_photo", photoExposure);
+            Bind(serialized, "m_paper", paper);
+            Bind(serialized, "m_photoCard", photoRect.GetComponent<RawImage>());
+            Bind(serialized, "m_photoClip", photoClip);
             Bind(serialized, "m_dustOverlay", dustLayer);
             BindBlocks(serialized, blocks);
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -486,7 +489,7 @@ namespace RootsDance.Editor.Archive
         /// actually holding it to the sheet.
         /// </summary>
         private static RectTransform AddPhoto(RectTransform parent, Furniture furniture,
-            List<Graphic> inkGraphics, out RawImage exposureImage)
+            List<Graphic> inkGraphics, out RawImage exposureImage, out RawImage clipImage)
         {
             // A Polaroid: a cream card with the exposure sunk into it and a deep border along the
             // bottom, which is the only part of a photograph anyone ever writes on.
@@ -496,12 +499,15 @@ namespace RootsDance.Editor.Archive
             RawImage exposure = CreateRaw(card.rectTransform, "Exposure", null, k_PhotoBlack,
                 furniture.Ink);
             inkGraphics.Add(exposure);
-            InsetSides(exposure.rectTransform, 14f, 14f, 14f, 62f);
+            Stretch(exposure.rectTransform);
+            exposure.rectTransform.offsetMin = ArchiveDocumentPageView.k_ExposureOffsetMin;
+            exposure.rectTransform.offsetMax = ArchiveDocumentPageView.k_ExposureOffsetMax;
             exposureImage = exposure;
 
             RawImage clip = CreateRaw(card.rectTransform, "Paperclip", furniture.Clip, Color.white,
                 furniture.Ink);
             inkGraphics.Add(clip);
+            clipImage = clip;
 
             RectTransform clipRect = clip.rectTransform;
             clipRect.anchorMin = new Vector2(0f, 1f);

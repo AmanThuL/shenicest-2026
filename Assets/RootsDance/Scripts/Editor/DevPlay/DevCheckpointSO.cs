@@ -46,7 +46,7 @@ namespace RootsDance.Editor.DevPlay
 
         [TitleGroup("Where")]
         [Tooltip("Metres between the found ground and the Player root (the capsule is 1.5 m tall, centred).")]
-        [SerializeField, EnableIf("m_snapToGround")] private float m_groundClearance = 1f;
+        [SerializeField, EnableIf("m_snapToGround")] private float m_groundClearance = 0.05f;
 
         [TitleGroup("Where")]
         [Tooltip("When an anchor is found, use its authored Y. "
@@ -82,7 +82,7 @@ namespace RootsDance.Editor.DevPlay
         public void Configure(
             string label, LevelSO level, string anchorName, Vector3 position, float yaw,
             CheckpointTimeOfDay timeOfDay, string[] flags, InvestigationTargetSO[] recordedTargets,
-            bool snapToGround = true, int groundLayerMask = 1 << 8, float groundClearance = 1f,
+            bool snapToGround = true, int groundLayerMask = 1 << 8, float groundClearance = 0.05f,
             bool useAnchorHeight = true)
         {
             m_label = label;

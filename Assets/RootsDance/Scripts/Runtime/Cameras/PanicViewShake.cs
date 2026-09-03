@@ -116,8 +116,9 @@ namespace RootsDance.Cameras
             + "same side every time or the two checks read as two different events.")]
         [SerializeField] private bool m_overLeftShoulder = true;
 
-        [Tooltip("Seconds to turn out. At 150 degrees this peaks near 600 deg/s, which is about as "
-            + "fast as a person actually turns their head when something is behind them.")]
+        [Tooltip("Seconds to turn out. The turn starts at full speed and settles: at 150 degrees "
+            + "over 0.5 s it leaves near 900 deg/s, which is how a head actually moves when "
+            + "something is behind it.")]
         [Range(0.15f, 1.2f)]
         [SerializeField] private float m_turnOutSeconds = 0.5f;
 
@@ -132,6 +133,20 @@ namespace RootsDance.Cameras
         [Range(0.15f, 1.2f)]
         [SerializeField] private float m_returnSeconds = 0.4f;
 
+        [Tooltip("Scene object the flag-fired look turns to, resolved by name at fire time — she "
+            + "lives in another scene, so no reference can be serialized here. Empty keeps the "
+            + "fixed-angle look.")]
+        [SerializeField] private string m_lookBackTargetName = "FlowerSprite";
+
+        [Tooltip("Furthest a targeted look will turn. 180 loses every forward reference; the cap "
+            + "keeps one edge of the old view in frame even for something dead behind.")]
+        [Range(90f, 180f)]
+        [SerializeField] private float m_maxTargetDegrees = 170f;
+
+        [Tooltip("How far up or down a targeted look will tip to actually frame the target.")]
+        [Range(0f, 60f)]
+        [SerializeField] private float m_targetPitchLimit = 35f;
+
         [Tooltip("The run shake is scaled by this while looking back. A person steadies their head "
             + "to look at something, and an unsteadied image at this angular speed is unreadable.")]
         [Range(0f, 1f)]
@@ -139,6 +154,7 @@ namespace RootsDance.Cameras
 
         private bool m_isLookingBack;
         private float m_lookBackStartTime;
+        private System.Func<Vector3?> m_lookBackPoint;
         private float m_intensity;
         private float m_intensityTarget;
         private float m_lastEvaluationTime;
@@ -224,14 +240,47 @@ namespace RootsDance.Cameras
             }
         }
 
-        /// <summary>Fires one shoulder check. Ignored while one is already playing.</summary>
+        /// <summary>
+        /// Fires one shoulder check aimed at the serialized target name (resolved now, not at
+        /// wiring time). Ignored while one is already playing.
+        /// </summary>
         public void LookBack()
+        {
+            Transform target = null;
+
+            if (!string.IsNullOrEmpty(m_lookBackTargetName))
+            {
+                GameObject found = GameObject.Find(m_lookBackTargetName);
+                target = found != null ? found.transform : null;
+            }
+
+            LookBack(target);
+        }
+
+        /// <summary>
+        /// Fires one shoulder check that turns to <paramref name="target"/>'s pivot — exactly far
+        /// enough to frame it, whichever side is shorter, tracking it through the hold. Null falls
+        /// back to the fixed-angle look. Ignored while one is already playing.
+        /// </summary>
+        public void LookBack(Transform target)
+        {
+            LookBack(target == null ? null : (System.Func<Vector3?>)(() => target != null ? target.position : null));
+        }
+
+        /// <summary>
+        /// Fires one shoulder check that turns to whatever point <paramref name="point"/> answers,
+        /// re-asked every frame so a moving or animating body stays framed through the hold. A
+        /// null delegate, or a null answer, falls back to the fixed-angle look. Ignored while one
+        /// is already playing.
+        /// </summary>
+        public void LookBack(System.Func<Vector3?> point)
         {
             if (m_isLookingBack)
             {
                 return;
             }
 
+            m_lookBackPoint = point;
             m_isLookingBack = true;
             m_lookBackStartTime = Time.time;
         }
@@ -266,7 +315,7 @@ namespace RootsDance.Cameras
 
             float now = Time.time;
             AdvanceEnvelope(now);
-            float lookBackYaw = AdvanceLookBack(now);
+            Vector2 lookBack = AdvanceLookBack(now, state.RawOrientation, state.GetCorrectedPosition());
 
             float shake = m_intensity * (m_isLookingBack ? m_shakeWhileLookingBack : 1f);
 
@@ -286,7 +335,7 @@ namespace RootsDance.Cameras
             float run = shake * stride;
 
             // The shoulder check still turns the view while standing: it is a head turn, not a step.
-            if (run <= 0.0001f && Mathf.Abs(lookBackYaw) <= 0.0001f)
+            if (run <= 0.0001f && lookBack.sqrMagnitude <= 0.0001f)
             {
                 return;
             }
@@ -312,8 +361,8 @@ namespace RootsDance.Cameras
             float jitterPitch = (Mathf.PerlinNoise(m_seed, jitterTime) - 0.5f) * 2f * m_jitterDegrees;
 
             Quaternion rotation = Quaternion.Euler(
-                (pitch + jitterPitch) * run,
-                jitterYaw * run + lookBackYaw,
+                (pitch + jitterPitch) * run + lookBack.y,
+                jitterYaw * run + lookBack.x,
                 roll * run);
 
             state.PositionCorrection += state.RawOrientation * offset;
@@ -331,12 +380,18 @@ namespace RootsDance.Cameras
             m_intensity = Mathf.MoveTowards(m_intensity, m_intensityTarget, step);
         }
 
-        /// <summary>The shoulder check's yaw offset in degrees; also retires it when it ends.</summary>
-        private float AdvanceLookBack(float now)
+        /// <summary>
+        /// The shoulder check's yaw and pitch offsets in degrees; also retires it when it ends.
+        /// With a target the needed angles are re-measured every frame from the un-deflected view,
+        /// so the look lands on the target wherever it is — and keeps it framed through the hold
+        /// while it moves. The deflection curve is what makes the motion a head turn rather than
+        /// a camera lerp.
+        /// </summary>
+        private Vector2 AdvanceLookBack(float now, Quaternion baseOrientation, Vector3 cameraPosition)
         {
             if (!m_isLookingBack)
             {
-                return 0f;
+                return Vector2.zero;
             }
 
             float elapsed = now - m_lookBackStartTime;
@@ -344,13 +399,38 @@ namespace RootsDance.Cameras
             if (elapsed >= ShoulderCheckCurve.TotalSeconds(m_turnOutSeconds, m_holdSeconds, m_returnSeconds))
             {
                 m_isLookingBack = false;
-                return 0f;
+                m_lookBackPoint = null;
+                return Vector2.zero;
             }
 
             float deflection = ShoulderCheckCurve.Evaluate(elapsed, m_turnOutSeconds, m_holdSeconds,
                 m_returnSeconds);
 
-            return deflection * m_lookBackDegrees * (m_overLeftShoulder ? -1f : 1f);
+            Vector3? point = m_lookBackPoint?.Invoke();
+
+            if (point == null)
+            {
+                return new Vector2(deflection * m_lookBackDegrees * (m_overLeftShoulder ? -1f : 1f), 0f);
+            }
+
+            Vector3 to = point.Value - cameraPosition;
+            Vector3 flat = Vector3.ProjectOnPlane(to, Vector3.up);
+            Vector3 forwardFlat = Vector3.ProjectOnPlane(baseOrientation * Vector3.forward, Vector3.up);
+
+            if (flat.sqrMagnitude < 1e-4f || forwardFlat.sqrMagnitude < 1e-4f)
+            {
+                return new Vector2(deflection * m_lookBackDegrees * (m_overLeftShoulder ? -1f : 1f), 0f);
+            }
+
+            // The sign of the angle IS the choice of shoulder: whichever way round is shorter.
+            float neededYaw = Mathf.Clamp(
+                Vector3.SignedAngle(forwardFlat, flat, Vector3.up),
+                -m_maxTargetDegrees, m_maxTargetDegrees);
+            float neededPitch = Mathf.Clamp(
+                -Mathf.Atan2(to.y, flat.magnitude) * Mathf.Rad2Deg,
+                -m_targetPitchLimit, m_targetPitchLimit);
+
+            return new Vector2(deflection * neededYaw, deflection * neededPitch);
         }
     }
 }

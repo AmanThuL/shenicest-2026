@@ -11,36 +11,55 @@ using UnityEngine.TestTools;
 namespace RootsDance.Tests.PlayMode.Player
 {
     /// <summary>
-    /// Drives PlayerLook through the real Input System (device events, real action resolution)
-    /// instead of unit-testing its math in isolation — the LookHold regression was an action-binding
-    /// wiring bug, which a pure-logic test over rotation math would not have caught.
+    /// Drives PlayerLook through the real Input System (device events and real action resolution)
+    /// so pointer-delta and stick-rate semantics are covered at their binding boundary.
     /// </summary>
     public class PlayerLookTests : InputTestFixture
     {
+        private const string k_MouseSensitivityMultiplierKey = "controls.mouseSensitivityMultiplier";
+        private const string k_InvertYAxisKey = "controls.invertY";
+
         private Mouse m_mouse;
+        private Gamepad m_gamepad;
         private GameObject m_playerObject;
         private PlayerLook m_look;
+        private ControlSettingsSO m_controlSettings;
+        private bool m_hadMouseSensitivityMultiplier;
+        private bool m_hadInvertYAxis;
+        private float m_savedMouseSensitivityMultiplier;
+        private int m_savedInvertYAxis;
         private readonly List<GameObject> m_extraObjects = new List<GameObject>();
 
         public override void Setup()
         {
             base.Setup();
 
-            m_mouse = InputSystem.AddDevice<Mouse>();
+            m_hadMouseSensitivityMultiplier = PlayerPrefs.HasKey(k_MouseSensitivityMultiplierKey);
+            m_hadInvertYAxis = PlayerPrefs.HasKey(k_InvertYAxisKey);
+            m_savedMouseSensitivityMultiplier = PlayerPrefs.GetFloat(k_MouseSensitivityMultiplierKey, 0f);
+            m_savedInvertYAxis = PlayerPrefs.GetInt(k_InvertYAxisKey, 0);
+            PlayerPrefs.DeleteKey(k_MouseSensitivityMultiplierKey);
+            PlayerPrefs.DeleteKey(k_InvertYAxisKey);
 
-            // No smoothing here: the rotation tests assert exact per-frame values, which only holds
-            // when the raw input passes straight through.
+            m_mouse = InputSystem.AddDevice<Mouse>();
+            m_gamepad = InputSystem.AddDevice<Gamepad>();
+            m_controlSettings = ScriptableObject.CreateInstance<ControlSettingsSO>();
+
+            // The direct-input assertions use exact per-frame values, which only hold when raw
+            // pointer delta passes straight through without smoothing.
             m_look = CreatePlayer(lookSensitivity: 1f, lookSmoothTime: 0f, out m_playerObject);
         }
 
         public override void TearDown()
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
             if (m_playerObject != null)
             {
                 Object.Destroy(m_playerObject);
+            }
+
+            if (m_controlSettings != null)
+            {
+                Object.Destroy(m_controlSettings);
             }
 
             for (int i = 0; i < m_extraObjects.Count; i++)
@@ -52,36 +71,62 @@ namespace RootsDance.Tests.PlayMode.Player
             }
 
             m_extraObjects.Clear();
+            RestoreFloat(
+                k_MouseSensitivityMultiplierKey,
+                m_hadMouseSensitivityMultiplier,
+                m_savedMouseSensitivityMultiplier);
+            RestoreInt(k_InvertYAxisKey, m_hadInvertYAxis, m_savedInvertYAxis);
             base.TearDown();
         }
 
         [UnityTest]
-        public IEnumerator Update_MouseDeltaWhileLookHoldPressed_RotatesYaw()
+        public IEnumerator Update_MouseDeltaWithoutButtonHeld_RotatesYaw()
         {
-            Press(m_mouse.rightButton);
-            yield return null;
-
             Set(m_mouse.delta, new Vector2(10f, 0f));
             yield return null;
 
             Assert.AreEqual(10f, m_playerObject.transform.eulerAngles.y, 0.01f,
-                "Holding LookHold and moving the mouse must rotate yaw by look.x degrees.");
+                "Moving the mouse must rotate yaw without a look-hold button.");
         }
 
         [UnityTest]
-        public IEnumerator Update_MouseDeltaWithoutLookHold_DoesNotRotateYaw()
+        public IEnumerator Update_MouseSensitivityMultiplier_ScalesYaw()
         {
-            yield return null;
-
+            m_controlSettings.SetMouseSensitivityMultiplier(2f);
             Set(m_mouse.delta, new Vector2(10f, 0f));
             yield return null;
 
-            Assert.AreEqual(0f, m_playerObject.transform.eulerAngles.y, 0.01f,
-                "Without LookHold pressed, mouse movement must not rotate yaw.");
+            Assert.AreEqual(20f, m_playerObject.transform.eulerAngles.y, 0.01f,
+                "The persisted mouse multiplier must scale pointer delta.");
         }
 
         [UnityTest]
-        public IEnumerator Update_TrackpadScrollWithLockedCursor_RotatesWithoutLookHold()
+        public IEnumerator Update_InvertedYAxis_MouseUpPitchesDown()
+        {
+            m_controlSettings.SetYAxisInverted(true);
+            yield return null;
+
+            Set(m_mouse.delta, new Vector2(0f, 10f));
+            yield return null;
+
+            Transform head = m_playerObject.transform.Find("m_head");
+            Assert.AreEqual(10f, head.localEulerAngles.x, 0.01f,
+                "Inverted Y must turn upward mouse delta into downward pitch.");
+        }
+
+        [UnityTest]
+        public IEnumerator Update_GamepadStick_UsesDegreesPerSecond()
+        {
+            Set(m_gamepad.rightStick, Vector2.right);
+            yield return null;
+
+            float yaw = m_playerObject.transform.eulerAngles.y;
+            Assert.Greater(yaw, 0f, "The right stick must rotate without a mouse-only hold gate.");
+            Assert.Less(yaw, 20f, "Stick input must be a frame-scaled rate, not degrees per frame.");
+        }
+
+        [UnityTest]
+        public IEnumerator Update_TrackpadScrollWithLockedCursor_RotatesWithoutPressing()
         {
             Cursor.lockState = CursorLockMode.Locked;
             yield return null;
@@ -89,10 +134,10 @@ namespace RootsDance.Tests.PlayMode.Player
             Set(m_mouse.scroll, new Vector2(10f, 5f));
             yield return null;
 
-            Assert.AreEqual(10f, m_playerObject.transform.eulerAngles.y, 0.01f,
-                "Two-finger horizontal scroll must rotate yaw without LookHold.");
-            Assert.AreEqual(355f, m_look.transform.GetChild(0).localEulerAngles.x, 0.01f,
-                "Two-finger vertical scroll must rotate pitch without LookHold.");
+            Assert.AreEqual(1f, m_playerObject.transform.eulerAngles.y, 0.01f,
+                "Two-finger horizontal scroll must rotate yaw without a pressed button.");
+            Assert.AreEqual(359.5f, m_look.transform.GetChild(0).localEulerAngles.x, 0.01f,
+                "Two-finger vertical scroll must rotate pitch without a pressed button.");
         }
 
         [UnityTest]
@@ -105,9 +150,9 @@ namespace RootsDance.Tests.PlayMode.Player
             yield return null;
 
             Assert.AreEqual(0f, m_playerObject.transform.eulerAngles.y, 0.01f,
-                "Trackpad scroll must not rotate the view while a menu or close-up UI owns the cursor.");
+                "Trackpad scroll must not rotate while a menu or close-up UI owns the cursor.");
             Assert.AreEqual(0f, m_look.transform.GetChild(0).localEulerAngles.x, 0.01f,
-                "Trackpad scroll must not change pitch while the cursor is unlocked.");
+                "Trackpad scroll must not pitch while the cursor is unlocked.");
         }
 
         /// <summary>
@@ -124,9 +169,6 @@ namespace RootsDance.Tests.PlayMode.Player
 
             PlayerLook raw = CreatePlayer(lookSensitivity: 1f, lookSmoothTime: 0f, out _, track: true);
             PlayerLook smoothed = CreatePlayer(lookSensitivity: 1f, lookSmoothTime: 0.03f, out _, track: true);
-
-            Press(m_mouse.rightButton);
-            yield return null;
 
             float rawPrev = raw.transform.eulerAngles.y;
             float smoothedPrev = smoothed.transform.eulerAngles.y;
@@ -161,7 +203,7 @@ namespace RootsDance.Tests.PlayMode.Player
         {
             PlayerConfigSO config = ScriptableObject.CreateInstance<PlayerConfigSO>();
             SetPrivateField(config, "m_lookSensitivity", lookSensitivity);
-            SetPrivateField(config, "m_trackpadLookSensitivity", lookSensitivity);
+            SetPrivateField(config, "m_trackpadLookSensitivity", 0.1f);
             SetPrivateField(config, "m_pitchLimitDown", 85f);
             SetPrivateField(config, "m_pitchLimitUp", 85f);
             SetPrivateField(config, "m_lookSmoothTime", lookSmoothTime);
@@ -174,6 +216,7 @@ namespace RootsDance.Tests.PlayMode.Player
             PlayerLook look = playerObject.GetComponent<PlayerLook>();
             SetPrivateField(look, "m_head", head);
             SetPrivateField(look, "m_config", config);
+            SetPrivateField(look, "m_controlSettings", m_controlSettings);
             SetPrivateField(look, "m_lockCursor", false);
 
             if (track)
@@ -189,6 +232,30 @@ namespace RootsDance.Tests.PlayMode.Player
             FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(field, $"Field '{fieldName}' not found on {target.GetType().Name}.");
             field.SetValue(target, value);
+        }
+
+        private static void RestoreFloat(string key, bool existed, float value)
+        {
+            if (existed)
+            {
+                PlayerPrefs.SetFloat(key, value);
+            }
+            else
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
+        }
+
+        private static void RestoreInt(string key, bool existed, int value)
+        {
+            if (existed)
+            {
+                PlayerPrefs.SetInt(key, value);
+            }
+            else
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
         }
     }
 }

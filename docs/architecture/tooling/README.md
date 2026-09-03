@@ -25,7 +25,8 @@ Play、把玩家放到某个站点并按命令队列补齐此前应有的世界�
 调用。见 [dev-play-checkpoints.md](dev-play-checkpoints.md)（英文；2026-08-27）。
 
 导出版的隐藏救援窗口：`Ctrl + Shift + D` 选择 checkpoint，确认后清空当前运行进度并重载目标关卡；
-数据从 Dev Play 导出，支持普通测试包，公开发布前可关闭。见
+数据从 Dev Play 导出，支持普通测试包，公开发布前可关闭。同一面板里的 **RECORDING** 行是无 UI 纯录制开关：
+总开关加四组（交互提示、对话框、字幕、头盔 HUD），设置跨 Play 记住。见
 [build-checkpoint-rescue.md](build-checkpoint-rescue.md)（英文）。
 
 一条命令从当前提交出一个可分享的 zip：`python3 Tools/build/build.py [PROFILE] [--dev] [--package-only]

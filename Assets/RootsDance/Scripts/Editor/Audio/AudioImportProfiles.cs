@@ -115,9 +115,10 @@ namespace RootsDance.Editor.Audio
             switch (kind)
             {
                 case AudioAssetKind.Music:
-                    // Stereo and streamed: one track at a time, and never resident in memory.
+                    // Stereo and streamed; Vorbis 0.5 halves the 10 music tracks' 54 MB with no
+                    // audible loss under the PSX mix.
                     profile = new AudioImportProfile(false, AudioClipLoadType.Streaming,
-                        AudioCompressionFormat.Vorbis, 0.7f);
+                        AudioCompressionFormat.Vorbis, 0.5f);
                     return true;
 
                 case AudioAssetKind.Ambience:

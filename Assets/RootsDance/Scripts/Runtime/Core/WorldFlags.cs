@@ -91,7 +91,27 @@ namespace RootsDance.Core
 
         // ---- The chase: the wrong cycle wakes the boss --------------------------------------------
 
-        /// <summary>The wrong circulation choice woke the boss in the greenhouse; the run is on.</summary>
+        /// <summary>
+        /// The sprite has finished her outburst over the wrong cycle (DLG-009). The deck holds
+        /// under the player — groaning, shedding dust — until this is up; only then does it start
+        /// to go. Raised by the conversation on completion.
+        /// </summary>
+        public const string k_WrongCycleOutburstDone = "flow.wrong_cycle_outburst_done";
+
+        /// <summary>
+        /// The sprite is on the last lines of her outburst (DLG-009). Raised by the line itself
+        /// as it comes up, so the deck's warning can start under the ending of the speech rather
+        /// than run through all of it — the floor stays still while she talks, and begins to
+        /// complain only when she is nearly done. <c>GreenhouseStairCollapse</c> waits for it.
+        /// </summary>
+        public const string k_WrongCycleOutburstPeak = "flow.wrong_cycle_outburst_peak";
+
+        /// <summary>
+        /// The wrong circulation choice woke the boss in the greenhouse; the run is on. Up only
+        /// once the whole beat has landed — the outburst finished, the deck collapsed, the player
+        /// on the floor — because this is the flag that unlocks the exits and arms the exterior
+        /// stream (<c>GreenhouseExitArmer</c>). <c>GreenhouseStairCollapse</c> raises it.
+        /// </summary>
         public const string k_ChaseStarted = "flow.chase_started";
 
         /// <summary>The car came back into view at the end of the run; the chase stands down.</summary>

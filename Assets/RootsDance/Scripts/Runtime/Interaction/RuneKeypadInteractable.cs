@@ -96,6 +96,12 @@ namespace RootsDance.Interaction
         [Header("Broadcasts on")]
         [SerializeField] private StringEventChannelSO m_promptChanged;
 
+        [Tooltip("Seconds the '[G] 先放下' refusal stays on the line after a close-up was refused. "
+            + "It rides at mode priority, so it has to withdraw itself.")]
+        [SerializeField] private float m_blockedHintSeconds = 4f;
+
+        private float m_blockedHintUntil = -1f;
+
         private RuneKeypadSequence m_sequence;
         private InspectState m_state;
         private RuneKeypadCameraRig m_cameraRig;
@@ -122,6 +128,16 @@ namespace RootsDance.Interaction
 
         private void Update()
         {
+            if (m_blockedHintUntil >= 0f && Time.unscaledTime >= m_blockedHintUntil)
+            {
+                PublishPrompt(string.Empty);
+            }
+
+            if (m_state != InspectState.Idle)
+            {
+                RootsDance.Rendering.CloseUpFocus.HoldThisFrame();
+            }
+
             if (m_state != InspectState.Reading || m_playerRig.Input == null)
             {
                 return;
@@ -163,6 +179,7 @@ namespace RootsDance.Interaction
         private void OnDestroy()
         {
             CancelInspection();
+            InteractionPrompts.Clear(this, m_promptChanged);
             WorldAccess.EndExclusiveInteraction(this);
         }
 
@@ -287,6 +304,7 @@ namespace RootsDance.Interaction
                     if (stowed == RuneKeypadPlayerRig.StowResult.Blocked)
                     {
                         PublishPrompt("[G] 先放下手中的物品");
+                        m_blockedHintUntil = Time.unscaledTime + m_blockedHintSeconds;
                     }
 
                     return;
@@ -500,12 +518,15 @@ namespace RootsDance.Interaction
             }
         }
 
+        /// <summary>
+        /// Through the arbiter, at mode priority (规范·管线规则 1). A direct raise leaves the
+        /// arbiter's idea of the line stale, and the next proximity offer with the same text is
+        /// then never re-sent. Empty withdraws.
+        /// </summary>
         private void PublishPrompt(string prompt)
         {
-            if (m_promptChanged != null)
-            {
-                m_promptChanged.RaiseEvent(prompt);
-            }
+            m_blockedHintUntil = -1f;
+            InteractionPrompts.Set(this, m_promptChanged, prompt, InteractionPrompts.k_ModePriority);
         }
 
         private void AbortInspect()

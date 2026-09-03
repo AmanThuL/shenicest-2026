@@ -72,12 +72,30 @@ namespace RootsDance.Archive
             + "dark plate — when the document has no photo of its own.")]
         [SerializeField] private RawImage m_photo;
 
+        [Tooltip("The paper the collage is baked onto. Off for a photograph: that page is the print.")]
+        [SerializeField] private RawImage m_paper;
+
+        [Tooltip("The cream card the exposure is sunk into. Off for a photograph, whose exposure "
+            + "is the whole page.")]
+        [SerializeField] private RawImage m_photoCard;
+
+        [Tooltip("The paperclip holding the photograph to a sheet. Off for a photograph.")]
+        [SerializeField] private RawImage m_photoClip;
+
         [Tooltip("The grime layer over the whole sheet, wiped off when the sheet is raised.")]
         [SerializeField] private Graphic m_dustOverlay;
 
         [Tooltip("Seconds the dust takes to come off once the sheet is up.")]
         [Range(0.05f, 4f)]
         [SerializeField] private float m_dustClearSeconds = 0.8f;
+
+        /// <summary>
+        /// How far the exposure sits inside its card on a sheet: a thin border on three sides and
+        /// the deep one along the bottom that a Polaroid is written on. Bottom-left and top-right
+        /// offsets of a stretched rect. The prefab builder lays the card out with the same numbers.
+        /// </summary>
+        public static readonly Vector2 k_ExposureOffsetMin = new Vector2(14f, 62f);
+        public static readonly Vector2 k_ExposureOffsetMax = new Vector2(-14f, -14f);
 
         private ArchiveDocumentSO m_document;
         private float m_dustAmount;
@@ -134,7 +152,8 @@ namespace RootsDance.Archive
                 m_photo.color = Color.white;
             }
 
-            Arrange(document.Kind);
+            ShapePage(document);
+            Arrange(document);
             ShowComposedPage(document);
 
             m_dustAmount = Mathf.Clamp01(document.DustAmount);
@@ -210,11 +229,60 @@ namespace RootsDance.Archive
         }
 
         /// <summary>
+        /// Gives the page its shape. Every sheet is the same sheet; a photograph page is the print
+        /// itself and nothing else — no paper under it, no dust over it, no card round the
+        /// exposure — at the print's own aspect, so the exposure is never stretched.
+        /// </summary>
+        private void ShapePage(ArchiveDocumentSO document)
+        {
+            bool isPrint = document.Kind == ArchiveDocumentKind.Photograph;
+
+            if (m_page != null)
+            {
+                m_page.sizeDelta = ArchivePageLayout.PageUnits(document.Kind, document.PhotoAspect);
+            }
+
+            if (m_paper != null)
+            {
+                m_paper.gameObject.SetActive(!isPrint);
+            }
+
+            if (m_photoClip != null)
+            {
+                m_photoClip.gameObject.SetActive(!isPrint);
+            }
+
+            if (m_photoCard != null)
+            {
+                // The card's own image goes, not its object: the exposure hangs off it.
+                m_photoCard.enabled = !isPrint;
+            }
+
+            if (m_dustOverlay != null)
+            {
+                m_dustOverlay.gameObject.SetActive(!isPrint);
+            }
+
+            if (m_photo != null)
+            {
+                RectTransform exposure = m_photo.rectTransform;
+                exposure.anchorMin = Vector2.zero;
+                exposure.anchorMax = Vector2.one;
+                exposure.pivot = new Vector2(0.5f, 0.5f);
+                exposure.offsetMin = isPrint ? Vector2.zero : k_ExposureOffsetMin;
+                exposure.offsetMax = isPrint ? Vector2.zero : k_ExposureOffsetMax;
+            }
+        }
+
+        /// <summary>
         /// Moves every thing on the sheet to its place for this kind of document, and switches off
         /// the ones this kind does not carry or this document has nothing to put in.
         /// </summary>
-        private void Arrange(ArchiveDocumentKind kind)
+        private void Arrange(ArchiveDocumentSO document)
         {
+            ArchiveDocumentKind kind = document.Kind;
+            bool isPrint = kind == ArchiveDocumentKind.Photograph;
+
             for (int i = 0; i < m_blocks.Length; i++)
             {
                 ArchivePageBlock binding = m_blocks[i];
@@ -239,14 +307,19 @@ namespace RootsDance.Archive
                     continue;
                 }
 
-                Place(binding.Target, ArchivePageLayout.RectOf(kind, block),
-                    ArchivePageLayout.RollOf(block));
+                // On a print the photograph is the page: edge to edge, and not turned on it.
+                Rect rect = isPrint
+                    ? ArchivePageLayout.PhotographRect(document.PhotoAspect)
+                    : ArchivePageLayout.RectOf(kind, block);
+                float roll = isPrint ? 0f : ArchivePageLayout.RollOf(block);
+
+                Place(binding.Target, rect, roll);
 
                 if (binding.Wash != null)
                 {
                     // The wash was laid on by hand and is not square with the writing on it.
                     Place(binding.Wash, ArchivePageLayout.WashOf(kind, block),
-                        ArchivePageLayout.RollOf(block) * 0.6f - 0.8f);
+                        roll * 0.6f - 0.8f);
                 }
             }
         }

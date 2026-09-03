@@ -10,7 +10,7 @@ namespace RootsDance.Interaction
     public class WorldFlagInteractable : MonoBehaviour, IInteractable
     {
         [Tooltip("Prompt shown while the object is focused.")]
-        [SerializeField] private string m_promptText = "观察";
+        [SerializeField] private string m_promptText = "[E] 观察";
 
         [Tooltip("World-state flag raised by the observation.")]
         [SerializeField] private string m_flagId;

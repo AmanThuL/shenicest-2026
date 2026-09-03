@@ -54,8 +54,12 @@ namespace RootsDance.Scanner
 
         public string DisplayName => m_displayName;
 
-        /// <summary>The tab caption: number and name, as the brief prints them.</summary>
-        public string TabLabel => m_number + " " + m_displayName;
+        /// <summary>
+        /// The tab caption: the section's name alone. The number stays out of it — it is already
+        /// printed on every page index in the section (03.1, 03.2 …), and repeating it down the
+        /// rail only crowds the one word the player is reading the tab for.
+        /// </summary>
+        public string TabLabel => m_displayName;
 
         public bool FeedsFromReport => m_feedsFromReport;
 

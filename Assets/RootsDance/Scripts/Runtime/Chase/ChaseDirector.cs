@@ -74,6 +74,12 @@ namespace RootsDance.Chase
         private bool m_resumeChecked;
 
         /// <summary>
+        /// The director currently running a leg, for the Player-side trigger that cannot hold a
+        /// scene reference. Null between legs and outside the chase.
+        /// </summary>
+        public static ChaseDirector Active { get; private set; }
+
+        /// <summary>
         /// A checkpoint seeds flags silently, after the one-shot resume check already read an
         /// unseeded world. Clearing the latch makes the very next Update re-run the resume logic
         /// against the seeded truth.
@@ -99,6 +105,11 @@ namespace RootsDance.Chase
             if (m_flagRaised != null)
             {
                 m_flagRaised.EventRaised -= OnFlagRaised;
+            }
+
+            if (Active == this)
+            {
+                Active = null;
             }
         }
 
@@ -177,6 +188,7 @@ namespace RootsDance.Chase
             }
 
             m_isChasing = true;
+            Active = this;
 
             if (m_hideWhenChasing != null)
             {
@@ -211,6 +223,28 @@ namespace RootsDance.Chase
             RunOpeningEntryAsync(skipBirth ? 0f : m_birthSeconds, destroyCancellationToken);
         }
 
+        /// <summary>
+        /// One shoulder check aimed at the boss's body, not a fixed shoulder: the look exists to
+        /// show the player where she is. Ignored while one is already playing.
+        /// </summary>
+        public void LookBackAtMonster()
+        {
+            if (m_panicShake == null)
+            {
+                return;
+            }
+
+            if (m_monster == null)
+            {
+                m_panicShake.LookBack((Transform)null);
+                return;
+            }
+
+            // The body centre, re-read every frame: the root pivot is under the feet.
+            ChaseMonster monster = m_monster;
+            m_panicShake.LookBack(() => monster != null ? monster.LookAtPoint : (Vector3?)null);
+        }
+
         private void EndChase()
         {
             if (!m_isChasing)
@@ -219,6 +253,11 @@ namespace RootsDance.Chase
             }
 
             m_isChasing = false;
+
+            if (Active == this)
+            {
+                Active = null;
+            }
 
             if (m_panicShake != null)
             {
@@ -265,10 +304,7 @@ namespace RootsDance.Chase
                         return;
                     }
 
-                    if (m_panicShake != null)
-                    {
-                        m_panicShake.LookBack();
-                    }
+                    LookBackAtMonster();
                 }
             }
             catch (OperationCanceledException)

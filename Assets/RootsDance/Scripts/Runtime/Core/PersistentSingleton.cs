@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RootsDance.Core
 {
@@ -16,12 +17,20 @@ namespace RootsDance.Core
     public abstract class PersistentSingleton<T> : MonoBehaviour where T : Component
     {
         private static T s_instance;
+        private static Scene s_homeScene;
 
         /// <summary>The live instance, or null until its Awake has run.</summary>
         public static T Instance
         {
             get { return s_instance; }
         }
+
+        /// <summary>
+        /// The scene the live instance arrived in, before <see cref="Object.DontDestroyOnLoad"/>
+        /// moved it out. A duplicate compares its own scene against this to tell "the same scene
+        /// loaded twice" from "two of us authored into one scene".
+        /// </summary>
+        protected static Scene HomeScene => s_homeScene;
 
         /// <summary>
         /// Drops the cached instance for a fresh play session. Play mode is entered without a
@@ -31,6 +40,7 @@ namespace RootsDance.Core
         public static void ResetInstance()
         {
             s_instance = null;
+            s_homeScene = default;
         }
 
         protected virtual void Awake()
@@ -38,6 +48,7 @@ namespace RootsDance.Core
             if (s_instance == null)
             {
                 s_instance = this as T;
+                s_homeScene = gameObject.scene;
                 DontDestroyOnLoad(gameObject);
                 return;
             }

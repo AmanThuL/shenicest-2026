@@ -20,8 +20,18 @@ MonoBehaviour:
   m_playsOnce: 1
   m_lines:
   - m_speaker: 0
-    m_chinese: "\u5566\u5566\u5566\u5566\u5566\u5566"
-    m_english: "(placeholder) DLG-109 \u2014 \u6B63\u95E8\u65E0\u6CD5\u8FDB\u5165\uFF0800-09\uFF09"
+    m_chinese: "\u5C01\u6B7B\u4E86\u3002\u6839\u7CFB\u7F20\u7740\u8DEF\u969C\u2014\u2014\u7F20\u4E86\u53EF\u4E0D\u6B62\u5341\u5E74\u3002"
+    m_english: "Sealed. Roots braided through the barricades - a lot older than ten years."
     m_voice: {fileID: 0}
-    m_holdSeconds: 2.5
+    m_holdSeconds: 0
+  - m_speaker: 0
+    m_chinese: "\u662F\u4ECE\u5916\u9762\u5C01\u7684\uFF0C\u8FD8\u662F\u4ECE\u91CC\u9762\uFF1F"
+    m_english: "Sealed from the outside... or from within?"
+    m_voice: {fileID: 0}
+    m_holdSeconds: 0
+  - m_speaker: 0
+    m_chinese: "\u603B\u4F1A\u6709\u522B\u7684\u8DEF\u3002"
+    m_english: "There's always another way in."
+    m_voice: {fileID: 0}
+    m_holdSeconds: 0
   m_flagOnComplete: 

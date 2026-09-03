@@ -44,7 +44,7 @@ namespace RootsDance.Player
         [SerializeField] private StringEventChannelSO m_hintRequested;
 
         [TextArea(1, 4)]
-        [SerializeField] private string m_hintText = "[E]  解除环境隔离";
+        [SerializeField] private string m_hintText = "[E] 解除环境隔离";
 
         [Tooltip("Refusal written on the visor when the seal is pressed too early. "
             + "Data/Events/HelmetWarning.")]
@@ -55,6 +55,13 @@ namespace RootsDance.Player
 
         [Header("Wiring")]
         [SerializeField] private PlayerInputReader m_input;
+
+        [Tooltip("World helmet left behind by the removal — a pickup the hand can take again. "
+            + "Leave EMPTY whenever the view hands the helmet over itself: HelmetArmsView puts the "
+            + "real prop in the right hand at the clip's Attach frame, and a prefab here would put "
+            + "a second one on the floor at the player's feet. Only a view that makes the helmet "
+            + "vanish wants this filled.")]
+        [SerializeField] private GameObject m_droppedHelmetPrefab;
 
         [Tooltip("Art component implementing IHelmetView. Empty = instant removal (placeholder).")]
         [SerializeField] private MonoBehaviour m_viewBehaviour;
@@ -279,7 +286,34 @@ namespace RootsDance.Player
             Raise(m_hintRequested, string.Empty);
             Raise(m_warningRequested, string.Empty);
 
+            SpawnDroppedHelmet();
+
             WorldAccess.Enqueue(new RaiseFlagCommand(WorldFlags.k_HelmetRemoved), this);
+        }
+
+        /// <summary>
+        /// The live removal leaves a real helmet at the player's feet instead of a vanished mesh —
+        /// a ground pickup the hand can take again. Seeded checkpoints skip this: they have no
+        /// removal spot to speak of, and the nodes past the helmet never needed one lying around.
+        /// </summary>
+        private void SpawnDroppedHelmet()
+        {
+            if (m_droppedHelmetPrefab == null)
+            {
+                return;
+            }
+
+            Vector3 probe = transform.position + transform.forward * 0.6f + Vector3.up * 0.5f;
+            Vector3 place = probe;
+
+            if (Physics.Raycast(probe, Vector3.down, out RaycastHit hit, 3f,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                place = hit.point;
+            }
+
+            Quaternion facing = Quaternion.Euler(0f, transform.eulerAngles.y + 180f, 0f);
+            Instantiate(m_droppedHelmetPrefab, place, facing);
         }
 
         private static void Raise(StringEventChannelSO channel, string text)

@@ -5,6 +5,7 @@ using RootsDance.Core;
 using RootsDance.Editor.DevPlay;
 using RootsDance.Editor.Terrain;
 using RootsDance.Interaction;
+using RootsDance.World;
 using RootsDance.Investigation;
 using TheVisualEngine;
 using Unity.Collections;
@@ -362,11 +363,25 @@ namespace RootsDance.Editor.Environment
                     new Vector3(4.6f, 0.16f, 0.18f), materials.Oxide, new Vector3(0f, 0f, -8f));
                 AddRootBoxCollider(root, new Vector3(0f, 0.65f, 0f), new Vector3(5f, 1.3f, 1.15f));
                 ConfigureOpenPassageColliders(root);
-                ConfigureWorldFlagInteractable(
-                    root,
-                    "正门被根系和路障封死",
-                    WorldFlags.k_MainEntranceBlocked);
-                SetLayerRecursively(root, InteractableLayer());
+
+                // 规范：正门没有任何可按交互，也没有状态句提示。走近路障即抬旗，DLG-109 的
+                // 独白触发器读这面旗自动播；提示位保持沉默。
+                GameObject approach = new GameObject("ApproachVolume");
+                approach.transform.SetParent(root.transform, false);
+                approach.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+                approach.layer = LayerMask.NameToLayer("TriggerVolume");
+                BoxCollider approachBox = approach.AddComponent<BoxCollider>();
+                approachBox.isTrigger = true;
+                approachBox.size = new Vector3(6f, 2.4f, 3.5f);
+                TriggerVolume approachVolume = approach.AddComponent<TriggerVolume>();
+
+                using (SerializedObject serializedVolume = new SerializedObject(approachVolume))
+                {
+                    serializedVolume.FindProperty("m_flagId").stringValue =
+                        WorldFlags.k_MainEntranceBlocked;
+                    serializedVolume.ApplyModifiedPropertiesWithoutUndo();
+                }
+
                 SavePrefab(root, k_BlockedEntrancePrefabPath);
             }
             finally
@@ -395,11 +410,8 @@ namespace RootsDance.Editor.Environment
                 AddCube(root.transform, "DownArrowHead_Right", new Vector3(0.1f, 1.27f, -0.075f),
                     new Vector3(0.08f, 0.28f, 0.025f), materials.Oxide, new Vector3(0f, 0f, 42f));
                 AddRootBoxCollider(root, new Vector3(0f, 1.35f, 0f), new Vector3(2.2f, 1.2f, 0.3f));
-                ConfigureWorldFlagInteractable(
-                    root,
-                    "查看褪色的检修指示牌",
-                    WorldFlags.k_MainEntranceSignRead);
-                SetLayerRecursively(root, InteractableLayer());
+
+                // 规范：指示牌是纯景物——不交互、不提示、不抬旗。
                 SavePrefab(root, k_MainSignPrefabPath);
             }
             finally
@@ -421,7 +433,7 @@ namespace RootsDance.Editor.Environment
                 AddNestedPrefab(root.transform, k_NoticeBoardPath, "ResearchPoster",
                     new Vector3(0f, 1.35f, 0.12f), new Vector3(0f, 0f, 0f), 0.78f);
                 AddRootBoxCollider(root, new Vector3(0f, 1.35f, 0f), new Vector3(2.5f, 2.7f, 0.55f));
-                ConfigureWorldFlagInteractable(root, "查看设施外墙上的研究海报",
+                ConfigureWorldFlagInteractable(root, "[E] 查看旧研究海报",
                     WorldFlags.k_ResearchFacilityPosterRead);
                 SetLayerRecursively(root, InteractableLayer());
                 SavePrefab(root, k_PosterPrefabPath);

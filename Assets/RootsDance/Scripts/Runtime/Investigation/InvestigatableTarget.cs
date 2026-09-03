@@ -34,16 +34,12 @@ namespace RootsDance.Investigation
         {
             get
             {
-                if (!m_isInvestigable)
-                {
-                    return "调查";
-                }
-
-                return m_target == null ? "调查" : m_target.PromptText;
+                // 规范：没有资产就没有文案。凭空的"调查"两个字曾经就是从这里漏出去的。
+                return m_target == null ? string.Empty : m_target.PromptText;
             }
         }
 
-        public bool CanInteract => !m_isRecorded;
+        public bool CanInteract => !m_isRecorded && m_isInvestigable && m_target != null;
 
         private void Awake()
         {

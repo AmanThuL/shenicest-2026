@@ -480,6 +480,7 @@ MonoBehaviour:
   m_readEulerOffset: {x: 0, y: 0, z: 0}
   m_raiseSeconds: 0.45
   m_lowerSeconds: 0.35
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
 --- !u!1 &1340303024
 GameObject:
   m_ObjectHideFlags: 0
@@ -875,7 +876,7 @@ MonoBehaviour:
   m_playOn: 1
   m_flagId: 
   m_flagRaised: {fileID: 0}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!65 &1873172681
 BoxCollider:

@@ -1,5 +1,72 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3676549690872281721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4974976428884927704}
+  - component: {fileID: 533812418172049782}
+  - component: {fileID: 8762054284948008061}
+  m_Layer: 10
+  m_Name: ApproachVolume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4974976428884927704
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3676549690872281721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1971643658437288271}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &533812418172049782
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3676549690872281721}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 6, y: 2.4, z: 3.5}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8762054284948008061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3676549690872281721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 568e6650b69c546d68fa4828419d9fab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.World.TriggerVolume
+  m_flagId: flow.main_entrance_blocked
 --- !u!1 &6087454861089277063
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,7 +77,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1971643658437288271}
   - component: {fileID: 1110337780411948162}
-  - component: {fileID: 7529849454435022454}
   m_Layer: 9
   m_Name: BlockedMainEntrance
   m_TagString: Untagged
@@ -36,6 +102,7 @@ Transform:
   - {fileID: 7869522891009852284}
   - {fileID: 2890061665651735647}
   - {fileID: 1413885713876258184}
+  - {fileID: 4974976428884927704}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1110337780411948162
@@ -59,21 +126,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 1.3, z: 1.15}
   m_Center: {x: 0, y: 0.65, z: 0}
---- !u!114 &7529849454435022454
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6087454861089277063}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a39ebbd4d49e34e72aa312350e1c02ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.WorldFlagInteractable
-  m_promptText: "\u6B63\u95E8\u88AB\u6839\u7CFB\u548C\u8DEF\u969C\u5C01\u6B7B"
-  m_flagId: flow.main_entrance_blocked
-  m_isRepeatable: 0
 --- !u!1 &7447361441143507757
 GameObject:
   m_ObjectHideFlags: 0

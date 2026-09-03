@@ -313,9 +313,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b5d3a758238d545aea06ce903c8d9dba, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5597022893923250975}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b5d3a758238d545aea06ce903c8d9dba, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3355186191872282767}
   m_SourcePrefab: {fileID: 100100000, guid: b5d3a758238d545aea06ce903c8d9dba, type: 3}
 --- !u!4 &261488108211917989 stripped
 Transform:
@@ -345,11 +342,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerInspectFraming
   m_screenAnchor: {fileID: 7377349139985274392}
-  m_camera: {fileID: 6606563160627885748}
   m_surface: {fileID: 3802191771607347908}
   m_screenFill: 0.86
-  m_fieldOfView: 34
-  m_editorAspect: 1.7777778
+  m_readDistanceMeters: 0.5
+  m_viewOffset: {x: 0, y: 0}
+  m_liftSeconds: 0.3
 --- !u!114 &5597022893923250975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,21 +366,6 @@ MonoBehaviour:
   m_scanEffect: {fileID: 0}
   m_input: {fileID: 0}
   m_suspendedWhileReading: []
-  m_zoomSeconds: 0.9
   m_scanHoldSeconds: 0.25
-  m_activePriority: 30
   m_releaseCursorWhileReading: 1
---- !u!114 &3355186191872282767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6113694028289250715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec731c2e413da47eaa0d9891113f2509, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Scanner.ScannerDebugTrigger
-  m_controller: {fileID: 0}
-  m_key: 24
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}

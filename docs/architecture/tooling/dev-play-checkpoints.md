@@ -22,7 +22,7 @@ which only adds the missing defaults and never overwrites a tuned one).
 | Where | Anchor Name | A direct child of `_Anchors` in any loaded part of the checkpoint's level. Main uses the orange spheres placed by `TerrainGreyboxBuilder`; Briggs Interior keeps its four anchors in `BriggsInterior_Gameplay`. Preferred: move the anchor, then update the asset fallback position to match. |
 | Where | Position | Used when Anchor Name is empty or the anchor is missing from the scene. |
 | Where | Yaw | Facing in degrees around Y; 0 looks down +Z (the route direction). |
-| Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 1 m (the capsule is 1.5 m tall, centred on the root). |
+| Where | Snap To Ground / Ground Clearance | Raycast down from 50 m above the target (triggers ignored) and stand `clearance` above the highest hit — terrain or lab geometry. Default 0.05 m: the Player root is the feet (capsule 1.5 m tall, centre y 0.75 — sized to pass under the greenhouse spiral stair's own landing, see PlayerCapsuleTests), so the root stands just above the ground. |
 | World State | Time of day | `Level Default` (emit nothing — the level's `TimeOfDayController` decides), `Day` or `Night`. Applied *before* the flags, as a `SetTimeOfDayCommand`, so the lighting is already right on the first frame you control. |
 | World State | Flags | `WorldFlags` ids raised before you take control, applied in order. Dropdown lists every constant in `WorldFlags.cs`. |
 | World State | Recorded Targets | `InvestigationTargetSO`s already in the official report (`AddReportEntryCommand`). |
@@ -89,7 +89,7 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 
 ## 让一次 playtest 便宜下来
 
-三个独立的开关，按收益排序。测流程（触发、无线电、对话、报告）时三个可以叠着用。
+两个可用的加速开关按收益排序。下面也记录了为什么当前不能关闭 Domain Reload，避免再次引入同一故障。
 
 ### 1. Flow 关卡：不加载那 1072 件装饰
 
@@ -106,20 +106,24 @@ Opening `Main_Environment` takes longer than the CLI's default 5 s main-thread b
 
 场景是**生成物**，重跑覆盖，不要在里面摆任何东西。
 
-### 2. 关掉 Domain Reload
+### 2. Domain Reload 已恢复（不要关）
 
-`Edit > Project Settings > Editor > Enter Play Mode Settings` 现在是 **Reload Domain 关、Reload Scene 开**
-（`m_EnterPlayModeOptions: 1`，2026-08-29 起）。这通常是每次进 Play 省下的最大一块。
+`Edit > Project Settings > Editor > Enter Play Mode Settings` 当前会同时 **Reload Domain** 和 **Reload Scene**
+（`m_EnterPlayModeOptions: 0`，2026-09-02 起）。2026-08-29 曾只保留 Reload Scene；但 Unity 6000.3.22f1
+配合 Input System 1.20.0 时，连续进 Play 会让上一轮的 `InputActionState` monitor 留在原生输入管理器里，鼠标
+同步事件随后成组报 `Map index out of range`、`Control index out of range`、`Binding index out of range` 和
+`NullReferenceException`。恢复 Domain Reload 后连续两轮 Play 均不再复现，所以在 Unity/Input System 升级并
+重新验证以前，不要重新关闭它。
 
-代价是静态状态不再自动清空，规则变成"静态必须自己复位"，集中在
-`Scripts/Runtime/App/PlaySessionReset.cs`（`RuntimeInitializeLoadType.SubsystemRegistration`）：
+`Scripts/Runtime/App/PlaySessionReset.cs`（`RuntimeInitializeLoadType.SubsystemRegistration`）仍保留为静态状态的
+防御性复位，并让未来重新评估 Faster Enter Play Mode 时不必从零审计：
 
 - `ScannableTarget` / `GroundPickup` 的自注册表；
 - `FlashlightBeamBroadcaster.Beam`（上一次会话的光束）；
 - `DOTween.Clear(true)`——它的补间池和驱动物件分处两侧，物件随 Play 结束销毁，池不会。
 
-`WorldAccess` 与 `PersistentSingleton<T>` **不需要复位**：前者每次都从 bootstrap 现取，后者靠 Unity
-"已销毁对象等于 null"的语义自己重新找。**新增任何可变 static，都要在这里加一行**，否则它会跨会话残留。
+`WorldAccess` 每次都从 bootstrap 现取；`PersistentSingleton<T>` 也在 `PlaySessionReset` 中显式复位。
+**新增任何可变 static，仍要在这里加一行**，这样无论是否启用 Faster Enter Play Mode 都保持确定性。
 
 ### 3. `RootsDance > Dev > Cheap Rendering`
 

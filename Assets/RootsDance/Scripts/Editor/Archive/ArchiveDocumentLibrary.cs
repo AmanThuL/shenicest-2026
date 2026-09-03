@@ -100,7 +100,7 @@ namespace RootsDance.Editor.Archive
                 // strapline and stamp date are transcribed straight off the photograph's own caption.
                 FileName = "DOC-003_StaffPhotograph",
                 Id = "DOC-003",
-                Kind = ArchiveDocumentKind.ObservationRecord,
+                Kind = ArchiveDocumentKind.Photograph,
                 Title = "研究人员合照",
                 Subtitle = "Briggs Botanical Gardens — Research Division",
                 BodyLines = new string[0],
@@ -160,7 +160,7 @@ namespace RootsDance.Editor.Archive
             serialized.FindProperty("m_kind").enumValueIndex = (int)recipe.Kind;
             serialized.FindProperty("m_title").stringValue = recipe.Title;
             serialized.FindProperty("m_subtitle").stringValue = recipe.Subtitle;
-            serialized.FindProperty("m_promptText").stringValue = "拾取";
+            serialized.FindProperty("m_promptText").stringValue = recipe.Kind == ArchiveDocumentKind.Photograph ? "[E] 拾取 合照" : "[E] 拾取 档案";
             serialized.FindProperty("m_transcription").stringValue = recipe.Transcription;
             serialized.FindProperty("m_marginNote").stringValue = recipe.MarginNote;
             serialized.FindProperty("m_stampText").stringValue = recipe.StampText;

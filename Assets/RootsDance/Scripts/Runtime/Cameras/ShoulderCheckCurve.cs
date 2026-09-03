@@ -12,6 +12,11 @@ namespace RootsDance.Cameras
     /// and judging how close it is takes 300-500. A turn that goes out and comes straight back,
     /// however fast and however far, shows the player nothing. The hold is the effect.
     /// </para>
+    /// <para>
+    /// The turn out is not symmetric with the turn back. A head that has just heard something
+    /// behind it moves at full speed from the first frame and settles onto the target; an eased-in
+    /// start reads as a camera lerp, not a person. The return is the calm half and eases both ways.
+    /// </para>
     /// </summary>
     public static class ShoulderCheckCurve
     {
@@ -33,9 +38,11 @@ namespace RootsDance.Cameras
 
             if (elapsed < turnOutSeconds)
             {
-                // Smoothstep, not linear: it has to decelerate into the hold, or the image is still
-                // moving when the player starts trying to read it.
-                return Mathf.SmoothStep(0f, 1f, elapsed / turnOutSeconds);
+                // Cubic ease-out: full speed at the onset — that is what makes it a head turn and
+                // not a lerp — and still decelerating into the hold, so the image has settled by
+                // the time the player starts trying to read it.
+                float remaining = 1f - elapsed / turnOutSeconds;
+                return 1f - remaining * remaining * remaining;
             }
 
             float intoHold = elapsed - turnOutSeconds;

@@ -285,6 +285,13 @@ namespace RootsDance.EditorTools
                 // so playing on enable would bloom the statue the moment its scene loaded — which
                 // is what it did before the cue existed.
                 so.FindProperty("m_playOnEnable").boolValue = false;
+
+                // The cover at _Growth 0 clips to nothing, but a flower at growth 0 is still a
+                // shut bud standing on the robe. The driver keeps the field switched off until
+                // the ending starts, so the statue is bare stone until then.
+                SerializedProperty hidden = so.FindProperty("m_hiddenUntilStarted");
+                hidden.arraySize = 1;
+                hidden.GetArrayElementAtIndex(0).objectReferenceValue = flowers;
                 so.ApplyModifiedPropertiesWithoutUndo();
 
                 if (!AttachCue(root))

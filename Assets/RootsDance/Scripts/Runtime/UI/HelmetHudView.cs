@@ -60,16 +60,22 @@ namespace RootsDance.UI
             m_view = m_helmetViewBehaviour as IHelmetView;
 
             // The builder wires the reference when it can, but the rig may be rebuilt, renamed or
-            // inactive at build time — fall back to finding it here (initialisation only).
+            // inactive at build time — fall back to finding it here (initialisation only). Any
+            // IHelmetView will do, and deliberately so: there is more than one implementation, and
+            // naming one of them here is how the chrome ended up waiting on a view nothing plays
+            // while HelmetController drove the other one — the helmet came off and the glass, with
+            // its stain, stayed on the screen.
             if (m_view == null)
             {
-                HelmetAnimatorView found =
-                    FindFirstObjectByType<HelmetAnimatorView>(FindObjectsInactive.Include);
-                m_view = found;
-
-                if (found != null)
+                foreach (MonoBehaviour behaviour in
+                    FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
-                    m_helmetViewBehaviour = found;
+                    if (behaviour is IHelmetView found)
+                    {
+                        m_view = found;
+                        m_helmetViewBehaviour = behaviour;
+                        break;
+                    }
                 }
             }
 
@@ -185,7 +191,11 @@ namespace RootsDance.UI
                     .DOAnchorPosY(m_wornPosition.y + lift, m_liftDuration).SetEase(m_ease))
                 .Join(m_visorRoot.DOScale(m_liftScale, m_liftDuration).SetEase(m_ease))
                 .Join(m_visorRoot
-                    .DOLocalRotate(new Vector3(m_liftTilt, 0f, 0f), m_liftDuration).SetEase(m_ease));
+                    .DOLocalRotate(new Vector3(m_liftTilt, 0f, 0f), m_liftDuration).SetEase(m_ease))
+                // Lifted is not gone: whatever of the glass — above all its stain — still reaches
+                // into the frame after the rise stays there forever. Every other path to "helmet
+                // off" deactivates the chrome; the live performance must land in the same state.
+                .OnComplete(() => m_visorRoot.gameObject.SetActive(false));
         }
     }
 }

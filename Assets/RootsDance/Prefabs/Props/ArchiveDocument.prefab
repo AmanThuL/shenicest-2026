@@ -1105,6 +1105,9 @@ MonoBehaviour:
   m_archiveCode: {fileID: 187160269891846985}
   m_diagram: {fileID: 5472439466602666250}
   m_photo: {fileID: 7513739268340698604}
+  m_paper: {fileID: 7972530504669788612}
+  m_photoCard: {fileID: 2382464140593156175}
+  m_photoClip: {fileID: 4971044951300890066}
   m_dustOverlay: {fileID: 3603630790617456943}
   m_dustClearSeconds: 0.8
 --- !u!114 &4825888598384270891

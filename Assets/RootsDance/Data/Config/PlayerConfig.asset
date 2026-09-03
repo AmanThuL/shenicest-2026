@@ -24,7 +24,9 @@ MonoBehaviour:
   m_groundLayers:
     serializedVersion: 2
     m_Bits: 256
-  m_lookSensitivity: 1.5
-  m_pitchLimitDown: 25
+  m_lookSensitivity: 0.12
+  m_gamepadLookSpeed: 180
+  m_trackpadLookSensitivity: 0.1
+  m_pitchLimitDown: 44.7
   m_pitchLimitUp: 80
-  m_lookSmoothTime: 0.03
+  m_lookSmoothTime: 0

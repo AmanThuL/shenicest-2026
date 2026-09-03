@@ -37,11 +37,14 @@ namespace RootsDance.Tests.EditMode.DevPlay
                     WorldFlags.k_EnteredGreenhouse,
                     WorldFlags.k_SawStaffPhotograph,
                     WorldFlags.k_CirculationCore,
+                    WorldFlags.k_LearnedDrop,
+                    WorldFlags.k_ResidualWaterSampled,
                     WorldFlags.k_CirculationRing,
                     WorldFlags.k_CirculationOuter,
                     WorldFlags.k_EnteredSacredSpace,
 
                     // The chase.
+                    WorldFlags.k_WrongCycleOutburstDone,
                     WorldFlags.k_ChaseStarted,
                     WorldFlags.k_ChaseEscaped,
 

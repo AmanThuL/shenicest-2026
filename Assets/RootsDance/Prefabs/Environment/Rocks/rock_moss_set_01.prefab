@@ -143,7 +143,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 615b692e03aae478483d28bef5def60f, type: 2}
     - target: {fileID: -4148302621373604116, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: -1967527081469537020, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_CastShadows
@@ -159,7 +159,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 615b692e03aae478483d28bef5def60f, type: 2}
     - target: {fileID: -1689133054572761767, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: -1301020291786967198, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_CastShadows
@@ -175,15 +175,15 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 615b692e03aae478483d28bef5def60f, type: 2}
     - target: {fileID: -69585987899301089, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 56943877233829873, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 778051504518211745, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_Name
@@ -195,7 +195,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7921884066421067371, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 86
+      value: 82
       objectReference: {fileID: 0}
     - target: {fileID: 8068413760997802933, guid: f05fbbee80ec24a819ff123fc34aa2ac, type: 3}
       propertyPath: m_CastShadows

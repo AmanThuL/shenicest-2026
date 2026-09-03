@@ -443,6 +443,7 @@ The draw-call strategy for this project **[project decision — the GPU Resident
 | GPU Resident Drawer (HDRP asset > **Rendering** > **GPU Resident Drawer** = **Instanced Drawing**) | **off by default** | **MAY** enable when the Profiler shows a render-thread/draw-call-bound frame *and* the scene has many instances of the same mesh. Prerequisites: **Project Settings > Graphics > Shader Stripping > BatchRendererGroup Variants = Keep All**, Mesh Renderers only, a compute-shader-capable graphics API; then disable Static Batching. Builds get slower (all BRG variants compile) |
 | GPU Occlusion Culling (HDRP asset > **Rendering**) | off | Only together with the GPU Resident Drawer, in scenes with a lot of occlusion; can cost more than it saves otherwise |
 | `MaterialPropertyBlock` | **never** | Breaks SRP Batcher and GPU Resident Drawer batching; rule and the Material Variants alternative are in [07 §9.2](./07-rendering-hdrp.md#92-srp-batcher-compatibility) |
+| Scattered prefab instances (hundreds of copies of one mesh, e.g. `Prefabs/Environment/Rocks/`) | **never** Batching Static | Static batching copies every instance's geometry into the scene file: 1.48 GB of a 2.6 GB player on 2026-08-30. Keep Occluder/Occludee/Reflection Probe flags. Enforced by the Asset Size Audit ([build-and-packaging.md, "Asset size policy and audit"](../architecture/tooling/build-and-packaging.md#asset-size-policy-and-audit)) |
 
 - *Source:* [Choose a method for optimizing draw calls](../reference/performance/manual-optimizing-draw-calls-choose-method.md) · [Batching meshes](../reference/performance/manual-drawcallbatching.md) · [GPU instancing](../reference/performance/manual-gpuinstancing.md) · [Scriptable Render Pipeline Batcher (HDRP)](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-srpbatcher.md) · [Use the GPU Resident Drawer (HDRP)](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-gpu-resident-drawer.md) · [HDRP Asset reference — Rendering section](../reference/rendering-hdrp/render-pipelines-high-definition-17-3-hdrp-asset.md)
 
@@ -513,6 +514,16 @@ width, clamped to the 2048 ceiling ([02 §12](./02-project-structure.md#12-impor
 The tiers above are therefore an **authoring** budget: shrink the exported file, do not hand-set
 Max Size in the Inspector. A committed `.meta` that disagrees with the authored width is drift —
 the importer rewrites it on the next reimport and the file churns for every teammate.
+
+Props and interior sets ship smaller than they're authored at: textures under `Textures/Props/`
+and `Textures/Environment/` get a **Standalone platform override capping Max Size at 1024** even
+though the source stays at 2048 for other platforms/previews — `TexturePipelinePostprocessor`
+applies it at import (`AssetSizePolicy.TryGetStandaloneMaxSize`). Source textures must also be a
+**multiple of 4 in both dimensions**, or have **Non Power of 2 = To Nearest** set — block
+compression needs it, and a texture that fails both ships uncompressed at roughly 3x the size.
+Both rules are applied automatically on import and checked by the Asset Size Audit
+(`TextureStandaloneMax`, `TextureNpot4` — [build-and-packaging.md, "Asset size policy and
+audit"](../architecture/tooling/build-and-packaging.md#asset-size-policy-and-audit)).
 
 - *Source:* [Choose a GPU texture format by platform](../reference/performance/manual-texture-choose-format-by-platform.md) · [PC/console e-book](../reference/performance/ebook-optimize-your-game-performance-for-consoles-and-pcs-in-unity-unity-6-e.md) (Texture import settings, Stream mipmaps) · [Mipmap streaming](../reference/performance/manual-texturestreaming.md) · [Quality settings reference](../reference/performance/manual-class-qualitysettings.md) (Textures > Mipmap Streaming)
 

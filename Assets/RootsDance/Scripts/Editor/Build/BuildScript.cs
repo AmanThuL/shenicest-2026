@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Profile;
@@ -18,6 +19,11 @@ namespace RootsDance.Editor.Build
     {
         private const string k_ProfileFolder = "Assets/RootsDance/Settings/BuildProfiles";
 
+        public const string k_BuildReportFile = "build-report.json";
+
+        /// <summary>True while BuildFromCommandLine runs; build callbacks use it to stay quiet otherwise.</summary>
+        public static bool IsCommandLineBuild { get; private set; }
+
         public static void BuildFromCommandLine()
         {
             Dictionary<string, string> args = ParseArgs(System.Environment.GetCommandLineArgs());
@@ -35,6 +41,8 @@ namespace RootsDance.Editor.Build
             }
 
             bool development = args.ContainsKey("-rdDev");
+            bool strict = args.ContainsKey("-rdStrict");
+            bool skipAudit = args.ContainsKey("-rdSkipAudit");
 
             string assetPath = string.Format("{0}/{1}.asset", k_ProfileFolder, profileName);
             BuildProfile profile = AssetDatabase.LoadAssetAtPath<BuildProfile>(assetPath);
@@ -46,6 +54,33 @@ namespace RootsDance.Editor.Build
             }
 
             ValidateBuildProfile(profile, profileName);
+            Debug.Log(string.Format("[BuildScript] build start profile={0} dev={1}", profileName, development));
+
+            if (!skipAudit)
+            {
+                AuditResult audit = AssetSizeAudit.Run(false, true);
+                if (strict)
+                {
+                    // Only fixable violations gate the build: report-only rules (an
+                    // Uncompressed project texture, a pipeline-owned model) have no action
+                    // --fix could take, so failing on them would leave --strict unusable.
+                    int fixable = 0;
+                    foreach (AssetViolation violation in audit.Violations)
+                    {
+                        if (violation.fixable)
+                        {
+                            fixable++;
+                        }
+                    }
+
+                    if (fixable > 0)
+                    {
+                        throw new BuildFailedException(string.Format(
+                            "Asset size audit found {0} fixable violation(s); run build.py --audit --fix "
+                            + "or drop --strict.", fixable));
+                    }
+                }
+            }
 
             BuildOptions options = BuildOptions.StrictMode | BuildOptions.DetailedBuildReport;
             if (development)
@@ -64,13 +99,40 @@ namespace RootsDance.Editor.Build
                 options = options,
             };
 
-            BuildReport report = BuildPipeline.BuildPlayer(buildOptions);
+            BuildReport report;
+            StackTraceLogType logTraces = Application.GetStackTraceLogType(LogType.Log);
+            StackTraceLogType warningTraces = Application.GetStackTraceLogType(LogType.Warning);
+            IsCommandLineBuild = true;
+            BuildProgressLogger.Reset();
+            try
+            {
+                // 322k duplicate-LODGroup warnings with stack traces made the last log 614 MB.
+                Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+                Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
+                report = BuildPipeline.BuildPlayer(buildOptions);
+            }
+            finally
+            {
+                Application.SetStackTraceLogType(LogType.Log, logTraces);
+                Application.SetStackTraceLogType(LogType.Warning, warningTraces);
+                IsCommandLineBuild = false;
+            }
+
             if (report == null)
             {
                 throw new BuildFailedException("Unity returned no build report. Check the preceding build errors.");
             }
 
             BuildSummary summary = report.summary;
+            string reportPath = Path.Combine(Path.GetDirectoryName(outputPath), k_BuildReportFile);
+            try
+            {
+                BuildReportWriter.Write(report, reportPath);
+            }
+            catch (Exception error)
+            {
+                Debug.LogWarning("[BuildScript] could not write " + reportPath + ": " + error.Message);
+            }
 
             Debug.Log(string.Format(
                 "[BuildScript] {0}: result={1} size={2} bytes errors={3} time={4}",
@@ -80,6 +142,13 @@ namespace RootsDance.Editor.Build
             {
                 throw new BuildFailedException(string.Format(
                     "Build {0} with {1} error(s).", summary.result, summary.totalErrors));
+            }
+
+            if (Application.isBatchMode)
+            {
+                // Do not wait for -quit: the Editor otherwise idles up to -quitTimeout seconds
+                // (5 minutes by default) on IL2CPP's analytics launch. build.py trusts the marker.
+                EditorApplication.Exit(0);
             }
         }
 

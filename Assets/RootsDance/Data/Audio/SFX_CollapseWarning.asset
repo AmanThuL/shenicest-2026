@@ -15,13 +15,13 @@ MonoBehaviour:
   m_clips:
   - {fileID: 8300000, guid: ba46ab8ba4ce140b0a073ecb9d28f67b, type: 3}
   m_outputGroup: {fileID: -3989681393947174152, guid: e62854aa9b79941c29adcad50cb8a51d, type: 2}
-  m_volume: 0.45
+  m_volume: 1
   m_volumeJitter: 0
   m_pitch: 1
   m_pitchJitter: 0
   m_loop: 0
   m_cooldownSeconds: 0
-  m_spatialBlend: 1
-  m_minDistance: 3
-  m_maxDistance: 45
+  m_spatialBlend: 0.6
+  m_minDistance: 6
+  m_maxDistance: 90
   m_rolloff: 1

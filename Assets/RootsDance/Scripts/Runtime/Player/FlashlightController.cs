@@ -138,9 +138,52 @@ namespace RootsDance.Player
         /// </summary>
         public StringEventChannelSO PromptChannel => m_promptChanged;
 
+        /// <summary>The line taught while <see cref="SwitchHintWanted"/> is true.</summary>
+        public string SwitchHint => m_switchHint;
+
+        /// <summary>
+        /// True while a torch is in the hand with power and its switch off — the moment the [F]
+        /// line has something to teach. A held-up mode that owns the hint line folds this line
+        /// into its own while it is true, because its mode priority would otherwise silence the
+        /// teacher.
+        /// </summary>
+        public bool SwitchHintWanted => IsHeld && State.HasPower && !State.IsOn;
+
+        /// <summary>
+        /// The switch model, rebuilt in place if a domain reload in Play threw it away: it is not
+        /// serialized and Awake does not run again, so the first Update after the reload would
+        /// otherwise dereference null sixty times a second and freeze the beam (same shape as the
+        /// chase trail's rebuild). The rebuilt state re-seeds from the world on the next Update.
+        /// </summary>
+        private FlashlightState State
+        {
+            get
+            {
+                if (m_state == null)
+                {
+                    m_state = new FlashlightState(m_autoOnAtNight);
+                    m_isSeeded = false;
+                }
+
+                return m_state;
+            }
+        }
+
         private void Awake()
         {
-            m_input = GetComponent<PlayerInputReader>();
+            // Parent-inclusive, and checked. The reader normally sits on the same object, but a
+            // rig that puts the torch on a child leaves this null, and Update dereferences it every
+            // frame — one missing reference then throws 60 times a second and takes the rest of
+            // Update with it, including the power gate and the fade. The beam is left frozen at
+            // whatever the previous frame set, which reads as the gate not working at all.
+            m_input = GetComponentInParent<PlayerInputReader>();
+
+            if (m_input == null)
+            {
+                Log.Error("FlashlightController found no PlayerInputReader on itself or a parent; "
+                    + "the switch will not respond.", this);
+            }
+
             m_state = new FlashlightState(m_autoOnAtNight);
             m_hasLight = m_light != null;
 
@@ -237,16 +280,30 @@ namespace RootsDance.Player
 
         private void Update()
         {
+            // Non-serialized, so a domain reload in Play also resets this to false and the torch
+            // would go dark for the rest of the session; re-derived from the one serialized fact.
+            m_hasLight = m_light != null;
+
             if (!m_hasLight)
             {
                 return;
+            }
+
+            if (m_state == null)
+            {
+                _ = State;
+            }
+
+            if (m_input == null)
+            {
+                m_input = GetComponentInParent<PlayerInputReader>();
             }
 
             SeedFromWorldState();
             m_state.SetHeld(IsHeld);
             m_state.SetPower(ReadPower());
 
-            if (m_input.FlashlightPressedThisFrame)
+            if (m_input != null && m_input.FlashlightPressedThisFrame)
             {
                 m_state.Toggle();
             }
@@ -268,10 +325,8 @@ namespace RootsDance.Player
                 return;
             }
 
-            bool wanted = IsHeld && m_state.HasPower && !m_state.IsOn;
-
             InteractionPrompts.Set(this, m_promptChanged,
-                wanted ? m_switchHint : string.Empty, k_SwitchHintPriority);
+                SwitchHintWanted ? m_switchHint : string.Empty, k_SwitchHintPriority);
         }
 
         private void OnDisable()
@@ -296,7 +351,7 @@ namespace RootsDance.Player
             // The channel carries the same truth the seed would read, so a phase change also counts
             // as seeded — otherwise the seed would undo a toggle made before the bootstrap arrived.
             m_isSeeded = true;
-            m_state.OnPhase(phase);
+            State.OnPhase(phase);
         }
 
         /// <summary>
@@ -318,7 +373,7 @@ namespace RootsDance.Player
             }
 
             m_isSeeded = true;
-            m_state.OnPhase(state.TimeOfDay);
+            State.OnPhase(state.TimeOfDay);
         }
 
         /// <summary>
@@ -340,7 +395,7 @@ namespace RootsDance.Player
 
         private void Fade()
         {
-            float target = m_state.IsLit ? m_fullIntensity : 0f;
+            float target = State.IsLit ? m_fullIntensity : 0f;
             float maxDelta = m_fadeSeconds <= 0f
                 ? m_fullIntensity
                 : m_fullIntensity * Time.deltaTime / m_fadeSeconds;

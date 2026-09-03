@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Events;
 using RootsDance.Interaction;
 using RootsDance.Player;
 using UnityEngine;
@@ -43,6 +44,18 @@ namespace RootsDance.Archive
         [Tooltip("Reads the interact button (put the sheet down), the look axes (turn it) and the "
             + "move axes (lean in and out).")]
         [SerializeField] private PlayerInputReader m_input;
+
+        [Header("Hint")]
+        [Tooltip("Interaction hint channel (Data/Events/InteractionPrompt). Left empty, the torch's "
+            + "own channel is used — it is the same asset.")]
+        [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [Tooltip("What the HUD says while a sheet is up: every key that works in this mode "
+            + "(规范·规则 2). The light lines below are put in front of it when they apply.")]
+        [SerializeField] private string m_readingHint = "[E] 放回  [W/S] 凑近/拉远  [鼠标] 转动";
+
+        [Tooltip("Appended only for a sheet whose prefab has a back face.")]
+        [SerializeField] private string m_flipHint = "[左键] 翻面";
 
         [Tooltip("Suspended while reading — normally the look, the move and the interaction ray. "
             + "One owner per axis: the sheet owns the mouse for as long as it is up.")]
@@ -108,8 +121,8 @@ namespace RootsDance.Archive
         [Range(0f, 1f)]
         [SerializeField] private float m_darkReadLuminance = 0.25f;
 
-        /// <summary>Above the torch's standing [F] teacher, below every contextual offer.</summary>
-        private const int k_DarkHintPriority = -4;
+        /// <summary>Between the segments of the composed reading line.</summary>
+        private const string k_Separator = "  ";
 
         private Camera m_camera;
         private ReadState m_state = ReadState.Idle;
@@ -160,6 +173,11 @@ namespace RootsDance.Archive
 
         private void Update()
         {
+            if (m_state != ReadState.Idle)
+            {
+                Rendering.CloseUpFocus.HoldThisFrame();
+            }
+
             if (m_state != ReadState.Reading || m_sheet == null)
             {
                 return;
@@ -188,14 +206,14 @@ namespace RootsDance.Archive
             m_flipAngle = Mathf.MoveTowards(m_flipAngle, m_flipTarget,
                 m_flipDegreesPerSecond * Time.deltaTime);
 
-            OfferDarkHint();
+            OfferReadingHint();
             ApplyReadPose();
         }
 
         private void OnDestroy()
         {
             CancelRead();
-            ClearDarkHint();
+            ClearReadingHint();
 
             // Mid-read scene unload: the loop will never reach idle, so the gate is opened here.
             WorldAccess.EndExclusiveInteraction(this);
@@ -212,7 +230,7 @@ namespace RootsDance.Archive
 
             m_page?.EndReading();
             RestoreSheetOrigin();
-            ClearDarkHint();
+            ClearReadingHint();
             m_state = ReadState.Idle;
             m_pickup = null;
             m_page = null;
@@ -284,7 +302,7 @@ namespace RootsDance.Archive
             }
 
             m_state = ReadState.Lowering;
-            ClearDarkHint();
+            ClearReadingHint();
 
             if (m_page != null)
             {
@@ -475,35 +493,64 @@ namespace RootsDance.Archive
         }
 
         /// <summary>
-        /// A sheet held up in the dark says so. The line rides the torch's own hint channel — the
-        /// torch already owns the channel asset, and this controller is saved once per level
-        /// scene, where a cross-scene reference to it cannot be (guideline 03). With a torch in
-        /// hand this stands down and the torch's own [F] teacher speaks; with none there is
-        /// nothing to press, so the line just names the problem.
+        /// The one line this mode owns, rebuilt every frame while a sheet is up: the keys that
+        /// work on it, and in front of them what the light is doing. Reading in the dark with no
+        /// torch says so; a torch in hand with its switch off borrows the torch's own [F] teacher,
+        /// because this line sits at mode priority and would otherwise silence it. One composed
+        /// request rather than three claimants, so nothing about light and paper can ever talk
+        /// over the keys (规范·规则 2).
         /// </summary>
-        private void OfferDarkHint()
+        private void OfferReadingHint()
         {
-            FlashlightController torch = FlashlightController.Active;
+            StringEventChannelSO channel = PromptChannel;
 
-            if (torch == null || torch.PromptChannel == null)
+            if (channel == null || m_state != ReadState.Reading)
             {
                 return;
             }
 
+            FlashlightController torch = FlashlightController.Active;
             bool dark = m_paperLighting != null && m_paperLighting.Luminance < m_darkReadLuminance;
-            bool wanted = m_state == ReadState.Reading && dark && !torch.IsHeld;
+            string line = m_readingHint;
 
-            InteractionPrompts.Set(this, torch.PromptChannel,
-                wanted ? m_tooDarkHint : string.Empty, k_DarkHintPriority);
+            if (m_pickup != null && m_pickup.HasBackFace && !string.IsNullOrEmpty(m_flipHint))
+            {
+                line = string.Concat(line, k_Separator, m_flipHint);
+            }
+
+            if (torch != null && torch.SwitchHintWanted)
+            {
+                line = string.Concat(torch.SwitchHint, k_Separator, line);
+            }
+            else if (dark && (torch == null || !torch.IsHeld))
+            {
+                line = string.Concat(m_tooDarkHint, k_Separator, line);
+            }
+
+            InteractionPrompts.Set(this, channel, line, InteractionPrompts.k_ModePriority);
         }
 
-        private void ClearDarkHint()
+        private void ClearReadingHint()
         {
-            FlashlightController torch = FlashlightController.Active;
+            InteractionPrompts.Clear(this, PromptChannel);
+        }
 
-            if (torch != null && torch.PromptChannel != null)
+        /// <summary>
+        /// The serialized channel, or the torch's when a scene left it unwired: the torch owns the
+        /// same asset, and this controller is saved once per level scene.
+        /// </summary>
+        private StringEventChannelSO PromptChannel
+        {
+            get
             {
-                InteractionPrompts.Clear(this, torch.PromptChannel);
+                if (m_promptChanged != null)
+                {
+                    return m_promptChanged;
+                }
+
+                FlashlightController torch = FlashlightController.Active;
+
+                return torch != null ? torch.PromptChannel : null;
             }
         }
 

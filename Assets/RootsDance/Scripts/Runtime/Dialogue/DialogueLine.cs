@@ -42,6 +42,12 @@ namespace RootsDance.Dialogue
             + "should use. A recorded line is never cut short by a value typed here.")]
         private float m_holdSeconds;
 
+        [SerializeField]
+        [Tooltip("World flag raised the moment this line comes up. Empty for most lines. This is "
+            + "how something in the world can start under a particular line rather than after the "
+            + "whole conversation — the deck's warning under the end of the outburst.")]
+        private string m_flagOnShown;
+
         public DialogueSpeaker Speaker => m_speaker;
         public string Chinese => m_chinese;
         public string English => m_english;
@@ -49,5 +55,8 @@ namespace RootsDance.Dialogue
 
         /// <summary>0 means "decide from the recording, or from the length of the text".</summary>
         public float HoldSeconds => m_holdSeconds;
+
+        /// <summary>Flag raised as the line is shown; empty for none.</summary>
+        public string FlagOnShown => m_flagOnShown;
     }
 }

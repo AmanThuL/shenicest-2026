@@ -1,0 +1,55 @@
+﻿《Where the Roots Dance》Windows 构建环境一键安装包
+
+使用方法
+========
+
+1. 从仓库使用时，保持本目录三个文件放在一起；如果收到 ZIP，必须先完整解压到 Windows 本地磁盘。
+2. 系统要求：64 位 Windows 11，建议系统盘至少保留 40 GB 空间；系统不必是最新功能版本。
+3. 双击“ 双击安装VS2026和Unity-IL2CPP环境.cmd ”。
+4. 在 Windows 的管理员权限提示中选择“是”。
+5. 安装时间可能较长，Unity、Visual Studio 和 Windows SDK 会下载大量文件。
+6. 完成后查看中文检查表；全部为“通过”才代表可继续。
+
+安装内容
+========
+
+- Python 3.13.15（项目最低要求为 Python 3.9）
+- Git for Windows 2.55.0.5，包含 Git LFS
+- 系统支持时安装 Visual Studio 2026 Community；较旧 Windows 11 自动回退到最新可安装的 Visual Studio 2022 Community
+- “使用 Unity 的游戏开发”和“使用 C++ 的桌面开发”工作负载
+- MSVC x64/x86 编译器与链接器
+- Windows 11 SDK 10.0.26100、UCRT、资源编译器 rc.exe
+- Unity Hub 3.18.2
+- Unity 6000.3.22f1（changeset 1c726e1fb402）
+- Windows Build Support (IL2CPP)，含 Release 与 Development player variant
+
+脚本行为
+========
+
+- 已满足的项目会跳过，重复运行是安全的。
+- 下载的安装程序会检查数字签名；固定版本安装包还会检查 SHA-256。
+- 安装结束后会一次性扫描全部环境，并在同目录保存中文日志。
+- 只检查而不安装：
+  powershell.exe -ExecutionPolicy Bypass -File .\Install-VS2026-Unity-IL2CPP.ps1 -CheckOnly
+
+仍需人工完成
+============
+
+1. 打开 Unity Hub，登录 Unity 账号并激活有效许可证。脚本不会接触账号或许可证。
+2. 克隆项目后，在仓库目录运行：git lfs pull
+3. 首次打开项目后确认 Console 无错误，并运行：
+   RootsDance > Build > Create Default Build Profiles
+4. 关闭 Unity Editor，再在仓库根目录运行 Windows 构建：
+   py -3 Tools\build\build.py Windows-Release --dry-run
+   py -3 Tools\build\build.py Windows-Release
+
+注意事项
+========
+
+- 无论 Windows 11 是否为最新版本，脚本都会先尝试 VS 2026。若微软安装器明确拒绝，或安装后的工具链复查未通过，脚本会自动安装该系统可接受、且符合项目 VS 2019+ 要求的最新 VS 2022。
+- 脚本不会自动执行 Windows 功能更新或重启系统，避免意外修改操作系统；它只选择当前系统能够接受的开发工具版本。
+- Visual Studio Community 是否适用于你的组织，请以微软的许可条款为准。
+- Unity Hub 的无界面命令仍属实验性功能。如果下载受代理、防火墙或公司策略阻止，日志会保留失败原因；可在 Unity Hub 图形界面里为 6000.3.22f1 手动添加 Windows Build Support (IL2CPP)。
+- 不要直接在 ZIP 预览窗口里运行。文件使用 UTF-8 中文编码；启动器会切换到 UTF-8 代码页。
+
+核对日期：2026-09-03

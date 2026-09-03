@@ -304,7 +304,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.maintenance_entrance_revealed
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &88568491
 GameObject:
@@ -355,7 +355,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.vine_growth_direction_observed
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &151122843
 GameObject:
@@ -406,7 +406,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.radio_signal_lost
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &152687191
 GameObject:
@@ -661,7 +661,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.fine_veined_vine_scanned
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &227714628
 GameObject:
@@ -815,7 +815,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.first_investigation_done
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &391289702
 GameObject:
@@ -1042,6 +1042,8 @@ GameObject:
   - component: {fileID: 468471263}
   - component: {fileID: 468471262}
   - component: {fileID: 468471261}
+  - component: {fileID: 468471269}
+  - component: {fileID: 468471268}
   m_Layer: 0
   m_Name: HelmetHudCanvas
   m_TagString: Untagged
@@ -1221,6 +1223,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &468471268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 468471260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b996ed819564d20ad35e80ebf04210, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.UI.RecordingModeHider
+  m_mode: {fileID: 11400000, guid: bd3f353cee90843f2b8624ad3e2f4426, type: 2}
+  m_group: 8
+  m_canvasGroup: {fileID: 468471269}
+--- !u!225 &468471269
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 468471260}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &470986509
 GameObject:
   m_ObjectHideFlags: 0
@@ -1410,6 +1439,10 @@ PrefabInstance:
       value: -0.1900003
       objectReference: {fileID: 0}
     - target: {fileID: 4281936329804335788, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.9975928
+      objectReference: {fileID: 0}
+    - target: {fileID: 4281936329804335788, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.2535591
       objectReference: {fileID: 0}
@@ -1432,10 +1465,6 @@ PrefabInstance:
     - target: {fileID: 4558733782070972204, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 6049714687628792457, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
-      propertyPath: m_Height
-      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 6224601741888679364, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1507,7 +1536,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.9975929
+      value: -0.9975928
       objectReference: {fileID: 0}
     - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1560,15 +1589,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &532922591 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8287130015030841660, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6408187968081166693, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
   m_PrefabInstance: {fileID: 532922589}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 532922594}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c7dc3637573a43fca4e146eb1aecdcc, type: 3}
+  m_Script: {fileID: 11500000, guid: cc899942443b54b5eb13ac69120a3234, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.HelmetAnimatorView
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.Arms.HelmetArmsView
 --- !u!4 &532922592 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5715784304254550286, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
@@ -2660,7 +2689,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.left_start_area
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &965136223
 GameObject:
@@ -2980,7 +3009,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.helmet_removable
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1009146341
 GameObject:
@@ -3419,7 +3448,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.main_entrance_sign_read
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1257835271
 GameObject:
@@ -3470,7 +3499,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.helmet_removed
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1310971442
 GameObject:
@@ -3550,7 +3579,7 @@ MonoBehaviour:
   m_controller: {fileID: 510528445}
   m_channel: {fileID: 11400000, guid: 07be9e61f55d14530b307b294a07afb7, type: 2}
   m_cue: {fileID: 11400000, guid: 4c11e926b1bf848c099f0f90c01badde, type: 2}
-  m_strideLength: 1.9
+  m_strideLength: 0.8
   m_minimumSpeed: 0.4
 --- !u!1 &1357867348
 GameObject:
@@ -3972,7 +4001,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.ashleaf_vine_scanned
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1608846278
 GameObject:
@@ -4287,9 +4316,12 @@ MonoBehaviour:
   m_fallSeconds: 1.2
   m_lookBackDegrees: 150
   m_overLeftShoulder: 1
-  m_turnOutSeconds: 0.5
+  m_turnOutSeconds: 0.4
   m_holdSeconds: 0.45
   m_returnSeconds: 0.4
+  m_lookBackTargetName: FlowerSprite
+  m_maxTargetDegrees: 170
+  m_targetPitchLimit: 35
   m_shakeWhileLookingBack: 0.45
 --- !u!114 &1834691133
 MonoBehaviour:
@@ -4317,6 +4349,16 @@ MonoBehaviour:
   m_rollHz: 0.7
   m_fovBoostDegrees: 5
   m_windSmoothSeconds: 0.25
+  m_tremorDegrees: 8
+  m_tremorMeters: 0.16
+  m_tremorHz: 9
+  m_tremorSmoothSeconds: 0.5
+  m_swayDegrees: 6.5
+  m_swayHz: 0.55
+  m_tremorFovDegrees: 4
+  m_kickSeconds: 0.35
+  m_kickTrauma: 0.55
+  m_traumaDecaySeconds: 1.2
   m_landDipMeters: 0.13
   m_landPitchDegrees: 5
   m_landSeconds: 0.5
@@ -4442,7 +4484,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.main_entrance_blocked
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1897359190
 GameObject:
@@ -4672,7 +4714,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.entered_maintenance_tunnel
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &1975915045
 GameObject:
@@ -4932,7 +4974,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.research_facility_poster_read
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1 &2117725056
 GameObject:
@@ -4983,7 +5025,7 @@ MonoBehaviour:
   m_playOn: 2
   m_flagId: flow.entered_grass_belt
   m_flagRaised: {fileID: 11400000, guid: e8f649eba73f9432f870602275c210cf, type: 2}
-  m_promptText: "\u4EA4\u8C08"
+  m_promptText: "[E] \u4EA4\u8C08"
   m_fireOnce: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

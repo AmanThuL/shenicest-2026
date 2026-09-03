@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 155275765654697866}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.72, z: 0}
+  m_LocalPosition: {x: 0, y: 1.62, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -123,6 +123,8 @@ GameObject:
   - component: {fileID: 6841962975302966709}
   - component: {fileID: 5093586072011387537}
   - component: {fileID: 1267723497874549201}
+  - component: {fileID: 7249467957965653413}
+  - component: {fileID: 9011859582228339412}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -165,13 +167,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.8
+  m_Height: 1.5
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.35
-  m_SkinWidth: 0.08
+  m_SkinWidth: 0.05
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.75, z: 0}
 --- !u!114 &2523268967826309828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,7 +213,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Player.PlayerLook
   m_head: {fileID: 6146614410336275913}
   m_config: {fileID: 11400000, guid: 65d61d1a7216e48c5bc2676c2bc699f5, type: 2}
+  m_controlSettings: {fileID: 11400000, guid: 226acb244df144364aa5c7a20c76829d, type: 2}
   m_lockCursor: 1
+  m_choicesShown: {fileID: 11400000, guid: 1db437663ef3949f6a69e429cac0a1d2, type: 2}
+  m_choicesHidden: {fileID: 11400000, guid: ab9c9534a76034829892ccf43aaf141b, type: 2}
 --- !u!114 &8247901955320014799
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,10 +264,11 @@ MonoBehaviour:
   m_noticeRequested: {fileID: 11400000, guid: a609440e92c16426eb84a8155d1561c4, type: 2}
   m_noticeText: "\u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u4F4E\u4E8E\u9632\u62A4\u9608\u503C\u3002\u53EF\u89E3\u9664\u73AF\u5883\u9694\u79BB\u3002"
   m_hintRequested: {fileID: 11400000, guid: 4a8c180848d9c47aea371540330e1790, type: 2}
-  m_hintText: "[E]  \u89E3\u9664\u73AF\u5883\u9694\u79BB"
+  m_hintText: "[E] \u89E3\u9664\u73AF\u5883\u9694\u79BB"
   m_warningRequested: {fileID: 11400000, guid: b76d7caf91cd943deb49d3d348c6f10a, type: 2}
   m_warningText: "[ ! ]  \u5916\u90E8\u6C61\u67D3\u6D53\u5EA6\u9AD8\u4E8E\u9632\u62A4\u9608\u503C\u3002\u73AF\u5883\u9694\u79BB\u5DF2\u9501\u5B9A\u3002"
   m_input: {fileID: 2523268967826309828}
+  m_droppedHelmetPrefab: {fileID: 0}
   m_viewBehaviour: {fileID: 6408187968081166693}
 --- !u!114 &8163118375396427749
 MonoBehaviour:
@@ -322,7 +328,8 @@ MonoBehaviour:
   m_director: {fileID: 6881924305928856330}
   m_throwTrigger: {fileID: 1267723497874549201}
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
-  m_range: 3
+  m_range: 2.5
+  m_takeGlideSeconds: 0.45
   m_dropKey: 21
   m_pickPromptFormat: "[E] \u62FE\u53D6 {0}"
   m_swapPromptFormat: "[G] \u5148\u653E\u4E0B {1} \u624D\u80FD\u62FE\u53D6 {0}"
@@ -345,6 +352,41 @@ MonoBehaviour:
   m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_range: 6.5
   m_actionId: throw
+--- !u!114 &7249467957965653413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b83c4e5e6eef4152a70edf9a15425ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Interaction.HarvestProximityTrigger
+  m_socket: {fileID: 7863462782624755283}
+  m_player: {fileID: 6772109266663148318}
+  m_input: {fileID: 2523268967826309828}
+  m_director: {fileID: 6881924305928856330}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_range: 2.5
+  m_actionId: grabGround
+  m_promptFormat: "[E] \u91C7\u96C6{0}"
+--- !u!114 &9011859582228339412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4558733782070972204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5480e59bcea44613b11e23138b4e085c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Chase.ChaseLookBackTrigger
+  m_input: {fileID: 2523268967826309828}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_hint: "[Q] \u56DE\u5934\u770B"
 --- !u!1 &4722933661267582901
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,7 +558,7 @@ CapsuleCollider:
   m_Radius: 0.45
   m_Height: 1.9
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.95, z: 0}
 --- !u!54 &913213895676966938
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -600,7 +642,7 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 7153.9834
+  m_Intensity: 16000
   m_Range: 30
   m_SpotAngle: 36
   m_InnerSpotAngle: 20

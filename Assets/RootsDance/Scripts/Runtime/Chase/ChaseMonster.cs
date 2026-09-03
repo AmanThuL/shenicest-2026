@@ -33,12 +33,56 @@ namespace RootsDance.Chase
         private readonly RaycastHit[] m_groundHits = new RaycastHit[8];
         private ChaseTrail m_trail;
         private Transform m_target;
+        private Renderer[] m_renderers;
 
         /// <summary>True while it is following the trail.</summary>
         public bool IsPursuing { get; private set; }
 
+        /// <summary>
+        /// Where a look back should aim: the centre of the body as drawn this frame, not the root.
+        /// The root pivot sits on the ground under the feet, and a shoulder check framed on it
+        /// shows the player the boss's feet and nothing above them.
+        /// </summary>
+        public Vector3 LookAtPoint
+        {
+            get
+            {
+                if (m_renderers == null)
+                {
+                    m_renderers = GetComponentsInChildren<Renderer>(true);
+                }
+
+                bool any = false;
+                Bounds bounds = default;
+
+                for (int i = 0; i < m_renderers.Length; i++)
+                {
+                    Renderer renderer = m_renderers[i];
+
+                    if (renderer == null || !renderer.enabled)
+                    {
+                        continue;
+                    }
+
+                    if (!any)
+                    {
+                        bounds = renderer.bounds;
+                        any = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(renderer.bounds);
+                    }
+                }
+
+                return any ? bounds.center : transform.position;
+            }
+        }
+
         private void Awake()
         {
+            m_renderers = GetComponentsInChildren<Renderer>(true);
+
             if (m_config == null)
             {
                 Log.Error("ChaseMonster has no EnemyConfig; it cannot pursue.", this);
@@ -94,6 +138,18 @@ namespace RootsDance.Chase
             if (!IsPursuing || m_target == null)
             {
                 return;
+            }
+
+            if (m_trail == null)
+            {
+                // An in-play domain reload wipes runtime fields without re-running Awake; rebuild
+                // in place rather than spraying one NullReference per frame at the playtester.
+                if (m_config == null)
+                {
+                    return;
+                }
+
+                m_trail = new ChaseTrail(m_config.TrailSpacing, m_config.MaxTrailPoints);
             }
 
             Vector3 head = m_target.position;

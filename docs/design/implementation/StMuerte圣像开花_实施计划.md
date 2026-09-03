@@ -92,13 +92,32 @@
 | `SourceArt/Blender/StatueBloom/BloomPatch.blend` | patch 源文件，与 `AlgaePatch` 并列 |
 | `SourceArt/Export/GAIA1/BloomPatch.export.json` | 导出溯源 sidecar |
 
+重跑斑块（靶子是本仓库 `GAIA1_v8.blend` 里的 `Robe`；斑的大小只由 `--sizes` 决定，shader 的 `_AlphaCutoff` / `_EdgeErode` 只能在每片内让斑胖一圈，撑不出片的边界）:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/GAIA1/GAIA1_v8.blend \
+  --python Tools/pipeline/build_bloom_patch.py -- \
+  --out SourceArt/Blender/StatueBloom/BloomPatch.blend --target Robe \
+  --count 299 --sizes 0.7,1.05,1.5,2.1,3.0 --spacing 0.075 --spread 0.6 \
+  --seed-objects LeftHand_hand_anim,RightHand_hand_anim --strip
+
+/Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/StatueBloom/BloomPatch.blend \
+  --python Tools/blender/export_fbx.py -- --project-root "$PWD" \
+  --output Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/BloomPatches.fbx \
+  --objects BloomPatches \
+  --profile Tools/blender/profiles/static_prop_vcol.json \
+  --manifest SourceArt/Export/GAIA1/BloomPatches.export.json
+```
+
+先让 Editor 把新 FBX 导完再跑 builder；导入未完成时跑，prefab 会带着空材质存盘。
+
 重跑花田（Editor 可以开着，这一步只写 `SourceArt/` 与 `Assets/.../BloomFlowers.fbx`）:
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender -b --python Tools/pipeline/build_bloom_flowers.py -- \
   --statue Assets/RootsDance/Meshes/Environment/GAIA1/Sculpture/StMuerte.fbx \
   --out SourceArt/Blender/StatueBloom/BloomFlowers.blend \
-  --count 4200 --spread 0.22 \
+  --count 8400 --spread 0.155 \
   --seed-objects LeftHand_hand_anim,RightHand_hand_anim --strip
 
 /Applications/Blender.app/Contents/MacOS/Blender -b SourceArt/Blender/StatueBloom/BloomFlowers.blend \
@@ -130,12 +149,12 @@
 ## 5. 执行顺序
 
 - [x] 1. `build_bloom_patch.py`: 贴合改用 BVH 投射 + barycentric 插值法线；球面靶子实测 clearance 恒为 `3.99 mm`（即 `lift`），法线与径向 `dot = 1.00000`
-- [x] 2. `Robe` 靶子: `119` 个 clump 全部通过内建审计，无穿模、无桥接；撕裂逻辑把最大边拉伸从 `39.7×` 降到阈值 `2.5×`
+- [x] 2. `Robe` 靶子: `298` 个 clump（尺寸 0.7–3.0 m）通过内建审计，无穿模、无桥接；撕裂逻辑把最大边拉伸从 `39.7×` 降到阈值 `2.5×`
 - [x] 3. 导出 `BloomPatches.fbx`: `colors_type LINEAR`；round-trip 顶点色 `rms = 0.000000`，Unity 侧 B 通道四分位数与源一致（`0.125 / 0.039 / 0.255`）
 - [x] 4. `StatueBloom.shader` + `StatueBloom.hlsl`: 手写 unlit，非 Shader Graph，理由见 §6.3；编译零错误零警告，2 个 pass
 - [x] 5. `GrowthDriver.cs` + `GrowthDriverTests.cs`: 9 项 EditMode 测试全绿
 - [x] 6. `StatueBloomBuilder.cs`: 材质、prefab、场景放置；**尚未运行**，运行会打开并保存 `Main_Environment_Statue`
-- [x] 8. L3 花田: `build_bloom_flowers.py` 散布 `3,296` 朵，`158,792` verts / `97,072` tris，一个 mesh 一个 draw call；姿态由顶点着色器插值，`BloomFlowersMeshTests` 守住通道契约
+- [x] 8. L3 花田: `build_bloom_flowers.py` 散布 `6,681` 朵，`321,696` verts / `196,648` tris，一个 mesh 一个 draw call；姿态由顶点着色器插值，`BloomFlowersMeshTests` 守住通道契约
 - [x] 9. `SunBroadcaster` 已挂在 `_Lighting/Sun`：`12000 lux` → 全局量 `(1.20, 1.15, 1.06)`，贴近 shader 兜底光，`[ExecuteAlways]` 让 Editor 里也生效
 - [ ] 7. L1 生长贴图与基底材质
 - [ ] 10. 与 `MUS_EndingBloom` 对齐时长，接入 `CueSequence`
@@ -172,6 +191,8 @@
 
 重跑顺序有依赖: `RootsDance > Build Statue Environment Scene` 会重建整个 `Statue` 根，把 `StatueBloom` 一起删掉，所以它之后必须再跑一次 `RootsDance > Build Statue Bloom`。
 
+坏结局的血: `RootsDance > Build Statue Blood (Doomed Endings)` 把 `StatueWater` 整棵克隆成同级的 `StatueBlood`（材质换成 `VFX_StatueBlood*` 三件，其余不变），并在 `EndingCue` 旁挂 `DoomedCue_Core` / `DoomedCue_Ring` 两个 `CueSequence`，分别听 `flow.circulation_core` / `flow.circulation_ring`。它同时写 `Main_Environment_Statue` 和 `GreenhouseInterior_Environment` 两份。规则: 好结局的 `StatueWater`/`EndingCue` 不在这里改；`Build Statue Environment Scene` 或 `Build Stone Pool Overflow` 重跑之后都要再跑一次它，因为血是水的克隆，水一重建血就是旧的。血材质每次重建都从水材质整份拷贝再只改颜色，调水的贴图/折射时不用另外维护血。**当前是关的**：`StatueBloodBuilder.k_DoomedCuesArmed = false`，`DoomedCue` 节点 inactive，坏结局不出血；要开就把常量改 true 重跑 builder（或直接在场景里激活 `DoomedCue`）。
+
 ## 5.1 绽放动画怎么烘进顶点里
 
 Blender 的几何节点 / 粒子生长没有到 Unity 运行时的通路，顶点缓存（Alembic）的体积与开销不在本项目预算内，而且烘死之后就不能被剧情驱动。所以动画烘的是**姿态**，不是帧:
@@ -192,7 +213,8 @@ P(t) = (1-t)² · bud + 2t(1-t) · mid + t² · open
 | `COLOR.r` | 部位: `0` 茎与叶，`0.5` 花心，`1` 花瓣 |
 | `COLOR.g` | 每朵花的相位，用于色调离散与摇摆 |
 | `COLOR.b` | 生长序，`0` 最先开的那朵，`1` 最后一朵 |
-| `UV0` | 花瓣局部坐标，x 由根到尖 |
+| `COLOR.a` | 花瓣局部坐标，根到尖，只用来做根部阴影 |
+| `UV0` | 这朵花自己的轴向（单位向量，八面体编码，Unity 空间）。材质参数 `_Sink`（米）把整朵花沿这个轴反向推进石头，茎埋进去；调埋深改材质不重烘。HDRP 手写 shader 的顶点输入到 UV3 为止，这是最后一对全精度通道 |
 | `UV1` / `UV2` / `UV3` | `dBud.xy` / `dBud.z dMid.x` / `dMid.yz` |
 
 ### 位移必须写成 Unity 空间
@@ -236,7 +258,7 @@ UV 就是一组数，导出链路上没有任何东西会变换它；而顶点�
 
 ### 6.9 三千朵花的开销
 
-花田是一个 mesh、一个 renderer、一个 draw call，unlit 两个 pass，不投影不接收阴影。代价在顶点: `158,792` verts / `97,072` tris，比圣像本体（`85,963` tris）略多。顶点着色器每帧对每个顶点做一次 Bezier 与一次摇摆，没有分支。若要减，`--count` 与 `--spread` 是唯一旋钮，重跑 `build_bloom_flowers.py` 并重跑 builder。
+花田是一个 mesh、一个 renderer、一个 draw call，unlit 两个 pass，不投影不接收阴影。代价在顶点: `321,696` verts / `196,648` tris，约圣像本体（`85,963` tris）的两倍多。顶点着色器每帧对每个顶点做一次 Bezier 与一次摇摆，没有分支。若要减，`--count` 与 `--spread` 是唯一旋钮（朝向的随机量在 `--upright-jitter` / `--aim-jitter`，默认已开，避免同一褶皱上长出一排同向的花），重跑 `build_bloom_flowers.py` 并重跑 builder。
 
 ### 6.10 变形后的法线没有跟着转
 

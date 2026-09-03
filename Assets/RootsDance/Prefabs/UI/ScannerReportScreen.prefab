@@ -3791,7 +3791,8 @@ MonoBehaviour:
   m_previousButton: {fileID: 2742045893306658443}
   m_nextButton: {fileID: 6375702509828939494}
   m_hideArrowsAtEnds: 1
-  m_reportUpdated: {fileID: 0}
+  m_openOnLatestRecord: 1
+  m_reportUpdated: {fileID: 11400000, guid: be9c903e76a644c7f9eec315eda926c1, type: 2}
 --- !u!1 &6476149031220094711
 GameObject:
   m_ObjectHideFlags: 0

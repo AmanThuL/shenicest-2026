@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using RootsDance.App;
 using RootsDance.Core;
+using RootsDance.Events;
+using RootsDance.Interaction;
 using RootsDance.Player;
 using RootsDance.Player.Arms;
 using Unity.Cinemachine;
@@ -37,6 +39,14 @@ namespace RootsDance.World
         [Header("Wiring")]
         [Tooltip("Reads the interact button — the same key opens the terminal and steps back.")]
         [SerializeField] private PlayerInputReader m_input;
+
+        [Header("Hint")]
+        [Tooltip("Interaction hint channel (Data/Events/InteractionPrompt).")]
+        [SerializeField] private StringEventChannelSO m_promptChanged;
+
+        [Tooltip("What the HUD says while the panel is up: every key that works in this mode "
+            + "(规范·规则 2).")]
+        [SerializeField] private string m_readingHint = "[鼠标] 选择循环  [E] 离开终端";
 
         [Tooltip("Suspended while reading — the look, the move and the interaction ray. One owner "
             + "per axis: the terminal's camera owns the view for as long as it is up.")]
@@ -173,6 +183,8 @@ namespace RootsDance.World
                 m_screen.Open();
             }
 
+            InteractionPrompts.Set(this, m_promptChanged, m_readingHint,
+                InteractionPrompts.k_ModePriority);
             ReadingStarted?.Invoke();
             return true;
         }
@@ -204,6 +216,7 @@ namespace RootsDance.World
 
             m_terminal = null;
             m_state = ReadState.Idle;
+            InteractionPrompts.Clear(this, m_promptChanged);
             WorldAccess.EndExclusiveInteraction(this);
             ReadingEnded?.Invoke();
         }

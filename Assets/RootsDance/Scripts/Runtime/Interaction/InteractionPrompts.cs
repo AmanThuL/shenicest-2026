@@ -29,6 +29,20 @@ namespace RootsDance.Interaction
         /// <summary>Ranks a throw offer above a pickup offer, which is the one real conflict.</summary>
         public const int k_ThrowPriority = 10;
 
+        /// <summary>
+        /// The chase's look-back hint. Above everything: it stays up for the whole run, because it
+        /// is the one control that shows the player where the pursuer is.
+        /// </summary>
+        public const int k_ChaseHintPriority = 20;
+
+        /// <summary>
+        /// The line a held-up mode owns — a sheet being read, the scanner's report, a terminal,
+        /// the keypad. Above every proximity offer, whose triggers stand down under the
+        /// interaction lock but need not withdraw for this to win; below the chase hint, which
+        /// never coexists with a mode. A mode's line lists every key that works in it (规范·规则 2).
+        /// </summary>
+        public const int k_ModePriority = 15;
+
         /// <summary>Every other offer. Ties resolve to whoever registered first, which is stable.</summary>
         public const int k_DefaultPriority = 0;
 

@@ -35,8 +35,9 @@ namespace RootsDance.Investigation
 
         // ---- Interaction ------------------------------------------------------------------------
         [SerializeField, TitleGroup("Interaction")]
-        [Tooltip("Prompt shown while the object is focused, for example 采样 or 识别.")]
-        private string m_promptText = "调查";
+        [Tooltip("Prompt shown while the object is focused. An interaction, so it names its key "
+            + "(规范·规则 2): [E] 采样 土壤, [E] 识别植物.")]
+        private string m_promptText = "[E] 采样";
 
         // ---- Result -----------------------------------------------------------------------------
         [SerializeField, TitleGroup("Result"), TextArea(3, 10)]

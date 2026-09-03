@@ -16,6 +16,26 @@ desktop player builds, not only Development Builds. It is a local recovery tool,
   A normal scene transition already in progress refuses a rescue request; a frozen main thread or crashed process cannot
   be repaired by an in-game panel.
 
+## Recording mode (no-UI footage)
+
+The panel's **RECORDING** row is a developer switch for capturing clean footage. It is not a player setting.
+
+- **Recording mode (hide UI)** is the master switch. While it is on, every ticked group below is taken off the screen:
+  **Hints** (the interaction prompt and the one-line story notices on its canvas), **Dialogue** (the conversation
+  screen including choice buttons), **Subtitles** (the radio / monologue line) and **Helmet HUD** (the visor chrome and
+  the suit's own notices). Untick a group to keep it in the recording.
+- The switch is remembered in PlayerPrefs across Play runs and player launches on that machine. Reopen the panel to see
+  or change the state; nothing else in the game reports it.
+- Hidden elements do not receive clicks. A dialogue choice therefore cannot be answered while **Dialogue** is hidden:
+  open the panel and untick it, answer, then hide it again.
+- State lives in `Data/Config/RecordingMode.asset` (`RecordingModeSO`). Each hidden element carries a
+  `RecordingModeHider` on its root with a `CanvasGroup` of its own, so presenters keep driving their own groups
+  underneath. The hider must never share an object with a presenter-owned `CanvasGroup`.
+- The installer wires the Bootstrap canvases, the `DialogueScreen` prefab root and the `HelmetHudCanvas` of the Main and
+  PlayerTest gameplay scenes. Rebuilding one of those (`RootsDance > UI > ...`, `RootsDance > Build Helmet HUD`)
+  recreates its root without the hider: rerun **RootsDance > Dev Play > Install Recording Mode Hiders** afterwards.
+  A level that gets its own helmet HUD later needs adding to `RecordingModeInstaller`.
+
 ## Authoring and packaging
 
 `Data/DevPlay/` remains the single authoring source. Its `DevCheckpointSO` types stay Editor-only. The exporter copies
