@@ -11,6 +11,13 @@ namespace RootsDance.Player
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputReader))]
     public class FirstPersonController : MonoBehaviour, ICheckpointSpawnTarget
     {
+        /// <summary>
+        /// Degrees past the slope limit a contact may still count as ground. The controller itself
+        /// walks up to the limit exactly; the tolerance only keeps a surface authored right at it
+        /// from flickering between grounded and not.
+        /// </summary>
+        private const float k_SlopeToleranceDegrees = 1f;
+
         [SerializeField] private PlayerConfigSO m_config;
 
         private CharacterController m_controller;
@@ -18,6 +25,7 @@ namespace RootsDance.Player
         private Vector3 m_horizontalVelocity;
         private float m_verticalVelocity;
         private bool m_isGrounded;
+        private bool m_hasWalkableContactBelow;
 
         public bool IsGrounded => m_isGrounded;
 
@@ -49,7 +57,31 @@ namespace RootsDance.Player
 
             Vector3 motion = m_horizontalVelocity;
             motion.y = m_verticalVelocity;
+
+            // Cleared right before the move so the flag only ever describes the contacts this
+            // move made; OnControllerColliderHit fills it in while Move runs.
+            m_hasWalkableContactBelow = false;
             m_controller.Move(motion * deltaTime);
+        }
+
+        /// <summary>
+        /// Whether a surface with this normal can carry the player, by the controller's own slope
+        /// limit. Pure so the rule is testable without a scene.
+        /// </summary>
+        public static bool IsWalkable(Vector3 normal, float slopeLimitDegrees)
+        {
+            return Vector3.Angle(normal, Vector3.up) <= slopeLimitDegrees + k_SlopeToleranceDegrees;
+        }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            // Only contacts under the capsule count, and only walkable ones. The controller reports
+            // CollisionFlags.Below for any touch on its lower half — including the side of a beam
+            // it is perched on — and a perch is exactly what must not read as ground.
+            if (hit.moveDirection.y <= 0f && IsWalkable(hit.normal, m_controller.slopeLimit))
+            {
+                m_hasWalkableContactBelow = true;
+            }
         }
 
         public void ApplyCheckpoint(Vector3 position, float yaw)
@@ -84,10 +116,15 @@ namespace RootsDance.Player
             // there, which reads to FreeFallView as an endless terminal-velocity drop and shakes
             // the view everywhere, forever, with the player standing still.
             //
-            // A downward contact reported by the controller itself is proof of ground and cannot be
-            // spuriously true — it is only ever unreliably *false*, which is what the sphere covers.
-            // Trusting both means neither failure mode can strand the player mid-air.
-            bool restingOnSomething = (m_controller.collisionFlags & CollisionFlags.Below) != 0;
+            // A downward contact reported by the controller itself is proof of *something* under
+            // the capsule — but not proof of ground. CollisionFlags.Below is raised by any touch on
+            // the lower hemisphere, including the near-vertical side of a beam the capsule's edge
+            // is resting against: after the greenhouse deck fell, the player stayed standing in
+            // mid-air on the frame's edge, grounded by this flag, gravity reset every frame. So the
+            // flag only counts when the move also touched a surface the slope limit allows, which
+            // OnControllerColliderHit records; a perch then reads as airborne and Move slides off it.
+            bool restingOnSomething = (m_controller.collisionFlags & CollisionFlags.Below) != 0
+                && m_hasWalkableContactBelow;
 
             m_isGrounded = sphereFoundGround || restingOnSomething;
         }
