@@ -358,6 +358,21 @@ class ChurnRestoreTests(unittest.TestCase):
             self.assertEqual(build.git_modified_paths("/repo"),
                              {"Assets/RootsDance/Fonts/FZJingLei SDF.asset"})
 
+    def test_git_status_is_decoded_as_utf8_regardless_of_locale(self):
+        # -z emits raw UTF-8 path bytes; on a Windows machine with a GBK/cp1252 locale a
+        # text=True decode could raise on a Chinese file name and abort the build.
+        captured = {}
+
+        def fake_run(command, **kwargs):
+            captured.update(kwargs)
+            return mock.Mock(stdout="M  docs/\u8d34\u56fe\u7ba1\u7ebf.md\0", stderr="", returncode=0)
+
+        with mock.patch.object(build.subprocess, "run", side_effect=fake_run):
+            self.assertEqual(build.git_modified_paths("/repo"), {"docs/\u8d34\u56fe\u7ba1\u7ebf.md"})
+        self.assertEqual(captured.get("encoding"), "utf-8")
+        self.assertEqual(captured.get("errors"), "replace")
+        self.assertNotIn("text", captured)
+
     def test_rename_entries_skip_the_extra_original_path_field(self):
         output = "R  new.txt\0old.txt\0"
         with mock.patch.object(build.subprocess, "run",

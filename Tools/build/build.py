@@ -155,8 +155,10 @@ def git_modified_paths(repo):
     a rename/copy (status R or C) that must be skipped.
     """
     try:
+        # -z prints raw UTF-8 path bytes (no quotepath escaping); decode them as UTF-8 on every
+        # platform so a Windows locale codec cannot raise on a non-ASCII file name.
         result = subprocess.run(["git", "-C", repo, "status", "--porcelain", "-z", "--untracked-files=no"],
-                                capture_output=True, text=True, check=False)
+                                capture_output=True, encoding="utf-8", errors="replace", check=False)
     except (subprocess.SubprocessError, OSError) as error:
         con.warn("  could not read git status: {0}".format(error))
         return None
@@ -201,7 +203,7 @@ def restore_build_churn(repo, dirty_before):
     restore = []
     if candidates:
         result = subprocess.run(["git", "-C", repo, "checkout", "--"] + candidates,
-                                capture_output=True, text=True, check=False)
+                                capture_output=True, encoding="utf-8", errors="replace", check=False)
         if result.returncode == 0:
             restore = candidates
         else:
