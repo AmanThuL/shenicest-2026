@@ -284,6 +284,55 @@ namespace RootsDance.Tests.EditMode.Environment
         }
 
         [Test]
+        public void CollapseRestore_UsesStaticCompletedStateWithoutDebrisBodies()
+        {
+            Scene environment = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment,
+                OpenSceneMode.Additive);
+            Scene collapseScene = EditorSceneManager.OpenScene(
+                ScenePaths.k_GreenhouseInteriorEnvironment2,
+                OpenSceneMode.Additive);
+
+            try
+            {
+                GreenhouseStairCollapse collapse = FindRootComponent<GreenhouseStairCollapse>(collapseScene);
+                Assert.IsTrue(collapse != null);
+
+                var serializedCollapse = new SerializedObject(collapse);
+                GameObject rig = serializedCollapse.FindProperty("m_collapseRig").objectReferenceValue as GameObject;
+                Assert.IsTrue(rig != null);
+
+                Transform intact = environment.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                    .Single(item => item.name == "GreenhouseSpiralStair");
+
+                collapse.RestoreCollapsedState();
+                collapse.RestoreCollapsedState();
+
+                Assert.IsFalse(intact.gameObject.activeSelf);
+                Assert.IsTrue(rig.activeSelf);
+                Assert.AreEqual(0, rig.GetComponentsInChildren<Rigidbody>(true).Length,
+                    "Checkpoint restore must not rebuild debris physics.");
+
+                MeshFilter[] pieces = rig.GetComponentsInChildren<MeshFilter>(true);
+                MeshFilter lower = pieces.Single(piece => piece.name == "SpiralStair_Lower");
+                Assert.IsTrue(lower.gameObject.activeSelf);
+                Assert.AreEqual(LayerMask.NameToLayer("Ground"), lower.gameObject.layer);
+                Assert.IsTrue(lower.GetComponent<MeshCollider>() != null);
+                Assert.AreEqual(1, lower.GetComponents<MeshCollider>().Length,
+                    "Repeated restore must not add duplicate static colliders.");
+                Assert.IsTrue(pieces.Where(piece => piece != lower)
+                    .All(piece => !piece.gameObject.activeSelf),
+                    "Every upper fragment should already be gone in the restored aftermath.");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(collapseScene, true);
+                EditorSceneManager.CloseScene(environment, true);
+            }
+        }
+
+        [Test]
         public void Checkpoints_ReferenceLevelAndMatchDirectAnchors()
         {
             LevelSO level = AssetDatabase.LoadAssetAtPath<LevelSO>(k_LevelAssetPath);

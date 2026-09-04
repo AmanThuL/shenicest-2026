@@ -36,9 +36,9 @@ namespace RootsDance.Environment
     /// that reference anyway. Until a chunk is released it is a kinematic body on the Ground layer,
     /// so the player is standing on the fractured deck itself, not on an invisible stand-in; a
     /// released chunk ignores the player's capsule, so debris can never wall the player in. A
-    /// rescue restore where the flag is already up replays the swap at once and silently
-    /// (<see cref="IRescueStateRestoredParticipant"/>): there is nothing to warn about after the
-    /// fact, and the flag snapshot raises no events.
+    /// rescue restore where the flag is already up swaps straight to the static completed state
+    /// (<see cref="IRescueStateRestoredParticipant"/>): the lower stair remains, the fallen upper
+    /// pieces stay gone, and no debris physics is rebuilt after the fact.
     /// </para>
     /// </summary>
     public class GreenhouseStairCollapse : MonoBehaviour, IRescueStateRestoredParticipant
@@ -268,7 +268,7 @@ namespace RootsDance.Environment
             {
                 if (WorldAccess.State.HasFlag(m_collapseFlags[i]))
                 {
-                    Collapse();
+                    RestoreCollapsedState();
                     return;
                 }
             }
@@ -303,8 +303,8 @@ namespace RootsDance.Environment
 
         /// <summary>
         /// The played beat: warning, then the staged release, then the fall and its flag.
-        /// <see cref="Collapse"/> stays callable on its own for the rescue restore and the context
-        /// menu, where there is no one to warn.
+        /// <see cref="Collapse"/> stays callable on its own from the context menu, where there is
+        /// no one to warn.
         /// </summary>
         public void BeginCollapse()
         {
@@ -342,6 +342,77 @@ namespace RootsDance.Environment
             }
 
             FinishAsync(destroyCancellationToken);
+        }
+
+        /// <summary>
+        /// Restores the aftermath without recreating the collapse simulation. The lower stair is
+        /// the only surviving walkable piece; upper fragments already fell and therefore remain
+        /// hidden instead of receiving runtime colliders and rigidbodies.
+        /// </summary>
+        public void RestoreCollapsedState()
+        {
+            if (m_hasCollapsed || m_collapseRig == null)
+            {
+                return;
+            }
+
+            m_hasCollapsed = true;
+            Log.Info("[collapse] restored static aftermath", this);
+
+            GameObject intact = FindIntactStair();
+
+            if (intact != null)
+            {
+                intact.SetActive(false);
+            }
+            else
+            {
+                Log.Warning($"No '{m_intactStairName}' found to hide; the fractured twin will "
+                    + "overlap it.", this);
+            }
+
+            AlignRigToIntactStair(intact);
+            m_collapseRig.SetActive(true);
+
+            int groundLayer = LayerMask.NameToLayer(m_groundLayerName);
+            MeshFilter[] pieces = m_collapseRig.GetComponentsInChildren<MeshFilter>(true);
+
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                MeshFilter piece = pieces[i];
+
+                if (piece.gameObject.name != m_lowerPartName)
+                {
+                    piece.gameObject.SetActive(false);
+                    continue;
+                }
+
+                piece.gameObject.SetActive(true);
+
+                if (groundLayer >= 0)
+                {
+                    piece.gameObject.layer = groundLayer;
+                }
+
+                MeshCollider lowerCollider = piece.GetComponent<MeshCollider>();
+
+                if (lowerCollider == null)
+                {
+                    lowerCollider = piece.gameObject.AddComponent<MeshCollider>();
+                }
+
+                lowerCollider.sharedMesh = piece.sharedMesh;
+                lowerCollider.convex = false;
+            }
+
+            SetActive(m_warningEffects, false);
+            SetActive(m_collapseEffects, false);
+            SetTremor(0f);
+
+            if (m_roofShedding != null)
+            {
+                m_roofShedding.ShedInstantly();
+            }
         }
 
         private async void ChoreographyEntryAsync(CancellationToken cancellationToken)
