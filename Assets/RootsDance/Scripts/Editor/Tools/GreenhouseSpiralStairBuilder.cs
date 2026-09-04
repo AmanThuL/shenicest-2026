@@ -21,11 +21,15 @@ namespace RootsDance.EditorTools
     /// bounds of five objects inside the placed building whose coordinates in the source blend are
     /// known, solves the source-to-world map from them, and fits the stair's own bounding box onto
     /// the mapped one. Move or rescale the building, or re-export either mesh, and re-running this
-    /// still lands the stair correctly.
+    /// still lands the stair correctly — but only if asked to: once the stair already exists, the
+    /// measured transform is applied only when <c>overwriteTuned</c> is true, so a hand-tuned
+    /// placement (fixed by hand in the Editor after this tool last ran) survives a routine rerun.
     /// </para>
-    /// Menu: RootsDance > Place Greenhouse Spiral Stair, over whichever scenes are open.
-    /// Idempotent; marks the scene dirty and leaves saving to whoever ran it. <see cref="PlaceBatch"/>
-    /// is the headless version and covers every scene in <see cref="k_BatchScenes"/>.
+    /// Menu: RootsDance > Place Greenhouse Spiral Stair (safe rerun; leaves an existing placement
+    /// alone) and RootsDance > Place Greenhouse Spiral Stair (overwrite) (recomputes and resets it),
+    /// over whichever scenes are open. Idempotent; marks the scene dirty and leaves saving to
+    /// whoever ran it. <see cref="PlaceBatch"/> is the headless version and covers every scene in
+    /// <see cref="k_BatchScenes"/>.
     /// </summary>
     public static class GreenhouseSpiralStairBuilder
     {
@@ -101,7 +105,7 @@ namespace RootsDance.EditorTools
             {
                 Scene scene = EditorSceneManager.OpenScene(k_BatchScenes[i], OpenSceneMode.Single);
 
-                if (TryPlace())
+                if (TryPlace(overwriteTuned: false))
                 {
                     EditorSceneManager.SaveScene(scene);
                     Debug.Log($"GreenhouseSpiralStairBuilder: saved '{k_BatchScenes[i]}'.");
@@ -123,12 +127,32 @@ namespace RootsDance.EditorTools
         [MenuItem("RootsDance/Place Greenhouse Spiral Stair")]
         public static void Place()
         {
-            TryPlace();
+            TryPlace(overwriteTuned: false);
         }
 
-        /// <summary>Places the stair in whichever loaded scene holds the greenhouse.</summary>
-        /// <returns>True when the stair was placed; false after any logged error.</returns>
-        public static bool TryPlace()
+        [MenuItem("RootsDance/Place Greenhouse Spiral Stair (overwrite)")]
+        public static void PlaceOverwrite()
+        {
+            if (!EditorUtility.DisplayDialog("Place Greenhouse Spiral Stair",
+                "This recomputes the stair's position, rotation and scale from the measured "
+                    + "landmarks, discarding any hand adjustment made since the last run. Continue?",
+                "Overwrite", "Cancel"))
+            {
+                return;
+            }
+
+            TryPlace(overwriteTuned: true);
+        }
+
+        /// <summary>
+        /// Places the stair in whichever loaded scene holds the greenhouse. When the stair already
+        /// exists and <paramref name="overwriteTuned"/> is false, its transform is left exactly as
+        /// found — someone may have hand-fixed it since the last run — and only its material and
+        /// collider are ensured.
+        /// </summary>
+        /// <returns>True when the stair was placed (or already correctly wired); false after any
+        /// logged error.</returns>
+        public static bool TryPlace(bool overwriteTuned)
         {
             GameObject building = FindBuilding();
 
@@ -138,6 +162,18 @@ namespace RootsDance.EditorTools
                     + "scene. Open a scene that holds the greenhouse — GreenhouseInterior_Environment "
                     + "or Main_Environment — and run this again.");
                 return false;
+            }
+
+            GameObject existingStair = FindExistingStair(building);
+
+            if (existingStair != null && !overwriteTuned)
+            {
+                Debug.Log($"GreenhouseSpiralStairBuilder: '{k_ObjectName}' already exists in "
+                    + $"'{existingStair.scene.name}' — leaving its transform alone. Run "
+                    + "RootsDance > Place Greenhouse Spiral Stair (overwrite) to recompute it.");
+                EnsureCollider(existingStair);
+                AssignMaterial(existingStair);
+                return true;
             }
 
             Vector3[] landmarks = new Vector3[k_LandmarkNames.Length];
@@ -242,19 +278,7 @@ namespace RootsDance.EditorTools
             // the pivot sits inside the mesh is the pipeline's business, not this tool's.
             stair.transform.position = targetCentre - stair.transform.rotation * centreOffset;
 
-            MeshCollider meshCollider = stair.GetComponentInChildren<MeshCollider>();
-
-            if (meshCollider == null)
-            {
-                MeshFilter filter = stair.GetComponentInChildren<MeshFilter>();
-
-                if (filter != null)
-                {
-                    meshCollider = Undo.AddComponent<MeshCollider>(filter.gameObject);
-                    meshCollider.sharedMesh = filter.sharedMesh;
-                }
-            }
-
+            EnsureCollider(stair);
             AssignMaterial(stair);
             GameObjectUtility.SetStaticEditorFlags(stair, StaticEditorFlags.ContributeGI
                 | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic
@@ -367,19 +391,30 @@ namespace RootsDance.EditorTools
             return true;
         }
 
-        private static GameObject GetOrCreateStair(GameObject building)
+        /// <summary>
+        /// Looks up the stair already placed next to <paramref name="building"/>, without creating
+        /// one. Used to decide, before measuring anything, whether a non-overwrite run has nothing
+        /// to do.
+        /// </summary>
+        private static GameObject FindExistingStair(GameObject building)
         {
-            // A sibling of the building rather than a child of it: the building is a prefab
-            // instance, and parenting into one turns every future re-import into a merge.
             Transform parent = building.transform.parent;
             Transform existing = parent == null
                 ? FindRoot(building.scene, k_ObjectName)
                 : FindDescendant(parent, k_ObjectName);
+            return existing == null ? null : existing.gameObject;
+        }
+
+        private static GameObject GetOrCreateStair(GameObject building)
+        {
+            // A sibling of the building rather than a child of it: the building is a prefab
+            // instance, and parenting into one turns every future re-import into a merge.
+            GameObject existing = FindExistingStair(building);
 
             if (existing != null)
             {
                 Undo.RecordObject(existing.transform, "Place Greenhouse Spiral Stair");
-                return existing.gameObject;
+                return existing;
             }
 
             GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(k_StairMesh);
@@ -393,9 +428,25 @@ namespace RootsDance.EditorTools
 
             GameObject stair = (GameObject)PrefabUtility.InstantiatePrefab(source, building.scene);
             stair.name = k_ObjectName;
-            stair.transform.SetParent(parent, true);
+            stair.transform.SetParent(building.transform.parent, true);
             Undo.RegisterCreatedObjectUndo(stair, "Place Greenhouse Spiral Stair");
             return stair;
+        }
+
+        private static void EnsureCollider(GameObject stair)
+        {
+            MeshCollider meshCollider = stair.GetComponentInChildren<MeshCollider>();
+
+            if (meshCollider == null)
+            {
+                MeshFilter filter = stair.GetComponentInChildren<MeshFilter>();
+
+                if (filter != null)
+                {
+                    meshCollider = Undo.AddComponent<MeshCollider>(filter.gameObject);
+                    meshCollider.sharedMesh = filter.sharedMesh;
+                }
+            }
         }
 
         private static Transform FindRoot(Scene scene, string name)

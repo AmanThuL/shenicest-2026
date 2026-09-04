@@ -19,6 +19,20 @@ namespace RootsDance.Editor.Tools
     /// <summary>
     /// Builds the additive Briggs laboratory interior from the standardised plan and Garage source art.
     /// </summary>
+    /// <remarks>
+    /// <b>Not idempotent, unlike most Builders in this project.</b> <see cref="Build"/> creates the
+    /// environment and gameplay scenes from an empty scene
+    /// (<see cref="EditorSceneManager.NewScene(NewSceneSetup, NewSceneMode)"/>) and overwrites whatever
+    /// is on disk at <see cref="k_EnvironmentPath"/>/<see cref="k_GameplayPath"/> — there is no
+    /// per-object preservation to opt out of. Rerunning it after
+    /// <see cref="RootsDance.Editor.Environment.BriggsInteriorDressingBuilder"/>,
+    /// <see cref="RootsDance.Editor.Environment.BriggsInteriorAtmosphereBuilder"/> or any hand edit has
+    /// added content discards all of it, not just the level's own geometry — this is exactly what
+    /// happened on 2026-08-28/29 (commit 64792d1d and the four "restore Briggs …" commits that followed
+    /// it) and cost about three hours to hand-reconstruct from git history. This tool is a one-time
+    /// scaffold for a level that does not exist yet; once dressing, atmosphere or gameplay wiring has
+    /// been layered on top, treat it as retired, not as something to rerun to "pick up" a change.
+    /// </remarks>
     public static class BriggsInteriorLevelBuilder
     {
         private const string k_LevelName = "BriggsInterior";
@@ -73,6 +87,20 @@ namespace RootsDance.Editor.Tools
         [MenuItem("RootsDance/Build Briggs Interior Checkpoint Level")]
         private static void Build()
         {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(k_EnvironmentPath) != null
+                && !EditorUtility.DisplayDialog(
+                    "Build Briggs Interior Checkpoint Level",
+                    $"'{k_EnvironmentPath}' already exists. This tool rebuilds both level scenes from "
+                        + "an empty scene and overwrites them completely — every prop, atmosphere "
+                        + "setting and hand edit added since the level was first scaffolded is lost, "
+                        + "not just the geometry this tool owns. Continue only if you mean to discard "
+                        + "all of that and re-run the rest of the content pipeline afterward.",
+                    "Discard and Rebuild",
+                    "Cancel"))
+            {
+                return;
+            }
+
             ThrowIfAnyOpenSceneIsDirty();
 
             SceneSetup[] originalSetup = EditorSceneManager.GetSceneManagerSetup();

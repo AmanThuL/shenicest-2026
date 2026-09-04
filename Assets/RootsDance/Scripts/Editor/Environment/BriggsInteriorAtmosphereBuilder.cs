@@ -15,6 +15,16 @@ namespace RootsDance.Editor.Environment
     /// Adds a non-destructive interior look on top of the hand-assembled Briggs laboratory shell.
     /// This tool never rebuilds or moves the Garage source-art hierarchy.
     /// </summary>
+    /// <remarks>
+    /// The generated <c>_LabAtmosphere</c> hierarchy and every value on <c>BriggsInteriorProfile</c>
+    /// are owned by the constants in this file, not by the scene: <see cref="ApplyToLoadedScene"/>
+    /// deletes and recreates them from those constants on every run, by design, so the aggregate
+    /// pipeline can call it after props move without drifting. That only holds if this file stays the
+    /// single source of truth — <b>a value hand-tuned in the Inspector and saved to the scene does not
+    /// survive the next run; change the constant here instead.</b> The current values are the
+    /// user-confirmed "006b2dc" baseline, restored by hand after an earlier rerun reset it — see
+    /// <c>docs/design/02章BriggsInterior实验室室内设计与实现.md</c> for the reasoning behind them.
+    /// </remarks>
     public static class BriggsInteriorAtmosphereBuilder
     {
         private const string k_EnvironmentPath =

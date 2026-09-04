@@ -23,6 +23,7 @@ Folder names and asset naming are owned by [02 Project structure](./02-project-s
 13. **SHOULD** test a level by opening its parts additively and pressing Play there — `BootstrapLoader` adds `Bootstrap.unity` and `GameBootstrap` adopts the open level.
 14. **SHOULD** create new level parts from the `Settings/SceneTemplates/LevelPart.scenetemplate` template, never from the Basic template (it adds a Camera the bootstrap already owns).
 15. **NEVER** put `DontDestroyOnLoad` objects, a Unity `Camera` or an `AudioListener` in a content scene, nor geometry, lights, an APV or a Volume in `Bootstrap.unity`; **NEVER** reference `_Sandbox/` from a shipping scene or hand-edit/hand-merge `.unity`/`.prefab` YAML.
+16. **MUST** give a re-runnable Editor Builder (`[MenuItem("RootsDance/…")]`) an `overwriteTuned` bool gating every write to a value someone could have hand-tuned after the last run: `false` from the default menu entry and any headless/CI entry point, `true` only from a second `… (overwrite)` entry that confirms via `EditorUtility.DisplayDialog` first. Object creation and wiring may still happen unconditionally; already-set transform/material/profile values may not, unless `overwriteTuned` is true. → [Idempotent Builder scripts](#idempotent-builder-scripts-and-manual-overrides)
 
 ## Scene architecture
 
@@ -368,6 +369,16 @@ Git-level defences (Force Text, UnityYAMLMerge, LFS, branch model) are in [06](.
 - **MUST** keep a scene conflict out of the Editor: if `git merge develop` reports a conflict in a `.unity`/`.prefab`, follow the procedure in [06](./06-version-control.md) (UnityYAMLMerge, else the owner's side wins and the other person redoes the smaller change in the Editor). Scene files are never hand-merged. **[project decision 13]**
 - *Source:* [Smart merge](../reference/version-control/manual-smartmerge.md), [Scaling workflows, "Master the human element"](../reference/version-control/blog-scaling-workflows-lessons-from-medium-to-large-projects.md) ("Preventing the conflicts is usually a better strategy than trying to solve them").
 
+## Idempotent Builder scripts and manual overrides
+
+`Assets/RootsDance/Scripts/Editor/{Tools,Content,Environment,Audio,UI,Archive}/` holds ~130 procedural content scripts ("Builders") exposed as `[MenuItem("RootsDance/…")]` — they place props, wire narrative content, generate materials, build UI screens. Most are meant to be **re-run**: the source data changes (a landmark mesh moves, a chapter's dialogue is edited) and someone reruns the Builder to bring the scene back in sync. That is also exactly the situation that destroys a manual fix.
+
+- **MUST** treat a hand-tuned value inside content a Builder owns as at risk from the *next* run of that Builder — whether the tuning was done by hand-editing `.unity`/`.prefab` YAML (forbidden, AGENTS.md non-negotiable 16) or by the normal, sanctioned way of fixing something: opening the Editor, dragging the object, and saving the scene. **Both produce the same diff in git and are equally invisible to the Builder.** A Builder has no way to tell "this object's transform is stale because the source moved" from "someone hand-tuned this after the last run" unless the script itself is written to tell the difference.
+- **MUST** write every new re-runnable Builder with an `overwriteTuned` bool (TL;DR 16): `GetOrCreate…` may look up and reuse an existing object unconditionally, but only write a transform/material/profile value when the object was just created (`created == true`) or the caller passed `overwriteTuned: true`. Expose two menu entries — the plain one (`overwriteTuned: false`) for routine reruns, and a second `… (overwrite)` entry (`overwriteTuned: true`) gated behind `EditorUtility.DisplayDialog` naming what it discards — following `TimeOfDayBuilder.Build(bool overwriteTuned)` / `EnsureNightProfile` (`if (created || overwriteTuned)`), also used by `OpeningAtmosphereBuilder` and `Chapter00ZoneAtmosphereBuilder`.
+- **MUST** treat a Builder that has no `overwriteTuned` guard as safe to run only on a scene where nobody has hand-tuned its output since the last run — check the scene's recent history (`git log -- <scene>`) for fixes touching the same object before rerunning it, and add the guard rather than rerunning blind if you find one.
+- *Why:* `GreenhouseSpiralStairBuilder` always recomputes the stair's position/rotation/scale from measured landmarks on every run, by design ("re-running this still lands the stair correctly") — with no exemption for a value someone already fixed by hand. On 2026-08-30 a content Builder rerun on `GreenhouseInterior_Environment.unity` regenerated the scene between two manual fixes and silently reintroduced the same bug, requiring a second hand restore 64 minutes after the first (`0bbd4a54` → `603c77dd`, 11,988-line regen → `8092f2f9`). The Briggs interior scene shows the same shape of failure across a mesh re-export (`64792d1d` → four separate `restore Briggs …` commits the next day). Neither incident involved anyone breaking the "never hand-edit YAML" rule — both were normal Editor fixes, overwritten by a normal Editor tool rerun.
+- *Source:* [project decision, evidenced by this repo's history — see commits above].
+
 ## Daily integration routine
 
 Editor-side routine for every teammate and agent; the branch model (`main` = release line, `develop` = integration branch, task branches `<type>/<kebab-name>` from `develop`) and the matching Git commands are the "Branches, commits and cadence" section of [06](./06-version-control.md). **[project decision]**
@@ -419,6 +430,7 @@ Example: "patrolling enemy that drops a key in the Forest level".
 - ❌ `git add -A` after a Play session that dirtied three scenes → ✅ Discard the scenes you did not mean to change; stage files by name.
 - ❌ Renaming `Forest_Gameplay.unity` in Finder → ✅ rename in the Project window so the `.meta` follows.
 - ❌ Adding a **Scene List** override to `Windows-Dev` to include a test scene → ✅ sandbox scenes are opened directly in the Editor and never built.
+- ❌ Rerunning a content Builder on a scene "just to add the new stuff" without checking whether anyone hand-tuned its previous output → ✅ check `git log` on the scene for fixes since the last run, and give the Builder an `overwriteTuned` guard before rerunning it blind.
 
 ## Review checklist
 
@@ -433,6 +445,7 @@ Example: "patrolling enemy that drops a key in the Forest level".
 - [ ] Each commit contains one scene or prefab plus what it needs; no accidental dirty scenes; assets were moved/renamed inside the Editor (no orphan `.meta` changes).
 - [ ] Lighting Data / NavMesh data committed by the environment owner, in its own commit, in the PR that changed the scene; the scene-list change (if any) is in the PR that adds the level; build profiles do not override the scene list.
 - [ ] New scenes were created from `LevelPart.scenetemplate` and contain the standard group roots.
+- [ ] Any new re-runnable `[MenuItem("RootsDance/…")]` Builder that writes transform/material/profile values on an object it did not just create is gated by `overwriteTuned` (default menu entry `false`, a separate `… (overwrite)` entry `true` behind a confirmation dialog).
 
 ## Sources
 
