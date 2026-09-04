@@ -527,7 +527,7 @@ namespace RootsDance.Editor.Content
             // skip already exists for testing the wrong-cycle outburst directly; this one is for
             // testing the choice itself, so nothing about the three cycles can already be decided.
             EnsureConsoleCheckpoint(scene, console.position);
-            EnsureRebirthCheckpoint(scene, statue.position);
+            EnsureRebirthCheckpoint(scene, console.position, statue.position);
 
             // Either wrong cycle: the breath bed and the outburst start together, over the deck's
             // warning tremor. Nothing here raises the chase flag — the outburst's completion flag
@@ -658,15 +658,21 @@ namespace RootsDance.Editor.Content
         /// <summary>
         /// Dev Play checkpoint 03-06: the good choice, already made. Outer Boundary is raised on
         /// top of the console flags, so <c>GrowthCue</c> catches up to the finished bloom and the
-        /// statue stands reborn — the state to inspect, without replaying the 45 s growth. Placed
-        /// on the approach side of the statue, facing it.
+        /// statue stands reborn — the state to inspect, without replaying the 45 s growth. It uses
+        /// the same observation-deck position as Monster Chase so both late-greenhouse checkpoints
+        /// begin above the ground floor. Its own facing bisects the console and statue below, which
+        /// keeps the ending's two subjects as close to the opening frame as the narrow camera allows.
         /// </summary>
-        private static void EnsureRebirthCheckpoint(Scene scene, Vector3 statuePosition)
+        private static void EnsureRebirthCheckpoint(
+            Scene scene, Vector3 consolePosition, Vector3 statuePosition)
         {
             Transform anchors = EnsureRoot(scene, "_Anchors");
             Transform anchor = EnsureChild(anchors, k_RebirthCheckpointAnchorName);
-            anchor.SetPositionAndRotation(
-                statuePosition + new Vector3(0f, -0.35f, -3f), Quaternion.identity);
+            GreenhouseObservationDeckSpawn.ApplyTo(anchor);
+
+            Vector3 focus = (consolePosition + statuePosition) * 0.5f;
+            focus.y = anchor.position.y;
+            anchor.rotation = Quaternion.LookRotation(focus - anchor.position, Vector3.up);
 
             string assetPath = k_GreenhouseCheckpointFolder + "/03-06_Rebirth.asset";
             DevCheckpointSO checkpoint = AssetDatabase.LoadAssetAtPath<DevCheckpointSO>(assetPath);
@@ -686,7 +692,7 @@ namespace RootsDance.Editor.Content
                 LoadRequired<LevelSO>(k_GreenhouseLevelPath),
                 k_RebirthCheckpointAnchorName,
                 anchor.position,
-                yaw: 0f,
+                anchor.eulerAngles.y,
                 CheckpointTimeOfDay.LevelDefault,
                 flags,
                 new RootsDance.Investigation.InvestigationTargetSO[0],

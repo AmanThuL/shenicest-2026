@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 03-06 Rebirth
   m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
   m_anchorName: Checkpoint_Rebirth
-  m_position: {x: -5.741475, y: 10.235285, z: 133.16821}
-  m_yaw: 0
+  m_position: {x: -7.141821, y: 24.284605, z: 130.96289}
+  m_yaw: 27.361029
   m_snapToGround: 0
   m_groundLayers:
     serializedVersion: 2

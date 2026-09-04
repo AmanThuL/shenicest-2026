@@ -15,8 +15,8 @@ MonoBehaviour:
   m_label: 03-04 Monster Chase
   m_level: {fileID: 11400000, guid: a8119d2ccae71452e9da6be8195c276b, type: 2}
   m_anchorName: Checkpoint_ChaseStart
-  m_position: {x: 0, y: 1.05, z: 2}
-  m_yaw: 180
+  m_position: {x: -7.141821, y: 24.284605, z: 130.96289}
+  m_yaw: 155.52448
   m_snapToGround: 0
   m_groundLayers:
     serializedVersion: 2

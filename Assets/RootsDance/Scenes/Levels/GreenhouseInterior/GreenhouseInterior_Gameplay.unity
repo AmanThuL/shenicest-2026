@@ -178,7 +178,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 32239947}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
   m_LocalPosition: {x: -4.11, y: 17.81, z: 1.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -342,6 +342,10 @@ PrefabInstance:
       value: -0.19000098
       objectReference: {fileID: 0}
     - target: {fileID: 4281936329804335788, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.99759305
+      objectReference: {fileID: 0}
+    - target: {fileID: 4281936329804335788, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.25355718
       objectReference: {fileID: 0}
@@ -411,7 +415,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.9975927
+      value: -0.99759305
       objectReference: {fileID: 0}
     - target: {fileID: 8979133815423464653, guid: 4cdd650779b6e4469b809afb940da5d6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -511,6 +515,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.World.TerminalInspectController
   m_input: {fileID: 223790023}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_readingHint: "[\u9F20\u6807] \u9009\u62E9\u5FAA\u73AF  [E] \u79BB\u5F00\u7EC8\u7AEF"
   m_suspendedWhileReading:
   - {fileID: 223790022}
   - {fileID: 223790021}
@@ -520,7 +526,6 @@ MonoBehaviour:
   m_releaseCursorWhileReading: 1
   m_exitLockoutSeconds: 0.25
   m_arms: {fileID: 0}
-  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
 --- !u!114 &223790029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -535,6 +540,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Archive.DocumentInspectController
   m_holdAnchor: {fileID: 454632881}
   m_input: {fileID: 223790023}
+  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
+  m_readingHint: "[E] \u653E\u56DE  [W/S] \u51D1\u8FD1/\u62C9\u8FDC  [\u9F20\u6807]
+    \u8F6C\u52A8"
+  m_flipHint: "[\u5DE6\u952E] \u7FFB\u9762"
   m_suspendedWhileReading:
   - {fileID: 223790022}
   - {fileID: 223790021}
@@ -550,7 +559,6 @@ MonoBehaviour:
   m_readEulerOffset: {x: 0, y: 0, z: 0}
   m_raiseSeconds: 0.45
   m_lowerSeconds: 0.35
-  m_promptChanged: {fileID: 11400000, guid: be8c782bf9a3f4730937257476ea230c, type: 2}
   m_tooDarkHint: "\u592A\u6697\u4E86\uFF0C\u770B\u4E0D\u6E05\u2026\u2026"
   m_darkReadLuminance: 0.25
 --- !u!1 &365722240
@@ -2165,8 +2173,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1693848508}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.21196896, z: -0, w: 0.97727644}
-  m_LocalPosition: {x: -1.4888448, y: 0.98074484, z: 2.729327}
+  m_LocalRotation: {x: -0, y: 0.43708876, z: -0, w: 0.8994185}
+  m_LocalPosition: {x: -4.11, y: 17.81, z: 1.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
