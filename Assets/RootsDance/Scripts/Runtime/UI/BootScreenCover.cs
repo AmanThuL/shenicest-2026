@@ -84,24 +84,6 @@ namespace RootsDance.UI
             m_screen.Play();
         }
 
-        /// <summary>
-        /// Brings the cover up straight at its locked end state, whether or not the title sequence
-        /// has ever played. For holds that are loads rather than boots — a stream activating behind
-        /// a level that is already being played — where the title card would be wrong.
-        /// </summary>
-        public void ShowLocked()
-        {
-            SetSwitchedOn(true);
-            IsVisible = true;
-            SetProgress(0f);
-            HoldSeconds = 0f;
-
-            if (m_screen != null)
-            {
-                m_screen.ShowLocked();
-            }
-        }
-
         /// <summary>Fades the currently visible level to black before this cover is switched on.</summary>
         public async Awaitable FadeToBlackAsync(CancellationToken cancellationToken)
         {

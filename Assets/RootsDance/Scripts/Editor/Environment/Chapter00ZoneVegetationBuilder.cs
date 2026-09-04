@@ -37,7 +37,14 @@ namespace RootsDance.Editor.Environment
         [MenuItem(k_Menu)]
         public static void Build()
         {
-            BuildWith(Chapter00ZoneVegetationParams.CreateDefault());
+            Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
+
+            if (BuildWith(p) > 0)
+            {
+                // The groups are authoring output, not runtime content: left instanced they cost the
+                // scene a multi-second activation frame. See StreamedVegetationBaker.
+                StreamedVegetationBaker.Bake(SceneManager.GetSceneByPath(p.ScenePath), saveScene: false);
+            }
         }
 
         /// <summary>
@@ -72,6 +79,12 @@ namespace RootsDance.Editor.Environment
 
             AssetDatabase.SaveAssets();
             Debug.Log($"Chapter00ZoneVegetationBuilder: saved {placed} validated C00V_ instances.");
+
+            if (StreamedVegetationBaker.Bake(scene, saveScene: true) < 0)
+            {
+                throw new InvalidOperationException(
+                    "Chapter00ZoneVegetationBuilder: streamed vegetation bake failed after the build.");
+            }
         }
 
         /// <summary>Read-only batch validation of the installed PWB hierarchy and authored height ranges.</summary>
@@ -80,7 +93,23 @@ namespace RootsDance.Editor.Environment
             Chapter00ZoneVegetationParams p = Chapter00ZoneVegetationParams.CreateDefault();
             Scene scene;
 
-            if (!TryGetScene(p.ScenePath, out scene) || ValidateInstalled(p, scene, logSuccess: true) <= 0)
+            if (!TryGetScene(p.ScenePath, out scene))
+            {
+                throw new InvalidOperationException(
+                    "Chapter00ZoneVegetationBuilder: installed vegetation validation failed.");
+            }
+
+            // After a bake the groups live in the placement set, not the scene.
+            int streamed = StreamedVegetationBaker.CountStreamedItems(
+                FindDirectChild(null, Chapter00ZoneVegetationParams.k_PwbRootName, scene));
+
+            if (streamed > 0)
+            {
+                Debug.Log($"Chapter00ZoneVegetationBuilder: {streamed} C00V_ instances are baked as streamed content.");
+                return;
+            }
+
+            if (ValidateInstalled(p, scene, logSuccess: true) <= 0)
             {
                 throw new InvalidOperationException(
                     "Chapter00ZoneVegetationBuilder: installed vegetation validation failed.");
@@ -242,8 +271,9 @@ namespace RootsDance.Editor.Environment
             if (pwb == null) return;
             Dictionary<string, Transform> pins = EnsureOwnedPins(pwb);
             ClearOwnedInstances(pins.Values);
+            StreamedVegetationBaker.ClearSpawner(pwb);
             EditorSceneManager.MarkSceneDirty(scene);
-            Debug.Log("Chapter00ZoneVegetationBuilder: cleared C00V_ instances; scene was not saved.");
+            Debug.Log("Chapter00ZoneVegetationBuilder: cleared C00V_ instances and the streamed spawner; scene was not saved.");
         }
 
         private static bool Place(

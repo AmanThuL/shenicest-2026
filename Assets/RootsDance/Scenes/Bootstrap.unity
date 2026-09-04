@@ -240,6 +240,9 @@ MonoBehaviour:
   m_minimumCoverSeconds: 1.25
   m_settleFrames: 4
   m_additiveContentStreamed: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_scenePrebakes:
+  - ScenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
+    Set: {fileID: 11400000, guid: cdcf151586d4443dd92c9f5e840afdde, type: 2}
 --- !u!114 &797071105
 MonoBehaviour:
   m_ObjectHideFlags: 0

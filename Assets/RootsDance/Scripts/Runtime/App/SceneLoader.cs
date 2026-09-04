@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using RootsDance.Core;
 using RootsDance.Data;
+using RootsDance.Environment;
 using RootsDance.Events;
 using RootsDance.UI;
 using UnityEngine;
@@ -42,20 +43,34 @@ namespace RootsDance.App
         [Min(0)]
         [SerializeField] private int m_settleFrames = 4;
 
+        [Tooltip("Longest the cover waits for a level's deferred content (streamed props spawning "
+            + "over frames) to finish before revealing whatever is there, in unscaled seconds.")]
+        [Min(0f)]
+        [SerializeField] private float m_deferredContentTimeoutSeconds = 90f;
+
         [Header("Streaming")]
         [Tooltip("Raised with the scene path once an additive content stream finishes loading. "
             + "Listeners (e.g. a baked-sky reveal) react without polling scene load state themselves.")]
         [SerializeField] private StringEventChannelSO m_additiveContentStreamed;
+
+        [Tooltip("Collision meshes to cook on worker threads while each of these scenes loads, so its "
+            + "activation frame creates MeshColliders against cached data instead of cooking them "
+            + "itself. Scenes not listed here simply cook on activation as Unity always did.")]
+        [SerializeField] private ScenePrebake[] m_scenePrebakes = Array.Empty<ScenePrebake>();
+
+        [Serializable]
+        private struct ScenePrebake
+        {
+            public string ScenePath;
+            public CollisionPrebakeSet Set;
+        }
 
         private BootScreenCover m_cover;
 
         /// <summary>Scene paths already streamed in, so a second request for the same path is a no-op.</summary>
         private readonly HashSet<string> m_streamedScenePaths = new HashSet<string>();
 
-        /// <summary>
-        /// Additive loads started but deliberately left inactive (allowSceneActivation = false),
-        /// keyed by scene path. A stream request for one of these skips straight to activation.
-        /// </summary>
+        /// <summary>Additive streams in flight, keyed by scene path, so a repeat request is a no-op.</summary>
         private readonly Dictionary<string, AsyncOperation> m_pendingStreams = new Dictionary<string, AsyncOperation>();
 
         private bool m_isLoading;
@@ -146,22 +161,14 @@ namespace RootsDance.App
         }
 
         /// <summary>
-        /// Fire-and-forget entry point (called by the preload-request channel listener). Starts
-        /// loading one additive scene in the background and leaves it inactive, so that the eventual
-        /// <see cref="RequestStreamAdditiveContent"/> for the same path only has activation left to
-        /// pay behind the cover. Nothing is shown and nothing changes on screen; a scene already
-        /// streamed or already preloading is a no-op.
+        /// Fire-and-forget entry point (called by the preload-request channel listener). Same work
+        /// as <see cref="RequestStreamAdditiveContent"/>: the separate channel exists so content can
+        /// ask the moment it knows the scene will be needed, without a proximity trigger in the way.
+        /// The earlier the ask, the more of the stream lands while nothing is looking at it.
         /// </summary>
         public void RequestPreloadAdditiveContent(string scenePath)
         {
-            try
-            {
-                BeginPreload(scenePath);
-            }
-            catch (Exception exception)
-            {
-                Log.Exception(exception, this);
-            }
+            StreamAdditiveContentEntryAsync(scenePath, destroyCancellationToken);
         }
 
         /// <summary>
@@ -214,6 +221,7 @@ namespace RootsDance.App
             }
 
             m_isLoading = true;
+            List<CollisionPrebakeJob> levelPrebakes = new List<CollisionPrebakeJob>();
 
             try
             {
@@ -270,6 +278,18 @@ namespace RootsDance.App
                 beforeLoad?.Invoke();
                 SceneManager.sceneLoaded += OnSceneLoaded;
 
+                // Cook collision meshes on worker threads alongside the loads. Whatever is cooked by
+                // the time a scene activates is skipped by its colliders; the rest they cook as before.
+                for (int i = 0; i < paths.Count; i++)
+                {
+                    CollisionPrebakeJob prebake = SchedulePrebake(paths[i]);
+
+                    if (prebake != null)
+                    {
+                        levelPrebakes.Add(prebake);
+                    }
+                }
+
                 for (int i = 0; i < paths.Count; i++)
                 {
                     AsyncOperation load = SceneManager.LoadSceneAsync(paths[i], LoadSceneMode.Additive);
@@ -291,6 +311,12 @@ namespace RootsDance.App
             finally
             {
                 SceneManager.sceneLoaded -= OnSceneLoaded;
+
+                for (int i = 0; i < levelPrebakes.Count; i++)
+                {
+                    levelPrebakes[i].Complete();
+                }
+
                 m_isLoading = false;
                 Progress = 1f;
                 HideCover();
@@ -298,32 +324,30 @@ namespace RootsDance.App
         }
 
         /// <summary>
-        /// Starts the background half of an additive stream: Unity deserializes the scene on its
-        /// loading thread while gameplay carries on, and stops short of activation. Activation is the
-        /// half that cannot be hidden — every object in the scene is integrated on the main thread in
-        /// one go, which for Main_Environment (~1100 objects) is a multi-second frame — so it is
-        /// deferred until a stream request decides the cover can go up. Returns the operation to
-        /// activate, or null when the scene is already streamed.
+        /// Streams one scene in behind a playable level with nothing on screen to show for it. Every
+        /// heavy part is kept off the frame: deserialization on Unity's loading thread, collision
+        /// cooking on worker threads (see <see cref="m_scenePrebakes"/>), and the scene's own bulk
+        /// content spawned over frames by its <see cref="IDeferredContent"/>. What is left for the
+        /// activation frame is registering the scene's remaining objects — measured at ~60 ms in the
+        /// Editor for Main_Environment once its vegetation was baked out, small enough to hide in a
+        /// frame the player is already in. Returns without doing anything for a scene already
+        /// streamed or already in flight.
         /// </summary>
-        private AsyncOperation BeginPreload(string scenePath)
+        private async Awaitable LoadAdditiveContentInternalAsync(string scenePath, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(scenePath))
             {
                 throw new ArgumentException("Scene path is empty.", nameof(scenePath));
             }
 
-            if (m_pendingStreams.TryGetValue(scenePath, out AsyncOperation pending))
-            {
-                return pending;
-            }
-
-            if (m_streamedScenePaths.Contains(scenePath) || SceneManager.GetSceneByPath(scenePath).isLoaded)
+            if (m_streamedScenePaths.Contains(scenePath) || m_pendingStreams.ContainsKey(scenePath)
+                || SceneManager.GetSceneByPath(scenePath).isLoaded)
             {
                 // Several triggers guard the same corridor; the first one wins, the rest are quiet.
-                return null;
+                return;
             }
 
-            Log.Info($"Preloading additive content: {scenePath}", this);
+            Log.Info($"Streaming additive content: {scenePath}", this);
             AsyncOperation load = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
 
             if (load == null)
@@ -333,65 +357,63 @@ namespace RootsDance.App
 
             // Registered before anything can yield: a second request for the same path in a later
             // frame finds this entry instead of starting a second concurrent load of the same scene.
+            // Activation is held back so it can wait for the collision cook rather than race it.
             load.allowSceneActivation = false;
             m_pendingStreams.Add(scenePath, load);
-            return load;
-        }
-
-        private async Awaitable LoadAdditiveContentInternalAsync(string scenePath, CancellationToken cancellationToken)
-        {
-            AsyncOperation load = BeginPreload(scenePath);
-
-            if (load == null)
-            {
-                return;
-            }
-
-            // Claimed now, so a request arriving while activation is in flight is a no-op rather
-            // than a second activation of the same operation.
-            m_pendingStreams.Remove(scenePath);
-            m_streamedScenePaths.Add(scenePath);
-
-            // The cover goes up for activation only. The stream was written for a seamless reveal —
-            // exterior geometry appearing behind the player with nothing on screen — but activation
-            // of this scene is a single main-thread frame measured at 3-11 seconds in the Editor, far
-            // past anything a live frame can absorb, and no amount of "async" moves it off the main
-            // thread. Covering it is the honest trade until the scene itself is cheaper to activate.
-            EnsureCover();
-            ShowCoverLocked();
+            CollisionPrebakeJob prebake = SchedulePrebake(scenePath);
 
             try
             {
-                // Named once: an additive stream is content appearing behind a playable level, and
-                // when it arrives at the wrong time this line is what says it happened.
-                Log.Info($"Streaming additive content: {scenePath}", this);
+                // Unity parks an un-activatable load at 0.9 once deserialization is done.
+                while (load.progress < 0.9f || (prebake != null && !prebake.IsCompleted))
+                {
+                    await Awaitable.NextFrameAsync();
+                }
+
+                prebake?.Complete();
+                prebake = null;
                 load.allowSceneActivation = true;
 
                 // Unity scene operations cannot be cancelled — finish the load before honoring
                 // cancellation so a retry can never race an unfinished one.
                 while (!load.isDone)
                 {
-                    Report(0, 1, load.progress);
                     await Awaitable.NextFrameAsync();
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // isLoaded flips a frame before the activation spike actually lands, so the cover has
-                // to outlive it — the same settle the level path uses, minimum hold included, so a
-                // fast machine never sees the cover flash for two frames.
-                await SettleAsync(cancellationToken);
-
-                if (m_additiveContentStreamed != null)
-                {
-                    m_additiveContentStreamed.RaiseEvent(scenePath);
                 }
             }
             finally
             {
-                // Never leave the cover up over a playable game, however this exits.
-                HideCover();
+                prebake?.Complete();
+                m_pendingStreams.Remove(scenePath);
             }
+
+            m_streamedScenePaths.Add(scenePath);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // isLoaded flips a frame before the scene's first Awake/Start frame; give listeners the
+            // same settle the level path gets before telling them the content is there.
+            for (int i = 0; i < m_settleFrames; i++)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+
+            if (m_additiveContentStreamed != null)
+            {
+                m_additiveContentStreamed.RaiseEvent(scenePath);
+            }
+        }
+
+        private CollisionPrebakeJob SchedulePrebake(string scenePath)
+        {
+            for (int i = 0; i < m_scenePrebakes.Length; i++)
+            {
+                if (m_scenePrebakes[i].ScenePath == scenePath && m_scenePrebakes[i].Set != null)
+                {
+                    return CollisionPrebakeJob.Schedule(m_scenePrebakes[i].Set);
+                }
+            }
+
+            return null;
         }
 
         private async void StreamAdditiveContentEntryAsync(string scenePath, CancellationToken cancellationToken)
@@ -449,6 +471,8 @@ namespace RootsDance.App
                 await Awaitable.NextFrameAsync(cancellationToken);
             }
 
+            await WaitForDeferredContentAsync(cancellationToken);
+
             // The cover's own hold wins when it is longer: at game start the boot sequence has a
             // title card to finish, and cutting it off halfway is worse than a slightly long wait.
             float hold = Mathf.Max(m_minimumCoverSeconds, m_cover == null ? 0f : m_cover.HoldSeconds);
@@ -457,6 +481,42 @@ namespace RootsDance.App
             {
                 await Awaitable.NextFrameAsync(cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// Lets a level's streamed content (see <see cref="DeferredContent"/>) finish behind the cover
+        /// at its covered budget, so the reveal is a complete level rather than props popping in. Times
+        /// out rather than hang on content that never completes; whatever spawned by then is shown.
+        /// </summary>
+        private async Awaitable WaitForDeferredContentAsync(CancellationToken cancellationToken)
+        {
+            if (DeferredContent.AllComplete)
+            {
+                return;
+            }
+
+            float deadline = Time.realtimeSinceStartup + m_deferredContentTimeoutSeconds;
+            DeferredContent.SetCovered(true);
+
+            try
+            {
+                while (!DeferredContent.AllComplete && Time.realtimeSinceStartup < deadline)
+                {
+                    Report(0, 1, DeferredContent.Progress);
+                    await Awaitable.NextFrameAsync(cancellationToken);
+                }
+
+                if (!DeferredContent.AllComplete)
+                {
+                    Log.Warning("Deferred content did not complete before the cover timeout; revealing anyway.", this);
+                }
+            }
+            finally
+            {
+                DeferredContent.SetCovered(false);
+            }
+
+            Report(1, 1, 1f);
         }
 
         private void Report(int completedSteps, int stepCount, float currentStepProgress)
@@ -488,28 +548,6 @@ namespace RootsDance.App
             }
 
             m_cover.Show();
-        }
-
-        /// <summary>
-        /// Brings the cover up already at its locked end state, never playing the title sequence:
-        /// the mid-level hold around a stream activation is a load, not a boot, and a session that
-        /// started from an adopted Editor scene has never shown the cover before.
-        /// </summary>
-        private void ShowCoverLocked()
-        {
-            EnsureCover();
-
-            if (m_cover == null)
-            {
-                return;
-            }
-
-            if (!m_cover.IsVisible)
-            {
-                m_coverShownAt = Time.realtimeSinceStartup;
-            }
-
-            m_cover.ShowLocked();
         }
 
         private void HideCover()
