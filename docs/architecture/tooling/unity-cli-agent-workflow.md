@@ -213,6 +213,7 @@ return sb.ToString();
 6. **MUST** leave `git status --short` unchanged by a debugging session (scenes, assets, `Packages/`, `ProjectSettings/`).
 7. **MUST** treat `eval` as arbitrary code on the main thread — the same care as running an Editor script.
 8. **MUST** `recompile` at most once per edit cycle, poll `recompile_status`, expect the server to be down during reloads, and wrap every call in `timeout`.
+9. **MUST** check `editor_status.playMode` before `recompile` too, not just before scene changes (rule 1) — `recompile` calls `AssetDatabase.Refresh()` unconditionally, with no check on Play mode, and interrupts anyone (human or another agent) currently playing on the shared Editor. If `playMode` is `playing`, coordinate before recompiling instead of forcing the reload.
 
 ## 11. Timings (one machine, 2026-08-25)
 
