@@ -27,6 +27,11 @@ namespace RootsDance.Environment
         [Tooltip("Data/Events/StreamSceneRequested — the bootstrap's additive-content channel.")]
         [SerializeField] private StringEventChannelSO m_streamSceneRequested;
 
+        [Tooltip("Data/Events/PreloadSceneRequested — asks the bootstrap to load the scene in the "
+            + "background now and hold it inactive, so the stream request later only pays for "
+            + "activation. Empty means no preload: the stream request loads everything itself.")]
+        [SerializeField] private StringEventChannelSO m_preloadSceneRequested;
+
         [Tooltip("Full asset path of the scene to stream in (see RootsDance.App.ScenePaths).")]
         [SerializeField] private string m_scenePath;
 
@@ -58,6 +63,27 @@ namespace RootsDance.Environment
                 return;
             }
 
+            Fire();
+        }
+
+        /// <summary>
+        /// Asks for the scene to be loaded in the background now, without activating it and without
+        /// firing this trigger. Called by <see cref="GreenhouseExitArmer"/> the moment the branch arms,
+        /// so that by the time the player reaches this corridor the only cost left is activation.
+        /// Harmless to call more than once — <see cref="SceneLoader"/> dedupes preloads itself.
+        /// </summary>
+        public void RequestPreload()
+        {
+            if (m_hasFired || m_preloadSceneRequested == null || string.IsNullOrEmpty(m_scenePath))
+            {
+                return;
+            }
+
+            m_preloadSceneRequested.RaiseEvent(m_scenePath);
+        }
+
+        private void Fire()
+        {
             if (m_streamSceneRequested == null || string.IsNullOrEmpty(m_scenePath))
             {
                 Log.Warning("ExteriorStreamTrigger is missing its channel or scene path.", this);

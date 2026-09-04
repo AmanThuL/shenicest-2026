@@ -26,6 +26,10 @@ namespace RootsDance.App
             + "windows) without unloading or covering the current level. Payload is a scene path.")]
         [SerializeField] private StringEventChannelSO m_streamSceneRequested;
 
+        [Tooltip("Asks for an additive content stream to be loaded ahead of time but left inactive, "
+            + "so the later stream request has only activation left to pay. Payload is a scene path.")]
+        [SerializeField] private StringEventChannelSO m_preloadSceneRequested;
+
         [Header("Broadcasts on")]
         [Tooltip("Every world flag, the first time it is raised. Content scenes listen here instead "
             + "of reaching into the world state, so load order stops mattering.")]
@@ -135,6 +139,11 @@ namespace RootsDance.App
             {
                 m_streamSceneRequested.EventRaised += OnStreamSceneRequested;
             }
+
+            if (m_preloadSceneRequested != null)
+            {
+                m_preloadSceneRequested.EventRaised += OnPreloadSceneRequested;
+            }
         }
 
         private void Start()
@@ -205,6 +214,11 @@ namespace RootsDance.App
             {
                 m_streamSceneRequested.EventRaised -= OnStreamSceneRequested;
             }
+
+            if (m_preloadSceneRequested != null)
+            {
+                m_preloadSceneRequested.EventRaised -= OnPreloadSceneRequested;
+            }
         }
 
         private void OnDestroy()
@@ -273,6 +287,17 @@ namespace RootsDance.App
             }
 
             m_sceneLoader.RequestStreamAdditiveContent(scenePath);
+        }
+
+        private void OnPreloadSceneRequested(string scenePath)
+        {
+            if (m_sceneLoader == null)
+            {
+                Log.Error("No SceneLoader assigned on GameBootstrap.", this);
+                return;
+            }
+
+            m_sceneLoader.RequestPreloadAdditiveContent(scenePath);
         }
     }
 }

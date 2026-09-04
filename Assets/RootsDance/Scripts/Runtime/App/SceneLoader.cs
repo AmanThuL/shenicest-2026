@@ -52,6 +52,12 @@ namespace RootsDance.App
         /// <summary>Scene paths already streamed in, so a second request for the same path is a no-op.</summary>
         private readonly HashSet<string> m_streamedScenePaths = new HashSet<string>();
 
+        /// <summary>
+        /// Additive loads started but deliberately left inactive (allowSceneActivation = false),
+        /// keyed by scene path. A stream request for one of these skips straight to activation.
+        /// </summary>
+        private readonly Dictionary<string, AsyncOperation> m_pendingStreams = new Dictionary<string, AsyncOperation>();
+
         private bool m_isLoading;
 
         /// <summary>One warning per session about a missing cover, not one per scene change.</summary>
@@ -137,6 +143,25 @@ namespace RootsDance.App
         public void RequestStreamAdditiveContent(string scenePath)
         {
             StreamAdditiveContentEntryAsync(scenePath, destroyCancellationToken);
+        }
+
+        /// <summary>
+        /// Fire-and-forget entry point (called by the preload-request channel listener). Starts
+        /// loading one additive scene in the background and leaves it inactive, so that the eventual
+        /// <see cref="RequestStreamAdditiveContent"/> for the same path only has activation left to
+        /// pay behind the cover. Nothing is shown and nothing changes on screen; a scene already
+        /// streamed or already preloading is a no-op.
+        /// </summary>
+        public void RequestPreloadAdditiveContent(string scenePath)
+        {
+            try
+            {
+                BeginPreload(scenePath);
+            }
+            catch (Exception exception)
+            {
+                Log.Exception(exception, this);
+            }
         }
 
         /// <summary>
@@ -272,22 +297,33 @@ namespace RootsDance.App
             }
         }
 
-        private async Awaitable LoadAdditiveContentInternalAsync(string scenePath, CancellationToken cancellationToken)
+        /// <summary>
+        /// Starts the background half of an additive stream: Unity deserializes the scene on its
+        /// loading thread while gameplay carries on, and stops short of activation. Activation is the
+        /// half that cannot be hidden — every object in the scene is integrated on the main thread in
+        /// one go, which for Main_Environment (~1100 objects) is a multi-second frame — so it is
+        /// deferred until a stream request decides the cover can go up. Returns the operation to
+        /// activate, or null when the scene is already streamed.
+        /// </summary>
+        private AsyncOperation BeginPreload(string scenePath)
         {
             if (string.IsNullOrEmpty(scenePath))
             {
                 throw new ArgumentException("Scene path is empty.", nameof(scenePath));
             }
 
+            if (m_pendingStreams.TryGetValue(scenePath, out AsyncOperation pending))
+            {
+                return pending;
+            }
+
             if (m_streamedScenePaths.Contains(scenePath) || SceneManager.GetSceneByPath(scenePath).isLoaded)
             {
                 // Several triggers guard the same corridor; the first one wins, the rest are quiet.
-                return;
+                return null;
             }
 
-            // Named once: an additive stream is content appearing behind a playable level, and
-            // when it arrives at the wrong time this line is what says it happened.
-            Log.Info($"Streaming additive content: {scenePath}", this);
+            Log.Info($"Preloading additive content: {scenePath}", this);
             AsyncOperation load = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
 
             if (load == null)
@@ -295,20 +331,66 @@ namespace RootsDance.App
                 throw new InvalidOperationException("Unity could not start the requested scene operation.");
             }
 
-            // Unity scene operations cannot be cancelled — finish the load before honoring
-            // cancellation so a retry can never race an unfinished one.
-            while (!load.isDone)
+            // Registered before anything can yield: a second request for the same path in a later
+            // frame finds this entry instead of starting a second concurrent load of the same scene.
+            load.allowSceneActivation = false;
+            m_pendingStreams.Add(scenePath, load);
+            return load;
+        }
+
+        private async Awaitable LoadAdditiveContentInternalAsync(string scenePath, CancellationToken cancellationToken)
+        {
+            AsyncOperation load = BeginPreload(scenePath);
+
+            if (load == null)
             {
-                await Awaitable.NextFrameAsync();
+                return;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
+            // Claimed now, so a request arriving while activation is in flight is a no-op rather
+            // than a second activation of the same operation.
+            m_pendingStreams.Remove(scenePath);
             m_streamedScenePaths.Add(scenePath);
 
-            if (m_additiveContentStreamed != null)
+            // The cover goes up for activation only. The stream was written for a seamless reveal —
+            // exterior geometry appearing behind the player with nothing on screen — but activation
+            // of this scene is a single main-thread frame measured at 3-11 seconds in the Editor, far
+            // past anything a live frame can absorb, and no amount of "async" moves it off the main
+            // thread. Covering it is the honest trade until the scene itself is cheaper to activate.
+            EnsureCover();
+            ShowCoverLocked();
+
+            try
             {
-                m_additiveContentStreamed.RaiseEvent(scenePath);
+                // Named once: an additive stream is content appearing behind a playable level, and
+                // when it arrives at the wrong time this line is what says it happened.
+                Log.Info($"Streaming additive content: {scenePath}", this);
+                load.allowSceneActivation = true;
+
+                // Unity scene operations cannot be cancelled — finish the load before honoring
+                // cancellation so a retry can never race an unfinished one.
+                while (!load.isDone)
+                {
+                    Report(0, 1, load.progress);
+                    await Awaitable.NextFrameAsync();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // isLoaded flips a frame before the activation spike actually lands, so the cover has
+                // to outlive it — the same settle the level path uses, minimum hold included, so a
+                // fast machine never sees the cover flash for two frames.
+                await SettleAsync(cancellationToken);
+
+                if (m_additiveContentStreamed != null)
+                {
+                    m_additiveContentStreamed.RaiseEvent(scenePath);
+                }
+            }
+            finally
+            {
+                // Never leave the cover up over a playable game, however this exits.
+                HideCover();
             }
         }
 
@@ -406,6 +488,28 @@ namespace RootsDance.App
             }
 
             m_cover.Show();
+        }
+
+        /// <summary>
+        /// Brings the cover up already at its locked end state, never playing the title sequence:
+        /// the mid-level hold around a stream activation is a load, not a boot, and a session that
+        /// started from an adopted Editor scene has never shown the cover before.
+        /// </summary>
+        private void ShowCoverLocked()
+        {
+            EnsureCover();
+
+            if (m_cover == null)
+            {
+                return;
+            }
+
+            if (!m_cover.IsVisible)
+            {
+                m_coverShownAt = Time.realtimeSinceStartup;
+            }
+
+            m_cover.ShowLocked();
         }
 
         private void HideCover()

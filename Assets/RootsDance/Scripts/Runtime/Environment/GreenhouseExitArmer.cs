@@ -58,6 +58,7 @@ namespace RootsDance.Environment
             }
 
             bool armed = state.HasFlag(WorldFlags.k_ChaseStarted);
+            bool justArmed = armed && !(m_hasApplied && m_appliedArmed);
 
             if (m_hasApplied && armed == m_appliedArmed)
             {
@@ -89,8 +90,36 @@ namespace RootsDance.Environment
                 }
             }
 
+            if (justArmed)
+            {
+                RequestExteriorPreload();
+            }
+
             m_hasApplied = true;
             m_appliedArmed = armed;
+        }
+
+        /// <summary>
+        /// Starts loading the exterior in the background the moment the branch arms, instead of
+        /// waiting for the player to physically reach a corridor trigger. The scene stays inactive —
+        /// nothing appears and no frame is lost — so that when a trigger does fire, all that is left
+        /// is activation behind the cover. One trigger is enough: SceneLoader dedupes preloads.
+        /// </summary>
+        private void RequestExteriorPreload()
+        {
+            if (m_streamTriggers == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < m_streamTriggers.Length; i++)
+            {
+                if (m_streamTriggers[i] != null)
+                {
+                    m_streamTriggers[i].RequestPreload();
+                    return;
+                }
+            }
         }
 
         private void Discover()

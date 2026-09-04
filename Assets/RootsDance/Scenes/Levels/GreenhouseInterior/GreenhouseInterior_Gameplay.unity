@@ -302,6 +302,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &181191455
@@ -1030,6 +1031,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &966730030
@@ -1143,6 +1145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &990513780
@@ -1488,6 +1491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &1344504687
@@ -1729,6 +1733,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &1437064355
@@ -1798,6 +1803,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &1446117408
@@ -2094,6 +2100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &1627698240
@@ -2554,6 +2561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RootsDance.Runtime::RootsDance.Environment.ExteriorStreamTrigger
   m_streamSceneRequested: {fileID: 11400000, guid: b325a042e1fbe447499acb24df9984e6, type: 2}
+  m_preloadSceneRequested: {fileID: 11400000, guid: d57db1f1c4404726a45e1963efc84b91, type: 2}
   m_scenePath: Assets/RootsDance/Scenes/Levels/Main/Main_Environment.unity
   m_requiredFlag: flow.chase_started
 --- !u!65 &2146168048
