@@ -154,7 +154,7 @@ namespace RootsDance.Editor.Environment
 
                         if (item.GetComponentInChildren<MonoBehaviour>(true) != null)
                         {
-                            item.SetParent(group.parent, true);
+                            KeepInScene(item, group.parent);
                             kept++;
                             continue;
                         }
@@ -217,6 +217,27 @@ namespace RootsDance.Editor.Environment
                 + " collision meshes); " + kept + " scripted item(s) kept in the scene."
                 + (saveScene ? " Scene saved." : " Scene is dirty and has NOT been saved."));
             return prototypeIndices.Count;
+        }
+
+        /// <summary>
+        /// A scripted item cannot be streamed (a placement carries no per-instance data) and cannot be
+        /// moved out of its group either: a child of a prefab instance stays part of that instance
+        /// whatever its parent is, and dies with the group. So it is copied — a plain, fully unpacked
+        /// object under the group's PIN at the same world transform — and the original goes with the
+        /// group. Every serialized field (scan target, report result, materials) survives the copy.
+        /// </summary>
+        private static void KeepInScene(Transform item, Transform parent)
+        {
+            GameObject copy = UnityEngine.Object.Instantiate(item.gameObject, parent);
+
+            if (PrefabUtility.IsPartOfPrefabInstance(copy))
+            {
+                PrefabUtility.UnpackPrefabInstance(copy, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            }
+
+            copy.name = item.name;
+            copy.transform.SetPositionAndRotation(item.position, item.rotation);
+            copy.transform.localScale = item.localScale;
         }
 
         /// <summary>Removes the spawner the bake installs; used by the vegetation builder's Clear.</summary>
